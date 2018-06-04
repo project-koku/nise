@@ -1,0 +1,15 @@
+[[source]]
+url = "https://pypi.python.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+setuptools = "*"
+
+[dev-packages]
+pylint = "==1.9.1"
+tox = ">=3.0.0"
+coverage = ">=4.5.0"
+
+[requires]
+python_version = "3.6"
