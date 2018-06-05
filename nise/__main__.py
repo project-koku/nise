@@ -3,11 +3,13 @@
 import argparse
 import datetime
 
+from nise.report import create_report
+
 
 def valid_date(date_string):
     """Create date from date string."""
     try:
-        valid = datetime.datetime.strptime(date_string, '%m-%d-%Y').date()
+        valid = datetime.datetime.strptime(date_string, '%m-%d-%Y')
     except ValueError:
         msg = '{} is an unsupported date format.'.format(date_string)
         raise argparse.ArgumentTypeError(msg)
@@ -16,7 +18,7 @@ def valid_date(date_string):
 
 def today():
     """Create the date of today."""
-    return datetime.datetime.now()
+    return datetime.datetime.now().replace(microsecond=0, second=0, minute=0)
 
 
 def create_parser():
@@ -30,7 +32,7 @@ def create_parser():
                         help='Date to start generating data (MM-DD-YYYY)')
     parser.add_argument('--end-date',
                         metavar='DATE',
-                        dest='start_date',
+                        dest='end_date',
                         required=False,
                         type=valid_date,
                         default=today(),
@@ -48,7 +50,8 @@ def main():
     """Run data generation program."""
     parser = create_parser()
     args = parser.parse_args()
-    print(args)
+    options = vars(args)
+    create_report(args.output_file, options)
 
 
 if __name__ == '__main__':

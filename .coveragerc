@@ -12,7 +12,7 @@ omit =
   *wsgi.py
   *migrations/*
   *test/*
-  */tests_*.py
+  */test_*.py
 
 [paths]
 source = nise
