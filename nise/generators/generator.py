@@ -1,6 +1,7 @@
 """Defines the abstract generator."""
 import datetime
 from abc import ABC, abstractmethod
+from random import choice
 
 from faker import Faker
 
@@ -81,6 +82,15 @@ COLUMNS = (IDENTITY_COLS + BILL_COLS + LINE_ITEM_COLS +
 class AbstractGenerator(ABC):
     """Defines a abstract class for generators."""
 
+    REGIONS = (
+        ('US East (N. Virginia)', 'us-east-1a', 'USE1-EBS'),
+        ('US East (N. Virginia)', 'us-east-1b', 'USE1-EBS'),
+        ('US West (N. California)', 'us-west-1a', 'USW1-EBS'),
+        ('US West (N. California)', 'us-west-1b', 'USW1-EBS'),
+        ('US West (Oregon)', 'us-west-2a', 'USW2-EBS'),
+        ('US West (Oregon)', 'us-west-2b', 'USW2-EBS'),
+    )
+
     def __init__(self, start_date, end_date, payer_account):
         """Initialize the generator."""
         self.start_date = start_date
@@ -118,6 +128,14 @@ class AbstractGenerator(ABC):
         return in_date.strftime('%Y-%m-%dT%H:%M:%SZ')
 
     @staticmethod
+    def time_interval(start, end):
+        """Create a time interval string from input dates."""
+        start_str = AbstractGenerator.timestamp(start)
+        end_str = AbstractGenerator.timestamp(end)
+        time_interval = str(start_str) + '/' + str(end_str)
+        return time_interval
+
+    @staticmethod
     def next_month(in_date):
         """Return the first of the next month from the in_date."""
         dt_first = in_date.replace(day=1)
@@ -143,10 +161,7 @@ class AbstractGenerator(ABC):
                 # pylint: disable=no-member
                 row[column] = self.fake.sha1(raw_output=False)
             elif column == 'identity/TimeInterval':
-                start_str = AbstractGenerator.timestamp(start)
-                end_str = AbstractGenerator.timestamp(end)
-                time_interval = str(start_str) + '/' + str(end_str)
-                row[column] = time_interval
+                row[column] = AbstractGenerator.time_interval(start, end)
             elif column == 'bill/BillingEntity':
                 row[column] = 'AWS'
             elif column == 'bill/BillType':
@@ -159,10 +174,35 @@ class AbstractGenerator(ABC):
                 row[column] = AbstractGenerator.timestamp(bill_end)
         return row
 
+    def _get_location(self):
+        """Pick instance location."""
+        return choice(self.REGIONS)
+
+    def _add_common_usage_info(self, row, start):
+        """Add common usage information."""
+        usage_start = start.replace(microsecond=0, second=0, minute=0, hour=0, day=1)
+        usage_end = AbstractGenerator.next_month(usage_start)
+        row['lineItem/UsageAccountId'] = self.payer_account
+        row['lineItem/LineItemType'] = 'Usage'
+        row['lineItem/UsageStartDate'] = usage_start
+        row['lineItem/UsageEndDate'] = usage_end
+        return row
+
     @abstractmethod
     def _update_data(self, row, start, end):
         """Update data with generator specific data."""
         pass
+
+    def _generate_hourly_data(self):
+        """Create houldy data."""
+        data = []
+        for hour in self.hours:
+            start = hour.get('start')
+            end = hour.get('end')
+            row = self._init_data_row(start, end)
+            row = self._update_data(row, start, end)
+            data.append(row)
+        return data
 
     @abstractmethod
     def generate_data(self):
