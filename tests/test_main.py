@@ -1,5 +1,6 @@
-from nise.__main__ import create_parser, main
 from unittest import TestCase
+
+from nise.__main__ import create_parser, main
 
 
 class CommandLineTestCase(TestCase):

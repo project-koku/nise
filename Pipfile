@@ -5,6 +5,7 @@ name = "pypi"
 
 [packages]
 setuptools = "*"
+faker = "*"
 
 [dev-packages]
 pylint = "==1.9.1"
