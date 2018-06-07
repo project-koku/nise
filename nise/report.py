@@ -3,7 +3,11 @@ import csv
 
 from faker import Faker
 
-from nise.generators import COLUMNS, EC2Generator
+from nise.generators import (COLUMNS,
+                             DataTransferGenerator,
+                             EBSGenerator,
+                             EC2Generator,
+                             S3Generator)
 
 
 def _write_csv(output_file, data, header=COLUMNS):
@@ -17,7 +21,7 @@ def _write_csv(output_file, data, header=COLUMNS):
 
 def create_report(output_file, options):
     """Create a cost usage report file."""
-    generators = [EC2Generator]
+    generators = [DataTransferGenerator, EBSGenerator, EC2Generator, S3Generator]
     data = []
     start_date = options.get('start_date')
     end_date = options.get('end_date')

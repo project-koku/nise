@@ -19,24 +19,11 @@ class EC2Generator(AbstractGenerator):
          '0.133', '0.133', '${} per On Demand Linux {} Instance Hour')
     )
 
-    REGIONS = (
-        ('US East (N. Virginia)', 'us-east-1a'),
-        ('US East (N. Virginia)', 'us-east-1b'),
-        ('US West (N. California)', 'us-west-1a'),
-        ('US West (N. California)', 'us-west-1b'),
-        ('US West (Oregon)', 'us-west-2a'),
-        ('US West (Oregon)', 'us-west-2b'),
-    )
-
     ARCHS = ('32-bit', '64-bit')
 
     def _get_instance_type(self):
         """Pick random instance type."""
         return choice(self.INSTANCE_TYPES)
-
-    def _get_location(self):
-        """Pick instance location."""
-        return choice(self.REGIONS)
 
     def _get_processor_arch(self):
         """Pick instance architectures."""
@@ -45,16 +32,12 @@ class EC2Generator(AbstractGenerator):
     # pylint: disable=too-many-locals,too-many-statements
     def _update_data(self, row, start, end):
         """Update data with generator specific data."""
-        usage_start = None
-        usage_end = None
         inst_type, vcpu, memory, storage, family, cost, rate, description = \
             self._get_instance_type()
         inst_description = description.format(cost, inst_type)
-        location, avail_zone = self._get_location()
-        row['lineItem/UsageAccountId'] = self.payer_account
-        row['lineItem/LineItemType'] = 'Usage'
-        row['lineItem/UsageStartDate'] = usage_start
-        row['lineItem/UsageEndDate'] = usage_end
+        location, avail_zone, _ = self._get_location()
+        row = self._add_common_usage_info(row, start)
+
         row['lineItem/ProductCode'] = 'AmazonEC2'
         row['lineItem/UsageType'] = 'BoxUsage:{}'.format(inst_type)
         row['lineItem/Operation'] = 'RunInstances'
@@ -103,10 +86,5 @@ class EC2Generator(AbstractGenerator):
         data = []
         num_instances = randint(2, 60)
         for instance in range(0, num_instances):  # pylint: disable=W0612
-            for hour in self.hours:
-                start = hour.get('start')
-                end = hour.get('end')
-                row = self._init_data_row(start, end)
-                row = self._update_data(row, start, end)
-                data.append(row)
+            data += self._generate_hourly_data()
         return data

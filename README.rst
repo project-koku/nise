@@ -1,6 +1,7 @@
 ===========
 Nise README
 ===========
+|license| |Build Status| |codecov| |Updates|
 
 ~~~~~
 About
@@ -53,6 +54,18 @@ To run unit tests specifically::
 To lint the code base ::
 
     tox -e lint
+
+Usage
+===========
+nise is a command line tool. Currently only accepting a limited number of arguments:
+
+- *--start-date MM-dd-YYYY*
+- *--end-date MM-dd-YYYY* (optional, defaults to today and current hour)
+- *--output-file file*
+
+Below is an example usage of ``nise``::
+
+    nise --start-date 06-03-2018 --output-file test.csv
 
 
 Contributing
