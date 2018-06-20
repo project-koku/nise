@@ -178,14 +178,12 @@ class AbstractGenerator(ABC):
         """Pick instance location."""
         return choice(self.REGIONS)
 
-    def _add_common_usage_info(self, row, start):
+    def _add_common_usage_info(self, row, start, end):
         """Add common usage information."""
-        usage_start = start.replace(microsecond=0, second=0, minute=0, hour=0, day=1)
-        usage_end = AbstractGenerator.next_month(usage_start)
         row['lineItem/UsageAccountId'] = self.payer_account
         row['lineItem/LineItemType'] = 'Usage'
-        row['lineItem/UsageStartDate'] = usage_start
-        row['lineItem/UsageEndDate'] = usage_end
+        row['lineItem/UsageStartDate'] = start
+        row['lineItem/UsageEndDate'] = end
         return row
 
     @abstractmethod

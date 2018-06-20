@@ -23,7 +23,7 @@ class DataTransferGenerator(AbstractGenerator):
 
     def _update_data(self, row, start, end):
         """Update data with generator specific data."""
-        row = self._add_common_usage_info(row, start)
+        row = self._add_common_usage_info(row, start, end)
 
         rate = round(uniform(0.12, 0.19), 3)
         amount = uniform(0.000002, 0.09)
