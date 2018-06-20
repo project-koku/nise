@@ -36,7 +36,7 @@ class EC2Generator(AbstractGenerator):
             self._get_instance_type()
         inst_description = description.format(cost, inst_type)
         location, avail_zone, _ = self._get_location()
-        row = self._add_common_usage_info(row, start)
+        row = self._add_common_usage_info(row, start, end)
 
         row['lineItem/ProductCode'] = 'AmazonEC2'
         row['lineItem/UsageType'] = 'BoxUsage:{}'.format(inst_type)
