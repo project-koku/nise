@@ -1,3 +1,19 @@
+#
+# Copyright 2018 Red Hat, Inc.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
 """Cost and Usage Generator CLI."""
 
 import argparse
@@ -43,6 +59,16 @@ def create_parser():
                         required=True,
                         type=argparse.FileType('w'),
                         help='Generated output file')
+    parser.add_argument('--s3-bucket-name',
+                        metavar='BUCKET_NAME',
+                        dest='bucket_name',
+                        required=False,
+                        help='AWS S3 bucket to place the data.')
+    parser.add_argument('--s3-report-name',
+                        metavar='COST_REPORT_NAME',
+                        dest='report_name',
+                        required=False,
+                        help='Directory path to store data in the S3 bucket.')
     return parser
 
 
@@ -51,6 +77,19 @@ def main():
     parser = create_parser()
     args = parser.parse_args()
     options = vars(args)
+
+    bucket_name = options.get('bucket_name')
+    report_name = options.get('report_name')
+    s3_valid = False
+    if bucket_name and report_name:
+        s3_valid = True
+    elif not bucket_name and not report_name:
+        s3_valid = True
+    if not s3_valid:
+        msg = 'Both {} and {} must be supplied, if one is provided.'
+        msg = msg.format('--s3-bucket-name', '--s3-report-name')
+        parser.error(msg)
+
     create_report(args.output_file, options)
 
 
