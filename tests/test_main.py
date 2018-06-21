@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from nise.__main__ import create_parser, main
+from nise.__main__ import create_parser, main, _check_s3_arguments
 
 
 class CommandLineTestCase(TestCase):
@@ -26,6 +26,14 @@ class CommandLineTestCase(TestCase):
         with self.assertRaises(SystemExit):
             self.parser.parse_args(['--start-date', 'foo',
                                     '--output-file', 'out.csv'])
+
+    def test_invalid_s3_inputs(self):
+        """
+        Test where user passes an invalid s3 argument combination.
+        """
+        with self.assertRaises(SystemExit):
+            options = {'bucket_name': 'mybucket'}
+            _check_s3_arguments(self.parser, options)
 
     def test_main_no_inputs(self):
         """

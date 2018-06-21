@@ -72,12 +72,16 @@ def create_parser():
     return parser
 
 
-def main():
-    """Run data generation program."""
-    parser = create_parser()
-    args = parser.parse_args()
-    options = vars(args)
+def _check_s3_arguments(parser, options):
+    """Validate s3 argument combination.
 
+    Args:
+        parser (Object): ArgParser parser.
+        options (Dict): dictionary of arguments.
+    Raises:
+        (ParserError): If combination is invalid.
+
+    """
     bucket_name = options.get('bucket_name')
     report_name = options.get('report_name')
     s3_valid = False
@@ -90,6 +94,14 @@ def main():
         msg = msg.format('--s3-bucket-name', '--s3-report-name')
         parser.error(msg)
 
+
+def main():
+    """Run data generation program."""
+    parser = create_parser()
+    args = parser.parse_args()
+    options = vars(args)
+
+    _check_s3_arguments(parser, options)
     create_report(args.output_file, options)
 
 
