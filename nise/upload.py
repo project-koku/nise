@@ -36,6 +36,9 @@ def upload_to_s3(bucket_name, bucket_file_path, local_path):
         s3_client = boto3.resource('s3')
         s3_client.Bucket(bucket_name).upload_file(local_path,
                                                   bucket_file_path)
+        msg = 'Uploaded {} to s3 bucket {}.'.format(
+            bucket_file_path, bucket_name)
+        print(msg)
     except (ClientError, BotoConnectionError,
             boto3.exceptions.S3UploadFailedError) as upload_err:
         print(upload_err)

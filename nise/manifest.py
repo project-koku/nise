@@ -70,7 +70,7 @@ def generate_manifest(fake, template_data):
     range_str = _manifest_datetime_range(bp_start, bp_end)
     assembly_id = uuid4()
     report_id = fake.sha256(raw_output=False)
-    report_key = '/{report_name}/{range_str}/{assembly_id}/{report_name}-1.csv'
+    report_key = '/{report_name}/{range_str}/{assembly_id}/{report_name}-1.csv.gz'
     report_key = report_key.format(report_name=report_name,
                                    range_str=range_str,
                                    assembly_id=assembly_id)
@@ -78,7 +78,8 @@ def generate_manifest(fake, template_data):
                    'report_id': report_id,
                    'billing_period_start': _manifest_datetime_str(bp_start),
                    'billing_period_end': _manifest_datetime_str(bp_end),
-                   'report_key': report_key}
+                   'report_key': report_key,
+                   'compression': 'GZIP'}
     render_data.update(template_data)
     template_loader = jinja2.FileSystemLoader(searchpath=TEMPLATE_DIR)
     template_env = jinja2.Environment(loader=template_loader)

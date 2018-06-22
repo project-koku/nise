@@ -93,6 +93,7 @@ def _check_s3_arguments(parser, options):
         msg = 'Both {} and {} must be supplied, if one is provided.'
         msg = msg.format('--s3-bucket-name', '--s3-report-name')
         parser.error(msg)
+    return s3_valid
 
 
 def main():
@@ -100,7 +101,6 @@ def main():
     parser = create_parser()
     args = parser.parse_args()
     options = vars(args)
-
     _check_s3_arguments(parser, options)
     create_report(args.output_file, options)
 

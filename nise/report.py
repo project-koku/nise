@@ -16,6 +16,7 @@
 #
 """Module responsible for generating the cost and usage report."""
 import csv
+import gzip
 import os
 from tempfile import NamedTemporaryFile
 
@@ -37,6 +38,14 @@ def _write_csv(output_file, data, header=COLUMNS):
         writer.writeheader()
         for row in data:
             writer.writerow(row)
+
+
+def _gzip_report(report_path):
+    """Compress the report."""
+    t_file = NamedTemporaryFile(mode='wb', suffix='.csv.gz', delete=False)
+    with open(report_path, 'rb') as f_in, gzip.open(t_file.name, 'wb') as f_out:
+        f_out.write(f_in.read())
+    return t_file.name
 
 
 def _write_manifest(data):
@@ -74,13 +83,20 @@ def create_report(output_file, options):
         manifest_values = {'account': payer_account}
         manifest_values.update(options)
         s3_cur_path, manifest_data = generate_manifest(fake, manifest_values)
-        s3_manifest_path = os.path.dirname(s3_cur_path) + '/'
-        s3_manifest_path = s3_manifest_path + report_name + '-Manifest.json'
+        s3_assembly_path = os.path.dirname(s3_cur_path)
+        s3_month_path = os.path.dirname(s3_assembly_path)
+        s3_month_manifest_path = s3_month_path + '/' + report_name + '-Manifest.json'
+        s3_assembly_manifest_path = s3_assembly_path + '/' + report_name + '-Manifest.json'
         temp_manifest = _write_manifest(manifest_data)
+        temp_cur_zip = _gzip_report(output_file.name)
         upload_to_s3(bucket_name,
-                     s3_manifest_path,
+                     s3_month_manifest_path,
+                     temp_manifest)
+        upload_to_s3(bucket_name,
+                     s3_assembly_manifest_path,
                      temp_manifest)
         upload_to_s3(bucket_name,
                      s3_cur_path,
-                     output_file.name)
+                     temp_cur_zip)
         os.remove(temp_manifest)
+        os.remove(temp_cur_zip)

@@ -174,7 +174,7 @@
         "name": "UpfrontValue"
     }],
     "charset": "UTF-8",
-    "compression": "GZIP",
+    "compression": "{{ compression }}",
     "contentType": "text/csv",
     "reportId": "{{ report_id }}",
     "reportName": "{{ report_name }}",
