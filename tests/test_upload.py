@@ -14,9 +14,28 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
-"""Module for data generators."""
-from nise.generators.data_transfer_generator import DataTransferGenerator  # noqa: F401
-from nise.generators.ebs_generator import EBSGenerator  # noqa: F401
-from nise.generators.ec2_generator import EC2Generator  # noqa: F401
-from nise.generators.generator import COLUMNS  # noqa: F401
-from nise.generators.s3_generator import S3Generator  # noqa: F401
+import os
+from tempfile import NamedTemporaryFile
+from unittest import TestCase
+
+import boto3
+from moto import mock_s3
+
+from nise.upload import upload_to_s3
+
+
+class UploadTestCase(TestCase):
+    """
+    TestCase class for upload
+    """
+
+    @mock_s3
+    def test_upload_success(self):
+        """Test upload_to_s3 method with mock s3."""
+        bucket_name = 'my_bucket'
+        s3_client = boto3.resource('s3')
+        bucket = s3_client.Bucket(bucket_name).create()
+        t_file = NamedTemporaryFile(delete=False)
+        success = upload_to_s3(bucket_name, '/file.txt', t_file.name)
+        self.assertTrue(success)
+        os.remove(t_file.name)
