@@ -107,13 +107,15 @@ class AbstractGenerator(ABC):
         ('US West (Oregon)', 'us-west-2b', 'USW2-EBS'),
     )
 
-    def __init__(self, start_date, end_date, payer_account):
+    def __init__(self, start_date, end_date, payer_account, usage_accounts):
         """Initialize the generator."""
         self.start_date = start_date
         self.end_date = end_date
         self.payer_account = payer_account
         self.hours = self._set_hours()
         self.fake = Faker()
+        # pylint: disable=no-member
+        self.usage_accounts = usage_accounts
         super().__init__()
 
     def _set_hours(self):
@@ -196,7 +198,7 @@ class AbstractGenerator(ABC):
 
     def _add_common_usage_info(self, row, start, end):
         """Add common usage information."""
-        row['lineItem/UsageAccountId'] = self.payer_account
+        row['lineItem/UsageAccountId'] = choice(self.usage_accounts)
         row['lineItem/LineItemType'] = 'Usage'
         row['lineItem/UsageStartDate'] = start
         row['lineItem/UsageEndDate'] = end
