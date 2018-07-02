@@ -71,8 +71,13 @@ def create_report(output_file, options):
     end_date = options.get('end_date')
     fake = Faker()
     payer_account = fake.ean(length=13)  # pylint: disable=no-member
+    usage_accounts = (payer_account,
+                      fake.ean(length=13),  # pylint: disable=no-member
+                      fake.ean(length=13),  # pylint: disable=no-member
+                      fake.ean(length=13),  # pylint: disable=no-member
+                      fake.ean(length=13))  # pylint: disable=no-member
     for generator in generators:
-        gen = generator(start_date, end_date, payer_account)
+        gen = generator(start_date, end_date, payer_account, usage_accounts)
         data += gen.generate_data()
 
     _write_csv(output_file, data)

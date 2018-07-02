@@ -61,12 +61,11 @@ def generate_manifest(fake, template_data):
         (String): S3 storage path
         (String): Rendered template data
     """
-    start = template_data.get('start_date')
     end = template_data.get('end_date')
     report_name = template_data.get('report_name')
-    bp_start = start.replace(microsecond=0, second=0, minute=0, hour=0, day=1)
     bp_end = end.replace(microsecond=0, second=0, minute=0,
                          hour=0, day=1, month=(end.month + 1))
+    bp_start = bp_end.replace(month=(bp_end.month - 1))
     range_str = _manifest_datetime_range(bp_start, bp_end)
     assembly_id = uuid4()
     report_id = fake.sha256(raw_output=False)
