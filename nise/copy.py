@@ -35,9 +35,8 @@ def copy_to_local_dir(bucket_name, bucket_file_path, local_path):
         return False
 
     full_bucket_path = '{}{}'.format(bucket_name, bucket_file_path)
-    os.makedirs(os.path.dirname(full_bucket_path), exist_ok=True)
+    os.makedirs(full_bucket_path, exist_ok=True)
     shutil.copy2(local_path, full_bucket_path)
-    msg = 'Copied {} to s3 bucket {}.'.format(
-        bucket_file_path, bucket_name)
+    msg = 'Copied {} to s3 bucket {}.'.format(bucket_file_path, bucket_name)
     print(msg)
     return True
