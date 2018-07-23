@@ -22,6 +22,7 @@ from tempfile import NamedTemporaryFile
 
 from faker import Faker
 
+from nise.copy import copy_to_local_dir
 from nise.generators import (COLUMNS,
                              DataTransferGenerator,
                              EBSGenerator,
@@ -62,6 +63,18 @@ def _write_manifest(data):
     return t_file.name
 
 
+def route_file(bucket_name, bucket_file_path, local_path):
+    """Route file to either S3 bucket or local filesystem."""
+    if os.path.isdir(bucket_name):
+        copy_to_local_dir(bucket_name,
+                          bucket_file_path,
+                          local_path)
+    else:
+        upload_to_s3(bucket_name,
+                     bucket_file_path,
+                     local_path)
+
+
 # pylint: disable=too-many-locals
 def create_report(output_file, options):
     """Create a cost usage report file."""
@@ -94,14 +107,14 @@ def create_report(output_file, options):
         s3_assembly_manifest_path = s3_assembly_path + '/' + report_name + '-Manifest.json'
         temp_manifest = _write_manifest(manifest_data)
         temp_cur_zip = _gzip_report(output_file.name)
-        upload_to_s3(bucket_name,
-                     s3_month_manifest_path,
-                     temp_manifest)
-        upload_to_s3(bucket_name,
-                     s3_assembly_manifest_path,
-                     temp_manifest)
-        upload_to_s3(bucket_name,
-                     s3_cur_path,
-                     temp_cur_zip)
+        route_file(bucket_name,
+                   s3_month_manifest_path,
+                   temp_manifest)
+        route_file(bucket_name,
+                   s3_assembly_manifest_path,
+                   temp_manifest)
+        route_file(bucket_name,
+                   s3_cur_path,
+                   temp_cur_zip)
         os.remove(temp_manifest)
         os.remove(temp_cur_zip)
