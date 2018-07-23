@@ -16,7 +16,9 @@
 #
 import datetime
 import os
-from tempfile import NamedTemporaryFile
+import shutil
+
+from tempfile import (mkdtemp, NamedTemporaryFile)
 
 from unittest import TestCase
 from unittest.mock import ANY, patch
@@ -73,3 +75,19 @@ class ReportTestCase(TestCase):
                    'report_name': 'cur_report'}
         create_report(temp_file, options)
         write_csv.assert_called_once_with(ANY, ANY)
+
+    @patch('nise.report._write_csv')
+    def test_create_report_with_local_dir(self, write_csv):
+        """Test the report creation method with local directory."""
+        temp_file = NamedTemporaryFile()
+        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0)
+        one_day = datetime.timedelta(days=1)
+        yesterday = now - one_day
+        local_bucket_path = mkdtemp()
+        options = {'start_date': yesterday,
+                   'end_date': now,
+                   'bucket_name': local_bucket_path,
+                   'report_name': 'cur_report'}
+        create_report(temp_file, options)
+        write_csv.assert_called_once_with(ANY, ANY)
+        shutil.rmtree(local_bucket_path)
