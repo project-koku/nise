@@ -33,19 +33,15 @@ class CopyTestCase(TestCase):
         source_file.seek(0)
         source_file.write(b'cur report')
         source_file.flush()
-
+        source_file_name = os.path.split(source_file.name)[1]
         bucket_name = mkdtemp()
-        bucket_file_path = '/bucket_location'
+        bucket_file_path = '/{}/{}'.format('report_name', source_file_name)
 
         success = copy_to_local_dir(bucket_name, bucket_file_path, source_file.name)
         self.assertTrue(success)
 
-        expected_full_bucket_path = '{}{}'.format(bucket_name, bucket_file_path)
-        self.assertTrue(os.path.isdir(expected_full_bucket_path))
-
-        expected_file_location = '{}/{}'.format(expected_full_bucket_path,
-                                                os.path.basename(source_file.name))
-        self.assertTrue(os.path.isfile(expected_file_location))
+        expected_full_file_path = '{}{}'.format(bucket_name, bucket_file_path)
+        self.assertTrue(os.path.isfile(expected_full_file_path))        
 
         shutil.rmtree(bucket_name)
         os.remove(source_file.name)
