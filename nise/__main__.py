@@ -102,7 +102,7 @@ def main():
     args = parser.parse_args()
     options = vars(args)
     _check_s3_arguments(parser, options)
-    create_report(args.output_file, options)
+    create_report(options)
 
 
 if __name__ == '__main__':

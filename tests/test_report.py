@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
+import calendar
 import datetime
 import os
 import shutil
@@ -51,21 +52,23 @@ class ReportTestCase(TestCase):
         self.assertTrue(os.path.exists(manifest_path))
         os.remove(manifest_path)
 
-    @patch('nise.report._write_csv')
-    def test_create_report_no_s3(self, write_csv):
+    def test_create_report_no_s3(self):
         """Test the report creation method no s3."""
-        temp_file = NamedTemporaryFile(mode='w')
         now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0)
         one_day = datetime.timedelta(days=1)
         yesterday = now - one_day
-        create_report(temp_file, {'start_date': yesterday, 'end_date': now})
-        write_csv.assert_called_once_with(ANY, ANY)
+        create_report({'start_date': yesterday, 'end_date': now, 'report_name': 'cur_report'})
+
+        month_output_file_name = '{}-{}-{}'.format(calendar.month_name[now.month],
+                                                   now.year,
+                                                   'cur_report')
+        expected_month_output_file = '{}/{}.csv'.format(os.getcwd(), month_output_file_name)
+        self.assertTrue(os.path.isfile(expected_month_output_file))
+        os.remove(expected_month_output_file)
 
     @mock_s3
-    @patch('nise.report._write_csv')
-    def test_create_report_with_s3(self, write_csv):
+    def test_create_report_with_s3(self):
         """Test the report creation method with s3."""
-        temp_file = NamedTemporaryFile(mode='w')
         now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0)
         one_day = datetime.timedelta(days=1)
         yesterday = now - one_day
@@ -73,13 +76,16 @@ class ReportTestCase(TestCase):
                    'end_date': now,
                    'bucket_name': 'my_bucket',
                    'report_name': 'cur_report'}
-        create_report(temp_file.name, options)
-        write_csv.assert_called_once_with(ANY, ANY)
+        create_report(options)
+        month_output_file_name = '{}-{}-{}'.format(calendar.month_name[now.month],
+                                                   now.year,
+                                                   'cur_report')
+        expected_month_output_file = '{}/{}.csv'.format(os.getcwd(), month_output_file_name)
+        self.assertTrue(os.path.isfile(expected_month_output_file))
+        os.remove(expected_month_output_file)
 
-    @patch('nise.report._write_csv')
-    def test_create_report_with_local_dir(self, write_csv):
+    def test_create_report_with_local_dir(self):
         """Test the report creation method with local directory."""
-        temp_file = NamedTemporaryFile(mode='w')
         now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0)
         one_day = datetime.timedelta(days=1)
         yesterday = now - one_day
@@ -88,24 +94,13 @@ class ReportTestCase(TestCase):
                    'end_date': now,
                    'bucket_name': local_bucket_path,
                    'report_name': 'cur_report'}
-        create_report(temp_file.name, options)
-        write_csv.assert_called_once_with(ANY, ANY)
-        shutil.rmtree(local_bucket_path)
-
-    @patch('nise.report._write_csv')
-    def test_create_report_no_path(self, write_csv):
-        """Test the report creation method with no file path specified."""
-        temp_file = open('test.csv', 'w+')
-        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0)
-        one_day = datetime.timedelta(days=1)
-        yesterday = now - one_day
-        local_bucket_path = mkdtemp()
-        options = {'start_date': yesterday,
-                   'end_date': now,
-                   'bucket_name': local_bucket_path,
-                   'report_name': 'cur_report'}
-        create_report(temp_file, options)
-        write_csv.assert_called_once_with(ANY, ANY)
+        create_report(options)
+        month_output_file_name = '{}-{}-{}'.format(calendar.month_name[now.month],
+                                                   now.year,
+                                                   'cur_report')
+        expected_month_output_file = '{}/{}.csv'.format(os.getcwd(), month_output_file_name)
+        self.assertTrue(os.path.isfile(expected_month_output_file))
+        os.remove(expected_month_output_file)
         shutil.rmtree(local_bucket_path)
 
     def test_create_month_list(self):

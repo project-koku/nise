@@ -114,7 +114,7 @@ def _create_month_list(start_date, end_date):
 
 
 # pylint: disable=too-many-locals
-def create_report(output_file, options):
+def create_report(options):
     """Create a cost usage report file."""
     generators = [DataTransferGenerator, EBSGenerator, EC2Generator, S3Generator]
     data = []
@@ -133,14 +133,10 @@ def create_report(output_file, options):
             gen = generator(month.get('start'), month.get('end'), payer_account, usage_accounts)
             data += gen.generate_data()
 
-        file_path = os.path.dirname(output_file.name)
-        if not file_path:
-            file_path = os.getcwd()
-        file_name = os.path.basename(output_file.name)
         month_output_file_name = '{}-{}-{}'.format(month.get('name'),
                                                    month.get('start').year,
-                                                   file_name)
-        month_output_file = '{}/{}'.format(file_path, month_output_file_name)
+                                                   options.get('report_name'))
+        month_output_file = '{}/{}.csv'.format(os.getcwd(), month_output_file_name)
         _write_csv(month_output_file, data)
 
         bucket_name = options.get('bucket_name')
