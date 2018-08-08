@@ -51,8 +51,7 @@ class CommandLineTestCase(TestCase):
         Test where user passes an invalid date format.
         """
         with self.assertRaises(SystemExit):
-            self.parser.parse_args(['--start-date', 'foo',
-                                    '--output-file', 'out.csv'])
+            self.parser.parse_args(['--start-date', 'foo'])
 
     def test_valid_s3_no_input(self):
         """

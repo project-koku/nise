@@ -94,19 +94,16 @@ def _create_month_list(start_date, end_date):
         while current <= end_date:
             month = {}
             month['name'] = calendar.month_name[current.month]
+            month['end'] = datetime(year=current.year,
+                                    month=current.month,
+                                    day=calendar.monthrange(year=current.year,
+                                                            month=current.month)[1])
             if current.month == start_date.month:
-                # First month
+                # First month start with start_date
                 month['start'] = start_date
-                month['end'] = datetime(year=current.year,
-                                        month=current.month,
-                                        day=calendar.monthrange(year=current.year,
-                                                                month=current.month)[1])
             else:
+                # Every other month begin on the first of the month
                 month['start'] = datetime(year=current.year, month=current.month, day=1)
-                month['end'] = datetime(year=current.year,
-                                        month=current.month,
-                                        day=calendar.monthrange(year=current.year,
-                                                                month=current.month)[1])
             months.append(month)
             current += relativedelta(months=+1)
 
