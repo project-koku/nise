@@ -83,31 +83,23 @@ def _create_month_list(start_date, end_date):
     months = []
     current = start_date
 
-    if start_date.month == end_date.month:
-        # No month range
+    while current.month <= end_date.month:
         month = {}
-        month['name'] = calendar.month_name[start_date.month]
-        month['start'] = start_date
-        month['end'] = end_date
-        months.append(month)
-    else:
-        while current.month <= end_date.month:
-            month = {}
-            month['name'] = calendar.month_name[current.month]
-            month['start'] = datetime(year=current.year, month=current.month, day=1)
-            month['end'] = datetime(year=current.year,
-                                    month=current.month,
-                                    day=calendar.monthrange(year=current.year,
-                                                            month=current.month)[1])
-            if current.month == start_date.month:
-                # First month start with start_date
-                month['start'] = start_date
-            elif current.month == end_date.month:
-                # Last month ends with end_date
-                month['end'] = end_date
+        month['name'] = calendar.month_name[current.month]
+        month['start'] = datetime(year=current.year, month=current.month, day=1)
+        month['end'] = datetime(year=current.year,
+                                month=current.month,
+                                day=calendar.monthrange(year=current.year,
+                                                        month=current.month)[1])
+        if current.month == start_date.month:
+            # First month start with start_date
+            month['start'] = start_date
+        if current.month == end_date.month:
+            # Last month ends with end_date
+            month['end'] = end_date
 
-            months.append(month)
-            current += relativedelta(months=+1)
+        months.append(month)
+        current += relativedelta(months=+1)
 
     return months
 
