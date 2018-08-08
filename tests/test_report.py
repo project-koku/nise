@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
+import calendar
 import datetime
 import os
 import shutil
@@ -25,7 +26,7 @@ from unittest.mock import ANY, patch
 
 from moto import mock_s3
 
-from nise.report import create_report, _write_csv, _write_manifest
+from nise.report import create_report, _create_month_list, _write_csv, _write_manifest
 
 
 class ReportTestCase(TestCase):
@@ -39,7 +40,7 @@ class ReportTestCase(TestCase):
         headers = ['col1', 'col2']
         data = [{'col1': 'r1c1', 'col2': 'r1c2'},
                 {'col1': 'r2c1', 'col2': 'r2c2'}]
-        _write_csv(temp_file, data, headers)
+        _write_csv(temp_file.name, data, headers)
         self.assertTrue(os.path.exists(temp_file.name))
         os.remove(temp_file.name)
 
@@ -51,21 +52,23 @@ class ReportTestCase(TestCase):
         self.assertTrue(os.path.exists(manifest_path))
         os.remove(manifest_path)
 
-    @patch('nise.report._write_csv')
-    def test_create_report_no_s3(self, write_csv):
+    def test_create_report_no_s3(self):
         """Test the report creation method no s3."""
-        temp_file = NamedTemporaryFile()
         now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0)
         one_day = datetime.timedelta(days=1)
         yesterday = now - one_day
-        create_report(temp_file, {'start_date': yesterday, 'end_date': now})
-        write_csv.assert_called_once_with(ANY, ANY)
+        create_report({'start_date': yesterday, 'end_date': now, 'report_name': 'cur_report'})
+
+        month_output_file_name = '{}-{}-{}'.format(calendar.month_name[now.month],
+                                                   now.year,
+                                                   'cur_report')
+        expected_month_output_file = '{}/{}.csv'.format(os.getcwd(), month_output_file_name)
+        self.assertTrue(os.path.isfile(expected_month_output_file))
+        os.remove(expected_month_output_file)
 
     @mock_s3
-    @patch('nise.report._write_csv')
-    def test_create_report_with_s3(self, write_csv):
+    def test_create_report_with_s3(self):
         """Test the report creation method with s3."""
-        temp_file = NamedTemporaryFile()
         now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0)
         one_day = datetime.timedelta(days=1)
         yesterday = now - one_day
@@ -73,13 +76,16 @@ class ReportTestCase(TestCase):
                    'end_date': now,
                    'bucket_name': 'my_bucket',
                    'report_name': 'cur_report'}
-        create_report(temp_file, options)
-        write_csv.assert_called_once_with(ANY, ANY)
+        create_report(options)
+        month_output_file_name = '{}-{}-{}'.format(calendar.month_name[now.month],
+                                                   now.year,
+                                                   'cur_report')
+        expected_month_output_file = '{}/{}.csv'.format(os.getcwd(), month_output_file_name)
+        self.assertTrue(os.path.isfile(expected_month_output_file))
+        os.remove(expected_month_output_file)
 
-    @patch('nise.report._write_csv')
-    def test_create_report_with_local_dir(self, write_csv):
+    def test_create_report_with_local_dir(self):
         """Test the report creation method with local directory."""
-        temp_file = NamedTemporaryFile()
         now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0)
         one_day = datetime.timedelta(days=1)
         yesterday = now - one_day
@@ -88,6 +94,37 @@ class ReportTestCase(TestCase):
                    'end_date': now,
                    'bucket_name': local_bucket_path,
                    'report_name': 'cur_report'}
-        create_report(temp_file, options)
-        write_csv.assert_called_once_with(ANY, ANY)
+        create_report(options)
+        month_output_file_name = '{}-{}-{}'.format(calendar.month_name[now.month],
+                                                   now.year,
+                                                   'cur_report')
+        expected_month_output_file = '{}/{}.csv'.format(os.getcwd(), month_output_file_name)
+        self.assertTrue(os.path.isfile(expected_month_output_file))
+        os.remove(expected_month_output_file)
         shutil.rmtree(local_bucket_path)
+
+    def test_create_month_list(self):
+        """Test to create month lists."""
+        test_matrix = [{
+                        'start_date': datetime.datetime(year=2018, month=1, day=15),
+                        'end_date': datetime.datetime(year=2018, month=1, day=30),
+                        'expected_list': [{'name': 'January',
+                                           'start': datetime.datetime(year=2018, month=1, day=15),
+                                           'end': datetime.datetime(year=2018, month=1, day=30)}]},
+                        {
+                        'start_date': datetime.datetime(year=2018, month=1, day=15),
+                        'end_date': datetime.datetime(year=2018, month=3, day=5),
+                        'expected_list': [{'name': 'January',
+                                           'start': datetime.datetime(year=2018, month=1, day=15),
+                                           'end': datetime.datetime(year=2018, month=1, day=31)},
+                                           {'name': 'February',
+                                           'start': datetime.datetime(year=2018, month=2, day=1),
+                                           'end': datetime.datetime(year=2018, month=2, day=28)},
+                                           {'name': 'March',
+                                           'start': datetime.datetime(year=2018, month=3, day=1),
+                                           'end': datetime.datetime(year=2018, month=3, day=5)}]},                    
+                      ]
+        
+        for test_case in test_matrix:
+            output = _create_month_list(test_case['start_date'], test_case['end_date'])
+            self.assertCountEqual(output, test_case['expected_list'])

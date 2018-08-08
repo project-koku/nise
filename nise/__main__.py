@@ -53,12 +53,6 @@ def create_parser():
                         type=valid_date,
                         default=today(),
                         help='Date to end generating data (MM-DD-YYYY). Default is today.')
-    parser.add_argument('--output-file',
-                        metavar='FILE',
-                        dest='output_file',
-                        required=True,
-                        type=argparse.FileType('w'),
-                        help='Generated output file')
     parser.add_argument('--s3-bucket-name',
                         metavar='BUCKET_NAME',
                         dest='bucket_name',
@@ -102,7 +96,7 @@ def main():
     args = parser.parse_args()
     options = vars(args)
     _check_s3_arguments(parser, options)
-    create_report(args.output_file, options)
+    create_report(options)
 
 
 if __name__ == '__main__':

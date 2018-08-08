@@ -61,17 +61,18 @@ nise is a command line tool. Currently only accepting a limited number of argume
 
 - *--start-date MM-dd-YYYY*
 - *--end-date MM-dd-YYYY* (optional, defaults to today and current hour)
-- *--output-file file*
 - *--s3-bucket-name bucket_name*  (optional, must include --s3-report-name) Note: Use local directory path to populate a "local S3 bucket".
 - *--s3-report-name report_name*  (optional, must include --s3-bucket-name)
 
 Below is an example usage of ``nise``::
 
-    nise --start-date 06-03-2018 --output-file test.csv
+    nise --start-date 06-03-2018
 
-    nise --start-date 06-20-2018 --output-file test.csv --s3-bucket-name testbucket --s3-report-name cur
+    nise --start-date 06-20-2018 --s3-bucket-name testbucket --s3-report-name cur
 
-    nise --start-date 06-20-2018 --output-file test.csv --s3-bucket-name /local/path/testbucket --s3-report-name cur
+    nise --start-date 06-20-2018 --s3-bucket-name /local/path/testbucket --s3-report-name cur
+
+Generated reports will be generated in monthly .csv files with the file format <Month>-<Year>-<Report Name>.csv.
 
 Contributing
 =============
