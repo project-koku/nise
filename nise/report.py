@@ -126,6 +126,7 @@ def create_report(options):
                       fake.ean(length=13),  # pylint: disable=no-member
                       fake.ean(length=13))  # pylint: disable=no-member
     for month in months:
+        data = []
         for generator in generators:
             gen = generator(month.get('start'), month.get('end'), payer_account, usage_accounts)
             data += gen.generate_data()
