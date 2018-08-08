@@ -113,7 +113,7 @@ class ReportTestCase(TestCase):
                                            'end': datetime.datetime(year=2018, month=1, day=30)}]},
                         {
                         'start_date': datetime.datetime(year=2018, month=1, day=15),
-                        'end_date': datetime.datetime(year=2018, month=3, day=30),
+                        'end_date': datetime.datetime(year=2018, month=3, day=5),
                         'expected_list': [{'name': 'January',
                                            'start': datetime.datetime(year=2018, month=1, day=15),
                                            'end': datetime.datetime(year=2018, month=1, day=31)},
@@ -122,7 +122,7 @@ class ReportTestCase(TestCase):
                                            'end': datetime.datetime(year=2018, month=2, day=28)},
                                            {'name': 'March',
                                            'start': datetime.datetime(year=2018, month=3, day=1),
-                                           'end': datetime.datetime(year=2018, month=3, day=31)}]},                    
+                                           'end': datetime.datetime(year=2018, month=3, day=5)}]},                    
                       ]
         
         for test_case in test_matrix:
