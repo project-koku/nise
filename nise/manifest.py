@@ -69,10 +69,18 @@ def generate_manifest(fake, template_data):
     range_str = _manifest_datetime_range(bp_start, bp_end)
     assembly_id = uuid4()
     report_id = fake.sha256(raw_output=False)
-    report_key = '/{report_name}/{range_str}/{assembly_id}/{report_name}-1.csv.gz'
-    report_key = report_key.format(report_name=report_name,
-                                   range_str=range_str,
-                                   assembly_id=assembly_id)
+    prefix_name = template_data.get('prefix_name')
+    if prefix_name:
+        report_key = '{prefix_name}/{report_name}/{range_str}/{assembly_id}/{report_name}-1.csv.gz'
+        report_key = report_key.format(prefix_name=prefix_name,
+                                       report_name=report_name,
+                                       range_str=range_str,
+                                       assembly_id=assembly_id)
+    else:
+        report_key = '/{report_name}/{range_str}/{assembly_id}/{report_name}-1.csv.gz'
+        report_key = report_key.format(report_name=report_name,
+                                       range_str=range_str,
+                                       assembly_id=assembly_id)
     render_data = {'assembly_id': assembly_id,
                    'report_id': report_id,
                    'billing_period_start': _manifest_datetime_str(bp_start),
