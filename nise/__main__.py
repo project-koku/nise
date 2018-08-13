@@ -63,6 +63,12 @@ def create_parser():
                         dest='report_name',
                         required=False,
                         help='Directory path to store data in the S3 bucket.')
+    parser.add_argument('--s3-report-prefix',
+                        metavar='PREFIX_NAME',
+                        dest='prefix_name',
+                        required=False,
+                        help='Directory path to store data in the S3 bucket.')
+
     return parser
 
 

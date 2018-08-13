@@ -128,3 +128,23 @@ class ReportTestCase(TestCase):
         for test_case in test_matrix:
             output = _create_month_list(test_case['start_date'], test_case['end_date'])
             self.assertCountEqual(output, test_case['expected_list'])
+
+    def test_create_report_with_local_dir_report_prefix(self):
+        """Test the report creation method with local directory and a report prefix."""
+        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0)
+        one_day = datetime.timedelta(days=1)
+        yesterday = now - one_day
+        local_bucket_path = mkdtemp()
+        options = {'start_date': yesterday,
+                   'end_date': now,
+                   'bucket_name': local_bucket_path,
+                   'report_name': 'cur_report',
+                   'prefix_name': 'my_prefix'}
+        create_report(options)
+        month_output_file_name = '{}-{}-{}'.format(calendar.month_name[now.month],
+                                                   now.year,
+                                                   'cur_report')
+        expected_month_output_file = '{}/{}.csv'.format(os.getcwd(), month_output_file_name)
+        self.assertTrue(os.path.isfile(expected_month_output_file))
+        os.remove(expected_month_output_file)
+        shutil.rmtree(local_bucket_path)
