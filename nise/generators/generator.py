@@ -68,7 +68,7 @@ PRODUCT_COLS = ('product/ProductName', 'product/accountAssistance',
                 'product/processorArchitecture', 'product/processorFeatures',
                 'product/productFamily', 'product/programmaticCaseManagement',
                 'product/protocol', 'product/provisioned', 'product/queueType',
-                'product/recipient', 'product/requestDescription',
+                'product/recipient', 'product/region', 'product/requestDescription',
                 'product/requestType', 'product/resourceEndpoint',
                 'product/routingTarget', 'product/routingType',
                 'product/servicecode', 'product/sku', 'product/softwareType',
@@ -99,12 +99,12 @@ class AbstractGenerator(ABC):
     """Defines a abstract class for generators."""
 
     REGIONS = (
-        ('US East (N. Virginia)', 'us-east-1a', 'USE1-EBS'),
-        ('US East (N. Virginia)', 'us-east-1b', 'USE1-EBS'),
-        ('US West (N. California)', 'us-west-1a', 'USW1-EBS'),
-        ('US West (N. California)', 'us-west-1b', 'USW1-EBS'),
-        ('US West (Oregon)', 'us-west-2a', 'USW2-EBS'),
-        ('US West (Oregon)', 'us-west-2b', 'USW2-EBS'),
+        ('US East (N. Virginia)', 'us-east-1', 'us-east-1a', 'USE1-EBS'),
+        ('US East (N. Virginia)', 'us-east-1', 'us-east-1b', 'USE1-EBS'),
+        ('US West (N. California)', 'us-west-1', 'us-west-1a', 'USW1-EBS'),
+        ('US West (N. California)', 'us-west-1', 'us-west-1b', 'USW1-EBS'),
+        ('US West (Oregon)', 'us-west-2', 'us-west-2a', 'USW2-EBS'),
+        ('US West (Oregon)', 'us-west-2', 'us-west-2b', 'USW2-EBS'),
     )
 
     def __init__(self, start_date, end_date, payer_account, usage_accounts):

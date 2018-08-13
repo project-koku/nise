@@ -37,7 +37,7 @@ class S3Generator(AbstractGenerator):
         rate = round(uniform(0.02, 0.06), 3)
         amount = uniform(0.2, 6000.99)
         cost = amount * rate
-        location, avail_zone, storage_region = self._get_location()
+        location, aws_region, avail_zone, storage_region = self._get_location()
         description = '${} per GB-Month of snapshot data stored - {}'.format(rate, location)
         amazon_resource_name = self._get_arn(avail_zone)
 
@@ -56,6 +56,7 @@ class S3Generator(AbstractGenerator):
         row['product/location'] = location
         row['product/locationType'] = 'AWS Region'
         row['product/productFamily'] = 'Storage Snapshot'
+        row['product/region'] = aws_region
         row['product/servicecode'] = 'AmazonEC2'
         row['product/sku'] = self.fake.pystr(min_chars=12, max_chars=12).upper()  # pylint: disable=no-member
         row['product/storageMedia'] = 'Amazon S3'
