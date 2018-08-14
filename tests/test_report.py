@@ -15,6 +15,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 import calendar
+import csv
 import datetime
 import os
 import shutil
@@ -122,9 +123,9 @@ class ReportTestCase(TestCase):
                                            'end': datetime.datetime(year=2018, month=2, day=28)},
                                            {'name': 'March',
                                            'start': datetime.datetime(year=2018, month=3, day=1),
-                                           'end': datetime.datetime(year=2018, month=3, day=5)}]},                    
+                                           'end': datetime.datetime(year=2018, month=3, day=5)}]},
                       ]
-        
+
         for test_case in test_matrix:
             output = _create_month_list(test_case['start_date'], test_case['end_date'])
             self.assertCountEqual(output, test_case['expected_list'])
@@ -148,3 +149,75 @@ class ReportTestCase(TestCase):
         self.assertTrue(os.path.isfile(expected_month_output_file))
         os.remove(expected_month_output_file)
         shutil.rmtree(local_bucket_path)
+
+    def test_create_report_finalize_report_copy(self):
+        """Test that a finalized copy of a report file has an invoice id."""
+        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0)
+        one_day = datetime.timedelta(days=1)
+        yesterday = now - one_day
+        create_report(
+            {
+                'start_date': yesterday,
+                'end_date': now,
+                'report_name': 'cur_report',
+                'finalize_report': 'copy'
+            }
+        )
+
+        month_output_file_name = '{}-{}-{}'.format(calendar.month_name[now.month],
+                                                   now.year,
+                                                   'cur_report')
+        finalized_file_name = '{}-finalized'.format(month_output_file_name)
+        expected_month_output_file = '{}/{}.csv'.format(
+            os.getcwd(),
+            month_output_file_name
+        )
+        expected_finalized_file = '{}/{}.csv'.format(
+            os.getcwd(),
+            finalized_file_name
+        )
+        self.assertTrue(os.path.isfile(expected_month_output_file))
+        self.assertTrue(os.path.isfile(expected_finalized_file))
+
+        with open(expected_month_output_file, 'r') as f:
+            reader = csv.DictReader(f)
+            row = next(reader)
+            self.assertEqual(row['bill/InvoiceId'], '')
+
+        with open(expected_finalized_file, 'r') as f:
+            reader = csv.DictReader(f)
+            row = next(reader)
+            self.assertNotEqual(row['bill/InvoiceId'], '')
+
+        os.remove(expected_month_output_file)
+        os.remove(expected_finalized_file)
+
+    def test_create_report_finalize_report_overwrite(self):
+        """Test that a report file has an invoice id."""
+        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0)
+        one_day = datetime.timedelta(days=1)
+        yesterday = now - one_day
+        create_report(
+            {
+                'start_date': yesterday,
+                'end_date': now,
+                'report_name': 'cur_report',
+                'finalize_report': 'overwrite'
+            }
+        )
+
+        month_output_file_name = '{}-{}-{}'.format(calendar.month_name[now.month],
+                                                   now.year,
+                                                   'cur_report')
+        expected_month_output_file = '{}/{}.csv'.format(
+            os.getcwd(),
+            month_output_file_name
+        )
+        self.assertTrue(os.path.isfile(expected_month_output_file))
+
+        with open(expected_month_output_file, 'r') as f:
+            reader = csv.DictReader(f)
+            row = next(reader)
+            self.assertNotEqual(row['bill/InvoiceId'], '')
+
+        os.remove(expected_month_output_file)

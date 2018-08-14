@@ -68,6 +68,15 @@ def create_parser():
                         dest='prefix_name',
                         required=False,
                         help='Directory path to store data in the S3 bucket.')
+    parser.add_argument('--finalize',
+                        metavar='FINALIZE_REPORT',
+                        dest='finalize_report',
+                        choices=['copy', 'overwrite'],
+                        required=False,
+                        help="""Whether to generate finalized report data.
+                            Can be either \'copy\' to produce a second finalized file locally
+                            or \'overwrite\' to finalize the normal report files.
+                            """)
 
     return parser
 
