@@ -16,9 +16,12 @@
 #
 """Module responsible for generating the cost and usage report."""
 import calendar
+import copy
 import csv
 import gzip
 import os
+import random
+import string
 from datetime import datetime
 from tempfile import NamedTemporaryFile
 
@@ -104,6 +107,16 @@ def _create_month_list(start_date, end_date):
     return months
 
 
+def _finalize_report(data):
+    """Popualate invoice id for data."""
+    data = copy.deepcopy(data)
+    invoice_id = ''.join([random.choice(string.digits) for _ in range(9)])
+    for row in data:
+        row['bill/InvoiceId'] = invoice_id
+
+    return data
+
+
 # pylint: disable=too-many-locals
 def create_report(options):
     """Create a cost usage report file."""
@@ -111,6 +124,7 @@ def create_report(options):
     data = []
     start_date = options.get('start_date')
     end_date = options.get('end_date')
+    finalize_report = options.get('finalize_report')
     months = _create_month_list(start_date, end_date)
     fake = Faker()
     payer_account = fake.ean(length=13)  # pylint: disable=no-member
@@ -129,6 +143,18 @@ def create_report(options):
                                                    month.get('start').year,
                                                    options.get('report_name'))
         month_output_file = '{}/{}.csv'.format(os.getcwd(), month_output_file_name)
+        if finalize_report and finalize_report == 'overwrite':
+            data = _finalize_report(data)
+        elif finalize_report and finalize_report == 'copy':
+            # Currently only a local option as this does not simulate
+            finalized_data = _finalize_report(data)
+            finalized_file_name = '{}-finalized'.format(month_output_file_name)
+            finalized_output_file = '{}/{}.csv'.format(
+                os.getcwd(),
+                finalized_file_name
+            )
+            _write_csv(finalized_output_file, finalized_data)
+
         _write_csv(month_output_file, data)
 
         bucket_name = options.get('bucket_name')

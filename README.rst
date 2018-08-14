@@ -64,8 +64,12 @@ nise is a command line tool. Currently only accepting a limited number of argume
 - *--s3-bucket-name bucket_name*  (optional, must include --s3-report-name) Note: Use local directory path to populate a "local S3 bucket".
 - *--s3-report-name report_name*  (optional, must include --s3-bucket-name)
 - *--s3-report-prefix prefix_name*  (optional)
+- *--finalize finalize_choice* (optional, choices: ['copy', 'overwrite'])
 
 Note: If `--s3-report-name` or `--s3-report-prefix` are specified they should match what is configured in the AWS cost usage report settings.
+
+Note: If `--finalize` is used the *copy* choice will create a local copy of the data with a `-finalized` suffix and invoice id populated.
+      If *overwrite* is used, the regular data file generated will have invoice id populated
 
 Below is an example usage of ``nise``::
 
@@ -76,6 +80,8 @@ Below is an example usage of ``nise``::
     nise --start-date 06-20-2018 --s3-bucket-name /local/path/testbucket --s3-report-name cur
 
     nise --start-date 06-20-2018 --s3-bucket-name /local/path/testbucket --s3-report-name cur --s3-report-prefix my-prefix
+
+    nise --start-date 06-20-2018 --finalize copy
 
 Generated reports will be generated in monthly .csv files with the file format <Month>-<Year>-<Report Name>.csv.
 
