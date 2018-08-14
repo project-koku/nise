@@ -42,7 +42,7 @@ class EBSGenerator(AbstractGenerator):
         rate = round(uniform(0.02, 0.16), 3)
         amount = uniform(0.2, 300.99)
         cost = amount * rate
-        location, _, storage_region = self._get_location()
+        location, aws_region, _, storage_region = self._get_location()
         description = '${} per GB-Month of snapshot data stored - {}'.format(rate, location)
         burst, max_iops, max_thru, max_vol_size, vol_backed, vol_type = \
             self._get_storage()
@@ -66,6 +66,7 @@ class EBSGenerator(AbstractGenerator):
         row['product/maxThroughputvolume'] = max_thru
         row['product/maxVolumeSize'] = max_vol_size
         row['product/productFamily'] = 'Storage'
+        row['product/region'] = aws_region
         row['product/servicecode'] = 'AmazonEC2'
         row['product/sku'] = self.fake.pystr(min_chars=12, max_chars=12).upper()  # pylint: disable=no-member
         row['product/storageMedia'] = vol_backed

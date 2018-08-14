@@ -30,12 +30,12 @@ class DataTransferGenerator(AbstractGenerator):
 
     def _get_data_transfer(self, rate):
         """Get data transfer info."""
-        location1, _, storage_region1 = self._get_location()
-        location2, _, storage_region2 = self._get_location()
+        location1, aws_region, _, storage_region1 = self._get_location()
+        location2, _, _, storage_region2 = self._get_location()
         trans_desc, operation, trans_type = choice(self.DATA_TRANSFER)
         trans_desc = trans_desc.format(storage_region1, storage_region2)
         description = '${} per GB - {} data transfer to {}'.format(rate, location1, location2)
-        return trans_desc, operation, description, location1, location2, trans_type
+        return trans_desc, operation, description, location1, location2, trans_type, aws_region
 
     def _update_data(self, row, start, end):
         """Update data with generator specific data."""
@@ -44,7 +44,7 @@ class DataTransferGenerator(AbstractGenerator):
         rate = round(uniform(0.12, 0.19), 3)
         amount = uniform(0.000002, 0.09)
         cost = amount * rate
-        trans_desc, operation, description, location1, location2, trans_type = \
+        trans_desc, operation, description, location1, location2, trans_type, aws_region = \
             self._get_data_transfer(rate)
 
         row['lineItem/ProductCode'] = 'AmazonEC2'
@@ -62,6 +62,7 @@ class DataTransferGenerator(AbstractGenerator):
         row['product/location'] = location1
         row['product/locationType'] = 'AWS Region'
         row['product/productFamily'] = 'Data Transfer'
+        row['product/region'] = aws_region
         row['product/servicecode'] = 'AWSDataTransfer'
         row['product/sku'] = self.fake.pystr(min_chars=12, max_chars=12).upper()  # pylint: disable=no-member
         row['product/toLocation'] = location2

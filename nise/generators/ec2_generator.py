@@ -51,7 +51,7 @@ class EC2Generator(AbstractGenerator):
         inst_type, vcpu, memory, storage, family, cost, rate, description = \
             self._get_instance_type()
         inst_description = description.format(cost, inst_type)
-        location, avail_zone, _ = self._get_location()
+        location, aws_region, avail_zone, _ = self._get_location()
         row = self._add_common_usage_info(row, start, end)
 
         row['lineItem/ProductCode'] = 'AmazonEC2'
@@ -85,6 +85,7 @@ class EC2Generator(AbstractGenerator):
         row['product/processorArchitecture'] = self._get_processor_arch()
         row['product/processorFeatures'] = 'Intel AVX; Intel Turbo'
         row['product/productFamily'] = 'Compute Instance'
+        row['product/region'] = aws_region
         row['product/servicecode'] = 'AmazonEC2'
         row['product/sku'] = self.fake.pystr(min_chars=12, max_chars=12).upper()  # pylint: disable=no-member
         row['product/storage'] = storage
