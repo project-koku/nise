@@ -5,7 +5,9 @@ setup(
     version = '0.1.0',
     packages = [
         'nise',
-        'nise.generators'
+        'nise.generators',
+        'nise.generators.aws',
+        'nise.generators.ocp'
     ],
     install_requires=[
         'Faker',

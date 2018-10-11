@@ -17,10 +17,10 @@
 """Module for ebs data generation."""
 from random import choice, uniform
 
-from nise.generators.generator import AbstractGenerator
+from nise.generators.aws.aws_generator import AWSGenerator
 
 
-class EBSGenerator(AbstractGenerator):
+class EBSGenerator(AWSGenerator):
     """Generator for EBS data."""
 
     STORAGE = (

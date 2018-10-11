@@ -17,11 +17,11 @@
 """Module for ec2 data generation."""
 from random import choice, randint
 
-from nise.generators.generator import AbstractGenerator
+from nise.generators.aws.aws_generator import AWSGenerator
 
 
 # pylint: disable=too-few-public-methods
-class EC2Generator(AbstractGenerator):
+class EC2Generator(AWSGenerator):
     """Generator for EC2 data."""
 
     INSTANCE_TYPES = (

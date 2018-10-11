@@ -61,29 +61,36 @@ nise is a command line tool. Currently only accepting a limited number of argume
 
 - *--start-date MM-dd-YYYY*
 - *--end-date MM-dd-YYYY* (optional, defaults to today and current hour)
-- *--s3-bucket-name bucket_name*  (optional, must include --s3-report-name) Note: Use local directory path to populate a "local S3 bucket".
-- *--s3-report-name report_name*  (optional, must include --s3-bucket-name)
-- *--s3-report-prefix prefix_name*  (optional)
-- *--finalize finalize_choice* (optional, choices: ['copy', 'overwrite'])
+- (--aws | --ocp) required provider type
+- *--aws-s3-bucket-name bucket_name*  (optional, must include --aws-s3-report-name) Note: Use local directory path to populate a "local S3 bucket".
+- *--aws-s3-report-name report_name*  (optional, must include --aws-s3-bucket-name)
+- *--aws-s3-report-prefix prefix_name*  (optional)
+- *--aws-finalize finalize_choice* (optional, choices: ['copy', 'overwrite'])
 
-Note: If `--s3-report-name` or `--s3-report-prefix` are specified they should match what is configured in the AWS cost usage report settings.
+Note: If `--aws-s3-report-name` or `--aws-s3-report-prefix` are specified they should match what is configured in the AWS cost usage report settings.
 
-Note: If `--finalize` is used the *copy* choice will create a local copy of the data with a `-finalized` suffix and invoice id populated.
+Note: If `--aws-finalize` is used the *copy* choice will create a local copy of the data with a `-finalized` suffix and invoice id populated.
       If *overwrite* is used, the regular data file generated will have invoice id populated
 
-Below is an example usage of ``nise``::
+Below is an example usage of ``nise`` for AWS data::
 
-    nise --start-date 06-03-2018
+    nise --start-date 06-03-2018 --aws
 
-    nise --start-date 06-20-2018 --s3-bucket-name testbucket --s3-report-name cur
+    nise --start-date 06-20-2018 --aws --aws-s3-bucket-name testbucket --aws-s3-report-name cur
 
-    nise --start-date 06-20-2018 --s3-bucket-name /local/path/testbucket --s3-report-name cur
+    nise --start-date 06-20-2018 --aws --aws-s3-bucket-name /local/path/testbucket --aws-s3-report-name cur
 
-    nise --start-date 06-20-2018 --s3-bucket-name /local/path/testbucket --s3-report-name cur --s3-report-prefix my-prefix
+    nise --start-date 06-20-2018 --aws --aws-s3-bucket-name /local/path/testbucket --aws-s3-report-name cur --aws-s3-report-prefix my-prefix
 
-    nise --start-date 06-20-2018 --finalize copy
+    nise --start-date 06-20-2018 --aws --aws-finalize copy
 
 Generated reports will be generated in monthly .csv files with the file format <Month>-<Year>-<Report Name>.csv.
+
+Below is an example usage of ``nise`` for OCP data::
+
+    nise --start-date 06-03-2018 --ocp --ocp-cluster-id test-001
+
+Generated reports will be generated in monthly .csv files with the file format <Month>-<Year>-<Cluster-ID>.csv.
 
 Contributing
 =============

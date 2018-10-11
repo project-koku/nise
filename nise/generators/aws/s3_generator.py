@@ -17,10 +17,10 @@
 """Module for s3 data generation."""
 from random import uniform
 
-from nise.generators.generator import AbstractGenerator
+from nise.generators.aws.aws_generator import AWSGenerator
 
 
-class S3Generator(AbstractGenerator):
+class S3Generator(AWSGenerator):
     """Generator for S3 data."""
 
     def _get_arn(self, avail_zone):

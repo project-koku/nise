@@ -29,16 +29,18 @@ from dateutil.relativedelta import relativedelta
 from faker import Faker
 
 from nise.copy import copy_to_local_dir
-from nise.generators import (COLUMNS,
-                             DataTransferGenerator,
-                             EBSGenerator,
-                             EC2Generator,
-                             S3Generator)
+from nise.generators.aws import (AWS_COLUMNS,
+                                 DataTransferGenerator,
+                                 EBSGenerator,
+                                 EC2Generator,
+                                 S3Generator)
+from nise.generators.ocp import (OCPGenerator,
+                                 OCP_COLUMNS)
 from nise.manifest import generate_manifest
 from nise.upload import upload_to_s3
 
 
-def _write_csv(output_file, data, header=COLUMNS):
+def _write_csv(output_file, data, header):
     """Output csv file data."""
     with open(output_file, 'w') as file:
         writer = csv.DictWriter(file, fieldnames=header)
@@ -107,7 +109,7 @@ def _create_month_list(start_date, end_date):
     return months
 
 
-def _finalize_report(data):
+def _aws_finalize_report(data):
     """Popualate invoice id for data."""
     data = copy.deepcopy(data)
     invoice_id = ''.join([random.choice(string.digits) for _ in range(9)])
@@ -118,13 +120,13 @@ def _finalize_report(data):
 
 
 # pylint: disable=too-many-locals
-def create_report(options):
+def aws_create_report(options):
     """Create a cost usage report file."""
     generators = [DataTransferGenerator, EBSGenerator, EC2Generator, S3Generator]
     data = []
     start_date = options.get('start_date')
     end_date = options.get('end_date')
-    finalize_report = options.get('finalize_report')
+    aws_finalize_report = options.get('aws_finalize_report')
     months = _create_month_list(start_date, end_date)
     fake = Faker()
     payer_account = fake.ean(length=13)  # pylint: disable=no-member
@@ -141,25 +143,25 @@ def create_report(options):
 
         month_output_file_name = '{}-{}-{}'.format(month.get('name'),
                                                    month.get('start').year,
-                                                   options.get('report_name'))
+                                                   options.get('aws_report_name'))
         month_output_file = '{}/{}.csv'.format(os.getcwd(), month_output_file_name)
-        if finalize_report and finalize_report == 'overwrite':
-            data = _finalize_report(data)
-        elif finalize_report and finalize_report == 'copy':
+        if aws_finalize_report and aws_finalize_report == 'overwrite':
+            data = _aws_finalize_report(data)
+        elif aws_finalize_report and aws_finalize_report == 'copy':
             # Currently only a local option as this does not simulate
-            finalized_data = _finalize_report(data)
+            finalized_data = _aws_finalize_report(data)
             finalized_file_name = '{}-finalized'.format(month_output_file_name)
             finalized_output_file = '{}/{}.csv'.format(
                 os.getcwd(),
                 finalized_file_name
             )
-            _write_csv(finalized_output_file, finalized_data)
+            _write_csv(finalized_output_file, finalized_data, AWS_COLUMNS)
 
-        _write_csv(month_output_file, data)
+        _write_csv(month_output_file, data, AWS_COLUMNS)
 
-        bucket_name = options.get('bucket_name')
-        if bucket_name:
-            report_name = options.get('report_name')
+        aws_bucket_name = options.get('aws_bucket_name')
+        if aws_bucket_name:
+            report_name = options.get('aws_report_name')
             manifest_values = {'account': payer_account}
             manifest_values.update(options)
             manifest_values['start_date'] = month.get('start')
@@ -171,14 +173,33 @@ def create_report(options):
             s3_assembly_manifest_path = s3_assembly_path + '/' + report_name + '-Manifest.json'
             temp_manifest = _write_manifest(manifest_data)
             temp_cur_zip = _gzip_report(month_output_file)
-            route_file(bucket_name,
+            route_file(aws_bucket_name,
                        s3_month_manifest_path,
                        temp_manifest)
-            route_file(bucket_name,
+            route_file(aws_bucket_name,
                        s3_assembly_manifest_path,
                        temp_manifest)
-            route_file(bucket_name,
+            route_file(aws_bucket_name,
                        s3_cur_path,
                        temp_cur_zip)
             os.remove(temp_manifest)
             os.remove(temp_cur_zip)
+
+
+def ocp_create_report(options):
+    """Create a usage report file."""
+    start_date = options.get('start_date')
+    end_date = options.get('end_date')
+    cluster_id = options.get('ocp_cluster_id')
+    months = _create_month_list(start_date, end_date)
+    generators = [OCPGenerator]
+    for month in months:
+        data = []
+        for generator in generators:
+            gen = generator(month.get('start'), month.get('end'))
+            data += gen.generate_data()
+        month_output_file_name = '{}-{}-{}'.format(month.get('name'),
+                                                   month.get('start').year,
+                                                   cluster_id)
+        month_output_file = '{}/{}.csv'.format(os.getcwd(), month_output_file_name)
+        _write_csv(month_output_file, data, OCP_COLUMNS)
