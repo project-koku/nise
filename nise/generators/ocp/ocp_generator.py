@@ -45,7 +45,7 @@ class OCPGenerator(AbstractGenerator):
         """Provide timestamp for a date."""
         if not in_date or not isinstance(in_date, datetime.datetime):
             raise ValueError('in_date must be a date object.')
-        return in_date.strftime('%Y-%m-%dT%H:%M:%S +0000 UTC')
+        return in_date.strftime('%Y-%m-%d %H:%M:%S +0000 UTC')
 
     def _gen_nodes(self):
         """Create nodes for report."""
