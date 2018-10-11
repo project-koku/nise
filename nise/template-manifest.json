@@ -177,7 +177,7 @@
     "compression": "{{ compression }}",
     "contentType": "text/csv",
     "reportId": "{{ report_id }}",
-    "reportName": "{{ report_name }}",
+    "reportName": "{{ aws_report_name }}",
     "billingPeriod": {
         "start": "{{ billing_period_start }}",
         "end": "{{ billing_period_end }}"

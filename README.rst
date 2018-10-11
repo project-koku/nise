@@ -66,6 +66,7 @@ nise is a command line tool. Currently only accepting a limited number of argume
 - *--aws-s3-report-name report_name*  (optional, must include --aws-s3-bucket-name)
 - *--aws-s3-report-prefix prefix_name*  (optional)
 - *--aws-finalize finalize_choice* (optional, choices: ['copy', 'overwrite'])
+- *--ocp-cluster-id cluster-id* (required when providing ocp type)
 
 Note: If `--aws-s3-report-name` or `--aws-s3-report-prefix` are specified they should match what is configured in the AWS cost usage report settings.
 

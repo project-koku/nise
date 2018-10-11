@@ -62,14 +62,14 @@ def generate_manifest(fake, template_data):
         (String): Rendered template data
     """
     end = template_data.get('end_date')
-    report_name = template_data.get('report_name')
+    report_name = template_data.get('aws_report_name')
     bp_end = end.replace(microsecond=0, second=0, minute=0,
                          hour=0, day=1, month=(end.month + 1))
     bp_start = bp_end.replace(month=(bp_end.month - 1))
     range_str = _manifest_datetime_range(bp_start, bp_end)
     assembly_id = uuid4()
     report_id = fake.sha256(raw_output=False)
-    prefix_name = template_data.get('prefix_name')
+    prefix_name = template_data.get('aws_prefix_name')
     if prefix_name:
         report_key = '{prefix_name}/{report_name}/{range_str}/{assembly_id}/{report_name}-1.csv.gz'
         report_key = report_key.format(prefix_name=prefix_name,
@@ -86,7 +86,8 @@ def generate_manifest(fake, template_data):
                    'billing_period_start': _manifest_datetime_str(bp_start),
                    'billing_period_end': _manifest_datetime_str(bp_end),
                    'report_key': report_key,
-                   'compression': 'GZIP'}
+                   'compression': 'GZIP',
+                   'bucket': template_data.get('aws_bucket_name')}
     render_data.update(template_data)
     template_loader = jinja2.FileSystemLoader(searchpath=TEMPLATE_DIR)
     template_env = jinja2.Environment(loader=template_loader)
