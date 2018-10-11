@@ -108,3 +108,6 @@ venv.bak/
 
 # Generated csv files
 *.csv
+
+# Generated .tar.gz
+*.tar.gz
