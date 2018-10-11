@@ -19,10 +19,11 @@ from unittest import TestCase
 
 from faker import Faker
 
-from nise.generators.generator import AbstractGenerator, COLUMNS
+# from nise.generators.generator import AbstractGenerator
+from nise.generators.aws import AWS_COLUMNS, AWSGenerator
 
 
-class TestGenerator(AbstractGenerator):
+class TestGenerator(AWSGenerator):
 
     def _update_data(self, row, start, end):
         return None
@@ -104,7 +105,7 @@ class AbstractGeneratorTestCase(TestCase):
                                   self.payer_account, self.usage_accounts)
         a_row = generator._init_data_row(two_hours_ago, self.now)
         self.assertIsInstance(a_row, dict)
-        for col in COLUMNS:
+        for col in AWS_COLUMNS:
             self.assertIsNotNone(a_row.get(col))
 
     def test_init_data_row_start_none(self):

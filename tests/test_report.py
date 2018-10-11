@@ -27,7 +27,11 @@ from unittest.mock import ANY, patch
 
 from moto import mock_s3
 
-from nise.report import create_report, _create_month_list, _write_csv, _write_manifest
+from nise.report import (aws_create_report,
+                         ocp_create_report,
+                         _create_month_list,
+                         _write_csv,
+                         _write_manifest)
 
 
 class ReportTestCase(TestCase):
@@ -53,12 +57,12 @@ class ReportTestCase(TestCase):
         self.assertTrue(os.path.exists(manifest_path))
         os.remove(manifest_path)
 
-    def test_create_report_no_s3(self):
-        """Test the report creation method no s3."""
+    def test_aws_create_report_no_s3(self):
+        """Test the aws report creation method no s3."""
         now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0)
         one_day = datetime.timedelta(days=1)
         yesterday = now - one_day
-        create_report({'start_date': yesterday, 'end_date': now, 'report_name': 'cur_report'})
+        aws_create_report({'start_date': yesterday, 'end_date': now, 'aws_report_name': 'cur_report'})
 
         month_output_file_name = '{}-{}-{}'.format(calendar.month_name[now.month],
                                                    now.year,
@@ -68,16 +72,16 @@ class ReportTestCase(TestCase):
         os.remove(expected_month_output_file)
 
     @mock_s3
-    def test_create_report_with_s3(self):
-        """Test the report creation method with s3."""
+    def test_aws_create_report_with_s3(self):
+        """Test the aws report creation method with s3."""
         now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0)
         one_day = datetime.timedelta(days=1)
         yesterday = now - one_day
         options = {'start_date': yesterday,
                    'end_date': now,
-                   'bucket_name': 'my_bucket',
-                   'report_name': 'cur_report'}
-        create_report(options)
+                   'aws_bucket_name': 'my_bucket',
+                   'aws_report_name': 'cur_report'}
+        aws_create_report(options)
         month_output_file_name = '{}-{}-{}'.format(calendar.month_name[now.month],
                                                    now.year,
                                                    'cur_report')
@@ -85,17 +89,17 @@ class ReportTestCase(TestCase):
         self.assertTrue(os.path.isfile(expected_month_output_file))
         os.remove(expected_month_output_file)
 
-    def test_create_report_with_local_dir(self):
-        """Test the report creation method with local directory."""
+    def test_aws_create_report_with_local_dir(self):
+        """Test the aws report creation method with local directory."""
         now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0)
         one_day = datetime.timedelta(days=1)
         yesterday = now - one_day
         local_bucket_path = mkdtemp()
         options = {'start_date': yesterday,
                    'end_date': now,
-                   'bucket_name': local_bucket_path,
-                   'report_name': 'cur_report'}
-        create_report(options)
+                   'aws_bucket_name': local_bucket_path,
+                   'aws_report_name': 'cur_report'}
+        aws_create_report(options)
         month_output_file_name = '{}-{}-{}'.format(calendar.month_name[now.month],
                                                    now.year,
                                                    'cur_report')
@@ -107,41 +111,41 @@ class ReportTestCase(TestCase):
     def test_create_month_list(self):
         """Test to create month lists."""
         test_matrix = [{
-                        'start_date': datetime.datetime(year=2018, month=1, day=15),
-                        'end_date': datetime.datetime(year=2018, month=1, day=30),
-                        'expected_list': [{'name': 'January',
-                                           'start': datetime.datetime(year=2018, month=1, day=15),
-                                           'end': datetime.datetime(year=2018, month=1, day=30)}]},
-                        {
-                        'start_date': datetime.datetime(year=2018, month=1, day=15),
-                        'end_date': datetime.datetime(year=2018, month=3, day=5),
-                        'expected_list': [{'name': 'January',
-                                           'start': datetime.datetime(year=2018, month=1, day=15),
-                                           'end': datetime.datetime(year=2018, month=1, day=31)},
-                                           {'name': 'February',
-                                           'start': datetime.datetime(year=2018, month=2, day=1),
-                                           'end': datetime.datetime(year=2018, month=2, day=28)},
-                                           {'name': 'March',
-                                           'start': datetime.datetime(year=2018, month=3, day=1),
-                                           'end': datetime.datetime(year=2018, month=3, day=5)}]},
-                      ]
+            'start_date': datetime.datetime(year=2018, month=1, day=15),
+            'end_date': datetime.datetime(year=2018, month=1, day=30),
+            'expected_list': [{'name': 'January',
+                               'start': datetime.datetime(year=2018, month=1, day=15),
+                               'end': datetime.datetime(year=2018, month=1, day=30)}]},
+                       {
+            'start_date': datetime.datetime(year=2018, month=1, day=15),
+            'end_date': datetime.datetime(year=2018, month=3, day=5),
+            'expected_list': [{'name': 'January',
+                               'start': datetime.datetime(year=2018, month=1, day=15),
+                               'end': datetime.datetime(year=2018, month=1, day=31)},
+                              {'name': 'February',
+                               'start': datetime.datetime(year=2018, month=2, day=1),
+                               'end': datetime.datetime(year=2018, month=2, day=28)},
+                              {'name': 'March',
+                               'start': datetime.datetime(year=2018, month=3, day=1),
+                               'end': datetime.datetime(year=2018, month=3, day=5)}]},
+                       ]
 
         for test_case in test_matrix:
             output = _create_month_list(test_case['start_date'], test_case['end_date'])
             self.assertCountEqual(output, test_case['expected_list'])
 
-    def test_create_report_with_local_dir_report_prefix(self):
-        """Test the report creation method with local directory and a report prefix."""
+    def test_aws_create_report_with_local_dir_report_prefix(self):
+        """Test the aws report creation method with local directory and a report prefix."""
         now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0)
         one_day = datetime.timedelta(days=1)
         yesterday = now - one_day
         local_bucket_path = mkdtemp()
         options = {'start_date': yesterday,
                    'end_date': now,
-                   'bucket_name': local_bucket_path,
-                   'report_name': 'cur_report',
-                   'prefix_name': 'my_prefix'}
-        create_report(options)
+                   'aws_bucket_name': local_bucket_path,
+                   'aws_report_name': 'cur_report',
+                   'aws_prefix_name': 'my_prefix'}
+        aws_create_report(options)
         month_output_file_name = '{}-{}-{}'.format(calendar.month_name[now.month],
                                                    now.year,
                                                    'cur_report')
@@ -150,17 +154,17 @@ class ReportTestCase(TestCase):
         os.remove(expected_month_output_file)
         shutil.rmtree(local_bucket_path)
 
-    def test_create_report_finalize_report_copy(self):
-        """Test that a finalized copy of a report file has an invoice id."""
+    def test_aws_create_report_finalize_report_copy(self):
+        """Test that an aws finalized copy of a report file has an invoice id."""
         now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0)
         one_day = datetime.timedelta(days=1)
         yesterday = now - one_day
-        create_report(
+        aws_create_report(
             {
                 'start_date': yesterday,
                 'end_date': now,
-                'report_name': 'cur_report',
-                'finalize_report': 'copy'
+                'aws_report_name': 'cur_report',
+                'aws_finalize_report': 'copy'
             }
         )
 
@@ -192,17 +196,17 @@ class ReportTestCase(TestCase):
         os.remove(expected_month_output_file)
         os.remove(expected_finalized_file)
 
-    def test_create_report_finalize_report_overwrite(self):
-        """Test that a report file has an invoice id."""
+    def test_aws_create_report_finalize_report_overwrite(self):
+        """Test that an aws report file has an invoice id."""
         now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0)
         one_day = datetime.timedelta(days=1)
         yesterday = now - one_day
-        create_report(
+        aws_create_report(
             {
                 'start_date': yesterday,
                 'end_date': now,
-                'report_name': 'cur_report',
-                'finalize_report': 'overwrite'
+                'aws_report_name': 'cur_report',
+                'aws_finalize_report': 'overwrite'
             }
         )
 
@@ -221,3 +225,22 @@ class ReportTestCase(TestCase):
             self.assertNotEqual(row['bill/InvoiceId'], '')
 
         os.remove(expected_month_output_file)
+
+    def test_ocp_create_report_with_local_dir(self):
+        """Test the ocp report creation method with local directory."""
+        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0)
+        one_day = datetime.timedelta(days=1)
+        yesterday = now - one_day
+        local_bucket_path = mkdtemp()
+        cluster_id = '11112222'
+        options = {'start_date': yesterday,
+                   'end_date': now,
+                   'ocp_cluster_id': cluster_id}
+        ocp_create_report(options)
+        month_output_file_name = '{}-{}-{}'.format(calendar.month_name[now.month],
+                                                   now.year,
+                                                   cluster_id)
+        expected_month_output_file = '{}/{}.csv'.format(os.getcwd(), month_output_file_name)
+        self.assertTrue(os.path.isfile(expected_month_output_file))
+        os.remove(expected_month_output_file)
+        shutil.rmtree(local_bucket_path)

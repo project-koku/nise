@@ -19,7 +19,7 @@ from unittest import TestCase
 
 from nise.__main__ import (create_parser,
                            main,
-                           _check_s3_arguments,
+                           _validate_provider_inputs,
                            valid_date)
 
 
@@ -57,17 +57,18 @@ class CommandLineTestCase(TestCase):
         """
         Test where user passes no s3 argument combination.
         """
-        options = {}
-        valid = _check_s3_arguments(self.parser, options)
+        options = {'aws': True}
+        valid = _validate_provider_inputs(self.parser, options)
         self.assertTrue(valid)
 
     def test_valid_s3_both_inputs(self):
         """
         Test where user passes a valid s3 argument combination.
         """
-        options = {'bucket_name': 'mybucket',
-                    'report_name': 'cur'}
-        valid = _check_s3_arguments(self.parser, options)
+        options = {'aws': True,
+                   'aws_bucket_name': 'mybucket',
+                   'aws_report_name': 'cur'}
+        valid = _validate_provider_inputs(self.parser, options)
         self.assertTrue(valid)
 
     def test_invalid_s3_inputs(self):
@@ -75,8 +76,24 @@ class CommandLineTestCase(TestCase):
         Test where user passes an invalid s3 argument combination.
         """
         with self.assertRaises(SystemExit):
-            options = {'bucket_name': 'mybucket'}
-            _check_s3_arguments(self.parser, options)
+            options = {'aws': True, 'aws_bucket_name': 'mybucket'}
+            _validate_provider_inputs(self.parser, options)
+
+    def test_invalid_ocp_inputs(self):
+        """
+        Test where user passes an invalid ocp argument combination.
+        """
+        with self.assertRaises(SystemExit):
+            options = {'ocp': True, 'aws_bucket_name': 'mybucket', 'ocp_cluster_id': '123'}
+            _validate_provider_inputs(self.parser, options)
+
+    def test_ocp_no_cluster_id(self):
+        """
+        Test where user passes ocp without cluster id combination.
+        """
+        with self.assertRaises(SystemExit):
+            options = {'ocp': True}
+            _validate_provider_inputs(self.parser, options)
 
     def test_main_no_inputs(self):
         """
