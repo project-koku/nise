@@ -18,6 +18,7 @@
 
 import argparse
 import datetime
+import os
 
 from nise.report import (aws_create_report,
                          ocp_create_report)
@@ -92,6 +93,11 @@ def create_parser():
                         dest='ocp_cluster_id',
                         required=False,
                         help='Cluster identifier for usage data.')
+    parser.add_argument('--insights-upload',
+                        metavar='UPLOAD_ENDPOINT',
+                        dest='insights_upload',
+                        required=False,
+                        help='URL for Insights Upload Service.')
 
     return parser
 
@@ -125,7 +131,8 @@ def _get_ocp_options(options):
 
     """
     ocp_cluster_id = options.get('ocp_cluster_id')
-    return (ocp_cluster_id,)
+    insights_upload = options.get('insights_upload')
+    return (ocp_cluster_id, insights_upload)
 
 
 def _validate_aws_arguments(parser, options):
@@ -174,11 +181,19 @@ def _validate_ocp_arguments(parser, options):
             msg = 'AWS arguments cannot be supplied when generating OCP data.'
             parser.error(msg)
 
-    ocp_cluster_id, = _get_ocp_options(options)
+    ocp_cluster_id, insights_upload = _get_ocp_options(options)
     if ocp_cluster_id is None:
         msg = '{} must be supplied.'
         msg = msg.format('--ocp-cluster-id')
         parser.error(msg)
+    elif not os.path.isdir(insights_upload):
+        insights_user = os.environ.get('INSIGHTS_USER')
+        insights_password = os.environ.get('INSIGHTS_PASSWORD')
+        if insights_user is None or insights_password is None:
+            msg = 'The environment must have INSIGHTS_USER and ' \
+                'INSIGHTS_PASSWORD defined when {} {} is supplied.'
+            msg = msg.format('--insights-upload', insights_upload)
+            parser.error(msg)
     else:
         ocp_valid = True
     return ocp_valid

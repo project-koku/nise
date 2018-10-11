@@ -41,7 +41,7 @@ To build the command line tool run ::
 Testing and Linting
 -------------------
 
-Nise uses tox to standardize the environment used when running tests. Essentially, tox manages its own virtual environment and a copy of required dependencies to run tests. To ensure a clean tox environement run ::
+Nise uses tox to standardize the environment used when running tests. Essentially, tox manages its own virtual environment and a copy of required dependencies to run tests. To ensure a clean tox environment run ::
 
     tox -r
 
@@ -67,11 +67,14 @@ nise is a command line tool. Currently only accepting a limited number of argume
 - *--aws-s3-report-prefix prefix_name*  (optional)
 - *--aws-finalize finalize_choice* (optional, choices: ['copy', 'overwrite'])
 - *--ocp-cluster-id cluster-id* (required when providing ocp type)
+- *--insights-upload UPLOAD_URL* (optional) Note: Use local directory path to populate a "local uplodd directory".
 
 Note: If `--aws-s3-report-name` or `--aws-s3-report-prefix` are specified they should match what is configured in the AWS cost usage report settings.
 
 Note: If `--aws-finalize` is used the *copy* choice will create a local copy of the data with a `-finalized` suffix and invoice id populated.
       If *overwrite* is used, the regular data file generated will have invoice id populated
+
+Note: If `--insights-upload` is and pointing to a URL endpoint you must have INSIGHTS_USER and INSIGHTS_PASSWORD set in your environment.
 
 Below is an example usage of ``nise`` for AWS data::
 
@@ -90,6 +93,10 @@ Generated reports will be generated in monthly .csv files with the file format <
 Below is an example usage of ``nise`` for OCP data::
 
     nise --start-date 06-03-2018 --ocp --ocp-cluster-id test-001
+
+    nise --start-date 06-03-2018 --ocp --ocp-cluster-id test-001 --insights-upload  https://api.access.redhat.com/r/insights/platform/upload/api/v1/upload
+
+    nise --start-date 06-03-2018 --ocp --ocp-cluster-id test-001 --insights-upload  /local/path/upload_dir
 
 Generated reports will be generated in monthly .csv files with the file format <Month>-<Year>-<Cluster-ID>.csv.
 

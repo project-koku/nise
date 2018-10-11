@@ -21,10 +21,14 @@ import csv
 import gzip
 import os
 import random
+import shutil
 import string
+import tarfile
 from datetime import datetime
-from tempfile import NamedTemporaryFile
+from tempfile import NamedTemporaryFile, gettempdir
+from uuid import uuid4
 
+import requests
 from dateutil.relativedelta import relativedelta
 from faker import Faker
 
@@ -36,8 +40,16 @@ from nise.generators.aws import (AWS_COLUMNS,
                                  S3Generator)
 from nise.generators.ocp import (OCPGenerator,
                                  OCP_COLUMNS)
-from nise.manifest import generate_manifest
+from nise.manifest import aws_generate_manifest, ocp_generate_manifest
 from nise.upload import upload_to_s3
+
+
+def create_temporary_copy(path, temp_file_name):
+    """Create temporary copy of a file."""
+    temp_dir = gettempdir()
+    temp_path = os.path.join(temp_dir, temp_file_name)
+    shutil.copy2(path, temp_path)
+    return temp_path
 
 
 def _write_csv(output_file, data, header):
@@ -57,6 +69,17 @@ def _gzip_report(report_path):
     return t_file.name
 
 
+def _tar_gzip_report(report_files):
+    """Compress the report and manifest to tarfile."""
+    t_file = NamedTemporaryFile(mode='wb', suffix='.tar.gz', delete=False)
+
+    with tarfile.open(t_file.name, 'w:gz') as tar:
+        for report_file in report_files:
+            tar.add(report_file)
+
+    return t_file.name
+
+
 def _write_manifest(data):
     """Write manifest file to temp location.
 
@@ -71,16 +94,38 @@ def _write_manifest(data):
     return t_file.name
 
 
-def route_file(bucket_name, bucket_file_path, local_path):
+def aws_route_file(bucket_name, bucket_file_path, local_path):
     """Route file to either S3 bucket or local filesystem."""
     if os.path.isdir(bucket_name):
         copy_to_local_dir(bucket_name,
-                          bucket_file_path,
-                          local_path)
+                          local_path,
+                          bucket_file_path,)
     else:
         upload_to_s3(bucket_name,
                      bucket_file_path,
                      local_path)
+
+
+def ocp_route_file(insights_upload, local_path):
+    """Route file to either Upload Service or local filesystem."""
+    if os.path.isdir(insights_upload):
+        copy_to_local_dir(insights_upload,
+                          local_path)
+    else:
+        with open(local_path, 'rb') as upload_file:
+            insights_user = os.environ.get('INSIGHTS_USER')
+            insights_password = os.environ.get('INSIGHTS_PASSWORD')
+            headers = {'content-type': 'application/vnd.redhat.hccm.tar+tgz'}
+            response = requests.post(insights_upload,
+                                     files={local_path: upload_file},
+                                     auth=(insights_user, insights_password),
+                                     headers=headers)
+            if response.status_code == 202:
+                print('File uploaded successfully.')
+                print(response.json())
+            else:
+                print('{} File upload failed.'.format(response.status_code))
+                print(response.text)
 
 
 def _create_month_list(start_date, end_date):
@@ -166,22 +211,22 @@ def aws_create_report(options):
             manifest_values.update(options)
             manifest_values['start_date'] = month.get('start')
             manifest_values['end_date'] = month.get('end')
-            s3_cur_path, manifest_data = generate_manifest(fake, manifest_values)
+            s3_cur_path, manifest_data = aws_generate_manifest(fake, manifest_values)
             s3_assembly_path = os.path.dirname(s3_cur_path)
             s3_month_path = os.path.dirname(s3_assembly_path)
             s3_month_manifest_path = s3_month_path + '/' + report_name + '-Manifest.json'
             s3_assembly_manifest_path = s3_assembly_path + '/' + report_name + '-Manifest.json'
             temp_manifest = _write_manifest(manifest_data)
             temp_cur_zip = _gzip_report(month_output_file)
-            route_file(aws_bucket_name,
-                       s3_month_manifest_path,
-                       temp_manifest)
-            route_file(aws_bucket_name,
-                       s3_assembly_manifest_path,
-                       temp_manifest)
-            route_file(aws_bucket_name,
-                       s3_cur_path,
-                       temp_cur_zip)
+            aws_route_file(aws_bucket_name,
+                           s3_month_manifest_path,
+                           temp_manifest)
+            aws_route_file(aws_bucket_name,
+                           s3_assembly_manifest_path,
+                           temp_manifest)
+            aws_route_file(aws_bucket_name,
+                           s3_cur_path,
+                           temp_cur_zip)
             os.remove(temp_manifest)
             os.remove(temp_cur_zip)
 
@@ -203,3 +248,23 @@ def ocp_create_report(options):
                                                    cluster_id)
         month_output_file = '{}/{}.csv'.format(os.getcwd(), month_output_file_name)
         _write_csv(month_output_file, data, OCP_COLUMNS)
+
+        insights_upload = options.get('insights_upload')
+        if insights_upload:
+            ocp_assembly_id = uuid4()
+            report_datetime = month.get('start')
+            manifest_values = {'ocp_cluster_id': cluster_id,
+                               'ocp_assembly_id': ocp_assembly_id,
+                               'report_datetime': report_datetime}
+            manifest_data = ocp_generate_manifest(manifest_values)
+            temp_manifest = _write_manifest(manifest_data)
+            temp_filename = '{}_openshift_usage_report.csv'.format(ocp_assembly_id)
+            temp_usage_file = create_temporary_copy(month_output_file, temp_filename)
+            temp_manifest = _write_manifest(manifest_data)
+            temp_manifest_name = create_temporary_copy(temp_manifest, 'manifest.json')
+            temp_usage_zip = _tar_gzip_report([temp_manifest_name, temp_usage_file])
+            ocp_route_file(insights_upload, temp_usage_zip)
+            os.remove(temp_usage_file)
+            os.remove(temp_manifest)
+            os.remove(temp_manifest_name)
+            os.remove(temp_usage_zip)
