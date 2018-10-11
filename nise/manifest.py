@@ -32,7 +32,7 @@ def _manifest_datetime_str(date_time):
     Returns:
         (String): Formated date time string
     """
-    return date_time.strftime('%Y%m%dT%H%M%S.%fZ')
+    return date_time.strftime('%Y%m%dT000000.000Z')
 
 
 def _manifest_datetime_range(start, end):
