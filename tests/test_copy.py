@@ -37,7 +37,7 @@ class CopyTestCase(TestCase):
         bucket_name = mkdtemp()
         bucket_file_path = '/{}/{}'.format('report_name', source_file_name)
 
-        success = copy_to_local_dir(bucket_name, bucket_file_path, source_file.name)
+        success = copy_to_local_dir(bucket_name, source_file.name, bucket_file_path)
         self.assertTrue(success)
 
         expected_full_file_path = '{}{}'.format(bucket_name, bucket_file_path)
@@ -57,7 +57,7 @@ class CopyTestCase(TestCase):
         bad_bucket_name = bucket_name + 'bad'
         bucket_file_path = '/bucket_location'
 
-        success = copy_to_local_dir(bad_bucket_name, bucket_file_path, source_file.name)
+        success = copy_to_local_dir(bad_bucket_name, source_file.name, bucket_file_path)
         self.assertFalse(success)
 
         shutil.rmtree(bucket_name)

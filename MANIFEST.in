@@ -1,1 +1,2 @@
-include nise/template-manifest.json
+include nise/aws-template-manifest.json
+include nise/ocp-template-manifest.json

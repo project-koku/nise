@@ -226,12 +226,11 @@ class ReportTestCase(TestCase):
 
         os.remove(expected_month_output_file)
 
-    def test_ocp_create_report_with_local_dir(self):
-        """Test the ocp report creation method with local directory."""
+    def test_ocp_create_report(self):
+        """Test the ocp report creation method."""
         now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0)
         one_day = datetime.timedelta(days=1)
         yesterday = now - one_day
-        local_bucket_path = mkdtemp()
         cluster_id = '11112222'
         options = {'start_date': yesterday,
                    'end_date': now,
@@ -243,4 +242,23 @@ class ReportTestCase(TestCase):
         expected_month_output_file = '{}/{}.csv'.format(os.getcwd(), month_output_file_name)
         self.assertTrue(os.path.isfile(expected_month_output_file))
         os.remove(expected_month_output_file)
-        shutil.rmtree(local_bucket_path)
+
+    def test_ocp_create_report_with_local_dir(self):
+        """Test the ocp report creation method with local directory."""
+        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0)
+        one_day = datetime.timedelta(days=1)
+        yesterday = now - one_day
+        local_insights_upload = mkdtemp()
+        cluster_id = '11112222'
+        options = {'start_date': yesterday,
+                   'end_date': now,
+                   'insights_upload': local_insights_upload,
+                   'ocp_cluster_id': cluster_id}
+        ocp_create_report(options)
+        month_output_file_name = '{}-{}-{}'.format(calendar.month_name[now.month],
+                                                   now.year,
+                                                   cluster_id)
+        expected_month_output_file = '{}/{}.csv'.format(os.getcwd(), month_output_file_name)
+        self.assertTrue(os.path.isfile(expected_month_output_file))
+        os.remove(expected_month_output_file)
+        shutil.rmtree(local_insights_upload)

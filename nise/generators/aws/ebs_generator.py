@@ -35,7 +35,7 @@ class EBSGenerator(AWSGenerator):
         return choice(self.STORAGE)
 
     # pylint: disable=too-many-locals
-    def _update_data(self, row, start, end):
+    def _update_data(self, row, start, end, **kwargs):
         """Update data with generator specific data."""
         row = self._add_common_usage_info(row, start, end)
 

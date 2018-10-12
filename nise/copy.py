@@ -14,29 +14,32 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
-"""Defines the upload mechanism to AWS."""
+"""Defines the upload mechanism to local directories for simulation."""
 
 import os
 import shutil
 
 
-def copy_to_local_dir(bucket_name, bucket_file_path, local_path):
-    """Upload data to an S3 bucket.
+def copy_to_local_dir(local_dir_home, local_path, local_file_path=None):
+    """Upload data to an local directory.
 
     Args:
-        bucket_name (String): Local file path representing the bucket
-        bucket_file_path (String): The path to store the file to
+        local_dir_home (String): Local file path representing the bucket
+        local_file_path (String): The path to store the file to
         local_path  (String): The local file system path of the file
     Returns:
         (Boolean): True if file was uploaded
     """
-    if not os.path.isdir(bucket_name):
-        print('Path does not exist for the bucket: {}'.format(bucket_name))
+    if not os.path.isdir(local_dir_home):
+        print('Path does not exist for the local directory: {}'.format(local_dir_home))
         return False
-
-    full_bucket_path = '{}/{}'.format(bucket_name, bucket_file_path)
+    full_bucket_path = local_dir_home
+    outpath = local_path
+    if local_file_path:
+        full_bucket_path = '{}/{}'.format(local_dir_home, local_file_path)
+        outpath = local_file_path
     os.makedirs(os.path.dirname(full_bucket_path), exist_ok=True)
     shutil.copy2(local_path, full_bucket_path)
-    msg = 'Copied {} to s3 bucket {}.'.format(bucket_file_path, bucket_name)
+    msg = 'Copied {} to local directory {}.'.format(outpath, local_dir_home)
     print(msg)
     return True

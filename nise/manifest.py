@@ -21,7 +21,8 @@ from uuid import uuid4
 import jinja2
 
 TEMPLATE_DIR = os.path.dirname(__file__)
-TEMPLATE_FILE = 'template-manifest.json'
+AWS_TEMPLATE_FILE = 'aws-template-manifest.json'
+OCP_TEMPLATE_FILE = 'ocp-template-manifest.json'
 
 
 def _manifest_datetime_str(date_time):
@@ -51,7 +52,7 @@ def _manifest_datetime_range(start, end):
 
 
 # pylint: disable=too-many-locals
-def generate_manifest(fake, template_data):
+def aws_generate_manifest(fake, template_data):
     """Generate the manifest file.
 
     Args:
@@ -91,6 +92,21 @@ def generate_manifest(fake, template_data):
     render_data.update(template_data)
     template_loader = jinja2.FileSystemLoader(searchpath=TEMPLATE_DIR)
     template_env = jinja2.Environment(loader=template_loader)
-    template = template_env.get_template(TEMPLATE_FILE)
+    template = template_env.get_template(AWS_TEMPLATE_FILE)
     output = template.render(render_data)
     return report_key, output
+
+
+def ocp_generate_manifest(template_data):
+    """Generate the manifest file.
+
+    Args:
+        template_data (Dict): data to render template with
+    Returns:
+        (String): Rendered template data
+    """
+    template_loader = jinja2.FileSystemLoader(searchpath=TEMPLATE_DIR)
+    template_env = jinja2.Environment(loader=template_loader)
+    template = template_env.get_template(OCP_TEMPLATE_FILE)
+    output = template.render(template_data)
+    return output
