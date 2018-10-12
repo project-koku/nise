@@ -46,7 +46,7 @@ class EC2Generator(AWSGenerator):
         return choice(self.ARCHS)
 
     # pylint: disable=too-many-locals,too-many-statements
-    def _update_data(self, row, start, end):
+    def _update_data(self, row, start, end, **kwargs):
         """Update data with generator specific data."""
         inst_type, vcpu, memory, storage, family, cost, rate, description = \
             self._get_instance_type()

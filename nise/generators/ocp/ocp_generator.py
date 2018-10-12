@@ -108,16 +108,11 @@ class OCPGenerator(AbstractGenerator):
         row['interval_end'] = OCPGenerator.timestamp(end)
         return row
 
-    def _update_data(self, row, start, end):  # pylint: disable=too-many-locals
+    def _update_data(self, row, start, end, **kwargs):  # pylint: disable=too-many-locals
         """Update data with generator specific data."""
         row = self._add_common_usage_info(row, start, end)
-        pod_count = len(self.pods)
-        pod_index_list = range(pod_count)
-        pod_choice = choice(pod_index_list)
-        pod_keys = list(self.pods.keys())
-        pod_name = pod_keys[pod_choice]
         pod_seconds = randint(2, 60 * 60)
-        pod = deepcopy(self.pods[pod_name])
+        pod = kwargs.get('pod')
         cpu_request = pod.pop('cpu_request')
         mem_request = pod.pop('mem_request')
         cpu = round(uniform(0.02, cpu_request), 5)
@@ -135,16 +130,20 @@ class OCPGenerator(AbstractGenerator):
         for hour in self.hours:
             start = hour.get('start')
             end = hour.get('end')
-            row = self._init_data_row(start, end)
-            row = self._update_data(row, start, end)
-            data.append(row)
+            pod_count = len(self.pods)
+            num_pods = randint(2, pod_count)
+            pod_index_list = range(pod_count)
+            pod_choices = list(set(choices(pod_index_list, k=num_pods)))
+            pod_keys = list(self.pods.keys())
+            for pod_choice in pod_choices:
+                pod_name = pod_keys[pod_choice]
+                pod = deepcopy(self.pods[pod_name])
+                row = self._init_data_row(start, end)
+                row = self._update_data(row, start, end, pod=pod)
+                data.append(row)
         return data
 
     def generate_data(self):
         """Responsibile for generating data."""
-        data = []
-        pod_count = len(self.pods)
-        num_pods = randint(2, pod_count)
-        for pod in range(0, num_pods):  # pylint: disable=W0612
-            data += self._generate_hourly_data()
+        data = self._generate_hourly_data()
         return data

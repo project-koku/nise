@@ -30,7 +30,7 @@ class S3Generator(AWSGenerator):
                                                           self.fake.ean8())  # pylint: disable=no-member
         return arn
 
-    def _update_data(self, row, start, end):
+    def _update_data(self, row, start, end, **kwargs):
         """Update data with generator specific data."""
         row = self._add_common_usage_info(row, start, end)
 

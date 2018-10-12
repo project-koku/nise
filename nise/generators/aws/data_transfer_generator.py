@@ -37,7 +37,7 @@ class DataTransferGenerator(AWSGenerator):
         description = '${} per GB - {} data transfer to {}'.format(rate, location1, location2)
         return trans_desc, operation, description, location1, location2, trans_type, aws_region
 
-    def _update_data(self, row, start, end):
+    def _update_data(self, row, start, end, **kwargs):  # pylint: disable=too-many-locals
         """Update data with generator specific data."""
         row = self._add_common_usage_info(row, start, end)
 

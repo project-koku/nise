@@ -172,7 +172,7 @@ class AWSGenerator(AbstractGenerator):
         return row
 
     @abstractmethod
-    def _update_data(self, row, start, end):
+    def _update_data(self, row, start, end, **kwargs):
         """Update data with generator specific data."""
         pass
 
