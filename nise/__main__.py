@@ -186,7 +186,7 @@ def _validate_ocp_arguments(parser, options):
         msg = '{} must be supplied.'
         msg = msg.format('--ocp-cluster-id')
         parser.error(msg)
-    elif not os.path.isdir(insights_upload):
+    elif insights_upload is not None and not os.path.isdir(insights_upload):
         insights_user = os.environ.get('INSIGHTS_USER')
         insights_password = os.environ.get('INSIGHTS_PASSWORD')
         if insights_user is None or insights_password is None:

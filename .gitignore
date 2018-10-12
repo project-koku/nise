@@ -111,3 +111,6 @@ venv.bak/
 
 # Generated .tar.gz
 *.tar.gz
+
+# Generated .json
+*.json

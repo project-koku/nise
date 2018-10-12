@@ -44,10 +44,16 @@ from nise.manifest import aws_generate_manifest, ocp_generate_manifest
 from nise.upload import upload_to_s3
 
 
-def create_temporary_copy(path, temp_file_name):
+def create_temporary_copy(path, temp_file_name, temp_dir_name='None'):
     """Create temporary copy of a file."""
     temp_dir = gettempdir()
-    temp_path = os.path.join(temp_dir, temp_file_name)
+    if temp_dir_name:
+        new_dir = os.path.join(temp_dir, temp_dir_name)
+        if not os.path.exists(new_dir):
+            os.mkdir(new_dir)
+        temp_path = os.path.join(new_dir, temp_file_name)
+    else:
+        temp_path = os.path.join(temp_dir, temp_file_name)
     shutil.copy2(path, temp_path)
     return temp_path
 
@@ -69,13 +75,12 @@ def _gzip_report(report_path):
     return t_file.name
 
 
-def _tar_gzip_report(report_files):
+def _tar_gzip_report(temp_dir):
     """Compress the report and manifest to tarfile."""
-    t_file = NamedTemporaryFile(mode='wb', suffix='.tar.gz', delete=False)
+    t_file = NamedTemporaryFile(mode='w', suffix='.tar.gz', delete=False)
 
     with tarfile.open(t_file.name, 'w:gz') as tar:
-        for report_file in report_files:
-            tar.add(report_file)
+        tar.add(temp_dir, arcname=os.path.sep)
 
     return t_file.name
 
@@ -260,10 +265,10 @@ def ocp_create_report(options):
             manifest_data = ocp_generate_manifest(manifest_values)
             temp_manifest = _write_manifest(manifest_data)
             temp_filename = '{}_openshift_usage_report.csv'.format(ocp_assembly_id)
-            temp_usage_file = create_temporary_copy(month_output_file, temp_filename)
+            temp_usage_file = create_temporary_copy(month_output_file, temp_filename, 'payload')
             temp_manifest = _write_manifest(manifest_data)
-            temp_manifest_name = create_temporary_copy(temp_manifest, 'manifest.json')
-            temp_usage_zip = _tar_gzip_report([temp_manifest_name, temp_usage_file])
+            temp_manifest_name = create_temporary_copy(temp_manifest, 'manifest.json', 'payload')
+            temp_usage_zip = _tar_gzip_report(os.path.dirname(temp_manifest_name))
             ocp_route_file(insights_upload, temp_usage_zip)
             os.remove(temp_usage_file)
             os.remove(temp_manifest)
