@@ -38,7 +38,7 @@ class UploadTestCase(TestCase):
         s3_client.Bucket.upload_file.return_value =Mock()
         mock_boto_resource.return_value = s3_client
         s3_client = boto3.resource('s3')
-        bucket = s3_client.Bucket(bucket_name).create()
+        s3_client.Bucket(bucket_name).create()
         t_file = NamedTemporaryFile(delete=False)
         success = upload_to_s3(bucket_name, '/file.txt', t_file.name)
         self.assertTrue(success)
