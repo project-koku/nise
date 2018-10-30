@@ -17,9 +17,9 @@
 import os
 from tempfile import NamedTemporaryFile
 from unittest import TestCase
+from unittest.mock import Mock, patch
 
 import boto3
-from moto import mock_s3
 
 from nise.upload import upload_to_s3
 
@@ -29,12 +29,16 @@ class UploadTestCase(TestCase):
     TestCase class for upload
     """
 
-    @mock_s3
-    def test_upload_success(self):
+    @patch('boto3.resource')
+    def test_upload_success(self, mock_boto_resource):
         """Test upload_to_s3 method with mock s3."""
         bucket_name = 'my_bucket'
+        s3_client = Mock()
+        s3_client.Bucket.create.return_value = Mock()
+        s3_client.Bucket.upload_file.return_value =Mock()
+        mock_boto_resource.return_value = s3_client
         s3_client = boto3.resource('s3')
-        bucket = s3_client.Bucket(bucket_name).create()
+        s3_client.Bucket(bucket_name).create()
         t_file = NamedTemporaryFile(delete=False)
         success = upload_to_s3(bucket_name, '/file.txt', t_file.name)
         self.assertTrue(success)
