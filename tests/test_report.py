@@ -25,8 +25,6 @@ from tempfile import (mkdtemp, NamedTemporaryFile)
 from unittest import TestCase
 from unittest.mock import ANY, patch
 
-from moto import mock_s3
-
 from nise.report import (aws_create_report,
                          ocp_create_report,
                          _create_month_list,
@@ -71,7 +69,6 @@ class ReportTestCase(TestCase):
         self.assertTrue(os.path.isfile(expected_month_output_file))
         os.remove(expected_month_output_file)
 
-    @mock_s3
     def test_aws_create_report_with_s3(self):
         """Test the aws report creation method with s3."""
         now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0)

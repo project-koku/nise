@@ -90,7 +90,7 @@ RESERVE_COLS = ('reservation/AvailabilityZone',
                 'reservation/TotalReservedNormalizedUnits',
                 'reservation/TotalReservedUnits',
                 'reservation/UnitsPerReservation')
-AWS_COLUMNS = (IDENTITY_COLS + BILL_COLS + LINE_ITEM_COLS +
+AWS_COLUMNS = (IDENTITY_COLS + BILL_COLS + LINE_ITEM_COLS +  # noqa: W504
                PRODUCT_COLS + PRICING_COLS + RESERVE_COLS)
 
 
