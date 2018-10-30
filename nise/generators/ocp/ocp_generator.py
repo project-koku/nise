@@ -26,7 +26,10 @@ from nise.generators.generator import AbstractGenerator
 OCP_COLUMNS = ('report_period_start', 'report_period_end', 'pod', 'namespace',
                'node', 'interval_start', 'interval_end',
                'pod_usage_cpu_core_seconds', 'pod_request_cpu_core_seconds',
-               'pod_usage_memory_byte_seconds', 'pod_request_memory_byte_seconds')
+               'pod_limit_cpu_core_seconds', 'pod_usage_memory_byte_seconds',
+               'pod_request_memory_byte_seconds', 'pod_limit_memory_byte_seconds',
+               'node_capacity_cpu_cores', 'node_capacity_cpu_core_seconds',
+               'node_capacity_memory_bytes', 'node_capacity_memory_byte_seconds')
 
 
 # pylint: disable=too-few-public-methods
@@ -52,7 +55,12 @@ class OCPGenerator(AbstractGenerator):
         nodes = []
         num_nodes = randint(2, 6)
         for node_num in range(0, num_nodes):  # pylint: disable=W0612
-            nodes.append('node_' + self.fake.word())  # pylint: disable=no-member
+            memory_gig = randint(2, 8)
+            memory_bytes = memory_gig * 1024 * 1024
+            node = {'name': 'node_' + self.fake.word(),  # pylint: disable=no-member
+                    'cpu_cores': randint(2, 16),
+                    'memory_bytes': memory_bytes}
+            nodes.append(node)
         return nodes
 
     def _gen_namespaces(self, nodes):
@@ -66,20 +74,31 @@ class OCPGenerator(AbstractGenerator):
                 namespaces[namespace] = node
         return namespaces
 
-    def _gen_pods(self, namespaces):
+    def _gen_pods(self, namespaces):  # pylint: disable=too-many-locals
         """Create pods on specific namespaces and keep relationship."""
         pods = {}
+        hour = 60 * 60
         for namespace, node in namespaces.items():
             num_pods = randint(2, 20)
             for num_namespace in range(0, num_pods):  # pylint: disable=W0612
                 pod_suffix = ''.join(choices(ascii_lowercase, k=5))
                 pod_type = choice(('build', 'deploy', pod_suffix))
                 pod = self.fake.word() + '_' + pod_type  # pylint: disable=no-member
+                cpu_cores = node.get('cpu_cores')
+                memory_bytes = node.get('memory_bytes')
+                cpu_request = round(uniform(0.02, 1.0), 5)
+                mem_request = round(uniform(250000000.0, 800000000.0), 2)
                 pods[pod] = {'namespace': namespace,
-                             'node': node,
+                             'node': node.get('name'),
                              'pod': pod,
-                             'cpu_request': round(uniform(0.02, 1.0), 5),
-                             'mem_request': round(uniform(250000000.0, 800000000.0), 2)}
+                             'node_capacity_cpu_cores': cpu_cores,
+                             'node_capacity_cpu_core_seconds': cpu_cores * hour,
+                             'node_capacity_memory_bytes': memory_bytes,
+                             'node_capacity_memory_byte_seconds': memory_bytes * hour,
+                             'cpu_request': cpu_request,
+                             'cpu_limit': round(uniform(cpu_request, 1.0), 5),
+                             'mem_request': mem_request,
+                             'mem_limit': round(uniform(mem_request, 800000000.0), 2), }
         return pods
 
     def _init_data_row(self, start, end):  # noqa: C901
@@ -115,12 +134,16 @@ class OCPGenerator(AbstractGenerator):
         pod = kwargs.get('pod')
         cpu_request = pod.pop('cpu_request')
         mem_request = pod.pop('mem_request')
+        cpu_limit = pod.pop('cpu_limit')
+        mem_limit = pod.pop('mem_limit')
         cpu = round(uniform(0.02, cpu_request), 5)
         mem = round(uniform(250000000.0, mem_request), 2)
         pod['pod_usage_cpu_core_seconds'] = pod_seconds * cpu
         pod['pod_request_cpu_core_seconds'] = pod_seconds * cpu_request
+        pod['pod_limit_cpu_core_seconds'] = pod_seconds * cpu_limit
         pod['pod_usage_memory_byte_seconds'] = pod_seconds * mem
         pod['pod_request_memory_byte_seconds'] = pod_seconds * mem_request
+        pod['pod_limit_memory_byte_seconds'] = pod_seconds * mem_limit
         row.update(pod)
         return row
 
