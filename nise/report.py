@@ -125,7 +125,8 @@ def ocp_route_file(insights_upload, local_path):
                                      files={'upload': ('payload.tar.gz',
                                                        upload_file,
                                                        'application/vnd.redhat.hccm.tar+tgz')},
-                                     auth=(insights_user, insights_password))
+                                     auth=(insights_user, insights_password),
+                                     verify=False)
             if response.status_code == 202:
                 print('File uploaded successfully.')
                 print(response.text)

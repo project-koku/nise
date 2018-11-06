@@ -35,7 +35,7 @@ class UploadTestCase(TestCase):
         bucket_name = 'my_bucket'
         s3_client = Mock()
         s3_client.Bucket.create.return_value = Mock()
-        s3_client.Bucket.upload_file.return_value =Mock()
+        s3_client.Bucket.upload_file.return_value = Mock()
         mock_boto_resource.return_value = s3_client
         s3_client = boto3.resource('s3')
         s3_client.Bucket(bucket_name).create()
