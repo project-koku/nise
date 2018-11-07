@@ -29,7 +29,8 @@ OCP_COLUMNS = ('report_period_start', 'report_period_end', 'pod', 'namespace',
                'pod_limit_cpu_core_seconds', 'pod_usage_memory_byte_seconds',
                'pod_request_memory_byte_seconds', 'pod_limit_memory_byte_seconds',
                'node_capacity_cpu_cores', 'node_capacity_cpu_core_seconds',
-               'node_capacity_memory_bytes', 'node_capacity_memory_byte_seconds')
+               'node_capacity_memory_bytes', 'node_capacity_memory_byte_seconds',
+               'pod_labels')
 
 
 # pylint: disable=too-few-public-methods
@@ -39,6 +40,14 @@ class OCPGenerator(AbstractGenerator):
     def __init__(self, start_date, end_date):
         """Initialize the generator."""
         super().__init__(start_date, end_date)
+        self.apps = [self.fake.word(), self.fake.word(), self.fake.word(),  # pylint: disable=no-member
+                     self.fake.word(), self.fake.word(), self.fake.word()]  # pylint: disable=no-member
+        self.organizations = [self.fake.word(), self.fake.word(),  # pylint: disable=no-member
+                              self.fake.word(), self.fake.word()]  # pylint: disable=no-member
+        self.markets = [self.fake.word(), self.fake.word(), self.fake.word(),  # pylint: disable=no-member
+                        self.fake.word(), self.fake.word(), self.fake.word()]  # pylint: disable=no-member
+        self.versions = [self.fake.word(), self.fake.word(), self.fake.word(),  # pylint: disable=no-member
+                         self.fake.word(), self.fake.word(), self.fake.word()]  # pylint: disable=no-member
         self.nodes = self._gen_nodes()
         self.namespaces = self._gen_namespaces(self.nodes)
         self.pods = self._gen_pods(self.namespaces)
@@ -74,6 +83,36 @@ class OCPGenerator(AbstractGenerator):
                 namespaces[namespace] = node
         return namespaces
 
+    def _gen_pod_labels(self):
+        """Create pod labels for output data."""
+        seeded_labels = {'environment': ['dev', 'ci', 'qa', 'stage', 'prod'],
+                         'app': self.apps,
+                         'organization': self.organizations,
+                         'market': self.markets,
+                         'version': self.versions
+                         }
+        gen_label_keys = [self.fake.word(), self.fake.word(), self.fake.word(),  # pylint: disable=no-member
+                          self.fake.word(), self.fake.word(), self.fake.word()]  # pylint: disable=no-member
+        all_label_keys = list(seeded_labels.keys()) + gen_label_keys
+        num_labels = randint(2, len(all_label_keys))
+        chosen_label_keys = choices(all_label_keys, k=num_labels)
+
+        labels = {}
+        for label_key in chosen_label_keys:
+            label_value = self.fake.word()  # pylint: disable=no-member
+            if label_key in seeded_labels:
+                label_value = choice(seeded_labels[label_key])
+            labels['label_{}'.format(label_key)] = label_value
+
+        label_str = ''
+        for key, value in labels.items():
+            label_data = '{}:{}'.format(key, value)
+            if label_str == '':
+                label_str += label_data
+            else:
+                label_str += '|{}'.format(label_data)
+        return label_str
+
     def _gen_pods(self, namespaces):  # pylint: disable=too-many-locals
         """Create pods on specific namespaces and keep relationship."""
         pods = {}
@@ -98,7 +137,8 @@ class OCPGenerator(AbstractGenerator):
                              'cpu_request': cpu_request,
                              'cpu_limit': round(uniform(cpu_request, 1.0), 5),
                              'mem_request': mem_request,
-                             'mem_limit': round(uniform(mem_request, 800000000.0), 2), }
+                             'mem_limit': round(uniform(mem_request, 800000000.0), 2),
+                             'pod_labels': self._gen_pod_labels()}
         return pods
 
     def _init_data_row(self, start, end):  # noqa: C901
