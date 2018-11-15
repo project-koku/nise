@@ -33,6 +33,7 @@ from dateutil.relativedelta import relativedelta
 from faker import Faker
 
 from nise.copy import copy_to_local_dir
+from nise.extract import extract_payload
 from nise.generators.aws import (AWS_COLUMNS,
                                  DataTransferGenerator,
                                  EBSGenerator,
@@ -114,8 +115,8 @@ def aws_route_file(bucket_name, bucket_file_path, local_path):
 def ocp_route_file(insights_upload, local_path):
     """Route file to either Upload Service or local filesystem."""
     if os.path.isdir(insights_upload):
-        copy_to_local_dir(insights_upload,
-                          local_path)
+        extract_payload(insights_upload,
+                        local_path)
     else:
         with open(local_path, 'rb') as upload_file:
             insights_user = os.environ.get('INSIGHTS_USER')
