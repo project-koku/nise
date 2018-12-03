@@ -190,7 +190,8 @@ def aws_create_report(options):
     for month in months:
         data = []
         for generator in generators:
-            gen = generator(month.get('start'), month.get('end'), payer_account, usage_accounts)
+            generator_end_date = month.get('end') + relativedelta(days=+1)
+            gen = generator(month.get('start'), generator_end_date, payer_account, usage_accounts)
             data += gen.generate_data()
 
         month_output_file_name = '{}-{}-{}'.format(month.get('name'),
@@ -248,7 +249,8 @@ def ocp_create_report(options):
     for month in months:
         data = []
         for generator in generators:
-            gen = generator(month.get('start'), month.get('end'))
+            generator_end_date = month.get('end') + relativedelta(days=+1)
+            gen = generator(month.get('start'), generator_end_date)
             data += gen.generate_data()
         month_output_file_name = '{}-{}-{}'.format(month.get('name'),
                                                    month.get('start').year,
