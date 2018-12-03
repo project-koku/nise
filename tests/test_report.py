@@ -116,17 +116,17 @@ class ReportTestCase(TestCase):
                                'start': datetime.datetime(year=2018, month=1, day=15),
                                'end': datetime.datetime(year=2018, month=1, day=30)}]},
                        {
-            'start_date': datetime.datetime(year=2018, month=1, day=15),
-            'end_date': datetime.datetime(year=2018, month=3, day=5),
-            'expected_list': [{'name': 'January',
-                               'start': datetime.datetime(year=2018, month=1, day=15),
-                               'end': datetime.datetime(year=2018, month=1, day=31)},
-                              {'name': 'February',
-                               'start': datetime.datetime(year=2018, month=2, day=1),
-                               'end': datetime.datetime(year=2018, month=2, day=28)},
-                              {'name': 'March',
-                               'start': datetime.datetime(year=2018, month=3, day=1),
-                               'end': datetime.datetime(year=2018, month=3, day=5)}]},
+            'start_date': datetime.datetime(year=2018, month=11, day=15),
+            'end_date': datetime.datetime(year=2019, month=1, day=5),
+            'expected_list': [{'name': 'November',
+                               'start': datetime.datetime(year=2018, month=11, day=15),
+                               'end': datetime.datetime(year=2018, month=11, day=30)},
+                              {'name': 'December',
+                               'start': datetime.datetime(year=2018, month=12, day=1),
+                               'end': datetime.datetime(year=2018, month=12, day=31)},
+                              {'name': 'January',
+                               'start': datetime.datetime(year=2019, month=1, day=1),
+                               'end': datetime.datetime(year=2019, month=1, day=5)}]},
                        ]
 
         for test_case in test_matrix:

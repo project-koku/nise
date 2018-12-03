@@ -139,9 +139,8 @@ def ocp_route_file(insights_upload, local_path):
 def _create_month_list(start_date, end_date):
     """Create a list of months given the date range args."""
     months = []
-    current = start_date
-
-    while current.month <= end_date.month:
+    current = start_date.replace(day=1)
+    while current <= end_date:
         month = {}
         month['name'] = calendar.month_name[current.month]
         month['start'] = datetime(year=current.year, month=current.month, day=1)
