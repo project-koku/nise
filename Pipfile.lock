@@ -214,10 +214,10 @@
         },
         "filelock": {
             "hashes": [
-                "sha256:86fe6af56ae08ebc9c66d54ba3398c35b98916d0862d782b276a65816ff39392",
-                "sha256:97694f181bdf58f213cca0a7cb556dc7bf90e2f8eb9aa3151260adac56701afb"
+                "sha256:b8d5ca5ca1c815e1574aee746650ea7301de63d87935b3463d26368b76e31633",
+                "sha256:d610c1bb404daf85976d7a82eb2ada120f04671007266b708606565dd03b5be6"
             ],
-            "version": "==3.0.9"
+            "version": "==3.0.10"
         },
         "isort": {
             "hashes": [
