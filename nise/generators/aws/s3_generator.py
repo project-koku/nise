@@ -37,13 +37,13 @@ class S3Generator(AWSGenerator):
         rate = round(uniform(0.02, 0.06), 3)
         amount = uniform(0.2, 6000.99)
         cost = amount * rate
-        location, aws_region, avail_zone, storage_region = self._get_location()
+        location, aws_region, avail_zone, _ = self._get_location()
         description = '${} per GB-Month of snapshot data stored - {}'.format(rate, location)
         amazon_resource_name = self._get_arn(avail_zone)
 
-        row['lineItem/ProductCode'] = 'AmazonEC2'
-        row['lineItem/UsageType'] = '{}:SnapshotUsage'.format(storage_region)
-        row['lineItem/Operation'] = 'CreateSnapshot'
+        row['lineItem/ProductCode'] = 'AmazonS3'
+        row['lineItem/UsageType'] = 'Requests-Tier2'
+        row['lineItem/Operation'] = 'GetObject'
         row['lineItem/ResourceId'] = amazon_resource_name
         row['lineItem/UsageAmount'] = str(amount)
         row['lineItem/CurrencyCode'] = 'USD'
@@ -52,15 +52,15 @@ class S3Generator(AWSGenerator):
         row['lineItem/BlendedRate'] = str(rate)
         row['lineItem/BlendedCost'] = str(cost)
         row['lineItem/LineItemDescription'] = description
-        row['product/ProductName'] = 'Amazon Elastic Compute Cloud'
+        row['product/ProductName'] = 'Amazon Simple Storage Service'
         row['product/location'] = location
         row['product/locationType'] = 'AWS Region'
         row['product/productFamily'] = 'Storage Snapshot'
         row['product/region'] = aws_region
-        row['product/servicecode'] = 'AmazonEC2'
+        row['product/servicecode'] = 'AmazonS3'
         row['product/sku'] = self.fake.pystr(min_chars=12, max_chars=12).upper()  # pylint: disable=no-member
         row['product/storageMedia'] = 'Amazon S3'
-        row['product/usagetype'] = '{}:SnapshotUsage'.format(storage_region)
+        row['product/usagetype'] = 'Requests-Tier2'
         row['pricing/publicOnDemandCost'] = str(cost)
         row['pricing/publicOnDemandRate'] = str(rate)
         row['pricing/term'] = 'OnDemand'
