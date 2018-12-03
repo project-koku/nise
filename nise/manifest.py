@@ -19,6 +19,7 @@ import os
 from uuid import uuid4
 
 import jinja2
+from dateutil.relativedelta import relativedelta
 
 TEMPLATE_DIR = os.path.dirname(__file__)
 AWS_TEMPLATE_FILE = 'aws-template-manifest.json'
@@ -64,9 +65,10 @@ def aws_generate_manifest(fake, template_data):
     """
     end = template_data.get('end_date')
     report_name = template_data.get('aws_report_name')
-    bp_end = end.replace(microsecond=0, second=0, minute=0,
-                         hour=0, day=1, month=(end.month + 1))
-    bp_start = bp_end.replace(month=(bp_end.month - 1))
+    bp_start = end.replace(microsecond=0, second=0, minute=0,
+                           hour=0, day=1)
+    bp_end = bp_start + relativedelta(months=+1)
+
     range_str = _manifest_datetime_range(bp_start, bp_end)
     assembly_id = uuid4()
     report_id = fake.sha256(raw_output=False)
