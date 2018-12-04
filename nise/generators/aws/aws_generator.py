@@ -174,7 +174,6 @@ class AWSGenerator(AbstractGenerator):
     @abstractmethod
     def _update_data(self, row, start, end, **kwargs):
         """Update data with generator specific data."""
-        pass
 
     def _generate_hourly_data(self):
         """Create houldy data."""
@@ -190,4 +189,3 @@ class AWSGenerator(AbstractGenerator):
     @abstractmethod
     def generate_data(self):
         """Responsibile for generating data."""
-        pass

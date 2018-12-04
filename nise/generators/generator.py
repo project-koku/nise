@@ -64,24 +64,19 @@ class AbstractGenerator(ABC):
     @abstractmethod
     def _init_data_row(self, start, end):
         """Create a row of data with placeholder for all headers."""
-        pass
 
     @abstractmethod
     def _add_common_usage_info(self, row, start, end):
         """Add common usage information."""
-        pass
 
     @abstractmethod
     def _update_data(self, row, start, end, **kwargs):
         """Update data with generator specific data."""
-        pass
 
     @abstractmethod
     def _generate_hourly_data(self):
         """Create houldy data."""
-        pass
 
     @abstractmethod
     def generate_data(self):
         """Responsibile for generating data."""
-        pass
