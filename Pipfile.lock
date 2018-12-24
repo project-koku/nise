@@ -298,10 +298,10 @@
         },
         "tox": {
             "hashes": [
-                "sha256:21e772c4de94afd9240d1a4b2c009c94bea08d3230377ab23c3153efaea361f7",
-                "sha256:304177defdcb403d84aeb0400b1625b1e65a7fff19f0441329f9f76ebf67882f"
+                "sha256:edfca7809925f49bdc110d0a2d9966bbf35a0c25637216d9586e7a5c5de17bfb",
+                "sha256:2a8d8a63660563e41e64e3b5b677e81ce1ffa5e2a93c2c565d3768c287445800"
             ],
-            "version": "==3.6.0"
+            "version": "==3.6.1"
         },
         "typed-ast": {
             "hashes": [
