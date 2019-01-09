@@ -96,6 +96,8 @@ class EC2Generator(AWSGenerator):
         row['pricing/publicOnDemandRate'] = rate
         row['pricing/term'] = 'OnDemand'
         row['pricing/unit'] = 'Hrs'
+        row['resourceTags/user:environment'] = choice(('dev', 'ci', 'qa', 'stage', 'prod'))
+        row['resourceTags/user:version'] = choice(('alpha', 'beta'))
         return row
 
     def generate_data(self):
