@@ -90,8 +90,10 @@ RESERVE_COLS = ('reservation/AvailabilityZone',
                 'reservation/TotalReservedNormalizedUnits',
                 'reservation/TotalReservedUnits',
                 'reservation/UnitsPerReservation')
+RESOURCE_TAG_COLS = ('resourceTags/user:environment',
+                     'resourceTags/user:version')
 AWS_COLUMNS = (IDENTITY_COLS + BILL_COLS + LINE_ITEM_COLS +  # noqa: W504
-               PRODUCT_COLS + PRICING_COLS + RESERVE_COLS)
+               PRODUCT_COLS + PRICING_COLS + RESERVE_COLS + RESOURCE_TAG_COLS)
 
 
 # pylint: disable=too-few-public-methods
