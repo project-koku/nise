@@ -30,17 +30,41 @@ class EBSGenerator(AWSGenerator):
          '16 TiB', 'SSD-backed', 'General Purpose'),
     )
 
+    def __init__(self, start_date, end_date, payer_account, usage_accounts, attributes):
+        if attributes:
+            self._resource_id = attributes.get('resource_id')
+            self._amount = attributes.get('amount')
+            self._rate = attributes.get('rate')
+            self._product_sku = attributes.get('product_sku')
+
+        super().__init__(start_date, end_date, payer_account, usage_accounts, attributes)
+
     def _get_storage(self):
         """Get storage data."""
         return choice(self.STORAGE)
+
+    def _get_resource_id(self):
+        """Generate an instance id."""
+        if self._resource_id:
+            id = self._resource_id
+        else:
+            id = self.fake.ean8()  # pylint: disable=no-member
+        return 'vol-{}'.format(id)
+
+    def _get_product_sku(self):
+        """Generate product sku."""
+        if self._product_sku:
+            return self._product_sku
+        else:
+            return self.fake.pystr(min_chars=12, max_chars=12).upper()  # pylint: disable=no-member
 
     # pylint: disable=too-many-locals
     def _update_data(self, row, start, end, **kwargs):
         """Update data with generator specific data."""
         row = self._add_common_usage_info(row, start, end)
 
-        rate = round(uniform(0.02, 0.16), 3)
-        amount = uniform(0.2, 300.99)
+        rate = self._rate if self._rate else round(uniform(0.02, 0.16), 3)
+        amount = self._amount if self._amount else uniform(0.2, 300.99)
         cost = amount * rate
         location, aws_region, _, storage_region = self._get_location()
         description = '${} per GB-Month of snapshot data stored - {}'.format(rate, location)
@@ -50,7 +74,7 @@ class EBSGenerator(AWSGenerator):
         row['lineItem/ProductCode'] = 'AmazonEC2'
         row['lineItem/UsageType'] = '{}:VolumeUsage'.format(storage_region)
         row['lineItem/Operation'] = 'CreateVolume'
-        row['lineItem/ResourceId'] = 'vol-{}'.format(self.fake.ean8())  # pylint: disable=no-member
+        row['lineItem/ResourceId'] = self._get_resource_id()
         row['lineItem/UsageAmount'] = str(amount)
         row['lineItem/CurrencyCode'] = 'USD'
         row['lineItem/UnblendedRate'] = str(rate)
@@ -68,7 +92,7 @@ class EBSGenerator(AWSGenerator):
         row['product/productFamily'] = 'Storage'
         row['product/region'] = aws_region
         row['product/servicecode'] = 'AmazonEC2'
-        row['product/sku'] = self.fake.pystr(min_chars=12, max_chars=12).upper()  # pylint: disable=no-member
+        row['product/sku'] = self._get_product_sku()
         row['product/storageMedia'] = vol_backed
         row['product/usagetype'] = '{}:VolumeUsage'.format(storage_region)
         row['product/volumeType'] = vol_type

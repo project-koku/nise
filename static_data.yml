@@ -35,8 +35,18 @@ generators:
         cost: 2.000
         rate: 0.500
   - DataTransferGenerator:
+      product_sku: VEAJHRNKTJAA
       amount: 0.007
       rate: 0.15
+  - EBSGenerator:
+      resource_id: 88888888
+      amount: 0.010
+      rate: 0.18
+  - S3Generator:
+      product_sku: VEAJHRNKTJBB
+      amount: 0.008
+      rate: 0.25
+
 accounts:
   payer: 9999999999999
   user:
