@@ -303,15 +303,31 @@ def ocp_create_report(options):
     start_date = options.get('start_date')
     end_date = options.get('end_date')
     cluster_id = options.get('ocp_cluster_id')
+    static_report_data = _load_yaml_file(options.get('static_report_file'))
+    if static_report_data.get('generators'):
+        # TODO: fix default generators
+        generators = _get_generators(static_report_data.get('generators'))
+    else:
+        generators = [{'generator': OCPGenerator, 'attributes': None}]
+
     months = _create_month_list(start_date, end_date)
-    generators = [OCPGenerator]
     for month in months:
         data = []
         for generator in generators:
-            gen = generator(month.get('start'), month.get('end'))
+            generator_cls = generator.get('generator')
+            attributes = generator.get('attributes')
+            gen_start_date = month.get('start')
+            gen_end_date = month.get('end')
+            if attributes:
+                if attributes.get('start_date'):
+                    gen_start_date = attributes.get('start_date')
+                if attributes.get('end_date'):
+                    gen_end_date = attributes.get('end_date')
+            generator_end_date = gen_end_date + relativedelta(days=+1)
+            gen = generator_cls(gen_start_date, generator_end_date)
             data += gen.generate_data()
         month_output_file_name = '{}-{}-{}'.format(month.get('name'),
-                                                   month.get('start').year,
+                                                   gen_start_date.year,
                                                    cluster_id)
         month_output_file = '{}/{}.csv'.format(os.getcwd(), month_output_file_name)
         _write_csv(month_output_file, data, OCP_COLUMNS)
@@ -319,7 +335,7 @@ def ocp_create_report(options):
         insights_upload = options.get('insights_upload')
         if insights_upload:
             ocp_assembly_id = uuid4()
-            report_datetime = month.get('start')
+            report_datetime = gen_start_date
             manifest_values = {'ocp_cluster_id': cluster_id,
                                'ocp_assembly_id': ocp_assembly_id,
                                'report_datetime': report_datetime}

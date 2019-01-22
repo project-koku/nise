@@ -122,9 +122,8 @@ def _get_aws_options(options):
     aws_bucket_name = options.get('aws_bucket_name')
     aws_report_name = options.get('aws_report_name')
     aws_prefix_name = options.get('aws_prefix_name')
-    static_report_file = options.get('static_report_file')
     aws_finalize_report = options.get('aws_finalize_report')
-    return (aws_bucket_name, aws_report_name, aws_prefix_name, aws_finalize_report, static_report_file)
+    return (aws_bucket_name, aws_report_name, aws_prefix_name, aws_finalize_report)
 
 
 def _get_ocp_options(options):
@@ -158,7 +157,7 @@ def _validate_aws_arguments(parser, options):
             msg = 'OCP arguments cannot be supplied when generating AWS data.'
             parser.error(msg)
 
-    aws_bucket_name, aws_report_name, _, _, _ = _get_aws_options(options)
+    aws_bucket_name, aws_report_name, _, _ = _get_aws_options(options)
     if aws_bucket_name and aws_report_name:
         aws_valid = True
     elif not aws_bucket_name and not aws_report_name:
