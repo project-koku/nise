@@ -1,6 +1,8 @@
 ---
 generators:
   - EC2Generator:
+      start_date: 1-21-2019
+      end_date: 1-21-2019
       processor_arch: 64-bit
       resource_id: 55555555
       product_sku: VEAJHRNKTJZQ
@@ -16,6 +18,8 @@ generators:
         cost: 1.000
         rate: 0.500
   - EC2Generator:
+      start_date: 1-22-2019
+      end_date: 1-22-2019
       processor_arch: 64-bit
       resource_id: 66666666
       product_sku: VEAJHRNKTJZZ
