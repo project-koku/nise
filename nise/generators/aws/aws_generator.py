@@ -17,7 +17,7 @@
 """Defines the abstract generator."""
 import datetime
 from abc import abstractmethod
-from random import choice
+from random import choice, randint
 
 from nise.generators.generator import AbstractGenerator
 
@@ -90,10 +90,10 @@ RESERVE_COLS = ('reservation/AvailabilityZone',
                 'reservation/TotalReservedNormalizedUnits',
                 'reservation/TotalReservedUnits',
                 'reservation/UnitsPerReservation')
-RESOURCE_TAG_COLS = ('resourceTags/user:environment',
-                     'resourceTags/user:version')
+DEFAULT_TAG_COLS = ('resourceTags/user:environment',
+                    'resourceTags/user:version')
 AWS_COLUMNS = (IDENTITY_COLS + BILL_COLS + LINE_ITEM_COLS +  # noqa: W504
-               PRODUCT_COLS + PRICING_COLS + RESERVE_COLS + RESOURCE_TAG_COLS)
+               PRODUCT_COLS + PRICING_COLS + RESERVE_COLS + DEFAULT_TAG_COLS)
 
 
 # pylint: disable=too-few-public-methods
@@ -109,10 +109,12 @@ class AWSGenerator(AbstractGenerator):
         ('US West (Oregon)', 'us-west-2', 'us-west-2b', 'USW2-EBS'),
     )
 
-    def __init__(self, start_date, end_date, payer_account, usage_accounts):
+    def __init__(self, start_date, end_date, payer_account, usage_accounts, attributes):
         """Initialize the generator."""
         self.payer_account = payer_account
         self.usage_accounts = usage_accounts
+        self.attributes = attributes
+        self.num_instances = 1 if attributes else randint(2, 60)
         super().__init__(start_date, end_date)
 
     @staticmethod
@@ -163,7 +165,10 @@ class AWSGenerator(AbstractGenerator):
 
     def _get_location(self):
         """Pick instance location."""
-        return choice(self.REGIONS)
+        if self.attributes:
+            return ('US East (N. Virginia)', 'us-east-1', 'us-east-1a', 'USE1-EBS')
+        else:
+            return choice(self.REGIONS)
 
     def _add_common_usage_info(self, row, start, end):
         """Add common usage information."""

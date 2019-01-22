@@ -47,7 +47,7 @@ class AbstractGenerator(ABC):
 
         one_hour = datetime.timedelta(minutes=60)
         cur_date = self.start_date
-        while (cur_date + one_hour) < self.end_date:
+        while (cur_date + one_hour) <= self.end_date:  # existing bug
             cur_hours = {'start': cur_date, 'end': cur_date + one_hour}
             hours.append(cur_hours)
             cur_date = cur_date + one_hour

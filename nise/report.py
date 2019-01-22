@@ -23,10 +23,13 @@ import os
 import random
 import shutil
 import string
+import importlib
 import tarfile
 from datetime import datetime
 from tempfile import NamedTemporaryFile, gettempdir
 from uuid import uuid4
+
+import yaml
 
 import requests
 from dateutil.relativedelta import relativedelta
@@ -170,28 +173,71 @@ def _aws_finalize_report(data):
 
     return data
 
+def _generate_accounts(static_report_data=None):
+    """Generate payer and useage accounts."""
+    if static_report_data:
+        payer_account = static_report_data.get('payer')
+        usage_accounts = tuple(static_report_data.get('user'))
+    else:
+        fake = Faker()
+        payer_account = fake.ean(length=13)  # pylint: disable=no-member
+        usage_accounts = (payer_account,
+                        fake.ean(length=13),  # pylint: disable=no-member
+                        fake.ean(length=13),  # pylint: disable=no-member
+                        fake.ean(length=13),  # pylint: disable=no-member
+                        fake.ean(length=13))  # pylint: disable=no-member
+    return payer_account, usage_accounts
+
+def _get_generators(generator_list=None):
+    """Collect a list of report generators."""
+    generators = []
+    if generator_list:
+        for item in generator_list:
+            for generator_cls, attributes in item.items():
+                generator_obj = {}
+                generator_obj['generator'] = getattr(importlib.import_module(__name__), generator_cls)
+                generator_obj['attributes'] = attributes
+                generators.append(generator_obj)
+    else:
+        generators = [{'generator': DataTransferGenerator, 'attributes': None},
+                      {'generator': EBSGenerator, 'attributes': None},
+                      {'generator': EC2Generator, 'attributes': None},
+                      {'generator': S3Generator, 'attributes': None}]
+    return generators
+
+def _load_yaml_file(filename):
+    """Local data from yaml file."""
+    if filename:
+        try:
+            with open(filename, 'r+') as f:
+                yamlfile = yaml.load(f)
+        except TypeError:
+            yamlfile = yaml.load(filename)
+        except IOError:
+            raise
+        return yamlfile
 
 # pylint: disable=too-many-locals
 def aws_create_report(options):
     """Create a cost usage report file."""
-    generators = [DataTransferGenerator, EBSGenerator, EC2Generator, S3Generator]
     data = []
     start_date = options.get('start_date')
     end_date = options.get('end_date')
+
     aws_finalize_report = options.get('aws_finalize_report')
+    static_report_data = _load_yaml_file(options.get('static_report_file'))
+    generators = _get_generators(static_report_data.get('generators'))
     months = _create_month_list(start_date, end_date)
-    fake = Faker()
-    payer_account = fake.ean(length=13)  # pylint: disable=no-member
-    usage_accounts = (payer_account,
-                      fake.ean(length=13),  # pylint: disable=no-member
-                      fake.ean(length=13),  # pylint: disable=no-member
-                      fake.ean(length=13),  # pylint: disable=no-member
-                      fake.ean(length=13))  # pylint: disable=no-member
+    payer_account, usage_accounts = _generate_accounts(static_report_data.get('accounts'))
+
     for month in months:
         data = []
+        fake = Faker()
         for generator in generators:
+            generator_cls = generator.get('generator')
+            attributes = generator.get('attributes')
             generator_end_date = month.get('end') + relativedelta(days=+1)
-            gen = generator(month.get('start'), generator_end_date, payer_account, usage_accounts)
+            gen = generator_cls(month.get('start'), generator_end_date, payer_account, usage_accounts, attributes)
             data += gen.generate_data()
 
         month_output_file_name = '{}-{}-{}'.format(month.get('name'),
