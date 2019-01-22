@@ -34,6 +34,9 @@ generators:
         family: 'General Purpose'
         cost: 2.000
         rate: 0.500
+  - DataTransferGenerator:
+      amount: 0.007
+      rate: 0.15
 accounts:
   payer: 9999999999999
   user:
