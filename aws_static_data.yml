@@ -2,7 +2,7 @@
 generators:
   - EC2Generator:
       start_date: 1-21-2019
-      end_date: 1-21-2019
+      end_date: 1-22-2019
       processor_arch: 64-bit
       resource_id: 55555555
       product_sku: VEAJHRNKTJZQ
@@ -18,35 +18,39 @@ generators:
         cost: 1.000
         rate: 0.500
   - EC2Generator:
-      start_date: 1-22-2019
+      start_date: 1-21-2019
       end_date: 1-22-2019
       processor_arch: 64-bit
       resource_id: 66666666
       product_sku: VEAJHRNKTJZZ
       tags:
         resourceTags/user:environment: dev
-        resourceTags/user:version: beta
+        resourceTags/user:version: alpha
       instance_type:
         inst_type: m5.large
         vcpu: 2
         memory: '8 GiB'
         storage: 'EBS Only'
         family: 'General Purpose'
-        cost: 2.000
+        cost: 1.000
         rate: 0.500
-  - DataTransferGenerator:
-      product_sku: VEAJHRNKTJAA
-      amount: 0.007
-      rate: 0.15
-  - EBSGenerator:
-      resource_id: 88888888
-      amount: 0.010
-      rate: 0.18
-  - S3Generator:
-      product_sku: VEAJHRNKTJBB
-      amount: 0.008
-      rate: 0.25
-
+  - EC2Generator:
+      start_date: 1-22-2019
+      end_date: 1-22-2019
+      processor_arch: 64-bit
+      resource_id: 66666667
+      product_sku: VEAJHRNKTJZJ
+      tags:
+        resourceTags/user:environment: dev
+        resourceTags/user:version: bravo
+      instance_type:
+        inst_type: m5.large
+        vcpu: 2
+        memory: '8 GiB'
+        storage: 'EBS Only'
+        family: 'General Purpose'
+        cost: 1.000
+        rate: 0.500
 accounts:
   payer: 9999999999999
   user:

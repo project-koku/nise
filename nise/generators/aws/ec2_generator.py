@@ -39,6 +39,7 @@ class EC2Generator(AWSGenerator):
 
     def __init__(self, start_date, end_date, payer_account, usage_accounts, attributes):
         if attributes:
+            self._attributes = attributes
             self._processor_arch = attributes.get('processor_arch')
             self._resource_id = attributes.get('resource_id')
             self._product_sku = attributes.get('product_sku')
@@ -88,6 +89,8 @@ class EC2Generator(AWSGenerator):
         """Generate tag from options."""
         if self._tags:
             return self._tags.get(tag_key)
+        elif self._attributes:
+            return None
         else:
             return choice(options)
 
