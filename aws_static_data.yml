@@ -42,7 +42,7 @@ generators:
       product_sku: VEAJHRNKTJZJ
       tags:
         resourceTags/user:environment: dev
-        resourceTags/user:version: bravo
+        resourceTags/user:version: alpha
       instance_type:
         inst_type: m5.large
         vcpu: 2

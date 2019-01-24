@@ -324,7 +324,7 @@ def ocp_create_report(options):
                 if attributes.get('end_date'):
                     gen_end_date = attributes.get('end_date')
             generator_end_date = gen_end_date + relativedelta(days=+1)
-            gen = generator_cls(gen_start_date, generator_end_date)
+            gen = generator_cls(gen_start_date, generator_end_date, attributes)
             data += gen.generate_data()
         month_output_file_name = '{}-{}-{}'.format(month.get('name'),
                                                    gen_start_date.year,

@@ -3,3 +3,20 @@ generators:
   - OCPGenerator:
       start_date: 1-21-2019
       end_date: 1-21-2019
+      nodes:
+        - node:
+          node_name: alpha
+          cpu_cores: 2
+          memory_gig: 4
+          namespaces:
+            blah_ci:
+              pods:
+                pod_name: pod_name1
+                cpu_request: 5
+                mem_request: 2
+                cpu_limit: 5
+                mem_limit: 2
+                labels:
+                  label_key1: label_value1
+                  label_key2: label_value2
+            blah_qa:
