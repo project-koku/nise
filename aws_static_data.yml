@@ -21,11 +21,11 @@ generators:
       start_date: 1-21-2019
       end_date: 1-22-2019
       processor_arch: 64-bit
-      resource_id: 66666666
-      product_sku: VEAJHRNKTJZZ
+      resource_id: 55554444
+      product_sku: VEAJHRNKTJAA
       tags:
         resourceTags/user:environment: dev
-        resourceTags/user:version: alpha
+        resourceTags/user:version: bravo
       instance_type:
         inst_type: m5.large
         vcpu: 2
@@ -36,13 +36,10 @@ generators:
         rate: 0.500
   - EC2Generator:
       start_date: 1-22-2019
-      end_date: 1-22-2019
+      end_date: 1-23-2019
       processor_arch: 64-bit
-      resource_id: 66666667
-      product_sku: VEAJHRNKTJZJ
-      tags:
-        resourceTags/user:environment: dev
-        resourceTags/user:version: alpha
+      resource_id: 55556666
+      product_sku: VEAJHRNKTJZA
       instance_type:
         inst_type: m5.large
         vcpu: 2

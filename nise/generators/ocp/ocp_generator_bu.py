@@ -37,8 +37,11 @@ OCP_COLUMNS = ('report_period_start', 'report_period_end', 'pod', 'namespace',
 class OCPGenerator(AbstractGenerator):
     """Defines a abstract class for generators."""
 
-    def __init__(self, start_date, end_date):
+    def __init__(self, start_date, end_date, attributes):
         """Initialize the generator."""
+        if attributes:
+            self._nodes = attributes.get('nodes')
+
         super().__init__(start_date, end_date)
         self.apps = [self.fake.word(), self.fake.word(), self.fake.word(),  # pylint: disable=no-member
                      self.fake.word(), self.fake.word(), self.fake.word()]  # pylint: disable=no-member
@@ -62,25 +65,40 @@ class OCPGenerator(AbstractGenerator):
     def _gen_nodes(self):
         """Create nodes for report."""
         nodes = []
-        num_nodes = randint(2, 6)
-        for node_num in range(0, num_nodes):  # pylint: disable=W0612
-            memory_gig = randint(2, 8)
-            memory_bytes = memory_gig * 1024 * 1024
-            node = {'name': 'node_' + self.fake.word(),  # pylint: disable=no-member
-                    'cpu_cores': randint(2, 16),
-                    'memory_bytes': memory_bytes}
-            nodes.append(node)
+        if self._nodes:
+            for item in self._nodes:
+                memory_gig = item.get('memory_gig')
+                memory_bytes = memory_gig * 1024 * 1024
+                node = {'name': item.get('node_name'),  # pylint: disable=no-member
+                        'cpu_cores': item.get('cpu_cores'),
+                        'memory_bytes': memory_bytes,
+                        'namespaces': item.get('namespaces')}
+                nodes.append(node)
+        else:
+            num_nodes = randint(2, 6)
+            for node_num in range(0, num_nodes):  # pylint: disable=W0612
+                memory_gig = randint(2, 8)
+                memory_bytes = memory_gig * 1024 * 1024
+                node = {'name': 'node_' + self.fake.word(),  # pylint: disable=no-member
+                        'cpu_cores': randint(2, 16),
+                        'memory_bytes': memory_bytes}
+                nodes.append(node)
         return nodes
 
     def _gen_namespaces(self, nodes):
         """Create namespaces on specific nodes and keep relationship."""
         namespaces = {}
         for node in nodes:
-            num_namespaces = randint(2, 12)
-            for num_namespace in range(0, num_namespaces):  # pylint: disable=W0612
-                namespace_suffix = choice(('ci', 'qa', 'prod', 'proj', 'dev', 'staging'))
-                namespace = self.fake.word() + '_' + namespace_suffix  # pylint: disable=no-member
-                namespaces[namespace] = node
+            if node.get('namespaces'):
+                for name, _ in node.get('namespaces').items():
+                    namespace = name
+                    namespaces[namespace] = node
+            else:
+                num_namespaces = randint(2, 12)
+                for num_namespace in range(0, num_namespaces):  # pylint: disable=W0612
+                    namespace_suffix = choice(('ci', 'qa', 'prod', 'proj', 'dev', 'staging'))
+                    namespace = self.fake.word() + '_' + namespace_suffix  # pylint: disable=no-member
+                    namespaces[namespace] = node
         return namespaces
 
     def _gen_pod_labels(self):
@@ -118,6 +136,7 @@ class OCPGenerator(AbstractGenerator):
         pods = {}
         hour = 60 * 60
         for namespace, node in namespaces.items():
+            import pdb; pdb.set_trace()
             num_pods = randint(2, 20)
             for num_namespace in range(0, num_pods):  # pylint: disable=W0612
                 pod_suffix = ''.join(choices(ascii_lowercase, k=5))
