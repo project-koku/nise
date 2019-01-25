@@ -38,6 +38,12 @@ class EC2Generator(AWSGenerator):
     ARCHS = ('32-bit', '64-bit')
 
     def __init__(self, start_date, end_date, payer_account, usage_accounts, attributes):
+        self._attributes = None
+        self._processor_arch = None
+        self._resource_id = None
+        self._product_sku = None
+        self._tags = None
+        self._instance_type = None
         if attributes:
             self._attributes = attributes
             self._processor_arch = attributes.get('processor_arch')

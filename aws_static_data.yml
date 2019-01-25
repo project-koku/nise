@@ -48,6 +48,21 @@ generators:
         family: 'General Purpose'
         cost: 1.000
         rate: 0.500
+  - EC2Generator:
+      start_date: 1-22-2019
+      end_date: 1-23-2019
+      processor_arch: 64-bit
+      resource_id: 55556666
+      product_sku: VEAJHRNKTJZA
+      instance_type:
+        inst_type: m5.large
+        vcpu: 2
+        memory: '8 GiB'
+        storage: 'EBS Only'
+        family: 'General Purpose'
+        cost: 1.000
+        rate: 0.500
+
 accounts:
   payer: 9999999999999
   user:

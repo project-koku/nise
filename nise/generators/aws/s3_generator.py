@@ -23,6 +23,9 @@ from nise.generators.aws.aws_generator import AWSGenerator
 class S3Generator(AWSGenerator):
     """Generator for S3 data."""
     def __init__(self, start_date, end_date, payer_account, usage_accounts, attributes):
+        self._amount = None
+        self._rate = None
+        self._product_sku = None
         if attributes:
             self._amount = attributes.get('amount')
             self._rate = attributes.get('rate')

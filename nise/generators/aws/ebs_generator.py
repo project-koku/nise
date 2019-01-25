@@ -31,6 +31,11 @@ class EBSGenerator(AWSGenerator):
     )
 
     def __init__(self, start_date, end_date, payer_account, usage_accounts, attributes):
+        self._resource_id = None
+        self._amount = None
+        self._rate = None
+        self._product_sku = None
+
         if attributes:
             self._resource_id = attributes.get('resource_id')
             self._amount = attributes.get('amount')

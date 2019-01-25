@@ -40,6 +40,7 @@ class OCPGenerator(AbstractGenerator):
 
     def __init__(self, start_date, end_date, attributes):
         """Initialize the generator."""
+        self._nodes = None
         if attributes:
             self._nodes = attributes.get('nodes')
 

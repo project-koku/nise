@@ -30,8 +30,6 @@ from dateutil import parser
 from tempfile import NamedTemporaryFile, gettempdir
 from uuid import uuid4
 
-import yaml
-
 import requests
 from dateutil.relativedelta import relativedelta
 from faker import Faker
@@ -189,7 +187,7 @@ def _generate_accounts(static_report_data=None):
                         fake.ean(length=13))  # pylint: disable=no-member
     return payer_account, usage_accounts
 
-def _get_generators(generator_list=None):
+def _get_generators(generator_list):
     """Collect a list of report generators."""
     generators = []
     if generator_list:
@@ -203,24 +201,9 @@ def _get_generators(generator_list=None):
                     attributes['end_date'] = parser.parse(attributes.get('end_date'))
                 generator_obj['attributes'] = attributes                    
                 generators.append(generator_obj)
-    else:
-        generators = [{'generator': DataTransferGenerator, 'attributes': None},
-                      {'generator': EBSGenerator, 'attributes': None},
-                      {'generator': EC2Generator, 'attributes': None},
-                      {'generator': S3Generator, 'attributes': None}]
+
     return generators
 
-def _load_yaml_file(filename):
-    """Local data from yaml file."""
-    if filename:
-        try:
-            with open(filename, 'r+') as f:
-                yamlfile = yaml.load(f)
-        except TypeError:
-            yamlfile = yaml.load(filename)
-        except IOError:
-            raise
-        return yamlfile
 
 # pylint: disable=too-many-locals
 def aws_create_report(options):
@@ -228,12 +211,22 @@ def aws_create_report(options):
     data = []
     start_date = options.get('start_date')
     end_date = options.get('end_date')
-
     aws_finalize_report = options.get('aws_finalize_report')
-    static_report_data = _load_yaml_file(options.get('static_report_file'))
-    generators = _get_generators(static_report_data.get('generators'))
+
+    static_report_data = options.get('static_report_data')
+    if static_report_data:
+        generators = _get_generators(static_report_data.get('generators'))
+        accounts_list = static_report_data.get('accounts')
+    else:
+        generators = [{'generator': DataTransferGenerator, 'attributes': None},
+                      {'generator': EBSGenerator, 'attributes': None},
+                      {'generator': EC2Generator, 'attributes': None},
+                      {'generator': S3Generator, 'attributes': None}]
+        accounts_list = None
+
     months = _create_month_list(start_date, end_date)
-    payer_account, usage_accounts = _generate_accounts(static_report_data.get('accounts'))
+
+    payer_account, usage_accounts = _generate_accounts(accounts_list)
 
     for month in months:
         data = []
@@ -303,9 +296,8 @@ def ocp_create_report(options):
     start_date = options.get('start_date')
     end_date = options.get('end_date')
     cluster_id = options.get('ocp_cluster_id')
-    static_report_data = _load_yaml_file(options.get('static_report_file'))
-    if static_report_data.get('generators'):
-        # TODO: fix default generators
+    static_report_data = options.get('static_report_data')
+    if static_report_data:
         generators = _get_generators(static_report_data.get('generators'))
     else:
         generators = [{'generator': OCPGenerator, 'attributes': None}]
