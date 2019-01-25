@@ -90,10 +90,10 @@ RESERVE_COLS = ('reservation/AvailabilityZone',
                 'reservation/TotalReservedNormalizedUnits',
                 'reservation/TotalReservedUnits',
                 'reservation/UnitsPerReservation')
-DEFAULT_TAG_COLS = ('resourceTags/user:environment',
+RESOURCE_TAG_COLS = ('resourceTags/user:environment',
                     'resourceTags/user:version')
 AWS_COLUMNS = (IDENTITY_COLS + BILL_COLS + LINE_ITEM_COLS +  # noqa: W504
-               PRODUCT_COLS + PRICING_COLS + RESERVE_COLS + DEFAULT_TAG_COLS)
+               PRODUCT_COLS + PRICING_COLS + RESERVE_COLS + RESOURCE_TAG_COLS)
 
 
 # pylint: disable=too-few-public-methods
@@ -166,6 +166,7 @@ class AWSGenerator(AbstractGenerator):
     def _get_location(self):
         """Pick instance location."""
         if self.attributes:
+            # TODO: Make region configurable. 
             return ('US East (N. Virginia)', 'us-east-1', 'us-east-1a', 'USE1-EBS')
         else:
             return choice(self.REGIONS)

@@ -56,7 +56,6 @@ class EC2Generator(AWSGenerator):
 
     def _get_instance_type(self):
         """Pick random instance type."""
-        # inst_type, vcpu, memory, storage, family, cost, rate
         if self._instance_type:
             return (self._instance_type.get('inst_type'),
                     self._instance_type.get('vcpu'),
