@@ -16,6 +16,7 @@
 #
 """Defines the abstract generator."""
 import datetime
+from dateutil import parser
 from copy import deepcopy
 from random import choice, choices, randint, uniform
 from string import ascii_lowercase
@@ -155,7 +156,10 @@ class OCPGenerator(AbstractGenerator):
                                 'cpu_limit': specified_pod.get('cpu_limit'),
                                 'mem_request': mem_request,
                                 'mem_limit': specified_pod.get('mem_limit'),
-                                'pod_labels': specified_pod.get('labels')}
+                                'pod_labels': specified_pod.get('labels'),
+                                'cpu_usage': specified_pod.get('cpu_usage'),
+                                'mem_usage': specified_pod.get('mem_usage'),
+                                'pod_seconds': specified_pod.get('pod_seconds')}
             else:
                 num_pods = randint(2, 20)
                 for num_namespace in range(0, num_pods):  # pylint: disable=W0612
@@ -206,17 +210,28 @@ class OCPGenerator(AbstractGenerator):
         row['interval_end'] = OCPGenerator.timestamp(end)
         return row
 
+    def _get_usage_for_date(self, usage_dict, start):
+        """Return usage for specified hour."""
+        usage_amount = None
+        if usage_dict:
+            for date, usage in usage_dict.items():
+                if parser.parse(date).date() == start.date():
+                    usage_amount = usage
+        return usage_amount
+
     def _update_data(self, row, start, end, **kwargs):  # pylint: disable=too-many-locals
-        """Update data with generator specific data."""
+        """Update data with generator specific data."""       
         row = self._add_common_usage_info(row, start, end)
-        pod_seconds = randint(2, 60 * 60)
+        cpu_usage = self._get_usage_for_date(kwargs.get('cpu_usage'), start)
+        mem_usage = self._get_usage_for_date(kwargs.get('mem_usage'), start)
+        pod_seconds = kwargs.get('pod_seconds') if kwargs.get('pod_seconds') else randint(2, 60 * 60)
         pod = kwargs.get('pod')
         cpu_request = pod.pop('cpu_request')
         mem_request = pod.pop('mem_request')
         cpu_limit = pod.pop('cpu_limit')
         mem_limit = pod.pop('mem_limit')
-        cpu = round(uniform(0.02, cpu_request), 5)
-        mem = round(uniform(250000000.0, mem_request), 2)
+        cpu = cpu_usage if cpu_usage else round(uniform(0.02, cpu_request), 5)
+        mem = mem_usage if mem_usage else round(uniform(250000000.0, mem_request), 2)
         pod['pod_usage_cpu_core_seconds'] = pod_seconds * cpu
         pod['pod_request_cpu_core_seconds'] = pod_seconds * cpu_request
         pod['pod_limit_cpu_core_seconds'] = pod_seconds * cpu_limit
@@ -235,9 +250,16 @@ class OCPGenerator(AbstractGenerator):
             pod_count = len(self.pods)
             if self._nodes:
                 for pod_name, _ in self.pods.items():
+                    cpu_usage = self.pods[pod_name].get('cpu_usage', None)
+                    mem_usage = self.pods[pod_name].get('mem_usage', None)
+                    pod_seconds = self.pods[pod_name].get('pod_seconds', None)
                     pod = deepcopy(self.pods[pod_name])
                     row = self._init_data_row(start, end)
-                    row = self._update_data(row, start, end, pod=pod)
+                    row = self._update_data(row, start, end, pod=pod, cpu_usage=cpu_usage,
+                                            mem_usage=mem_usage, pod_seconds=pod_seconds)
+                    row.pop('cpu_usage', None)
+                    row.pop('mem_usage', None)
+                    row.pop('pod_seconds', None)
                     data.append(row)
             else:
                 num_pods = randint(2, pod_count)
