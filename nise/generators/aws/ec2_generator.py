@@ -15,7 +15,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """Module for ec2 data generation."""
-from random import choice, randint
+from random import choice
 
 from nise.generators.aws.aws_generator import AWSGenerator
 
@@ -37,58 +37,30 @@ class EC2Generator(AWSGenerator):
 
     ARCHS = ('32-bit', '64-bit')
 
-    def __init__(self, start_date, end_date, payer_account, usage_accounts, attributes):
+    def __init__(self, start_date, end_date, payer_account, usage_accounts, attributes=None):
+        """Initialize the EC2 generator."""
+        super().__init__(start_date, end_date, payer_account, usage_accounts, attributes)
         self._attributes = None
-        self._processor_arch = None
-        self._resource_id = None
-        self._product_sku = None
+        self._processor_arch = choice(self.ARCHS)
+        self._resource_id = 'i-{}'.format(self.fake.ean8())  # pylint: disable=no-member
+        self._product_sku = self.fake.pystr(min_chars=12, max_chars=12).upper()  # pylint: disable=no-member
         self._tags = None
-        self._instance_type = None
+        self._instance_type = choice(self.INSTANCE_TYPES)
         if attributes:
             self._attributes = attributes
             self._processor_arch = attributes.get('processor_arch')
-            self._resource_id = attributes.get('resource_id')
+            self._resource_id = 'i-{}'.format(attributes.get('resource_id'))
             self._product_sku = attributes.get('product_sku')
             self._tags = attributes.get('tags')
-            self._instance_type = attributes.get('instance_type')
-
-        super().__init__(start_date, end_date, payer_account, usage_accounts, attributes)
-
-    def _get_instance_type(self):
-        """Pick random instance type."""
-        if self._instance_type:
-            return (self._instance_type.get('inst_type'),
-                    self._instance_type.get('vcpu'),
-                    self._instance_type.get('memory'),
-                    self._instance_type.get('storage'),
-                    self._instance_type.get('family'),
-                    self._instance_type.get('cost'),
-                    self._instance_type.get('rate'),
-                    '${} per On Demand Linux {} Instance Hour')
-        else:
-            return choice(self.INSTANCE_TYPES)
-
-    def _get_processor_arch(self):
-        """Pick instance architectures."""
-        if self._processor_arch:
-            return self._processor_arch
-        else:
-            return choice(self.ARCHS)
-
-    def _get_resource_id(self):
-        """Generate an instance id."""
-        if self._resource_id:
-            id = self._resource_id
-        else:
-            id = self.fake.ean8()  # pylint: disable=no-member
-        return 'i-{}'.format(id)
-
-    def _get_product_sku(self):
-        """Generate product sku."""
-        if self._product_sku:
-            return self._product_sku
-        else:
-            return self.fake.pystr(min_chars=12, max_chars=12).upper()  # pylint: disable=no-member
+            instance_type = attributes.get('instance_type')
+            self._instance_type = (instance_type.get('inst_type'),
+                                   instance_type.get('vcpu'),
+                                   instance_type.get('memory'),
+                                   instance_type.get('storage'),
+                                   instance_type.get('family'),
+                                   instance_type.get('cost'),
+                                   instance_type.get('rate'),
+                                   '${} per On Demand Linux {} Instance Hour')
 
     def _pick_tag(self, tag_key, options):
         """Generate tag from options."""
@@ -103,7 +75,7 @@ class EC2Generator(AWSGenerator):
     def _update_data(self, row, start, end, **kwargs):
         """Update data with generator specific data."""
         inst_type, vcpu, memory, storage, family, cost, rate, description = \
-            self._get_instance_type()
+            self._instance_type
         inst_description = description.format(cost, inst_type)
         location, aws_region, avail_zone, _ = self._get_location()
         row = self._add_common_usage_info(row, start, end)
@@ -112,7 +84,7 @@ class EC2Generator(AWSGenerator):
         row['lineItem/UsageType'] = 'BoxUsage:{}'.format(inst_type)
         row['lineItem/Operation'] = 'RunInstances'
         row['lineItem/AvailabilityZone'] = avail_zone
-        row['lineItem/ResourceId'] = self._get_resource_id()
+        row['lineItem/ResourceId'] = self._resource_id
         row['lineItem/UsageAmount'] = '1'
         row['lineItem/CurrencyCode'] = 'USD'
         row['lineItem/UnblendedRate'] = rate
@@ -136,12 +108,12 @@ class EC2Generator(AWSGenerator):
         row['product/operation'] = 'RunInstances'
         row['product/physicalProcessor'] = 'Intel Xeon Family'
         row['product/preInstalledSw'] = 'NA'
-        row['product/processorArchitecture'] = self._get_processor_arch()
-        row['product/processorFeatures'] = 'Intel AVX Intel Turbo' #  fix this?
+        row['product/processorArchitecture'] = self._processor_arch
+        row['product/processorFeatures'] = 'Intel AVX Intel Turbo'
         row['product/productFamily'] = 'Compute Instance'
         row['product/region'] = aws_region
         row['product/servicecode'] = 'AmazonEC2'
-        row['product/sku'] = self._get_product_sku()
+        row['product/sku'] = self._product_sku
         row['product/storage'] = storage
         row['product/tenancy'] = 'Shared'
         row['product/usagetype'] = 'BoxUsage:{}'.format(inst_type)
@@ -150,8 +122,10 @@ class EC2Generator(AWSGenerator):
         row['pricing/publicOnDemandRate'] = rate
         row['pricing/term'] = 'OnDemand'
         row['pricing/unit'] = 'Hrs'
-        row['resourceTags/user:environment'] = self._pick_tag('resourceTags/user:environment', ('dev', 'ci', 'qa', 'stage', 'prod'))
-        row['resourceTags/user:version'] = self._pick_tag('resourceTags/user:version', ('alpha', 'beta'))
+        row['resourceTags/user:environment'] = self._pick_tag('resourceTags/user:environment',
+                                                              ('dev', 'ci', 'qa', 'stage', 'prod'))
+        row['resourceTags/user:version'] = self._pick_tag('resourceTags/user:version',
+                                                          ('alpha', 'beta'))
         return row
 
     def generate_data(self):

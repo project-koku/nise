@@ -3,7 +3,7 @@ generators:
   - EC2Generator:
       start_date: 1-21-2019
       end_date: 1-22-2019
-      processor_arch: 64-bit
+      processor_arch: 32-bit
       resource_id: 55555555
       product_sku: VEAJHRNKTJZQ
       tags:

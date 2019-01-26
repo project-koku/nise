@@ -18,9 +18,10 @@
 
 import argparse
 import datetime
-from dateutil import parser as date_parser
 import os
+
 import yaml
+from dateutil import parser as date_parser
 
 from nise.report import (aws_create_report,
                          ocp_create_report)
@@ -235,15 +236,14 @@ def _validate_provider_inputs(parser, options):
 
 def _load_yaml_file(filename):
     """Local data from yaml file."""
+    yamlfile = None
     if filename:
         try:
-            with open(filename, 'r+') as f:
-                yamlfile = yaml.load(f)
+            with open(filename, 'r+') as yaml_file:
+                yamlfile = yaml.load(yaml_file)
         except TypeError:
             yamlfile = yaml.load(filename)
-        except IOError:
-            raise
-        return yamlfile
+    return yamlfile
 
 
 def _load_static_report_data(parser, options):
@@ -259,7 +259,7 @@ def _load_static_report_data(parser, options):
                     start_dates.append(date_parser.parse(attributes.get('start_date', None)))
             options['start_date'] = min(start_dates)
             options['static_report_data'] = static_report_data
-        
+
 
 def main():
     """Run data generation program."""

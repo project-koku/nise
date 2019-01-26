@@ -22,16 +22,17 @@ from nise.generators.aws.aws_generator import AWSGenerator
 
 class S3Generator(AWSGenerator):
     """Generator for S3 data."""
-    def __init__(self, start_date, end_date, payer_account, usage_accounts, attributes):
-        self._amount = None
-        self._rate = None
-        self._product_sku = None
+
+    def __init__(self, start_date, end_date, payer_account, usage_accounts, attributes=None):
+        """Initialize the S3 generator."""
+        super().__init__(start_date, end_date, payer_account, usage_accounts, attributes)
+        self._amount = uniform(0.2, 6000.99)
+        self._rate = round(uniform(0.02, 0.06), 3)
+        self._product_sku = self.fake.pystr(min_chars=12, max_chars=12).upper()  # pylint: disable=no-member
         if attributes:
             self._amount = attributes.get('amount')
             self._rate = attributes.get('rate')
             self._product_sku = attributes.get('product_sku')
-
-        super().__init__(start_date, end_date, payer_account, usage_accounts, attributes)
 
     def _get_arn(self, avail_zone):
         """Create an amazon resource name."""
@@ -40,19 +41,12 @@ class S3Generator(AWSGenerator):
                                                           self.fake.ean8())  # pylint: disable=no-member
         return arn
 
-    def _get_product_sku(self):
-        """Generate product sku."""
-        if self._product_sku:
-            return self._product_sku
-        else:
-            return self.fake.pystr(min_chars=12, max_chars=12).upper()  # pylint: disable=no-member
-
     def _update_data(self, row, start, end, **kwargs):
         """Update data with generator specific data."""
         row = self._add_common_usage_info(row, start, end)
 
-        rate = self._rate if self._rate else round(uniform(0.02, 0.06), 3)
-        amount = self._amount if self._amount else uniform(0.2, 6000.99)
+        rate = self._rate
+        amount = self._amount
         cost = amount * rate
         location, aws_region, avail_zone, _ = self._get_location()
         description = '${} per GB-Month of snapshot data stored - {}'.format(rate, location)
@@ -75,7 +69,7 @@ class S3Generator(AWSGenerator):
         row['product/productFamily'] = 'Storage Snapshot'
         row['product/region'] = aws_region
         row['product/servicecode'] = 'AmazonS3'
-        row['product/sku'] = self._get_product_sku()
+        row['product/sku'] = self._product_sku
         row['product/storageMedia'] = 'Amazon S3'
         row['product/usagetype'] = 'Requests-Tier2'
         row['pricing/publicOnDemandCost'] = str(cost)

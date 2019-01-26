@@ -91,7 +91,7 @@ RESERVE_COLS = ('reservation/AvailabilityZone',
                 'reservation/TotalReservedUnits',
                 'reservation/UnitsPerReservation')
 RESOURCE_TAG_COLS = ('resourceTags/user:environment',
-                    'resourceTags/user:version')
+                     'resourceTags/user:version')
 AWS_COLUMNS = (IDENTITY_COLS + BILL_COLS + LINE_ITEM_COLS +  # noqa: W504
                PRODUCT_COLS + PRICING_COLS + RESERVE_COLS + RESOURCE_TAG_COLS)
 
@@ -109,7 +109,7 @@ class AWSGenerator(AbstractGenerator):
         ('US West (Oregon)', 'us-west-2', 'us-west-2b', 'USW2-EBS'),
     )
 
-    def __init__(self, start_date, end_date, payer_account, usage_accounts, attributes):
+    def __init__(self, start_date, end_date, payer_account, usage_accounts, attributes=None):
         """Initialize the generator."""
         self.payer_account = payer_account
         self.usage_accounts = usage_accounts
@@ -166,7 +166,7 @@ class AWSGenerator(AbstractGenerator):
     def _get_location(self):
         """Pick instance location."""
         if self.attributes:
-            # TODO: Make region configurable. 
+            # TODO: Make region configurable.
             return ('US East (N. Virginia)', 'us-east-1', 'us-east-1a', 'USE1-EBS')
         else:
             return choice(self.REGIONS)

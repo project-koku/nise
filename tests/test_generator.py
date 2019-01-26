@@ -85,7 +85,9 @@ class AbstractGeneratorTestCase(TestCase):
         generator = TestGenerator(two_hours_ago, self.now,
                                   self.payer_account, self.usage_accounts)
         expected = [{'start': two_hours_ago,
-                     'end': two_hours_ago + self.one_hour}]
+                     'end': two_hours_ago + self.one_hour},
+                     {'start': two_hours_ago + self.one_hour,
+                     'end': two_hours_ago + self.one_hour + self.one_hour}]
         self.assertEqual(generator.hours, expected)
 
     def test_timestamp_none(self):

@@ -19,18 +19,18 @@ import calendar
 import copy
 import csv
 import gzip
+import importlib
 import os
 import random
 import shutil
 import string
-import importlib
 import tarfile
 from datetime import datetime
-from dateutil import parser
 from tempfile import NamedTemporaryFile, gettempdir
 from uuid import uuid4
 
 import requests
+from dateutil import parser
 from dateutil.relativedelta import relativedelta
 from faker import Faker
 
@@ -172,6 +172,7 @@ def _aws_finalize_report(data):
 
     return data
 
+
 def _generate_accounts(static_report_data=None):
     """Generate payer and useage accounts."""
     if static_report_data:
@@ -181,11 +182,12 @@ def _generate_accounts(static_report_data=None):
         fake = Faker()
         payer_account = fake.ean(length=13)  # pylint: disable=no-member
         usage_accounts = (payer_account,
-                        fake.ean(length=13),  # pylint: disable=no-member
-                        fake.ean(length=13),  # pylint: disable=no-member
-                        fake.ean(length=13),  # pylint: disable=no-member
-                        fake.ean(length=13))  # pylint: disable=no-member
+                          fake.ean(length=13),  # pylint: disable=no-member
+                          fake.ean(length=13),  # pylint: disable=no-member
+                          fake.ean(length=13),  # pylint: disable=no-member
+                          fake.ean(length=13))  # pylint: disable=no-member
     return payer_account, usage_accounts
+
 
 def _get_generators(generator_list):
     """Collect a list of report generators."""
@@ -194,12 +196,13 @@ def _get_generators(generator_list):
         for item in generator_list:
             for generator_cls, attributes in item.items():
                 generator_obj = {}
-                generator_obj['generator'] = getattr(importlib.import_module(__name__), generator_cls)
+                generator_obj['generator'] = getattr(importlib.import_module(__name__),
+                                                     generator_cls)
                 if attributes.get('start_date'):
                     attributes['start_date'] = parser.parse(attributes.get('start_date'))
                 if attributes.get('end_date'):
                     attributes['end_date'] = parser.parse(attributes.get('end_date'))
-                generator_obj['attributes'] = attributes                    
+                generator_obj['attributes'] = attributes
                 generators.append(generator_obj)
 
     return generators
@@ -241,9 +244,10 @@ def aws_create_report(options):
                     gen_start_date = attributes.get('start_date')
                 if attributes.get('end_date'):
                     gen_end_date = attributes.get('end_date')
-            
+
             generator_end_date = gen_end_date + relativedelta(days=+1)
-            gen = generator_cls(gen_start_date, generator_end_date, payer_account, usage_accounts, attributes)
+            gen = generator_cls(gen_start_date, generator_end_date, payer_account,
+                                usage_accounts, attributes)
             data += gen.generate_data()
 
         month_output_file_name = '{}-{}-{}'.format(month.get('name'),
