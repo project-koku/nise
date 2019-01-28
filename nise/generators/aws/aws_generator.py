@@ -167,9 +167,10 @@ class AWSGenerator(AbstractGenerator):
         """Pick instance location."""
         if self.attributes:
             # TODO: Make region configurable.
-            return ('US East (N. Virginia)', 'us-east-1', 'us-east-1a', 'USE1-EBS')
+            location = ('US East (N. Virginia)', 'us-east-1', 'us-east-1a', 'USE1-EBS')
         else:
-            return choice(self.REGIONS)
+            location = choice(self.REGIONS)
+        return location
 
     def _add_common_usage_info(self, row, start, end):
         """Add common usage information."""

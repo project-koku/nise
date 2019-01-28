@@ -35,9 +35,12 @@ class DataTransferGenerator(AWSGenerator):
         self._product_sku = None
 
         if attributes:
-            self._amount = attributes.get('amount')
-            self._rate = attributes.get('rate')
-            self._product_sku = attributes.get('product_sku')
+            if attributes.get('amount'):
+                self._amount = attributes.get('amount')
+            if attributes.get('rate'):
+                self._rate = attributes.get('rate')
+            if attributes.get('product_sku'):
+                self._product_sku = attributes.get('product_sku')
 
         super().__init__(start_date, end_date, payer_account, usage_accounts, attributes)
 
@@ -53,9 +56,10 @@ class DataTransferGenerator(AWSGenerator):
     def _get_product_sku(self):
         """Generate product sku."""
         if self._product_sku:
-            return self._product_sku
+            sku = self._product_sku
         else:
-            return self.fake.pystr(min_chars=12, max_chars=12).upper()  # pylint: disable=no-member
+            sku = self.fake.pystr(min_chars=12, max_chars=12).upper()  # pylint: disable=no-member
+        return sku
 
     def _update_data(self, row, start, end, **kwargs):  # pylint: disable=too-many-locals
         """Update data with generator specific data."""

@@ -30,9 +30,12 @@ class S3Generator(AWSGenerator):
         self._rate = round(uniform(0.02, 0.06), 3)
         self._product_sku = self.fake.pystr(min_chars=12, max_chars=12).upper()  # pylint: disable=no-member
         if attributes:
-            self._amount = attributes.get('amount')
-            self._rate = attributes.get('rate')
-            self._product_sku = attributes.get('product_sku')
+            if attributes.get('amount'):
+                self._amount = attributes.get('amount')
+            if attributes.get('rate'):
+                self._rate = attributes.get('rate')
+            if attributes.get('product_sku'):
+                self._product_sku = attributes.get('product_sku')
 
     def _get_arn(self, avail_zone):
         """Create an amazon resource name."""

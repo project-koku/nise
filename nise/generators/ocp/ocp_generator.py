@@ -35,7 +35,7 @@ OCP_COLUMNS = ('report_period_start', 'report_period_end', 'pod', 'namespace',
                'pod_labels')
 
 
-# pylint: disable=too-few-public-methods
+# pylint: disable=too-few-public-methods, too-many-instance-attributes
 class OCPGenerator(AbstractGenerator):
     """Defines a abstract class for generators."""
 
@@ -70,10 +70,10 @@ class OCPGenerator(AbstractGenerator):
         nodes = []
         if self._nodes:
             for item in self._nodes:
-                memory_gig = item.get('memory_gig')
+                memory_gig = item.get('memory_gig', randint(2, 8))
                 memory_bytes = memory_gig * 1024 * 1024
-                node = {'name': item.get('node_name'),  # pylint: disable=no-member
-                        'cpu_cores': item.get('cpu_cores'),
+                node = {'name': item.get('node_name', 'node_' + self.fake.word()),  # pylint: disable=no-member
+                        'cpu_cores': item.get('cpu_cores', randint(2, 16)),
                         'memory_bytes': memory_bytes,
                         'namespaces': item.get('namespaces')}
                 nodes.append(node)
@@ -142,11 +142,13 @@ class OCPGenerator(AbstractGenerator):
             if node.get('namespaces'):
                 specified_pods = node.get('namespaces').get(namespace).get('pods')
                 for specified_pod in specified_pods:
-                    pod = specified_pod.get('pod_name')
+                    pod = specified_pod.get('pod_name', self.fake.word())  # pylint: disable=no-member
                     cpu_cores = node.get('cpu_cores')
                     memory_bytes = node.get('memory_bytes')
-                    cpu_request = specified_pod.get('cpu_request')
-                    mem_request = specified_pod.get('mem_request')
+                    cpu_request = specified_pod.get('cpu_request',
+                                                    round(uniform(0.02, 1.0), 5))
+                    mem_request = specified_pod.get('mem_request',
+                                                    round(uniform(250000000.0, 800000000.0), 2))
                     pods[pod] = {'namespace': namespace,
                                  'node': node.get('name'),
                                  'pod': pod,
@@ -155,10 +157,14 @@ class OCPGenerator(AbstractGenerator):
                                  'node_capacity_memory_bytes': memory_bytes,
                                  'node_capacity_memory_byte_seconds': memory_bytes * hour,
                                  'cpu_request': cpu_request,
-                                 'cpu_limit': specified_pod.get('cpu_limit'),
+                                 'cpu_limit': specified_pod.get('cpu_limit',
+                                                                round(uniform(cpu_request, 1.0),
+                                                                      5)),
                                  'mem_request': mem_request,
-                                 'mem_limit': specified_pod.get('mem_limit'),
-                                 'pod_labels': specified_pod.get('labels'),
+                                 'mem_limit': specified_pod.get('mem_limit',
+                                                                round(uniform(mem_request,
+                                                                              800000000.0), 2)),
+                                 'pod_labels': specified_pod.get('labels', self._gen_pod_labels()),
                                  'cpu_usage': specified_pod.get('cpu_usage'),
                                  'mem_usage': specified_pod.get('mem_usage'),
                                  'pod_seconds': specified_pod.get('pod_seconds')}
@@ -245,7 +251,7 @@ class OCPGenerator(AbstractGenerator):
         row.update(pod)
         return row
 
-    def _generate_hourly_data(self):
+    def _generate_hourly_data(self):   # pylint: disable=too-many-locals
         """Create houldy data."""
         data = []
         for hour in self.hours:

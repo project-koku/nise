@@ -208,7 +208,7 @@ def _get_generators(generator_list):
     return generators
 
 
-# pylint: disable=too-many-locals
+# pylint: disable=too-many-locals,too-many-statements
 def aws_create_report(options):
     """Create a cost usage report file."""
     data = []

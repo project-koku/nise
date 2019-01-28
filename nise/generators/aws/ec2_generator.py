@@ -48,28 +48,34 @@ class EC2Generator(AWSGenerator):
         self._instance_type = choice(self.INSTANCE_TYPES)
         if attributes:
             self._attributes = attributes
-            self._processor_arch = attributes.get('processor_arch')
-            self._resource_id = 'i-{}'.format(attributes.get('resource_id'))
-            self._product_sku = attributes.get('product_sku')
-            self._tags = attributes.get('tags')
+            if attributes.get('processor_arch'):
+                self._processor_arch = attributes.get('processor_arch')
+            if attributes.get('resource_id'):
+                self._resource_id = 'i-{}'.format(attributes.get('resource_id'))
+            if attributes.get('product_sku'):
+                self._product_sku = attributes.get('product_sku')
+            if attributes.get('tags'):
+                self._tags = attributes.get('tags')
             instance_type = attributes.get('instance_type')
-            self._instance_type = (instance_type.get('inst_type'),
-                                   instance_type.get('vcpu'),
-                                   instance_type.get('memory'),
-                                   instance_type.get('storage'),
-                                   instance_type.get('family'),
-                                   instance_type.get('cost'),
-                                   instance_type.get('rate'),
-                                   '${} per On Demand Linux {} Instance Hour')
+            if instance_type:
+                self._instance_type = (instance_type.get('inst_type'),
+                                       instance_type.get('vcpu'),
+                                       instance_type.get('memory'),
+                                       instance_type.get('storage'),
+                                       instance_type.get('family'),
+                                       instance_type.get('cost'),
+                                       instance_type.get('rate'),
+                                       '${} per On Demand Linux {} Instance Hour')
 
     def _pick_tag(self, tag_key, options):
         """Generate tag from options."""
         if self._tags:
-            return self._tags.get(tag_key)
+            tags = self._tags.get(tag_key)
         elif self._attributes:
-            return None
+            tags = None
         else:
-            return choice(options)
+            tags = choice(options)
+        return tags
 
     # pylint: disable=too-many-locals,too-many-statements
     def _update_data(self, row, start, end, **kwargs):
