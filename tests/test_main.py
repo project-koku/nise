@@ -19,6 +19,8 @@ from unittest import TestCase
 
 from nise.__main__ import (create_parser,
                            main,
+                           _load_yaml_file,
+                           _load_static_report_data,
                            _validate_provider_inputs,
                            valid_date)
 
@@ -101,3 +103,40 @@ class CommandLineTestCase(TestCase):
         """
         with self.assertRaises(SystemExit):
             main()
+
+    def test_load_yaml_file(self):
+        """
+        Test to load static report yaml file.
+        """
+        data = _load_yaml_file('tests/static_report.yml')
+        self.assertIsNotNone(data)
+
+        data_missing = _load_yaml_file(None)
+        self.assertIsNone(data_missing)
+
+
+    def test_load_static_report_data(self):
+        """
+        Test to load static report data from option.
+        """
+        options = {}
+        options['start_date'] = datetime.today()
+        options['static_report_file'] = 'tests/static_report.yml'
+        _load_static_report_data(self.parser, options)
+        self.assertIsNotNone(options['static_report_data'])
+        self.assertIsNotNone(options['start_date'])
+
+        missing_options = {}
+        _load_static_report_data(self.parser, missing_options)
+        self.assertIsNone(missing_options.get('static_report_data'))
+
+
+
+    def test_load_static_report_data_no_start_date(self):
+        """
+        Test to load static report data from option with no start date.
+        """
+        options = {}
+        options['static_report_file'] = 'tests/static_report.yml'
+        with self.assertRaises(SystemExit):
+            _load_static_report_data(self.parser, options)

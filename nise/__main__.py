@@ -249,16 +249,20 @@ def _load_yaml_file(filename):
 def _load_static_report_data(parser, options):
     """Validate/load and set start_date if static file is provided."""
     if options.get('static_report_file'):
+        start_dates = []
         if options.get('start_date'):
-            parser.error('--start-date should not be provided with --static-report-file')
-        else:
-            static_report_data = _load_yaml_file(options.get('static_report_file'))
-            start_dates = []
-            for generator_dict in static_report_data.get('generators'):
-                for _, attributes in generator_dict.items():
-                    start_dates.append(date_parser.parse(attributes.get('start_date', None)))
+            start_date_argument = options.get('start_date')
+            start_dates.append(start_date_argument)
+        static_report_data = _load_yaml_file(options.get('static_report_file'))
+        for generator_dict in static_report_data.get('generators'):
+            for _, attributes in generator_dict.items():
+                if attributes.get('start_date'):
+                    start_dates.append(date_parser.parse(attributes.get('start_date')))
+        if start_dates:
             options['start_date'] = min(start_dates)
             options['static_report_data'] = static_report_data
+        else:
+            parser.error('Start date missing from --start-date or in --static-report-file')
 
 
 def main():
