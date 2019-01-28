@@ -6,6 +6,7 @@ generators:
       processor_arch: 32-bit
       resource_id: 55555555
       product_sku: VEAJHRNKTJZQ
+      region: us-east-1a
       tags:
         resourceTags/user:environment: dev
         resourceTags/user:version: alpha
