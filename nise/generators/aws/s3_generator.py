@@ -20,6 +20,7 @@ from random import uniform
 from nise.generators.aws.aws_generator import AWSGenerator
 
 
+# pylint: disable=too-many-arguments
 class S3Generator(AWSGenerator):
     """Generator for S3 data."""
 

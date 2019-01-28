@@ -96,7 +96,7 @@ AWS_COLUMNS = (IDENTITY_COLS + BILL_COLS + LINE_ITEM_COLS +  # noqa: W504
                PRODUCT_COLS + PRICING_COLS + RESERVE_COLS + RESOURCE_TAG_COLS)
 
 
-# pylint: disable=too-few-public-methods
+# pylint: disable=too-few-public-methods, too-many-arguments
 class AWSGenerator(AbstractGenerator):
     """Defines a abstract class for generators."""
 

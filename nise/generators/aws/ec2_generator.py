@@ -20,7 +20,7 @@ from random import choice
 from nise.generators.aws.aws_generator import AWSGenerator
 
 
-# pylint: disable=too-few-public-methods
+# pylint: disable=too-few-public-methods, too-many-arguments
 class EC2Generator(AWSGenerator):
     """Generator for EC2 data."""
 

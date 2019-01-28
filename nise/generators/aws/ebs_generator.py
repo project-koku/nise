@@ -20,6 +20,7 @@ from random import choice, uniform
 from nise.generators.aws.aws_generator import AWSGenerator
 
 
+# pylint: disable=too-many-arguments
 class EBSGenerator(AWSGenerator):
     """Generator for EBS data."""
 
