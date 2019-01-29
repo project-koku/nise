@@ -26,7 +26,7 @@ from nise.generators.generator import AbstractGenerator
 
 
 OCP_COLUMNS = ('report_period_start', 'report_period_end', 'pod', 'namespace',
-               'node', 'interval_start', 'interval_end',
+               'node', 'resource_id', 'interval_start', 'interval_end',
                'pod_usage_cpu_core_seconds', 'pod_request_cpu_core_seconds',
                'pod_limit_cpu_core_seconds', 'pod_usage_memory_byte_seconds',
                'pod_request_memory_byte_seconds', 'pod_limit_memory_byte_seconds',
@@ -84,7 +84,8 @@ class OCPGenerator(AbstractGenerator):
                 memory_bytes = memory_gig * 1024 * 1024
                 node = {'name': 'node_' + self.fake.word(),  # pylint: disable=no-member
                         'cpu_cores': randint(2, 16),
-                        'memory_bytes': memory_bytes}
+                        'memory_bytes': memory_bytes,
+                        'resource_id': 'resource_' + self.fake.word()}
                 nodes.append(node)
         return nodes
 
@@ -180,6 +181,7 @@ class OCPGenerator(AbstractGenerator):
                     mem_request = round(uniform(250000000.0, 800000000.0), 2)
                     pods[pod] = {'namespace': namespace,
                                  'node': node.get('name'),
+                                 'resource_id': node.get('resource_id'),
                                  'pod': pod,
                                  'node_capacity_cpu_cores': cpu_cores,
                                  'node_capacity_cpu_core_seconds': cpu_cores * hour,
