@@ -1,8 +1,8 @@
 ---
 generators:
   - EC2Generator:
-      start_date: 1-21-2019
-      end_date: 1-22-2019
+      start_date: 1-27-2019
+      end_date: 1-28-2019
       processor_arch: 32-bit
       resource_id: 55555555
       product_sku: VEAJHRNKTJZQ
@@ -19,11 +19,12 @@ generators:
         cost: 1.000
         rate: 0.500
   - EC2Generator:
-      start_date: 1-21-2019
-      end_date: 1-22-2019
+      start_date: 1-27-2019
+      end_date: 1-28-2019
       processor_arch: 64-bit
       resource_id: 55554444
       product_sku: VEAJHRNKTJAA
+      region: us-east-1a
       tags:
         resourceTags/user:environment: dev
         resourceTags/user:version: bravo
@@ -36,11 +37,12 @@ generators:
         cost: 1.000
         rate: 0.500
   - EC2Generator:
-      start_date: 1-22-2019
-      end_date: 1-23-2019
+      start_date: 1-28-2019
+      end_date: 1-29-2019
       processor_arch: 64-bit
       resource_id: 55556666
       product_sku: VEAJHRNKTJZA
+      region: us-east-1a
       instance_type:
         inst_type: m5.large
         vcpu: 2
@@ -50,11 +52,12 @@ generators:
         cost: 1.000
         rate: 0.500
   - EC2Generator:
-      start_date: 1-22-2019
-      end_date: 1-23-2019
+      start_date: 1-28-2019
+      end_date: 1-29-2019
       processor_arch: 64-bit
       resource_id: 55556666
       product_sku: VEAJHRNKTJZA
+      region: us-west-1a
       instance_type:
         inst_type: m5.large
         vcpu: 2
