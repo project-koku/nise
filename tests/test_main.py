@@ -108,7 +108,7 @@ class CommandLineTestCase(TestCase):
         """
         Test to load static report yaml file.
         """
-        data = _load_yaml_file('tests/static_report.yml')
+        data = _load_yaml_file('tests/aws_static_report.yml')
         self.assertIsNotNone(data)
 
         data_missing = _load_yaml_file(None)
@@ -121,7 +121,7 @@ class CommandLineTestCase(TestCase):
         """
         options = {}
         options['start_date'] = datetime.today()
-        options['static_report_file'] = 'tests/static_report.yml'
+        options['static_report_file'] = 'tests/aws_static_report.yml'
         _load_static_report_data(self.parser, options)
         self.assertIsNotNone(options['static_report_data'])
         self.assertIsNotNone(options['start_date'])
@@ -137,6 +137,6 @@ class CommandLineTestCase(TestCase):
         Test to load static report data from option with no start date.
         """
         options = {}
-        options['static_report_file'] = 'tests/static_report.yml'
+        options['static_report_file'] = 'tests/aws_static_report.yml'
         with self.assertRaises(SystemExit):
             _load_static_report_data(self.parser, options)
