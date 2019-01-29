@@ -85,7 +85,7 @@ class OCPGenerator(AbstractGenerator):
                 node = {'name': 'node_' + self.fake.word(),  # pylint: disable=no-member
                         'cpu_cores': randint(2, 16),
                         'memory_bytes': memory_bytes,
-                        'resource_id': 'resource_' + self.fake.word()}
+                        'resource_id': 'resource_' + self.fake.word()}  # pylint: disable=no-member
                 nodes.append(node)
         return nodes
 
