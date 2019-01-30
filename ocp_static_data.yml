@@ -8,6 +8,7 @@ generators:
           node_name: alpha
           cpu_cores: 2
           memory_gig: 4
+          resource_id: myresourceid
           namespaces:
             namespace_ci:
               pods:

@@ -72,9 +72,11 @@ class OCPGenerator(AbstractGenerator):
             for item in self._nodes:
                 memory_gig = item.get('memory_gig', randint(2, 8))
                 memory_bytes = memory_gig * 1024 * 1024
+                resource_id = item.get('resource_id', 'resource_' + self.fake.word())
                 node = {'name': item.get('node_name', 'node_' + self.fake.word()),  # pylint: disable=no-member
                         'cpu_cores': item.get('cpu_cores', randint(2, 16)),
                         'memory_bytes': memory_bytes,
+                        'resource_id' : resource_id,
                         'namespaces': item.get('namespaces')}
                 nodes.append(node)
         else:
@@ -152,6 +154,7 @@ class OCPGenerator(AbstractGenerator):
                                                     round(uniform(250000000.0, 800000000.0), 2))
                     pods[pod] = {'namespace': namespace,
                                  'node': node.get('name'),
+                                 'resource_id': node.get('resource_id'),
                                  'pod': pod,
                                  'node_capacity_cpu_cores': cpu_cores,
                                  'node_capacity_cpu_core_seconds': cpu_cores * hour,
