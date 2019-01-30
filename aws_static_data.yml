@@ -67,6 +67,9 @@ generators:
         cost: 1.000
         rate: 0.500
 
+finalized_report:
+  invoice_id: 123456789
+
 accounts:
   payer: 9999999999999
   user:

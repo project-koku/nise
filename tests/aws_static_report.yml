@@ -30,6 +30,9 @@ generators:
       amount: 10
       rate: 3
 
+finalized_report:
+  invoice_id: 123456789
+
 accounts:
   payer: 9999999999999
   user:

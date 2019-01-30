@@ -163,10 +163,16 @@ def _create_month_list(start_date, end_date):
     return months
 
 
-def _aws_finalize_report(data):
+def _aws_finalize_report(data, static_data=None):
     """Popualate invoice id for data."""
     data = copy.deepcopy(data)
-    invoice_id = ''.join([random.choice(string.digits) for _ in range(9)])
+
+    invoice_id = None
+    if static_data and static_data.get('finalized_report'):
+        invoice_id = static_data.get('finalized_report').get('invoice_id')
+
+    if not invoice_id:
+        invoice_id = ''.join([random.choice(string.digits) for _ in range(9)])
     for row in data:
         row['bill/InvoiceId'] = invoice_id
 
@@ -255,10 +261,10 @@ def aws_create_report(options):
                                                    options.get('aws_report_name'))
         month_output_file = '{}/{}.csv'.format(os.getcwd(), month_output_file_name)
         if aws_finalize_report and aws_finalize_report == 'overwrite':
-            data = _aws_finalize_report(data)
+            data = _aws_finalize_report(data, static_report_data)
         elif aws_finalize_report and aws_finalize_report == 'copy':
             # Currently only a local option as this does not simulate
-            finalized_data = _aws_finalize_report(data)
+            finalized_data = _aws_finalize_report(data, static_report_data)
             finalized_file_name = '{}-finalized'.format(month_output_file_name)
             finalized_output_file = '{}/{}.csv'.format(
                 os.getcwd(),
