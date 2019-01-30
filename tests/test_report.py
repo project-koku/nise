@@ -28,6 +28,7 @@ from unittest.mock import ANY, patch
 from nise.report import (aws_create_report,
                          ocp_create_report,
                          _create_month_list,
+                         _get_generators,
                          _write_csv,
                          _write_manifest)
 
@@ -294,6 +295,29 @@ class ReportTestCase(TestCase):
         os.remove(expected_month_output_file)
         shutil.rmtree(local_bucket_path)
 
+    def test_aws_create_report_with_local_dir_static_generation_dates(self):
+        """Test the aws report creation method with local directory and static generation with dates."""
+        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0)
+        one_day = datetime.timedelta(days=1)
+        yesterday = now - one_day
+        local_bucket_path = mkdtemp()
+
+        static_aws_data = {'generators': [{'EC2Generator': {'start_date': str(now), 'end_date': str(now)}}],
+                            'accounts': {'payer': 9999999999999, 'user': [9999999999999]}}
+        options = {'start_date': yesterday,
+                   'end_date': now,
+                   'aws_bucket_name': local_bucket_path,
+                   'aws_report_name': 'cur_report',
+                   'static_report_data': static_aws_data}
+        aws_create_report(options)
+        month_output_file_name = '{}-{}-{}'.format(calendar.month_name[now.month],
+                                                   now.year,
+                                                   'cur_report')
+        expected_month_output_file = '{}/{}.csv'.format(os.getcwd(), month_output_file_name)
+        self.assertTrue(os.path.isfile(expected_month_output_file))
+        os.remove(expected_month_output_file)
+        shutil.rmtree(local_bucket_path)
+
     def test_ocp_create_report_with_local_dir_static_generation(self):
         """Test the ocp report creation method with local directory and static generation."""
         now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0)
@@ -337,3 +361,60 @@ class ReportTestCase(TestCase):
         self.assertTrue(os.path.isfile(expected_month_output_file))
         os.remove(expected_month_output_file)
         shutil.rmtree(local_insights_upload)
+
+    def test_ocp_create_report_with_local_dir_static_generation_with_dates(self):
+        """Test the ocp report creation method with local directory and static generation with usage dates."""
+        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0)
+        one_day = datetime.timedelta(days=1)
+        yesterday = now - one_day
+        local_insights_upload = mkdtemp()
+        cluster_id = '11112222'
+        static_ocp_data = {'generators': [{'OCPGenerator': {'nodes': [{'node': None, 'node_name': 'alpha',
+                                                                       'cpu_cores': 2, 'memory_gig': 4,
+                                                                       'start_date': str(now), 'end_date': str(now),
+                                                                       'namespaces': {'namespace_ci': {'pods': [{'pod': None,
+                                                                                                                 'pod_name': 'pod_name1',
+                                                                                                                 'cpu_request': 5,
+                                                                                                                 'mem_request': 2,
+                                                                                                                 'cpu_limit': 5,
+                                                                                                                 'mem_limit': 2,
+                                                                                                                 'pod_seconds':3600},
+                                                                                                                 {'pod': None,
+                                                                                                                  'pod_name': 'pod_name2',
+                                                                                                                  'cpu_request': 10,
+                                                                                                                  'mem_request': 4,
+                                                                                                                  'cpu_limit': 10,
+                                                                                                                  'mem_limit': 4}]}}}]}}]}
+        options = {'start_date': yesterday,
+                   'end_date': now,
+                   'insights_upload': local_insights_upload,
+                   'ocp_cluster_id': cluster_id,
+                   'static_report_data': static_ocp_data}
+        ocp_create_report(options)
+        month_output_file_name = '{}-{}-{}'.format(calendar.month_name[now.month],
+                                                   now.year,
+                                                   cluster_id)
+        expected_month_output_file = '{}/{}.csv'.format(os.getcwd(), month_output_file_name)
+        self.assertTrue(os.path.isfile(expected_month_output_file))
+        os.remove(expected_month_output_file)
+        shutil.rmtree(local_insights_upload)
+
+    def test_get_generators(self):
+        """Test the _get_generators helper function."""
+        generators = _get_generators(None)
+        self.assertEqual(generators, [])
+
+        generator_list = [{'EC2Generator': {'start_date': '1-21-2019', 'end_date': '1-22-2019'} }]
+        generators = _get_generators(generator_list)
+
+        self.assertIsNotNone(generators)
+        self.assertEqual(len(generators), 1)
+
+        self.assertIsInstance(generators[0].get('attributes').get('start_date'), datetime.datetime)
+        self.assertIsInstance(generators[0].get('attributes').get('end_date'), datetime.datetime)
+        self.assertEqual(generators[0].get('attributes').get('start_date').month, 1)
+        self.assertEqual(generators[0].get('attributes').get('start_date').day, 21)
+        self.assertEqual(generators[0].get('attributes').get('start_date').year, 2019)
+        self.assertEqual(generators[0].get('attributes').get('end_date').month, 1)
+        self.assertEqual(generators[0].get('attributes').get('end_date').day, 22)
+        self.assertEqual(generators[0].get('attributes').get('end_date').year, 2019)
