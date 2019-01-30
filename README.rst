@@ -67,7 +67,8 @@ nise is a command line tool. Currently only accepting a limited number of argume
 - *--aws-s3-report-prefix prefix_name*  (optional)
 - *--aws-finalize finalize_choice* (optional, choices: ['copy', 'overwrite'])
 - *--ocp-cluster-id cluster-id* (required when providing ocp type)
-- *--insights-upload UPLOAD_URL* (optional) Note: Use local directory path to populate a "local uplodd directory".
+- *--insights-upload UPLOAD_URL* (optional) Note: Use local directory path to populate a "local upload directory".
+- *--static-report-file file_name* (optional) Note: Static report generation based on specified yaml file.  See example_aws[ocp]_static_data.yml for examples.
 
 Note: If `--aws-s3-report-name` or `--aws-s3-report-prefix` are specified they should match what is configured in the AWS cost usage report settings.
 
@@ -87,6 +88,8 @@ Below is an example usage of ``nise`` for AWS data::
     nise --start-date 06-20-2018 --aws --aws-s3-bucket-name /local/path/testbucket --aws-s3-report-name cur --aws-s3-report-prefix my-prefix
 
     nise --start-date 06-20-2018 --aws --aws-finalize copy
+
+    nise --aws --static-report-file aws_static_data.yml
 
 Generated reports will be generated in monthly .csv files with the file format <Month>-<Year>-<Report Name>.csv.
 

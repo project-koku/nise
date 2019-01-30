@@ -272,6 +272,8 @@ def main():
     options = vars(args)
     _load_static_report_data(parser, options)
     _, provider_type = _validate_provider_inputs(parser, options)
+    if not options.get('start_date'):
+        parser.error('--start-date must be provided.')
     if provider_type == 'aws':
         aws_create_report(options)
     elif provider_type == 'ocp':
