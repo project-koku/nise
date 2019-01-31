@@ -20,6 +20,7 @@ from random import choice, uniform
 from nise.generators.aws.aws_generator import AWSGenerator
 
 
+# pylint: disable=too-many-arguments
 class DataTransferGenerator(AWSGenerator):
     """Generator for Data Transfer data."""
 
@@ -27,6 +28,22 @@ class DataTransferGenerator(AWSGenerator):
         ('{}-{}-AWS-In-Bytes', 'PublicIP-In', 'InterRegion Inbound'),
         ('{}-{}-AWS-Out-Bytes', 'PublicIP-Out', 'InterRegion Outbound'),
     )
+
+    def __init__(self, start_date, end_date, payer_account, usage_accounts, attributes=None):
+        """Initialize the data transfer generator."""
+        self._amount = None
+        self._rate = None
+        self._product_sku = None
+
+        if attributes:
+            if attributes.get('amount'):
+                self._amount = attributes.get('amount')
+            if attributes.get('rate'):
+                self._rate = attributes.get('rate')
+            if attributes.get('product_sku'):
+                self._product_sku = attributes.get('product_sku')
+
+        super().__init__(start_date, end_date, payer_account, usage_accounts, attributes)
 
     def _get_data_transfer(self, rate):
         """Get data transfer info."""
@@ -37,12 +54,20 @@ class DataTransferGenerator(AWSGenerator):
         description = '${} per GB - {} data transfer to {}'.format(rate, location1, location2)
         return trans_desc, operation, description, location1, location2, trans_type, aws_region
 
+    def _get_product_sku(self):
+        """Generate product sku."""
+        if self._product_sku:
+            sku = self._product_sku
+        else:
+            sku = self.fake.pystr(min_chars=12, max_chars=12).upper()  # pylint: disable=no-member
+        return sku
+
     def _update_data(self, row, start, end, **kwargs):  # pylint: disable=too-many-locals
         """Update data with generator specific data."""
         row = self._add_common_usage_info(row, start, end)
 
-        rate = round(uniform(0.12, 0.19), 3)
-        amount = uniform(0.000002, 0.09)
+        rate = self._rate if self._rate else round(uniform(0.12, 0.19), 3)
+        amount = self._amount if self._amount else uniform(0.000002, 0.09)
         cost = amount * rate
         trans_desc, operation, description, location1, location2, trans_type, aws_region = \
             self._get_data_transfer(rate)
@@ -64,7 +89,7 @@ class DataTransferGenerator(AWSGenerator):
         row['product/productFamily'] = 'Data Transfer'
         row['product/region'] = aws_region
         row['product/servicecode'] = 'AWSDataTransfer'
-        row['product/sku'] = self.fake.pystr(min_chars=12, max_chars=12).upper()  # pylint: disable=no-member
+        row['product/sku'] = self._get_product_sku()
         row['product/toLocation'] = location2
         row['product/toLocationType'] = 'AWS Region'
         row['product/transferType'] = trans_type

@@ -20,6 +20,9 @@ import argparse
 import datetime
 import os
 
+import yaml
+from dateutil import parser as date_parser
+
 from nise.report import (aws_create_report,
                          ocp_create_report)
 
@@ -46,7 +49,7 @@ def create_parser():
     parser.add_argument('--start-date',
                         metavar='DATE',
                         dest='start_date',
-                        required=True,
+                        required=False,
                         type=valid_date,
                         help='Date to start generating data (MM-DD-YYYY)')
     parser.add_argument('--end-date',
@@ -87,6 +90,11 @@ def create_parser():
                         help="""Whether to generate finalized report data.
                             Can be either \'copy\' to produce a second finalized file locally
                             or \'overwrite\' to finalize the normal report files.
+                            """)
+    parser.add_argument('--static-report-file',
+                        dest='static_report_file',
+                        required=False,
+                        help="""Generate static data based on yaml.
                             """)
     parser.add_argument('--ocp-cluster-id',
                         metavar='OCP_CLUSTER_ID',
@@ -226,12 +234,46 @@ def _validate_provider_inputs(parser, options):
     return (valid_inputs, provider_type)
 
 
+def _load_yaml_file(filename):
+    """Local data from yaml file."""
+    yamlfile = None
+    if filename:
+        try:
+            with open(filename, 'r+') as yaml_file:
+                yamlfile = yaml.load(yaml_file)
+        except TypeError:
+            yamlfile = yaml.load(filename)
+    return yamlfile
+
+
+def _load_static_report_data(parser, options):
+    """Validate/load and set start_date if static file is provided."""
+    if options.get('static_report_file'):
+        start_dates = []
+        if options.get('start_date'):
+            start_date_argument = options.get('start_date')
+            start_dates.append(start_date_argument)
+        static_report_data = _load_yaml_file(options.get('static_report_file'))
+        for generator_dict in static_report_data.get('generators'):
+            for _, attributes in generator_dict.items():
+                if attributes.get('start_date'):
+                    start_dates.append(date_parser.parse(attributes.get('start_date')))
+        if start_dates:
+            options['start_date'] = min(start_dates)
+            options['static_report_data'] = static_report_data
+        else:
+            parser.error('Start date missing from --start-date or in --static-report-file')
+
+
 def main():
     """Run data generation program."""
     parser = create_parser()
     args = parser.parse_args()
     options = vars(args)
+    _load_static_report_data(parser, options)
     _, provider_type = _validate_provider_inputs(parser, options)
+    if not options.get('start_date'):
+        parser.error('the following arguments are required: --start-date')
     if provider_type == 'aws':
         aws_create_report(options)
     elif provider_type == 'ocp':

@@ -19,6 +19,7 @@ import calendar
 import copy
 import csv
 import gzip
+import importlib
 import os
 import random
 import shutil
@@ -29,6 +30,7 @@ from tempfile import NamedTemporaryFile, gettempdir
 from uuid import uuid4
 
 import requests
+from dateutil import parser
 from dateutil.relativedelta import relativedelta
 from faker import Faker
 
@@ -161,48 +163,108 @@ def _create_month_list(start_date, end_date):
     return months
 
 
-def _aws_finalize_report(data):
+def _aws_finalize_report(data, static_data=None):
     """Popualate invoice id for data."""
     data = copy.deepcopy(data)
-    invoice_id = ''.join([random.choice(string.digits) for _ in range(9)])
+
+    invoice_id = None
+    if static_data and static_data.get('finalized_report'):
+        invoice_id = static_data.get('finalized_report').get('invoice_id')
+
+    if not invoice_id:
+        invoice_id = ''.join([random.choice(string.digits) for _ in range(9)])
     for row in data:
         row['bill/InvoiceId'] = invoice_id
 
     return data
 
 
-# pylint: disable=too-many-locals
+def _generate_accounts(static_report_data=None):
+    """Generate payer and useage accounts."""
+    if static_report_data:
+        payer_account = static_report_data.get('payer')
+        usage_accounts = tuple(static_report_data.get('user'))
+    else:
+        fake = Faker()
+        payer_account = fake.ean(length=13)  # pylint: disable=no-member
+        usage_accounts = (payer_account,
+                          fake.ean(length=13),  # pylint: disable=no-member
+                          fake.ean(length=13),  # pylint: disable=no-member
+                          fake.ean(length=13),  # pylint: disable=no-member
+                          fake.ean(length=13))  # pylint: disable=no-member
+    return payer_account, usage_accounts
+
+
+def _get_generators(generator_list):
+    """Collect a list of report generators."""
+    generators = []
+    if generator_list:
+        for item in generator_list:
+            for generator_cls, attributes in item.items():
+                generator_obj = {}
+                generator_obj['generator'] = getattr(importlib.import_module(__name__),
+                                                     generator_cls)
+                if attributes.get('start_date'):
+                    attributes['start_date'] = parser.parse(attributes.get('start_date'))
+                if attributes.get('end_date'):
+                    attributes['end_date'] = parser.parse(attributes.get('end_date'))
+                generator_obj['attributes'] = attributes
+                generators.append(generator_obj)
+
+    return generators
+
+
+# pylint: disable=too-many-locals,too-many-statements
 def aws_create_report(options):
     """Create a cost usage report file."""
-    generators = [DataTransferGenerator, EBSGenerator, EC2Generator, S3Generator]
     data = []
     start_date = options.get('start_date')
     end_date = options.get('end_date')
     aws_finalize_report = options.get('aws_finalize_report')
+
+    static_report_data = options.get('static_report_data')
+    if static_report_data:
+        generators = _get_generators(static_report_data.get('generators'))
+        accounts_list = static_report_data.get('accounts')
+    else:
+        generators = [{'generator': DataTransferGenerator, 'attributes': None},
+                      {'generator': EBSGenerator, 'attributes': None},
+                      {'generator': EC2Generator, 'attributes': None},
+                      {'generator': S3Generator, 'attributes': None}]
+        accounts_list = None
+
     months = _create_month_list(start_date, end_date)
-    fake = Faker()
-    payer_account = fake.ean(length=13)  # pylint: disable=no-member
-    usage_accounts = (payer_account,
-                      fake.ean(length=13),  # pylint: disable=no-member
-                      fake.ean(length=13),  # pylint: disable=no-member
-                      fake.ean(length=13),  # pylint: disable=no-member
-                      fake.ean(length=13))  # pylint: disable=no-member
+
+    payer_account, usage_accounts = _generate_accounts(accounts_list)
+
     for month in months:
         data = []
+        fake = Faker()
         for generator in generators:
-            generator_end_date = month.get('end') + relativedelta(days=+1)
-            gen = generator(month.get('start'), generator_end_date, payer_account, usage_accounts)
+            generator_cls = generator.get('generator')
+            attributes = generator.get('attributes')
+            gen_start_date = month.get('start')
+            gen_end_date = month.get('end')
+            if attributes:
+                if attributes.get('start_date'):
+                    gen_start_date = attributes.get('start_date')
+                if attributes.get('end_date'):
+                    gen_end_date = attributes.get('end_date')
+
+            generator_end_date = gen_end_date + relativedelta(days=+1)
+            gen = generator_cls(gen_start_date, generator_end_date, payer_account,
+                                usage_accounts, attributes)
             data += gen.generate_data()
 
         month_output_file_name = '{}-{}-{}'.format(month.get('name'),
-                                                   month.get('start').year,
+                                                   gen_start_date.year,
                                                    options.get('aws_report_name'))
         month_output_file = '{}/{}.csv'.format(os.getcwd(), month_output_file_name)
         if aws_finalize_report and aws_finalize_report == 'overwrite':
-            data = _aws_finalize_report(data)
+            data = _aws_finalize_report(data, static_report_data)
         elif aws_finalize_report and aws_finalize_report == 'copy':
             # Currently only a local option as this does not simulate
-            finalized_data = _aws_finalize_report(data)
+            finalized_data = _aws_finalize_report(data, static_report_data)
             finalized_file_name = '{}-finalized'.format(month_output_file_name)
             finalized_output_file = '{}/{}.csv'.format(
                 os.getcwd(),
@@ -217,8 +279,8 @@ def aws_create_report(options):
             report_name = options.get('aws_report_name')
             manifest_values = {'account': payer_account}
             manifest_values.update(options)
-            manifest_values['start_date'] = month.get('start')
-            manifest_values['end_date'] = month.get('end')
+            manifest_values['start_date'] = gen_start_date
+            manifest_values['end_date'] = gen_end_date
             s3_cur_path, manifest_data = aws_generate_manifest(fake, manifest_values)
             s3_assembly_path = os.path.dirname(s3_cur_path)
             s3_month_path = os.path.dirname(s3_assembly_path)
@@ -244,15 +306,30 @@ def ocp_create_report(options):
     start_date = options.get('start_date')
     end_date = options.get('end_date')
     cluster_id = options.get('ocp_cluster_id')
+    static_report_data = options.get('static_report_data')
+    if static_report_data:
+        generators = _get_generators(static_report_data.get('generators'))
+    else:
+        generators = [{'generator': OCPGenerator, 'attributes': None}]
+
     months = _create_month_list(start_date, end_date)
-    generators = [OCPGenerator]
     for month in months:
         data = []
         for generator in generators:
-            gen = generator(month.get('start'), month.get('end'))
+            generator_cls = generator.get('generator')
+            attributes = generator.get('attributes')
+            gen_start_date = month.get('start')
+            gen_end_date = month.get('end')
+            if attributes:
+                if attributes.get('start_date'):
+                    gen_start_date = attributes.get('start_date')
+                if attributes.get('end_date'):
+                    gen_end_date = attributes.get('end_date')
+            generator_end_date = gen_end_date + relativedelta(days=+1)
+            gen = generator_cls(gen_start_date, generator_end_date, attributes)
             data += gen.generate_data()
         month_output_file_name = '{}-{}-{}'.format(month.get('name'),
-                                                   month.get('start').year,
+                                                   gen_start_date.year,
                                                    cluster_id)
         month_output_file = '{}/{}.csv'.format(os.getcwd(), month_output_file_name)
         _write_csv(month_output_file, data, OCP_COLUMNS)
@@ -260,7 +337,7 @@ def ocp_create_report(options):
         insights_upload = options.get('insights_upload')
         if insights_upload:
             ocp_assembly_id = uuid4()
-            report_datetime = month.get('start')
+            report_datetime = gen_start_date
             manifest_values = {'ocp_cluster_id': cluster_id,
                                'ocp_assembly_id': ocp_assembly_id,
                                'report_datetime': report_datetime}

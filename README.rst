@@ -59,7 +59,7 @@ Usage
 ===========
 nise is a command line tool. Currently only accepting a limited number of arguments:
 
-- *--start-date MM-dd-YYYY*
+- *--start-date MM-dd-YYYY* (optional, if start-date is specified in --static-report-file yaml)
 - *--end-date MM-dd-YYYY* (optional, defaults to today and current hour)
 - (--aws | --ocp) required provider type
 - *--aws-s3-bucket-name bucket_name*  (optional, must include --aws-s3-report-name) Note: Use local directory path to populate a "local S3 bucket".
@@ -67,7 +67,8 @@ nise is a command line tool. Currently only accepting a limited number of argume
 - *--aws-s3-report-prefix prefix_name*  (optional)
 - *--aws-finalize finalize_choice* (optional, choices: ['copy', 'overwrite'])
 - *--ocp-cluster-id cluster-id* (required when providing ocp type)
-- *--insights-upload UPLOAD_URL* (optional) Note: Use local directory path to populate a "local uplodd directory".
+- *--insights-upload UPLOAD_URL* (optional) Note: Use local directory path to populate a "local upload directory".
+- *--static-report-file file_name* (optional) Note: Static report generation based on specified yaml file.  See example_aws[ocp]_static_data.yml for examples.
 
 Note: If `--aws-s3-report-name` or `--aws-s3-report-prefix` are specified they should match what is configured in the AWS cost usage report settings.
 
@@ -88,6 +89,8 @@ Below is an example usage of ``nise`` for AWS data::
 
     nise --start-date 06-20-2018 --aws --aws-finalize copy
 
+    nise --aws --static-report-file aws_static_data.yml
+
 Generated reports will be generated in monthly .csv files with the file format <Month>-<Year>-<Report Name>.csv.
 
 Below is an example usage of ``nise`` for OCP data::
@@ -97,6 +100,8 @@ Below is an example usage of ``nise`` for OCP data::
     nise --start-date 06-03-2018 --ocp --ocp-cluster-id test-001 --insights-upload  https://api.access.redhat.com/r/insights/platform/upload/api/v1/upload
 
     nise --start-date 06-03-2018 --ocp --ocp-cluster-id test-001 --insights-upload  /local/path/upload_dir
+
+    nise --ocp --ocp-cluster-id my-cluster-id --static-report-file ocp_static_data.yml
 
 Generated reports will be generated in monthly .csv files with the file format <Month>-<Year>-<Cluster-ID>.csv.
 

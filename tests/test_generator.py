@@ -85,7 +85,9 @@ class AbstractGeneratorTestCase(TestCase):
         generator = TestGenerator(two_hours_ago, self.now,
                                   self.payer_account, self.usage_accounts)
         expected = [{'start': two_hours_ago,
-                     'end': two_hours_ago + self.one_hour}]
+                     'end': two_hours_ago + self.one_hour},
+                     {'start': two_hours_ago + self.one_hour,
+                     'end': two_hours_ago + self.one_hour + self.one_hour}]
         self.assertEqual(generator.hours, expected)
 
     def test_timestamp_none(self):
@@ -139,3 +141,19 @@ class AbstractGeneratorTestCase(TestCase):
                                   self.payer_account, self.usage_accounts)
         with self.assertRaises(ValueError):
             generator._init_data_row(two_hours_ago, 'invalid')
+
+    def test_get_location(self):
+        """Test the _get_location method."""
+        two_hours_ago = (self.now - self.one_hour) - self.one_hour
+        generator = TestGenerator(two_hours_ago, self.now,
+                                  self.payer_account, self.usage_accounts)
+        location = generator._get_location()
+
+        self.assertIsInstance(location, tuple)
+
+        attributes = {}
+        attributes['region'] = 'us-west-1a'
+        generator = TestGenerator(two_hours_ago, self.now,
+                                  self.payer_account, self.usage_accounts, attributes)
+        location = generator._get_location()
+        self.assertIn('us-west-1', location)
