@@ -168,7 +168,7 @@ class OCPGenerator(AbstractGenerator):
                                  'mem_limit': specified_pod.get('mem_limit',
                                                                 round(uniform(mem_request,
                                                                               800000000.0), 2)),
-                                 'pod_labels': specified_pod.get('labels', self._gen_pod_labels()),
+                                 'pod_labels': specified_pod.get('labels', None),
                                  'cpu_usage': specified_pod.get('cpu_usage'),
                                  'mem_usage': specified_pod.get('mem_usage'),
                                  'pod_seconds': specified_pod.get('pod_seconds')}
