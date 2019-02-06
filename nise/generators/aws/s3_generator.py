@@ -15,7 +15,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """Module for s3 data generation."""
-from random import uniform
+from random import choice, uniform
 
 from nise.generators.aws.aws_generator import AWSGenerator
 
@@ -30,20 +30,33 @@ class S3Generator(AWSGenerator):
         self._amount = uniform(0.2, 6000.99)
         self._rate = round(uniform(0.02, 0.06), 3)
         self._product_sku = self.fake.pystr(min_chars=12, max_chars=12).upper()  # pylint: disable=no-member
+        self._attributes = None
         if attributes:
+            self._attributes = attributes
             if attributes.get('amount'):
                 self._amount = attributes.get('amount')
             if attributes.get('rate'):
                 self._rate = attributes.get('rate')
             if attributes.get('product_sku'):
                 self._product_sku = attributes.get('product_sku')
-
+            if attributes.get('tags'):
+                self._tags = attributes.get('tags')
     def _get_arn(self, avail_zone):
         """Create an amazon resource name."""
         arn = 'arn:aws:ec2:{}:{}:snapshot/snap-{}'.format(avail_zone,
                                                           self.payer_account,
                                                           self.fake.ean8())  # pylint: disable=no-member
         return arn
+
+    def _pick_tag(self, tag_key, options):
+        """Generate tag from options."""
+        if self._tags:
+            tags = self._tags.get(tag_key)
+        elif self._attributes:
+            tags = None
+        else:
+            tags = choice(options)
+        return tags
 
     def _update_data(self, row, start, end, **kwargs):
         """Update data with generator specific data."""
@@ -80,6 +93,11 @@ class S3Generator(AWSGenerator):
         row['pricing/publicOnDemandRate'] = str(rate)
         row['pricing/term'] = 'OnDemand'
         row['pricing/unit'] = 'GB-Mo'
+        row['resourceTags/user:environment'] = self._pick_tag('resourceTags/user:environment',
+                                                              ('dev', 'ci', 'qa', 'stage', 'prod'))
+        row['resourceTags/user:version'] = self._pick_tag('resourceTags/user:version',
+                                                          ('alpha', 'beta'))
+
         return row
 
     def generate_data(self):
