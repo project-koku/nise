@@ -105,6 +105,18 @@ Below is an example usage of ``nise`` for OCP data::
 
 Generated reports will be generated in monthly .csv files with the file format <Month>-<Year>-<Cluster-ID>.csv.
 
+Below is an example usage of ``nise`` for OCP running on AWS data::
+
+    # First ensure that the resource_id and dates in both AWS and OCP static report files match
+
+    nise --aws --static-report-file aws_static_data.yml
+
+    nise --ocp --ocp-cluster-id my-cluster-id --static-report-file ocp_static_data.yml
+
+Generated AWS reports will be generated in monthly .csv files with the file format <Month>-<Year>-<Report Name>.csv.
+
+Generated OCP reports will be generated in monthly .csv files with the file format <Month>-<Year>-<Cluster-ID>.csv.
+
 Contributing
 =============
 
