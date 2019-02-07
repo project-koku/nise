@@ -1,5 +1,5 @@
 {
-    "file": "{{ ocp_assembly_id }}_openshift_usage_report.csv",
+    "files": ["{{ ocp_assembly_id }}_openshift_usage_report.csv"],
     "date": "{{ report_datetime }}",
     "uuid": "{{ ocp_assembly_id }}",
     "cluster_id": "{{ ocp_cluster_id }}"
