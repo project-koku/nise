@@ -15,48 +15,60 @@ generators:
                 - pod:
                   pod_name: pod_name1
                   cpu_request: 5
-                  mem_request: 2
+                  mem_request_gig: 2
                   cpu_limit: 5
-                  mem_limit: 2
+                  mem_limit_gig: 2
                   pod_seconds: 3600
                   cpu_usage:
-                    1-21-2019: 1
-                    1-22-2019: 2
-                    1-23-2019: 4
-                  mem_usage:
-                    1-21-2019: 1
-                    1-22-2019: 2
-                    1-23-2019: 4
+                    2-1-2019: 1
+                    2-2-2019: 2
+                    2-3-2019: 4
+                    2-4-2019: 1
+                    2-5-2019: 2
+                    2-6-2019: 4
+                  mem_usage_gig:
+                    2-1-2019: 1
+                    2-2-2019: 2
+                    2-3-2019: 4
+                    2-4-2019: 1
+                    2-5-2019: 2
+                    2-6-2019: 4
                   labels: label_key1:label_value1|label_key2:label_value2
                 - pod:
                   pod_name: pod_name2
                   cpu_request: 10
-                  mem_request: 4
+                  mem_request_gig: 4
                   cpu_limit: 10
-                  mem_limit: 4
+                  mem_limit_gig: 4
                   labels: label_key3:label_value3|label_key4:label_value4
             namespace_qa:
               pods:
                 - pod:
                   pod_name: pod_name3
                   cpu_request: 5
-                  mem_request: 2
+                  mem_request_gig: 2
                   cpu_limit: 5
-                  mem_limit: 2
+                  mem_limit_gig: 2
                   pod_seconds: 3600
                   cpu_usage:
-                    1-21-2019: 4
-                    1-22-2019: 4
-                    1-23-2019: 4
-                  mem_usage:
-                    1-21-2019: 2
-                    1-22-2019: 2
-                    1-23-2019: 2
+                    2-1-2019: 4
+                    2-2-2019: 4
+                    2-3-2019: 4
+                    2-4-2019: 4
+                    2-5-2019: 4
+                    2-6-2019: 4
+                  mem_usage_gig:
+                    2-1-2019: 2
+                    2-2-2019: 2
+                    2-3-2019: 2
+                    2-4-2019: 2
+                    2-5-2019: 2
+                    2-6-2019: 2
                   labels: label_key1:label_value1|label_key2:label_value2|label_key3:label_value3
                 - pod:
                   pod_name: pod_name4
                   cpu_request: 10
-                  mem_request: 4
+                  mem_request_gig: 4
                   cpu_limit: 10
-                  mem_limit: 4
+                  mem_limit_gig: 4
                   labels: label_key3:label_value3|label_key4:label_value4

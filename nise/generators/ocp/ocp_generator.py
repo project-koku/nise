@@ -71,7 +71,7 @@ class OCPGenerator(AbstractGenerator):
         if self._nodes:
             for item in self._nodes:
                 memory_gig = item.get('memory_gig', randint(2, 8))
-                memory_bytes = memory_gig * 1024 * 1024
+                memory_bytes = memory_gig * 1024 * 1024 * 1024
                 resource_id = str(item.get('resource_id', self.fake.word()))  # pylint: disable=no-member
                 node = {'name': item.get('node_name', 'node_' + self.fake.word()),  # pylint: disable=no-member
                         'cpu_cores': item.get('cpu_cores', randint(2, 16)),
@@ -83,7 +83,7 @@ class OCPGenerator(AbstractGenerator):
             num_nodes = randint(2, 6)
             for node_num in range(0, num_nodes):  # pylint: disable=W0612
                 memory_gig = randint(2, 8)
-                memory_bytes = memory_gig * 1024 * 1024
+                memory_bytes = memory_gig * 1024 * 1024 * 1024
                 node = {'name': 'node_' + self.fake.word(),  # pylint: disable=no-member
                         'cpu_cores': randint(2, 16),
                         'memory_bytes': memory_bytes,
@@ -150,8 +150,8 @@ class OCPGenerator(AbstractGenerator):
                     memory_bytes = node.get('memory_bytes')
                     cpu_request = specified_pod.get('cpu_request',
                                                     round(uniform(0.02, 1.0), 5))
-                    mem_request = specified_pod.get('mem_request',
-                                                    round(uniform(250000000.0, 800000000.0), 2))
+                    mem_request_gig = specified_pod.get('mem_request_gig',
+                                                        round(uniform(250000000.0, 800000000.0), 2))
                     pods[pod] = {'namespace': namespace,
                                  'node': node.get('name'),
                                  'resource_id': node.get('resource_id'),
@@ -164,13 +164,13 @@ class OCPGenerator(AbstractGenerator):
                                  'cpu_limit': specified_pod.get('cpu_limit',
                                                                 round(uniform(cpu_request, 1.0),
                                                                       5)),
-                                 'mem_request': mem_request,
-                                 'mem_limit': specified_pod.get('mem_limit',
-                                                                round(uniform(mem_request,
-                                                                              800000000.0), 2)),
+                                 'mem_request_gig': mem_request_gig,
+                                 'mem_limit_gig': specified_pod.get('mem_limit_gig',
+                                                                    round(uniform(mem_request_gig,
+                                                                                  800000000.0), 2)),
                                  'pod_labels': specified_pod.get('labels', None),
                                  'cpu_usage': specified_pod.get('cpu_usage'),
-                                 'mem_usage': specified_pod.get('mem_usage'),
+                                 'mem_usage_gig': specified_pod.get('mem_usage_gig'),
                                  'pod_seconds': specified_pod.get('pod_seconds')}
             else:
                 num_pods = randint(2, 20)
@@ -181,7 +181,7 @@ class OCPGenerator(AbstractGenerator):
                     cpu_cores = node.get('cpu_cores')
                     memory_bytes = node.get('memory_bytes')
                     cpu_request = round(uniform(0.02, 1.0), 5)
-                    mem_request = round(uniform(250000000.0, 800000000.0), 2)
+                    mem_request_gig = round(uniform(250000000.0, 800000000.0), 2)
                     pods[pod] = {'namespace': namespace,
                                  'node': node.get('name'),
                                  'resource_id': node.get('resource_id'),
@@ -192,8 +192,8 @@ class OCPGenerator(AbstractGenerator):
                                  'node_capacity_memory_byte_seconds': memory_bytes * hour,
                                  'cpu_request': cpu_request,
                                  'cpu_limit': round(uniform(cpu_request, 1.0), 5),
-                                 'mem_request': mem_request,
-                                 'mem_limit': round(uniform(mem_request, 800000000.0), 2),
+                                 'mem_request_gig': mem_request_gig,
+                                 'mem_limit_gig': round(uniform(mem_request_gig, 800000000.0), 2),
                                  'pod_labels': self._gen_pod_labels()}
         return pods
 
@@ -237,22 +237,22 @@ class OCPGenerator(AbstractGenerator):
         """Update data with generator specific data."""
         row = self._add_common_usage_info(row, start, end)
         cpu_usage = self._get_usage_for_date(kwargs.get('cpu_usage'), start)
-        mem_usage = self._get_usage_for_date(kwargs.get('mem_usage'), start)
+        mem_usage_gig = self._get_usage_for_date(kwargs.get('mem_usage_gig'), start)
         user_pod_seconds = kwargs.get('pod_seconds')
         pod_seconds = user_pod_seconds if user_pod_seconds else randint(2, 60 * 60)
         pod = kwargs.get('pod')
         cpu_request = pod.pop('cpu_request')
-        mem_request = pod.pop('mem_request')
+        mem_request_gig = pod.pop('mem_request_gig')
         cpu_limit = pod.pop('cpu_limit')
-        mem_limit = pod.pop('mem_limit')
+        mem_limit_gig = pod.pop('mem_limit_gig')
         cpu = cpu_usage if cpu_usage else round(uniform(0.02, cpu_request), 5)
-        mem = mem_usage if mem_usage else round(uniform(250000000.0, mem_request), 2)
+        mem = mem_usage_gig if mem_usage_gig else round(uniform(250000000.0, mem_request_gig), 2)
         pod['pod_usage_cpu_core_seconds'] = pod_seconds * cpu
         pod['pod_request_cpu_core_seconds'] = pod_seconds * cpu_request
         pod['pod_limit_cpu_core_seconds'] = pod_seconds * cpu_limit
-        pod['pod_usage_memory_byte_seconds'] = pod_seconds * mem
-        pod['pod_request_memory_byte_seconds'] = pod_seconds * mem_request
-        pod['pod_limit_memory_byte_seconds'] = pod_seconds * mem_limit
+        pod['pod_usage_memory_byte_seconds'] = pod_seconds * mem * 1024 * 1024 * 1024
+        pod['pod_request_memory_byte_seconds'] = pod_seconds * mem_request_gig * 1024 * 1024 * 1024
+        pod['pod_limit_memory_byte_seconds'] = pod_seconds * mem_limit_gig * 1024 * 1024 * 1024
         row.update(pod)
         return row
 
@@ -266,14 +266,14 @@ class OCPGenerator(AbstractGenerator):
             if self._nodes:
                 for pod_name, _ in self.pods.items():
                     cpu_usage = self.pods[pod_name].get('cpu_usage', None)
-                    mem_usage = self.pods[pod_name].get('mem_usage', None)
+                    mem_usage_gig = self.pods[pod_name].get('mem_usage_gig', None)
                     pod_seconds = self.pods[pod_name].get('pod_seconds', None)
                     pod = deepcopy(self.pods[pod_name])
                     row = self._init_data_row(start, end)
                     row = self._update_data(row, start, end, pod=pod, cpu_usage=cpu_usage,
-                                            mem_usage=mem_usage, pod_seconds=pod_seconds)
+                                            mem_usage_gig=mem_usage_gig, pod_seconds=pod_seconds)
                     row.pop('cpu_usage', None)
-                    row.pop('mem_usage', None)
+                    row.pop('mem_usage_gig', None)
                     row.pop('pod_seconds', None)
                     data.append(row)
             else:
