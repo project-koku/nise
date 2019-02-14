@@ -42,7 +42,9 @@ from nise.generators.aws import (AWS_COLUMNS,
                                  EC2Generator,
                                  S3Generator)
 from nise.generators.ocp import (OCPGenerator,
-                                 OCP_COLUMNS)
+                                 OCP_POD_USAGE,
+                                 OCP_REPORT_TYPE_TO_COLS,
+                                 OCP_STORAGE_USAGE)
 from nise.manifest import aws_generate_manifest, ocp_generate_manifest
 from nise.upload import upload_to_s3
 
@@ -301,7 +303,7 @@ def aws_create_report(options):
             os.remove(temp_cur_zip)
 
 
-def ocp_create_report(options):
+def ocp_create_report(options):  # noqa: C901
     """Create a usage report file."""
     start_date = options.get('start_date')
     end_date = options.get('end_date')
@@ -314,7 +316,10 @@ def ocp_create_report(options):
 
     months = _create_month_list(start_date, end_date)
     for month in months:
-        data = []
+        data = {
+            OCP_POD_USAGE: [],
+            OCP_STORAGE_USAGE: []
+        }
         for generator in generators:
             generator_cls = generator.get('generator')
             attributes = generator.get('attributes')
@@ -327,29 +332,43 @@ def ocp_create_report(options):
                     gen_end_date = attributes.get('end_date')
             generator_end_date = gen_end_date + relativedelta(days=+1)
             gen = generator_cls(gen_start_date, generator_end_date, attributes)
-            data += gen.generate_data()
-        month_output_file_name = '{}-{}-{}'.format(month.get('name'),
-                                                   gen_start_date.year,
-                                                   cluster_id)
-        month_output_file = '{}/{}.csv'.format(os.getcwd(), month_output_file_name)
-        _write_csv(month_output_file, data, OCP_COLUMNS)
+            monthly_data = gen.generate_data()
+            for monthly_report_type, monthly_report_data in monthly_data.items():
+                data[monthly_report_type] += monthly_report_data
+
+        monthly_files = []
+        for report_type in data.keys():  # pylint: disable=C0201
+            month_output_file_name = '{}-{}-{}-{}'.format(month.get('name'),
+                                                          gen_start_date.year,
+                                                          cluster_id,
+                                                          report_type)
+            month_output_file = '{}/{}.csv'.format(os.getcwd(), month_output_file_name)
+            monthly_files.append(month_output_file)
+            _write_csv(month_output_file, data[report_type], OCP_REPORT_TYPE_TO_COLS[report_type])
 
         insights_upload = options.get('insights_upload')
         if insights_upload:
             ocp_assembly_id = uuid4()
             report_datetime = gen_start_date
+            temp_files = {}
+            for num_file in range(0, len(monthly_files)):   # pylint: disable=C0200
+                temp_filename = '{}_openshift_usage_report.{}.csv'.format(ocp_assembly_id, num_file)
+                temp_usage_file = create_temporary_copy(monthly_files[num_file],
+                                                        temp_filename, 'payload')
+                temp_files[temp_filename] = temp_usage_file
+
+            manifest_file_names = ', '.join('"{0}"'.format(w) for w in temp_files.keys())   # pylint: disable=C0201
             manifest_values = {'ocp_cluster_id': cluster_id,
                                'ocp_assembly_id': ocp_assembly_id,
-                               'report_datetime': report_datetime}
+                               'report_datetime': report_datetime,
+                               'files': manifest_file_names[1:-1]}
             manifest_data = ocp_generate_manifest(manifest_values)
-            temp_manifest = _write_manifest(manifest_data)
-            temp_filename = '{}_openshift_usage_report.csv'.format(ocp_assembly_id)
-            temp_usage_file = create_temporary_copy(month_output_file, temp_filename, 'payload')
             temp_manifest = _write_manifest(manifest_data)
             temp_manifest_name = create_temporary_copy(temp_manifest, 'manifest.json', 'payload')
             temp_usage_zip = _tar_gzip_report(os.path.dirname(temp_manifest_name))
             ocp_route_file(insights_upload, temp_usage_zip)
-            os.remove(temp_usage_file)
+            for temp_usage_file in temp_files.values():
+                os.remove(temp_usage_file)
             os.remove(temp_manifest)
             os.remove(temp_manifest_name)
             os.remove(temp_usage_zip)

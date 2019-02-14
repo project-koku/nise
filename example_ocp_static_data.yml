@@ -41,6 +41,37 @@ generators:
                   cpu_limit: 10
                   mem_limit_gig: 4
                   labels: label_key3:label_value3|label_key4:label_value4
+              volumes:
+                - volume:
+                  volume_name: pvc-volume_1
+                  storage_class: gp2
+                  volume_request_gig: 20
+                  labels: label_key3:label_value3|label_key4:label_value4
+                  volume_claims:
+                  - volume_claim:
+                    volume_claim_name: pod_name1_data
+                    pod_name: pod_name1
+                    labels: label_key2:label_value2
+                    capacity_gig: 5
+                    volume_claim_usage_gig:
+                      2-1-2019: 1
+                      2-2-2019: 2
+                      2-3-2019: 3
+                      2-4-2019: 4
+                      2-5-2019: 3
+                      2-6-2019: 4
+                  - volume_claim:
+                    volume_claim_name: pod_name2_data
+                    pod_name: pod_name2
+                    labels: label_key3:label_value3
+                    capacity_gig: 10
+                    volume_claim_usage_gig:
+                      2-1-2019: 3
+                      2-2-2019: 2
+                      2-3-2019: 3
+                      2-4-2019: 8
+                      2-5-2019: 7
+                      2-6-2019: 4
             namespace_qa:
               pods:
                 - pod:
