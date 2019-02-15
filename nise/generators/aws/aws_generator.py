@@ -132,7 +132,7 @@ class AWSGenerator(AbstractGenerator):
         time_interval = str(start_str) + '/' + str(end_str)
         return time_interval
 
-    def _init_data_row(self, start, end):  # noqa: C901
+    def _init_data_row(self, start, end, **kwargs):  # noqa: C901
         """Create a row of data with placeholder for all headers."""
         if not start or not end:
             raise ValueError('start and end must be date objects.')
@@ -172,7 +172,7 @@ class AWSGenerator(AbstractGenerator):
             location = choice(self.REGIONS)
         return location
 
-    def _add_common_usage_info(self, row, start, end):
+    def _add_common_usage_info(self, row, start, end, **kwargs):
         """Add common usage information."""
         row['lineItem/UsageAccountId'] = choice(self.usage_accounts)
         row['lineItem/LineItemType'] = 'Usage'
@@ -184,7 +184,7 @@ class AWSGenerator(AbstractGenerator):
     def _update_data(self, row, start, end, **kwargs):
         """Update data with generator specific data."""
 
-    def _generate_hourly_data(self):
+    def _generate_hourly_data(self, **kwargs):
         """Create houldy data."""
         data = []
         for hour in self.hours:

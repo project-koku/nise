@@ -20,6 +20,8 @@ from abc import ABC, abstractmethod
 
 from faker import Faker
 
+REPORT_TYPE = 'report_type'
+
 
 # pylint: disable=too-few-public-methods
 class AbstractGenerator(ABC):
@@ -62,11 +64,11 @@ class AbstractGenerator(ABC):
         return dt_next_month
 
     @abstractmethod
-    def _init_data_row(self, start, end):
+    def _init_data_row(self, start, end, **kwargs):
         """Create a row of data with placeholder for all headers."""
 
     @abstractmethod
-    def _add_common_usage_info(self, row, start, end):
+    def _add_common_usage_info(self, row, start, end, **kwargs):
         """Add common usage information."""
 
     @abstractmethod
@@ -74,7 +76,7 @@ class AbstractGenerator(ABC):
         """Update data with generator specific data."""
 
     @abstractmethod
-    def _generate_hourly_data(self):
+    def _generate_hourly_data(self, **kwargs):
         """Create houldy data."""
 
     @abstractmethod

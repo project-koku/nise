@@ -100,7 +100,7 @@ class DataTransferGenerator(AWSGenerator):
         row['pricing/unit'] = 'GB'
         return row
 
-    def _generate_hourly_data(self):
+    def _generate_hourly_data(self, **kwargs):
         """Create houldy data."""
         data = []
         for hour in self.hours:

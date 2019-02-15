@@ -22,17 +22,31 @@ from string import ascii_lowercase
 
 from dateutil import parser
 
-from nise.generators.generator import AbstractGenerator
+from nise.generators.generator import (AbstractGenerator,
+                                       REPORT_TYPE)
 
 
-OCP_COLUMNS = ('report_period_start', 'report_period_end', 'pod', 'namespace',
-               'node', 'resource_id', 'interval_start', 'interval_end',
-               'pod_usage_cpu_core_seconds', 'pod_request_cpu_core_seconds',
-               'pod_limit_cpu_core_seconds', 'pod_usage_memory_byte_seconds',
-               'pod_request_memory_byte_seconds', 'pod_limit_memory_byte_seconds',
-               'node_capacity_cpu_cores', 'node_capacity_cpu_core_seconds',
-               'node_capacity_memory_bytes', 'node_capacity_memory_byte_seconds',
-               'pod_labels')
+OCP_POD_USAGE = 'ocp_pod_usage'
+OCP_STORAGE_USAGE = 'ocp_storage_usage'
+OCP_POD_USAGE_COLUMNS = ('report_period_start', 'report_period_end', 'pod', 'namespace',
+                         'node', 'resource_id', 'interval_start', 'interval_end',
+                         'pod_usage_cpu_core_seconds', 'pod_request_cpu_core_seconds',
+                         'pod_limit_cpu_core_seconds', 'pod_usage_memory_byte_seconds',
+                         'pod_request_memory_byte_seconds', 'pod_limit_memory_byte_seconds',
+                         'node_capacity_cpu_cores', 'node_capacity_cpu_core_seconds',
+                         'node_capacity_memory_bytes', 'node_capacity_memory_byte_seconds',
+                         'pod_labels')
+OCP_STORAGE_COLUMNS = ('report_period_start', 'report_period_end', 'interval_start', 'interval_end',
+                       'namespace', 'pod', 'persistentvolumeclaim', 'persistentvolume',
+                       'storageclass', 'persistentvolumeclaim_capacity_bytes',
+                       'persistentvolumeclaim_capacity_byte_seconds',
+                       'volume_request_storage_byte_seconds',
+                       'persistentvolumeclaim_usage_byte_seconds', 'persistentvolume_labels',
+                       'persistentvolumeclaim_labels')
+OCP_REPORT_TYPE_TO_COLS = {
+    OCP_POD_USAGE: OCP_POD_USAGE_COLUMNS,
+    OCP_STORAGE_USAGE: OCP_STORAGE_COLUMNS
+}
 
 
 # pylint: disable=too-few-public-methods, too-many-instance-attributes
@@ -56,7 +70,18 @@ class OCPGenerator(AbstractGenerator):
                          self.fake.word(), self.fake.word(), self.fake.word()]  # pylint: disable=no-member
         self.nodes = self._gen_nodes()
         self.namespaces = self._gen_namespaces(self.nodes)
-        self.pods = self._gen_pods(self.namespaces)
+        self.pods, self.namespace2pods = self._gen_pods(self.namespaces)
+        self.volumes = self._gen_volumes(self.namespaces, self.namespace2pods)
+        self.ocp_report_generation = {
+            OCP_POD_USAGE: {
+                '_generate_hourly_data': self._gen_hourly_pods_usage,
+                '_update_data': self._update_pod_data
+            },
+            OCP_STORAGE_USAGE: {
+                '_generate_hourly_data': self._gen_hourly_storage_usage,
+                '_update_data': self._update_storage_data
+            }
+        }
 
     @staticmethod
     def timestamp(in_date):
@@ -140,12 +165,15 @@ class OCPGenerator(AbstractGenerator):
     def _gen_pods(self, namespaces):  # pylint: disable=too-many-locals
         """Create pods on specific namespaces and keep relationship."""
         pods = {}
+        namespace2pod = {}
         hour = 60 * 60
         for namespace, node in namespaces.items():
+            namespace2pod[namespace] = []
             if node.get('namespaces'):
                 specified_pods = node.get('namespaces').get(namespace).get('pods')
                 for specified_pod in specified_pods:
                     pod = specified_pod.get('pod_name', self.fake.word())  # pylint: disable=no-member
+                    namespace2pod[namespace].append(pod)
                     cpu_cores = node.get('cpu_cores')
                     memory_bytes = node.get('memory_bytes')
                     cpu_request = specified_pod.get('cpu_request',
@@ -178,6 +206,7 @@ class OCPGenerator(AbstractGenerator):
                     pod_suffix = ''.join(choices(ascii_lowercase, k=5))
                     pod_type = choice(('build', 'deploy', pod_suffix))
                     pod = self.fake.word() + '_' + pod_type  # pylint: disable=no-member
+                    namespace2pod[namespace].append(pod)
                     cpu_cores = node.get('cpu_cores')
                     memory_bytes = node.get('memory_bytes')
                     cpu_request = round(uniform(0.02, 1.0), 5)
@@ -195,9 +224,76 @@ class OCPGenerator(AbstractGenerator):
                                  'mem_request_gig': mem_request_gig,
                                  'mem_limit_gig': round(uniform(mem_request_gig, 800000000.0), 2),
                                  'pod_labels': self._gen_pod_labels()}
-        return pods
+        return pods, namespace2pod
 
-    def _init_data_row(self, start, end):  # noqa: C901
+    def _gen_volumes(self, namespaces, namespace2pods):  # pylint: disable=R0914
+        """Create volumes on specific namespaces and keep relationship."""
+        volumes = {}
+        for namespace, node in namespaces.items():
+            storage_class_default = choice(('gp2', 'fast', 'slow', 'gold'))
+            if node.get('namespaces'):
+                specified_volumes = node.get('namespaces').get(namespace).get('volumes', [])
+                for specified_volume in specified_volumes:
+                    volume = specified_volume.get('volume_name', self.fake.word())  # pylint: disable=no-member
+                    volume_request = (specified_volume.get('volume_request_gig')
+                                      * 1024 * 1024 * 1024)  # noqa: W503
+                    specified_vol_claims = specified_volume.get('volume_claims', [])
+                    volume_claims = {}
+                    for specified_vc in specified_vol_claims:
+                        vol_claim = specified_vc.get(
+                            'volume_claim_name', self.fake.word())  # pylint: disable=no-member
+                        pod = specified_vc.get('pod_name')
+                        claim_capacity = (specified_vc.get('capacity_gig') * 1024 * 1024 * 1024)
+                        usage_gig = specified_vc.get('volume_claim_usage_gig')
+                        volume_claims[vol_claim] = {
+                            'namespace': namespace,
+                            'volume': volume,
+                            'labels': specified_volume.get('labels', None),
+                            'capacity': claim_capacity,
+                            'pod': pod,
+                            'volume_claim_usage_gig': usage_gig,
+                        }
+                    volumes[volume] = {
+                        'namespace': namespace,
+                        'volume': volume,
+                        'storage_class': specified_volume.get('storage_class',
+                                                              storage_class_default),
+                        'volume_request': volume_request,
+                        'labels': specified_volume.get('labels', None),
+                        'volume_claims': volume_claims
+                    }
+            else:
+                num_volumes = randint(1, 3)
+                num_vol_claims = randint(1, 2)
+                for num_volume in range(0, num_volumes):  # pylint: disable=W0612
+                    vol_suffix = ''.join(choices(ascii_lowercase, k=10))
+                    volume = 'pvc' + '-' + vol_suffix
+                    vol_request_gig = round(uniform(25.0, 80.0), 2)
+                    vol_request = vol_request_gig * 1024 * 1024 * 1024
+                    volume_claims = {}
+                    for num_claim in range(0, num_vol_claims):  # pylint: disable=W0612
+                        vol_claim = self.fake.word()  # pylint: disable=no-member
+                        pod = choice(namespace2pods[namespace])
+                        claim_capacity = (round(uniform(1.0, vol_request_gig), 2)
+                                          * 1024 * 1024 * 1024)  # noqa: W503
+                        volume_claims[vol_claim] = {
+                            'namespace': namespace,
+                            'volume': volume,
+                            'labels': self._gen_pod_labels(),
+                            'capacity': claim_capacity,
+                            'pod': pod,
+                        }
+                    volumes[volume] = {
+                        'namespace': namespace,
+                        'volume': volume,
+                        'storage_class': choice(('gp2', 'fast', 'slow', 'gold')),
+                        'volume_request': vol_request,
+                        'labels': self._gen_pod_labels(),
+                        'volume_claims': volume_claims
+                    }
+        return volumes
+
+    def _init_data_row(self, start, end, **kwargs):  # noqa: C901
         """Create a row of data with placeholder for all headers."""
         if not start or not end:
             raise ValueError('start and end must be date objects.')
@@ -209,7 +305,8 @@ class OCPGenerator(AbstractGenerator):
         bill_begin = start.replace(microsecond=0, second=0, minute=0, hour=0, day=1)
         bill_end = AbstractGenerator.next_month(bill_begin)
         row = {}
-        for column in OCP_COLUMNS:
+        report_type = kwargs.get(REPORT_TYPE)
+        for column in OCP_REPORT_TYPE_TO_COLS[report_type]:
             row[column] = ''
             if column == 'report_period_start':
                 row[column] = OCPGenerator.timestamp(bill_begin)
@@ -217,7 +314,7 @@ class OCPGenerator(AbstractGenerator):
                 row[column] = OCPGenerator.timestamp(bill_end)
         return row
 
-    def _add_common_usage_info(self, row, start, end):
+    def _add_common_usage_info(self, row, start, end, **kwargs):
         """Add common usage information."""
         row['interval_start'] = OCPGenerator.timestamp(start)
         row['interval_end'] = OCPGenerator.timestamp(end)
@@ -233,9 +330,8 @@ class OCPGenerator(AbstractGenerator):
                     usage_amount = usage
         return usage_amount
 
-    def _update_data(self, row, start, end, **kwargs):  # pylint: disable=too-many-locals
+    def _update_pod_data(self, row, start, end, **kwargs):  # pylint: disable=R0914, W0613
         """Update data with generator specific data."""
-        row = self._add_common_usage_info(row, start, end)
         cpu_usage = self._get_usage_for_date(kwargs.get('cpu_usage'), start)
         mem_usage_gig = self._get_usage_for_date(kwargs.get('mem_usage_gig'), start)
         user_pod_seconds = kwargs.get('pod_seconds')
@@ -256,8 +352,43 @@ class OCPGenerator(AbstractGenerator):
         row.update(pod)
         return row
 
-    def _generate_hourly_data(self):   # pylint: disable=too-many-locals
-        """Create houldy data."""
+    def _update_storage_data(self, row, start, end, **kwargs):  # pylint: disable=R0914, W0613
+        """Update data with generator specific data."""
+        volume_claim_usage_gig = self._get_usage_for_date(
+            kwargs.get('volume_claim_usage_gig'), start)
+        vc_capacity_gig = 10.0
+        if kwargs.get('vc_capacity'):
+            vc_capacity_gig = kwargs.get('vc_capacity') / 1024 / 1024 / 1024
+        vc_usage_gig = volume_claim_usage_gig if volume_claim_usage_gig \
+            else round(uniform(2.0, vc_capacity_gig), 2)
+        vc_usage = vc_usage_gig * 1024 * 1024 * 1024
+        data = {
+            'namespace': kwargs.get('namespace'),
+            'pod': kwargs.get('pod'),
+            'persistentvolumeclaim': kwargs.get('volume_claim'),
+            'persistentvolume': kwargs.get('volume_name'),
+            'storageclass': kwargs.get('storage_class'),
+            'persistentvolumeclaim_capacity_bytes': kwargs.get('vc_capacity'),
+            'persistentvolumeclaim_capacity_byte_seconds': kwargs.get('vc_capacity') * 60 * 60,
+            'volume_request_storage_byte_seconds': kwargs.get('volume_request') * 60 * 60,
+            'persistentvolume_labels': kwargs.get('volume_labels'),
+            'persistentvolumeclaim_labels': kwargs.get('volume_claim_labels'),
+            'persistentvolumeclaim_usage_byte_seconds': vc_usage * 60 * 60
+        }
+        row.update(data)
+        return row
+
+    def _update_data(self, row, start, end, **kwargs):  # pylint: disable=R0914
+        """Update data with generator specific data."""
+        row = self._add_common_usage_info(row, start, end)
+        if kwargs.get(REPORT_TYPE):
+            report_type = kwargs.get(REPORT_TYPE)
+            method = self.ocp_report_generation.get(report_type).get('_update_data')
+            row = method(row, start, end, **kwargs)
+        return row
+
+    def _gen_hourly_pods_usage(self, **kwargs):  # pylint: disable=R0914
+        """Create hourly data for pod usage."""
         data = []
         for hour in self.hours:
             start = hour.get('start')
@@ -269,9 +400,10 @@ class OCPGenerator(AbstractGenerator):
                     mem_usage_gig = self.pods[pod_name].get('mem_usage_gig', None)
                     pod_seconds = self.pods[pod_name].get('pod_seconds', None)
                     pod = deepcopy(self.pods[pod_name])
-                    row = self._init_data_row(start, end)
+                    row = self._init_data_row(start, end, **kwargs)
                     row = self._update_data(row, start, end, pod=pod, cpu_usage=cpu_usage,
-                                            mem_usage_gig=mem_usage_gig, pod_seconds=pod_seconds)
+                                            mem_usage_gig=mem_usage_gig, pod_seconds=pod_seconds,
+                                            **kwargs)
                     row.pop('cpu_usage', None)
                     row.pop('mem_usage_gig', None)
                     row.pop('pod_seconds', None)
@@ -284,12 +416,52 @@ class OCPGenerator(AbstractGenerator):
                 for pod_choice in pod_choices:
                     pod_name = pod_keys[pod_choice]
                     pod = deepcopy(self.pods[pod_name])
-                    row = self._init_data_row(start, end)
-                    row = self._update_data(row, start, end, pod=pod)
+                    row = self._init_data_row(start, end, **kwargs)
+                    row = self._update_data(row, start, end, pod=pod, **kwargs)
                     data.append(row)
+        return data
+
+    def _gen_hourly_storage_usage(self, **kwargs):  # pylint: disable=R0914
+        """Create hourly data for storage usage."""
+        data = []
+        for hour in self.hours:
+            start = hour.get('start')
+            end = hour.get('end')
+            for volume_name, volume in self.volumes.items():
+                namespace = volume.get('namespace', None)
+                storage_class = volume.get('storage_class', None)
+                volume_request = volume.get('volume_request', None)
+                vol_labels = volume.get('labels', None)
+                volume_claims = volume.get('volume_claims', [])
+                for vc_name, volume_claim in volume_claims.items():
+                    pod = volume_claim.get('pod')
+                    vc_labels = volume_claim.get('labels')
+                    capacity = volume_claim.get('capacity')
+                    volume_claim_usage_gig = volume_claim.get('volume_claim_usage_gig', None)
+                    row = self._init_data_row(start, end, **kwargs)
+                    row = self._update_data(row, start, end, volume_claim=vc_name,
+                                            pod=pod, volume_claim_labels=vc_labels,
+                                            vc_capacity=capacity,
+                                            volume_claim_usage_gig=volume_claim_usage_gig,
+                                            storage_class=storage_class, volume_name=volume_name,
+                                            volume_request=volume_request, volume_labels=vol_labels,
+                                            namespace=namespace, **kwargs)
+                    data.append(row)
+        return data
+
+    def _generate_hourly_data(self, **kwargs):   # pylint: disable=too-many-locals
+        """Create hourly data."""
+        data = []
+        if kwargs:
+            report_type = kwargs.get(REPORT_TYPE)
+            method = self.ocp_report_generation.get(report_type).get('_generate_hourly_data')
+            data = method(**kwargs)
         return data
 
     def generate_data(self):
         """Responsibile for generating data."""
-        data = self._generate_hourly_data()
+        data = {}
+        for report_type in self.ocp_report_generation.keys():  # pylint: disable=C0201
+            meta = {REPORT_TYPE: report_type}
+            data[report_type] = self._generate_hourly_data(**meta)
         return data
