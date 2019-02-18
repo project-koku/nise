@@ -179,7 +179,7 @@ class OCPGenerator(AbstractGenerator):
                     cpu_request = specified_pod.get('cpu_request',
                                                     round(uniform(0.02, 1.0), 5))
                     mem_request_gig = specified_pod.get('mem_request_gig',
-                                                        round(uniform(250000000.0, 800000000.0), 2))
+                                                        round(uniform(25.0, 80.0), 2))
                     pods[pod] = {'namespace': namespace,
                                  'node': node.get('name'),
                                  'resource_id': node.get('resource_id'),
@@ -195,7 +195,7 @@ class OCPGenerator(AbstractGenerator):
                                  'mem_request_gig': mem_request_gig,
                                  'mem_limit_gig': specified_pod.get('mem_limit_gig',
                                                                     round(uniform(mem_request_gig,
-                                                                                  800000000.0), 2)),
+                                                                                  80.0), 2)),
                                  'pod_labels': specified_pod.get('labels', None),
                                  'cpu_usage': specified_pod.get('cpu_usage'),
                                  'mem_usage_gig': specified_pod.get('mem_usage_gig'),
@@ -210,7 +210,7 @@ class OCPGenerator(AbstractGenerator):
                     cpu_cores = node.get('cpu_cores')
                     memory_bytes = node.get('memory_bytes')
                     cpu_request = round(uniform(0.02, 1.0), 5)
-                    mem_request_gig = round(uniform(250000000.0, 800000000.0), 2)
+                    mem_request_gig = round(uniform(25.0, 80.0), 2)
                     pods[pod] = {'namespace': namespace,
                                  'node': node.get('name'),
                                  'resource_id': node.get('resource_id'),
@@ -222,7 +222,7 @@ class OCPGenerator(AbstractGenerator):
                                  'cpu_request': cpu_request,
                                  'cpu_limit': round(uniform(cpu_request, 1.0), 5),
                                  'mem_request_gig': mem_request_gig,
-                                 'mem_limit_gig': round(uniform(mem_request_gig, 800000000.0), 2),
+                                 'mem_limit_gig': round(uniform(mem_request_gig, 80.0), 2),
                                  'pod_labels': self._gen_pod_labels()}
         return pods, namespace2pod
 
@@ -342,7 +342,7 @@ class OCPGenerator(AbstractGenerator):
         cpu_limit = pod.pop('cpu_limit')
         mem_limit_gig = pod.pop('mem_limit_gig')
         cpu = cpu_usage if cpu_usage else round(uniform(0.02, cpu_request), 5)
-        mem = mem_usage_gig if mem_usage_gig else round(uniform(250000000.0, mem_request_gig), 2)
+        mem = mem_usage_gig if mem_usage_gig else round(uniform(1, mem_request_gig), 2)
         pod['pod_usage_cpu_core_seconds'] = pod_seconds * cpu
         pod['pod_request_cpu_core_seconds'] = pod_seconds * cpu_request
         pod['pod_limit_cpu_core_seconds'] = pod_seconds * cpu_limit
