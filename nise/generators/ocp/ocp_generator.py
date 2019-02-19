@@ -248,7 +248,7 @@ class OCPGenerator(AbstractGenerator):
                         volume_claims[vol_claim] = {
                             'namespace': namespace,
                             'volume': volume,
-                            'labels': specified_volume.get('labels', None),
+                            'labels': specified_vc.get('labels', None),
                             'capacity': claim_capacity,
                             'pod': pod,
                             'volume_claim_usage_gig': usage_gig,
