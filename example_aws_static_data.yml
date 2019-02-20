@@ -78,6 +78,9 @@ generators:
       amount: 10
       rate: 3
       resource_id: 12345678
+      tags:
+        resourceTags/user:environment: dev
+        resourceTags/user:storageclass: bravo
   - DataTransferGenerator:
       product_sku: VEAJHRNCCCCC
       amount: 10

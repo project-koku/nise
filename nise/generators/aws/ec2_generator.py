@@ -67,16 +67,6 @@ class EC2Generator(AWSGenerator):
                                        instance_type.get('rate'),
                                        '${} per On Demand Linux {} Instance Hour')
 
-    def _pick_tag(self, tag_key, options):
-        """Generate tag from options."""
-        if self._tags:
-            tags = self._tags.get(tag_key)
-        elif self._attributes:
-            tags = None
-        else:
-            tags = choice(options)
-        return tags
-
     # pylint: disable=too-many-locals,too-many-statements
     def _update_data(self, row, start, end, **kwargs):
         """Update data with generator specific data."""

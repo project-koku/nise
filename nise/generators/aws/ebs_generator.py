@@ -38,6 +38,7 @@ class EBSGenerator(AWSGenerator):
         self._amount = uniform(0.2, 300.99)
         self._rate = round(uniform(0.02, 0.16), 3)
         self._product_sku = self.fake.pystr(min_chars=12, max_chars=12).upper()  # pylint: disable=no-member
+        self._tags = None
 
         if attributes:
             if attributes.get('resource_id'):
@@ -48,6 +49,8 @@ class EBSGenerator(AWSGenerator):
                 self._rate = attributes.get('rate')
             if attributes.get('product_sku'):
                 self._product_sku = attributes.get('product_sku')
+            if attributes.get('tags'):
+                self._tags = attributes.get('tags')
 
     def _get_storage(self):
         """Get storage data."""
@@ -95,6 +98,10 @@ class EBSGenerator(AWSGenerator):
         row['pricing/publicOnDemandRate'] = str(rate)
         row['pricing/term'] = 'OnDemand'
         row['pricing/unit'] = 'GB-Mo'
+        row['resourceTags/user:environment'] = self._pick_tag('resourceTags/user:environment',
+                                                              ('dev', 'ci', 'qa', 'stage', 'prod'))
+        row['resourceTags/user:storageclass'] = self._pick_tag('resourceTags/user:storageclass',
+                                                          ('alpha', 'beta'))
         return row
 
     def generate_data(self):
