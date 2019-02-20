@@ -34,6 +34,7 @@ class EBSGenerator(AWSGenerator):
     def __init__(self, start_date, end_date, payer_account, usage_accounts, attributes=None):
         """Initialize the EBS generator."""
         super().__init__(start_date, end_date, payer_account, usage_accounts, attributes)
+        self._attributes = None
         self._resource_id = 'vol-{}'.format(self.fake.ean8())  # pylint: disable=no-member
         self._amount = uniform(0.2, 300.99)
         self._rate = round(uniform(0.02, 0.16), 3)
@@ -41,6 +42,7 @@ class EBSGenerator(AWSGenerator):
         self._tags = None
 
         if attributes:
+            self._attributes = attributes
             if attributes.get('resource_id'):
                 self._resource_id = 'vol-{}'.format(attributes.get('resource_id'))
             if attributes.get('amount'):
@@ -101,7 +103,7 @@ class EBSGenerator(AWSGenerator):
         row['resourceTags/user:environment'] = self._pick_tag('resourceTags/user:environment',
                                                               ('dev', 'ci', 'qa', 'stage', 'prod'))
         row['resourceTags/user:storageclass'] = self._pick_tag('resourceTags/user:storageclass',
-                                                          ('alpha', 'beta'))
+                                                               ('alpha', 'beta'))
         return row
 
     def generate_data(self):

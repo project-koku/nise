@@ -15,7 +15,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """Module for s3 data generation."""
-from random import choice, uniform
+from random import uniform
 
 from nise.generators.aws.aws_generator import AWSGenerator
 
