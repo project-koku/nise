@@ -40,23 +40,20 @@ class EC2Generator(AWSGenerator):
     def __init__(self, start_date, end_date, payer_account, usage_accounts, attributes=None):
         """Initialize the EC2 generator."""
         super().__init__(start_date, end_date, payer_account, usage_accounts, attributes)
-        self._attributes = None
         self._processor_arch = choice(self.ARCHS)
         self._resource_id = 'i-{}'.format(self.fake.ean8())  # pylint: disable=no-member
         self._product_sku = self.fake.pystr(min_chars=12, max_chars=12).upper()  # pylint: disable=no-member
-        self._tags = None
         self._instance_type = choice(self.INSTANCE_TYPES)
-        if attributes:
-            self._attributes = attributes
-            if attributes.get('processor_arch'):
-                self._processor_arch = attributes.get('processor_arch')
-            if attributes.get('resource_id'):
-                self._resource_id = 'i-{}'.format(attributes.get('resource_id'))
-            if attributes.get('product_sku'):
-                self._product_sku = attributes.get('product_sku')
-            if attributes.get('tags'):
-                self._tags = attributes.get('tags')
-            instance_type = attributes.get('instance_type')
+        if self.attributes:
+            if self.attributes.get('processor_arch'):
+                self._processor_arch = self.attributes.get('processor_arch')
+            if self.attributes.get('resource_id'):
+                self._resource_id = 'i-{}'.format(self.attributes.get('resource_id'))
+            if self.attributes.get('product_sku'):
+                self._product_sku = self.attributes.get('product_sku')
+            if self.attributes.get('tags'):
+                self._tags = self.attributes.get('tags')
+            instance_type = self.attributes.get('instance_type')
             if instance_type:
                 self._instance_type = (instance_type.get('inst_type'),
                                        instance_type.get('vcpu'),
@@ -66,16 +63,6 @@ class EC2Generator(AWSGenerator):
                                        instance_type.get('cost'),
                                        instance_type.get('rate'),
                                        '${} per On Demand Linux {} Instance Hour')
-
-    def _pick_tag(self, tag_key, options):
-        """Generate tag from options."""
-        if self._tags:
-            tags = self._tags.get(tag_key)
-        elif self._attributes:
-            tags = None
-        else:
-            tags = choice(options)
-        return tags
 
     # pylint: disable=too-many-locals,too-many-statements
     def _update_data(self, row, start, end, **kwargs):

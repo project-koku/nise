@@ -91,7 +91,8 @@ RESERVE_COLS = ('reservation/AvailabilityZone',
                 'reservation/TotalReservedUnits',
                 'reservation/UnitsPerReservation')
 RESOURCE_TAG_COLS = ('resourceTags/user:environment',
-                     'resourceTags/user:version')
+                     'resourceTags/user:version',
+                     'resourceTags/user:storageclass')
 AWS_COLUMNS = (IDENTITY_COLS + BILL_COLS + LINE_ITEM_COLS +  # noqa: W504
                PRODUCT_COLS + PRICING_COLS + RESERVE_COLS + RESOURCE_TAG_COLS)
 
@@ -114,6 +115,7 @@ class AWSGenerator(AbstractGenerator):
         self.payer_account = payer_account
         self.usage_accounts = usage_accounts
         self.attributes = attributes
+        self._tags = None
         self.num_instances = 1 if attributes else randint(2, 60)
         super().__init__(start_date, end_date)
 
@@ -131,6 +133,16 @@ class AWSGenerator(AbstractGenerator):
         end_str = AWSGenerator.timestamp(end)
         time_interval = str(start_str) + '/' + str(end_str)
         return time_interval
+
+    def _pick_tag(self, tag_key, options):
+        """Generate tag from options."""
+        if self._tags:
+            tags = self._tags.get(tag_key)
+        elif self.attributes:
+            tags = None
+        else:
+            tags = choice(options)
+        return tags
 
     def _init_data_row(self, start, end, **kwargs):  # noqa: C901
         """Create a row of data with placeholder for all headers."""

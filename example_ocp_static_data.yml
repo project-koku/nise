@@ -6,8 +6,8 @@ generators:
       nodes:
         - node:
           node_name: alpha
-          cpu_cores: 2
-          memory_gig: 4
+          cpu_cores: 4
+          memory_gig: 16
           resource_id: 55555555
           namespaces:
             namespace_ci:
@@ -46,7 +46,7 @@ generators:
                   volume_name: pvc-volume_1
                   storage_class: gp2
                   volume_request_gig: 20
-                  labels: label_key3:label_value3|label_key4:label_value4
+                  labels: label_key3:label_value3|label_key4:label_value4|label_storageclass:bravo
                   volume_claims:
                   - volume_claim:
                     volume_claim_name: pod_name1_data
