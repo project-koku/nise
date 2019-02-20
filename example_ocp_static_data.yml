@@ -51,7 +51,7 @@ generators:
                   - volume_claim:
                     volume_claim_name: pod_name1_data
                     pod_name: pod_name1
-                    labels: label_key2:label_value2
+                    labels: vc_label_key2:label_value2
                     capacity_gig: 5
                     volume_claim_usage_gig:
                       2-1-2019: 1
@@ -63,7 +63,7 @@ generators:
                   - volume_claim:
                     volume_claim_name: pod_name2_data
                     pod_name: pod_name2
-                    labels: label_key3:label_value3
+                    labels: vc_label_key3:label_value3
                     capacity_gig: 10
                     volume_claim_usage_gig:
                       2-1-2019: 3
