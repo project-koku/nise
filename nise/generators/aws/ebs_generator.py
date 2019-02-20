@@ -34,25 +34,22 @@ class EBSGenerator(AWSGenerator):
     def __init__(self, start_date, end_date, payer_account, usage_accounts, attributes=None):
         """Initialize the EBS generator."""
         super().__init__(start_date, end_date, payer_account, usage_accounts, attributes)
-        self._attributes = None
         self._resource_id = 'vol-{}'.format(self.fake.ean8())  # pylint: disable=no-member
         self._amount = uniform(0.2, 300.99)
         self._rate = round(uniform(0.02, 0.16), 3)
         self._product_sku = self.fake.pystr(min_chars=12, max_chars=12).upper()  # pylint: disable=no-member
-        self._tags = None
 
-        if attributes:
-            self._attributes = attributes
-            if attributes.get('resource_id'):
-                self._resource_id = 'vol-{}'.format(attributes.get('resource_id'))
-            if attributes.get('amount'):
-                self._amount = attributes.get('amount')
-            if attributes.get('rate'):
-                self._rate = attributes.get('rate')
-            if attributes.get('product_sku'):
-                self._product_sku = attributes.get('product_sku')
-            if attributes.get('tags'):
-                self._tags = attributes.get('tags')
+        if self.attributes:
+            if self.attributes.get('resource_id'):
+                self._resource_id = 'vol-{}'.format(self.attributes.get('resource_id'))
+            if self.attributes.get('amount'):
+                self._amount = self.attributes.get('amount')
+            if self.attributes.get('rate'):
+                self._rate = self.attributes.get('rate')
+            if self.attributes.get('product_sku'):
+                self._product_sku = self.attributes.get('product_sku')
+            if self.attributes.get('tags'):
+                self._tags = self.attributes.get('tags')
 
     def _get_storage(self):
         """Get storage data."""

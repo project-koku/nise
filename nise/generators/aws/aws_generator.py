@@ -115,6 +115,7 @@ class AWSGenerator(AbstractGenerator):
         self.payer_account = payer_account
         self.usage_accounts = usage_accounts
         self.attributes = attributes
+        self._tags = None
         self.num_instances = 1 if attributes else randint(2, 60)
         super().__init__(start_date, end_date)
 
@@ -137,7 +138,7 @@ class AWSGenerator(AbstractGenerator):
         """Generate tag from options."""
         if self._tags:
             tags = self._tags.get(tag_key)
-        elif self._attributes:
+        elif self.attributes:
             tags = None
         else:
             tags = choice(options)
