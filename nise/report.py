@@ -223,7 +223,6 @@ def aws_create_report(options):
     start_date = options.get('start_date')
     end_date = options.get('end_date')
     aws_finalize_report = options.get('aws_finalize_report')
-
     static_report_data = options.get('static_report_data')
     if static_report_data:
         generators = _get_generators(static_report_data.get('generators'))
@@ -248,13 +247,22 @@ def aws_create_report(options):
             gen_start_date = month.get('start')
             gen_end_date = month.get('end')
             if attributes:
-                if attributes.get('start_date'):
+                if attributes.get('start_date') < month.get('start') and attributes.get('end_date') < month.get('end'):
+                    continue
+                if attributes.get('start_date') > month.get('start') and attributes.get('end_date') > month.get('end'):
+                    continue
+                if attributes.get('start_date') >= month.get('start') and attributes.get('start_date') <= month.get('end'):
                     gen_start_date = attributes.get('start_date')
-                if attributes.get('end_date'):
-                    gen_end_date = attributes.get('end_date')
+                    if attributes.get('end_date') <= month.get('end'):
+                        gen_end_date = attributes.get('end_date')
+                elif attributes.get('start_date') <= month.get('start') and attributes.get('start_date') <= month.get('end'):
+                    gen_start_date = month.get('start')
+                    if attributes.get('end_date') <= month.get('end'):
+                        gen_end_date = attributes.get('end_date')
+                else:
+                    continue
 
-            generator_end_date = gen_end_date + relativedelta(days=+1)
-            gen = generator_cls(gen_start_date, generator_end_date, payer_account,
+            gen = generator_cls(gen_start_date, gen_end_date, payer_account,
                                 usage_accounts, attributes)
             data += gen.generate_data()
 
@@ -326,12 +334,22 @@ def ocp_create_report(options):  # noqa: C901
             gen_start_date = month.get('start')
             gen_end_date = month.get('end')
             if attributes:
-                if attributes.get('start_date'):
+                if attributes.get('start_date') < month.get('start') and attributes.get('end_date') < month.get('end'):
+                    continue
+                if attributes.get('start_date') > month.get('start') and attributes.get('end_date') > month.get('end'):
+                    continue
+                if attributes.get('start_date') >= month.get('start') and attributes.get('start_date') <= month.get('end'):
                     gen_start_date = attributes.get('start_date')
-                if attributes.get('end_date'):
-                    gen_end_date = attributes.get('end_date')
-            generator_end_date = gen_end_date + relativedelta(days=+1)
-            gen = generator_cls(gen_start_date, generator_end_date, attributes)
+                    if attributes.get('end_date') <= month.get('end'):
+                        gen_end_date = attributes.get('end_date')
+                elif attributes.get('start_date') <= month.get('start') and attributes.get('start_date') <= month.get('end'):
+                    gen_start_date = month.get('start')
+                    if attributes.get('end_date') <= month.get('end'):
+                        gen_end_date = attributes.get('end_date')
+                else:
+                    continue
+
+                gen = generator_cls(gen_start_date, gen_end_date, attributes)
             monthly_data = gen.generate_data()
             for monthly_report_type, monthly_report_data in monthly_data.items():
                 data[monthly_report_type] += monthly_report_data

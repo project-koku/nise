@@ -1,8 +1,8 @@
 ---
 generators:
   - EC2Generator:
-      start_date: 1-27-2019
-      end_date: 1-28-2019
+      start_date: 1-1-2019
+      end_date: 60
       processor_arch: 32-bit
       resource_id: 55555555
       product_sku: VEAJHRNKTJZQ
@@ -19,30 +19,15 @@ generators:
         cost: 1.000
         rate: 0.500
   - EC2Generator:
-      start_date: 1-27-2019
-      end_date: 1-28-2019
-      processor_arch: 64-bit
-      resource_id: 55554444
-      product_sku: VEAJHRNKTJAA
-      region: us-east-1a
-      tags:
-        resourceTags/user:environment: dev
-        resourceTags/user:version: bravo
-      instance_type:
-        inst_type: m5.large
-        vcpu: 2
-        memory: '8 GiB'
-        storage: 'EBS Only'
-        family: 'General Purpose'
-        cost: 1.000
-        rate: 0.500
-  - EC2Generator:
-      start_date: 1-28-2019
-      end_date: 1-29-2019
-      processor_arch: 64-bit
-      resource_id: 55556666
+      start_date: 2-10-2019
+      end_date: 1
+      processor_arch: 32-bit
+      resource_id: 55555556
       product_sku: VEAJHRNKTJZA
       region: us-east-1a
+      tags:
+        resourceTags/user:environment: dev
+        resourceTags/user:version: alpha
       instance_type:
         inst_type: m5.large
         vcpu: 2
@@ -51,43 +36,7 @@ generators:
         family: 'General Purpose'
         cost: 1.000
         rate: 0.500
-  - EC2Generator:
-      start_date: 1-28-2019
-      end_date: 1-29-2019
-      processor_arch: 64-bit
-      resource_id: 55556666
-      product_sku: VEAJHRNKTJZA
-      region: us-west-1a
-      instance_type:
-        inst_type: m5.large
-        vcpu: 2
-        memory: '8 GiB'
-        storage: 'EBS Only'
-        family: 'General Purpose'
-        cost: 1.000
-        rate: 0.500
-  - S3Generator:
-      product_sku: VEAJHRNAAAAA
-      amount: 10
-      rate: 3
-      tags:
-        resourceTags/user:environment: dev
-        resourceTags/user:version: bravo
-  - EBSGenerator:
-      product_sku: VEAJHRNBBBBB
-      amount: 10
-      rate: 3
-      resource_id: 12345678
-      tags:
-        resourceTags/user:environment: dev
-        resourceTags/user:storageclass: bravo
-  - DataTransferGenerator:
-      product_sku: VEAJHRNCCCCC
-      amount: 10
-      rate: 3
 
-finalized_report:
-  invoice_id: 123456789
 
 accounts:
   payer: 9999999999999

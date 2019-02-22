@@ -22,6 +22,7 @@ import os
 
 import yaml
 from dateutil import parser as date_parser
+from dateutil.relativedelta import relativedelta
 
 from nise.report import (aws_create_report,
                          ocp_create_report)
@@ -250,19 +251,34 @@ def _load_static_report_data(parser, options):
     """Validate/load and set start_date if static file is provided."""
     if options.get('static_report_file'):
         start_dates = []
-        if options.get('start_date'):
-            start_date_argument = options.get('start_date')
-            start_dates.append(start_date_argument)
+        end_dates = []
         static_report_data = _load_yaml_file(options.get('static_report_file'))
         for generator_dict in static_report_data.get('generators'):
             for _, attributes in generator_dict.items():
                 if attributes.get('start_date'):
-                    start_dates.append(date_parser.parse(attributes.get('start_date')))
-        if start_dates:
+                    generated_start_date = date_parser.parse(attributes.get('start_date'))
+                else:
+                    generated_start_date = today().replace(day=1, hour=0, minute=0, second=0)
+                start_dates.append(generated_start_date)
+
+                if attributes.get('end_date'):
+                    try:
+                        generated_end_date = date_parser.parse(attributes.get('end_date'))
+                    except TypeError:
+                        day_offset = attributes.get('end_date')
+                        generated_end_date = generated_start_date + relativedelta(days=day_offset)
+                else:
+                    generated_end_date = today()
+                end_dates.append(generated_end_date)
+
+                attributes['start_date'] = str(generated_start_date)
+                attributes['end_date'] = str(generated_end_date)
+
+
             options['start_date'] = min(start_dates)
+            options['end_date'] = max(end_dates)
             options['static_report_data'] = static_report_data
-        else:
-            parser.error('Start date missing from --start-date or in --static-report-file')
+
 
 
 def main():
