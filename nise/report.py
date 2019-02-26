@@ -247,15 +247,25 @@ def aws_create_report(options):
             gen_start_date = month.get('start')
             gen_end_date = month.get('end')
             if attributes:
+                # Skip if generator usage is outside of current month
                 if attributes.get('start_date') < month.get('start') and attributes.get('end_date') < month.get('end'):
                     continue
                 if attributes.get('start_date') > month.get('start') and attributes.get('end_date') > month.get('end'):
                     continue
+
+                # generator yaml start date is within current month
                 if attributes.get('start_date') >= month.get('start') and attributes.get('start_date') <= month.get('end'):
+                    # Use generator start date instead of 1st of month
                     gen_start_date = attributes.get('start_date')
+
+                    # Use generator end date if it is within the current month
                     if attributes.get('end_date') <= month.get('end'):
                         gen_end_date = attributes.get('end_date')
+
+                # generator yaml start date is before current month
                 elif attributes.get('start_date') <= month.get('start') and attributes.get('start_date') <= month.get('end'):
+
+                    # Use 1st of month
                     gen_start_date = month.get('start')
                     if attributes.get('end_date') <= month.get('end'):
                         gen_end_date = attributes.get('end_date')
@@ -334,15 +344,25 @@ def ocp_create_report(options):  # noqa: C901
             gen_start_date = month.get('start')
             gen_end_date = month.get('end')
             if attributes:
+                # Skip if generator usage is outside of current month
                 if attributes.get('start_date') < month.get('start') and attributes.get('end_date') < month.get('end'):
                     continue
                 if attributes.get('start_date') > month.get('start') and attributes.get('end_date') > month.get('end'):
                     continue
+
+                # generator yaml start date is within current month
                 if attributes.get('start_date') >= month.get('start') and attributes.get('start_date') <= month.get('end'):
+                    # Use generator start date instead of 1st of month
                     gen_start_date = attributes.get('start_date')
+
+                    # Use generator end date if it is within the current month
                     if attributes.get('end_date') <= month.get('end'):
                         gen_end_date = attributes.get('end_date')
+
+                # generator yaml start date is before current month
                 elif attributes.get('start_date') <= month.get('start') and attributes.get('start_date') <= month.get('end'):
+
+                    # Use 1st of month
                     gen_start_date = month.get('start')
                     if attributes.get('end_date') <= month.get('end'):
                         gen_end_date = attributes.get('end_date')
