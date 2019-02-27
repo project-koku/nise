@@ -255,7 +255,9 @@ def _load_static_report_data(parser, options):
         static_report_data = _load_yaml_file(options.get('static_report_file'))
         for generator_dict in static_report_data.get('generators'):
             for _, attributes in generator_dict.items():
-                if attributes.get('start_date'):
+                if attributes.get('start_date') == 'last_month':
+                    generated_start_date = today().replace(day=1, hour=0, minute=0, second=0) + relativedelta(months=-1)
+                elif attributes.get('start_date'):
                     generated_start_date = date_parser.parse(attributes.get('start_date'))
                 else:
                     generated_start_date = today().replace(day=1, hour=0, minute=0, second=0)
