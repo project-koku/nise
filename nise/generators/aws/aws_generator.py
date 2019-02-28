@@ -92,7 +92,10 @@ RESERVE_COLS = ('reservation/AvailabilityZone',
                 'reservation/UnitsPerReservation')
 RESOURCE_TAG_COLS = ('resourceTags/user:environment',
                      'resourceTags/user:version',
-                     'resourceTags/user:storageclass')
+                     'resourceTags/user:storageclass',
+                     'resourceTags/user:openshift_cluster',
+                     'resourceTags/user:openshift_project',
+                     'resourceTags/user:openshift_node')
 AWS_COLUMNS = (IDENTITY_COLS + BILL_COLS + LINE_ITEM_COLS +  # noqa: W504
                PRODUCT_COLS + PRICING_COLS + RESERVE_COLS + RESOURCE_TAG_COLS)
 
