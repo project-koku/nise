@@ -1,7 +1,7 @@
 ---
 generators:
   - OCPGenerator:
-      # start_date: last_month
+      start_date: last_month
       nodes:
         - node:
           node_name: alpha
