@@ -1,7 +1,7 @@
 ---
 generators:
   - OCPGenerator:
-      start_date: last_month
+      # start_date: last_month
       nodes:
         - node:
           node_name: alpha
@@ -19,19 +19,15 @@ generators:
                   mem_limit_gig: 2
                   pod_seconds: 3600
                   cpu_usage:
-                    2-1-2019: 1
-                    2-2-2019: 2
-                    2-3-2019: 4
-                    2-4-2019: 1
-                    2-5-2019: 2
-                    2-6-2019: 4
+                    full_period: 1
                   mem_usage_gig:
-                    2-1-2019: 1
-                    2-2-2019: 2
-                    2-3-2019: 4
-                    2-4-2019: 1
-                    2-5-2019: 2
-                    2-6-2019: 4
+                    full_period: 2
+                    # 2-1-2019: 1
+                    # 2-2-2019: 2
+                    # 2-3-2019: 4
+                    # 2-4-2019: 1
+                    # 2-5-2019: 2
+                    # 2-6-2019: 4
                   labels: label_key1:label_value1|label_key2:label_value2
               volumes:
                 - volume:
@@ -46,9 +42,10 @@ generators:
                     labels: vc_label_key2:label_value2
                     capacity_gig: 5
                     volume_claim_usage_gig:
-                      2-1-2019: 1
-                      2-2-2019: 2
-                      2-3-2019: 3
-                      2-4-2019: 4
-                      2-5-2019: 3
-                      2-6-2019: 4
+                      full_period: 3
+                      # 2-1-2019: 1
+                      # 2-2-2019: 2
+                      # 2-3-2019: 3
+                      # 2-4-2019: 4
+                      # 2-5-2019: 3
+                      # 2-6-2019: 4

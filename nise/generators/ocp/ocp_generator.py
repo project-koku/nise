@@ -326,7 +326,9 @@ class OCPGenerator(AbstractGenerator):
         usage_amount = None
         if usage_dict:
             for date, usage in usage_dict.items():
-                if parser.parse(date).date() == start.date():
+                if date == 'full_period':
+                    usage_amount = usage
+                elif parser.parse(date).date() == start.date():
                     usage_amount = usage
         return usage_amount
 

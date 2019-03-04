@@ -247,7 +247,7 @@ def _load_yaml_file(filename):
     return yamlfile
 
 
-def _load_static_report_data(parser, options):
+def _load_static_report_data(options):
     """Validate/load and set start_date if static file is provided."""
     if options.get('static_report_file'):
         start_dates = []
@@ -256,7 +256,10 @@ def _load_static_report_data(parser, options):
         for generator_dict in static_report_data.get('generators'):
             for _, attributes in generator_dict.items():
                 if attributes.get('start_date') == 'last_month':
-                    generated_start_date = today().replace(day=1, hour=0, minute=0, second=0) + relativedelta(months=-1)
+                    generated_start_date = today().replace(day=1, hour=0, minute=0, second=0) + \
+                        relativedelta(months=-1)
+                elif attributes.get('start_date') == 'today':
+                    generated_start_date = today().replace(hour=0, minute=0, second=0)
                 elif attributes.get('start_date'):
                     generated_start_date = date_parser.parse(attributes.get('start_date'))
                 else:
@@ -267,8 +270,9 @@ def _load_static_report_data(parser, options):
                     try:
                         generated_end_date = date_parser.parse(attributes.get('end_date'))
                     except TypeError:
-                        day_offset = attributes.get('end_date')
-                        generated_end_date = generated_start_date + relativedelta(days=day_offset)
+                        offset = attributes.get('end_date')
+                        generated_end_date = min(generated_start_date + relativedelta(days=offset),
+                                                 today())
                 else:
                     generated_end_date = today()
                 end_dates.append(generated_end_date)
@@ -276,11 +280,9 @@ def _load_static_report_data(parser, options):
                 attributes['start_date'] = str(generated_start_date)
                 attributes['end_date'] = str(generated_end_date)
 
-
             options['start_date'] = min(start_dates)
             options['end_date'] = max(end_dates)
             options['static_report_data'] = static_report_data
-
 
 
 def main():
@@ -288,7 +290,7 @@ def main():
     parser = create_parser()
     args = parser.parse_args()
     options = vars(args)
-    _load_static_report_data(parser, options)
+    _load_static_report_data(options)
     _, provider_type = _validate_provider_inputs(parser, options)
     if not options.get('start_date'):
         parser.error('the following arguments are required: --start-date')

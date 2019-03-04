@@ -216,6 +216,36 @@ def _get_generators(generator_list):
     return generators
 
 
+def _create_generator_dates_from_yaml(attributes, month):
+    # Generator range is larger then current month on both start and end
+    gen_start_date = None
+    gen_end_date = None
+
+    if attributes.get('start_date') <= month.get('start') and \
+            attributes.get('end_date') >= month.get('end'):
+        gen_start_date = month.get('start')
+        gen_end_date = month.get('end')
+
+    # Generator starts before month start and ends within month
+    if attributes.get('start_date') <= month.get('start') and \
+            attributes.get('end_date') <= month.get('end'):
+        gen_start_date = month.get('start')
+        gen_end_date = attributes.get('end_date')
+
+    # Generator is within month
+    if attributes.get('start_date') >= month.get('start') and \
+            attributes.get('end_date') <= month.get('end'):
+        gen_start_date = attributes.get('start_date')
+        gen_end_date = attributes.get('end_date')
+
+    # Generator starts within month and ends in next month
+    if attributes.get('start_date') >= month.get('start') and \
+            attributes.get('end_date') >= month.get('end'):
+        gen_start_date = attributes.get('start_date')
+        gen_end_date = month.get('end')
+    return gen_start_date, gen_end_date
+
+
 # pylint: disable=too-many-locals,too-many-statements
 def aws_create_report(options):
     """Create a cost usage report file."""
@@ -253,25 +283,7 @@ def aws_create_report(options):
                 if attributes.get('start_date') > month.get('end'):
                     continue
 
-                # Generator range is larger then current month on both start and end
-                if attributes.get('start_date') <= month.get('start') and attributes.get('end_date') >= month.get('end'):
-                    gen_start_date = month.get('start')
-                    gen_end_date = month.get('end')
-
-                # Generator starts before month start and ends within month
-                if attributes.get('start_date') <= month.get('start') and attributes.get('end_date') <= month.get('end'):
-                    gen_start_date = month.get('start')
-                    gen_end_date = attributes.get('end_date')
-                
-                # Generator is within month
-                if attributes.get('start_date') >= month.get('start') and attributes.get('end_date') <= month.get('end'):
-                    gen_start_date = attributes.get('start_date')
-                    gen_end_date = attributes.get('end_date')
-                
-                # Generator starts within month and ends in next month
-                if attributes.get('start_date') >= month.get('start') and attributes.get('end_date') >= month.get('end'):
-                    gen_start_date = attributes.get('start_date')
-                    gen_end_date = month.get('end')
+                gen_start_date, gen_end_date = _create_generator_dates_from_yaml(attributes, month)
 
             gen = generator_cls(gen_start_date, gen_end_date, payer_account,
                                 usage_accounts, attributes)
@@ -351,27 +363,9 @@ def ocp_create_report(options):  # noqa: C901
                 if attributes.get('start_date') > month.get('end'):
                     continue
 
-                # Generator range is larger then current month on both start and end
-                if attributes.get('start_date') <= month.get('start') and attributes.get('end_date') >= month.get('end'):
-                    gen_start_date = month.get('start')
-                    gen_end_date = month.get('end')
+                gen_start_date, gen_end_date = _create_generator_dates_from_yaml(attributes, month)
 
-                # Generator starts before month start and ends within month
-                if attributes.get('start_date') <= month.get('start') and attributes.get('end_date') <= month.get('end'):
-                    gen_start_date = month.get('start')
-                    gen_end_date = attributes.get('end_date')
-                
-                # Generator is within month
-                if attributes.get('start_date') >= month.get('start') and attributes.get('end_date') <= month.get('end'):
-                    gen_start_date = attributes.get('start_date')
-                    gen_end_date = attributes.get('end_date')
-                
-                # Generator starts within month and ends in next month
-                if attributes.get('start_date') >= month.get('start') and attributes.get('end_date') >= month.get('end'):
-                    gen_start_date = attributes.get('start_date')
-                    gen_end_date = month.get('end')
-
-                gen = generator_cls(gen_start_date, gen_end_date, attributes)
+            gen = generator_cls(gen_start_date, gen_end_date, attributes)
             monthly_data = gen.generate_data()
             for monthly_report_type, monthly_report_data in monthly_data.items():
                 data[monthly_report_type] += monthly_report_data
