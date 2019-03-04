@@ -92,7 +92,10 @@ RESERVE_COLS = ('reservation/AvailabilityZone',
                 'reservation/UnitsPerReservation')
 RESOURCE_TAG_COLS = ('resourceTags/user:environment',
                      'resourceTags/user:version',
-                     'resourceTags/user:storageclass')
+                     'resourceTags/user:storageclass',
+                     'resourceTags/user:openshift_cluster',
+                     'resourceTags/user:openshift_project',
+                     'resourceTags/user:openshift_node')
 AWS_COLUMNS = (IDENTITY_COLS + BILL_COLS + LINE_ITEM_COLS +  # noqa: W504
                PRODUCT_COLS + PRICING_COLS + RESERVE_COLS + RESOURCE_TAG_COLS)
 
@@ -191,6 +194,21 @@ class AWSGenerator(AbstractGenerator):
         row['lineItem/UsageStartDate'] = start
         row['lineItem/UsageEndDate'] = end
         return row
+
+    def _add_tag_data(self, row):
+        """Add tag data to the row."""
+        if self._tags:
+            for tag in self._tags:
+                row[tag] = self._tags[tag]
+        else:
+            row['resourceTags/user:environment'] = self._pick_tag(
+                'resourceTags/user:environment',
+                ('dev', 'ci', 'qa', 'stage', 'prod')
+            )
+            row['resourceTags/user:version'] = self._pick_tag(
+                'resourceTags/user:version',
+                ('alpha', 'beta')
+            )
 
     @abstractmethod
     def _update_data(self, row, start, end, **kwargs):

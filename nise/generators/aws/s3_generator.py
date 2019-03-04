@@ -82,10 +82,7 @@ class S3Generator(AWSGenerator):
         row['pricing/publicOnDemandRate'] = str(rate)
         row['pricing/term'] = 'OnDemand'
         row['pricing/unit'] = 'GB-Mo'
-        row['resourceTags/user:environment'] = self._pick_tag('resourceTags/user:environment',
-                                                              ('dev', 'ci', 'qa', 'stage', 'prod'))
-        row['resourceTags/user:version'] = self._pick_tag('resourceTags/user:version',
-                                                          ('alpha', 'beta'))
+        self._add_tag_data(row)
 
         return row
 
