@@ -59,7 +59,7 @@ Usage
 ===========
 nise is a command line tool. Currently only accepting a limited number of arguments:
 
-- *--start-date MM-dd-YYYY* (optional, if start-date is specified in --static-report-file yaml)
+- *--start-date MM-dd-YYYY* (not supplied, if using --static-report-file yaml)
 - *--end-date MM-dd-YYYY* (optional, defaults to today and current hour)
 - (--aws | --ocp) required provider type
 - *--aws-s3-bucket-name bucket_name*  (optional, must include --aws-s3-report-name) Note: Use local directory path to populate a "local S3 bucket".
@@ -76,6 +76,10 @@ Note: If `--aws-finalize` is used the *copy* choice will create a local copy of 
       If *overwrite* is used, the regular data file generated will have invoice id populated
 
 Note: If `--insights-upload` is and pointing to a URL endpoint you must have INSIGHTS_USER and INSIGHTS_PASSWORD set in your environment.
+
+Note: If `--static-report-file` is used start_date will default to first day of current month.  `start_date: last_month` will be first day of previous month.  `start_date: today` will start at the first hour of current day.  `end_date` can support relative days from the `start_date`. i.e `end_date: 2` is two days after start date.
+
+Note: `--static-report-file` usage dates has a special `full_period` key value which will specify a usage for the entire `start_date - end_date` range.
 
 Below is an example usage of ``nise`` for AWS data::
 

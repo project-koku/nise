@@ -216,6 +216,39 @@ def _get_generators(generator_list):
     return generators
 
 
+def _create_generator_dates_from_yaml(attributes, month):
+    """Calculate generator start and end dates based on yaml and current month."""
+    gen_start_date = None
+    gen_end_date = None
+
+    # Generator range is larger then current month on both start and end
+    if attributes.get('start_date') <= month.get('start') and \
+            attributes.get('end_date') >= month.get('end'):
+        gen_start_date = month.get('start')
+        gen_end_date = month.get('end')
+
+    # Generator starts before month start and ends within month
+    if attributes.get('start_date') <= month.get('start') and \
+            attributes.get('end_date') <= month.get('end'):
+        gen_start_date = month.get('start')
+        gen_end_date = attributes.get('end_date')
+
+    # Generator is within month
+    if attributes.get('start_date') >= month.get('start') and \
+            attributes.get('end_date') <= month.get('end'):
+        gen_start_date = attributes.get('start_date')
+        gen_end_date = attributes.get('end_date')
+
+    # Generator starts within month and ends in next month
+    if attributes.get('start_date') >= month.get('start') and \
+            attributes.get('end_date') >= month.get('end'):
+        gen_start_date = attributes.get('start_date')
+        gen_end_date = month.get('end')
+
+    gen_end_date += relativedelta(days=1)
+    return gen_start_date, gen_end_date
+
+
 # pylint: disable=too-many-locals,too-many-statements
 def aws_create_report(options):
     """Create a cost usage report file."""
@@ -223,7 +256,6 @@ def aws_create_report(options):
     start_date = options.get('start_date')
     end_date = options.get('end_date')
     aws_finalize_report = options.get('aws_finalize_report')
-
     static_report_data = options.get('static_report_data')
     if static_report_data:
         generators = _get_generators(static_report_data.get('generators'))
@@ -248,13 +280,15 @@ def aws_create_report(options):
             gen_start_date = month.get('start')
             gen_end_date = month.get('end')
             if attributes:
-                if attributes.get('start_date'):
-                    gen_start_date = attributes.get('start_date')
-                if attributes.get('end_date'):
-                    gen_end_date = attributes.get('end_date')
+                # Skip if generator usage is outside of current month
+                if attributes.get('end_date') < month.get('start'):
+                    continue
+                if attributes.get('start_date') > month.get('end'):
+                    continue
 
-            generator_end_date = gen_end_date + relativedelta(days=+1)
-            gen = generator_cls(gen_start_date, generator_end_date, payer_account,
+                gen_start_date, gen_end_date = _create_generator_dates_from_yaml(attributes, month)
+
+            gen = generator_cls(gen_start_date, gen_end_date, payer_account,
                                 usage_accounts, attributes)
             data += gen.generate_data()
 
@@ -326,12 +360,15 @@ def ocp_create_report(options):  # noqa: C901
             gen_start_date = month.get('start')
             gen_end_date = month.get('end')
             if attributes:
-                if attributes.get('start_date'):
-                    gen_start_date = attributes.get('start_date')
-                if attributes.get('end_date'):
-                    gen_end_date = attributes.get('end_date')
-            generator_end_date = gen_end_date + relativedelta(days=+1)
-            gen = generator_cls(gen_start_date, generator_end_date, attributes)
+                # Skip if generator usage is outside of current month
+                if attributes.get('end_date') < month.get('start'):
+                    continue
+                if attributes.get('start_date') > month.get('end'):
+                    continue
+
+                gen_start_date, gen_end_date = _create_generator_dates_from_yaml(attributes, month)
+
+            gen = generator_cls(gen_start_date, gen_end_date, attributes)
             monthly_data = gen.generate_data()
             for monthly_report_type, monthly_report_data in monthly_data.items():
                 data[monthly_report_type] += monthly_report_data
