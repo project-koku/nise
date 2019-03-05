@@ -275,16 +275,20 @@ class ReportTestCase(TestCase):
         yesterday = now - one_day
         local_bucket_path = mkdtemp()
 
-        static_aws_data = {'generators': [{'EC2Generator': {'processor_arch': '32-bit', 'resource_id': 55555555,
+        static_aws_data = {'generators': [{'EC2Generator': {'start_date': str(yesterday.date()), 'end_date': str(now.date()),
+                                                            'processor_arch': '32-bit', 'resource_id': 55555555,
                                                             'product_sku': 'VEAJHRNKTJZQ', 'region': 'us-east-1a',
                                                             'tags': {'resourceTags/user:environment': 'dev', 'resourceTags/user:version': 'alpha'},
                                                             'instance_type': {'inst_type': 'm5.large', 'vcpu': 2, 'memory': '8 GiB',
                                                                               'storage': 'EBS Only', 'family': 'General Purpose',
                                                                               'cost': 1.0, 'rate': 0.5}}},
-                                          {'S3Generator': {'product_sku': 'VEAJHRNAAAAA', 'amount': 10, 'rate': 3}},
-                                          {'EBSGenerator': {'product_sku': 'VEAJHRNBBBBB', 'amount': 10, 'rate': 3,
+                                          {'S3Generator': {'start_date': str(yesterday.date()), 'end_date': str(now.date()),
+                                                           'product_sku': 'VEAJHRNAAAAA', 'amount': 10, 'rate': 3}},
+                                          {'EBSGenerator': {'start_date': str(yesterday.date()), 'end_date': str(now.date()),
+                                                            'product_sku': 'VEAJHRNBBBBB', 'amount': 10, 'rate': 3,
                                                             'resource_id': 12345678}},
-                                          {'DataTransferGenerator': {'product_sku': 'VEAJHRNCCCCC', 'amount': 10, 'rate': 3}}],
+                                          {'DataTransferGenerator': {'start_date': str(yesterday.date()), 'end_date': str(now.date()),
+                                                                     'product_sku': 'VEAJHRNCCCCC', 'amount': 10, 'rate': 3}}],
                            'accounts': {'payer': 9999999999999, 'user': [9999999999999]}}
         options = {'start_date': yesterday,
                    'end_date': now,
@@ -330,7 +334,8 @@ class ReportTestCase(TestCase):
         yesterday = now - one_day
         local_insights_upload = mkdtemp()
         cluster_id = '11112222'
-        static_ocp_data = {'generators': [{'OCPGenerator': {'nodes': [{'node': None, 'node_name': 'alpha',
+        static_ocp_data = {'generators': [{'OCPGenerator': {'start_date': str(yesterday.date()), 'end_date': str(now.date()),
+                                                            'nodes': [{'node': None, 'node_name': 'alpha',
                                                                        'cpu_cores': 2, 'memory_gig': 4,
                                                                        'namespaces': {'namespace_ci': {'pods': [{'pod': None,
                                                                                                                  'pod_name': 'pod_name1',
@@ -377,7 +382,8 @@ class ReportTestCase(TestCase):
         yesterday = now - one_day
         local_insights_upload = mkdtemp()
         cluster_id = '11112222'
-        static_ocp_data = {'generators': [{'OCPGenerator': {'nodes': [{'node': None, 'node_name': 'alpha',
+        static_ocp_data = {'generators': [{'OCPGenerator': {'start_date': str(yesterday.date()), 'end_date': str(now.date()),
+                                                            'nodes': [{'node': None, 'node_name': 'alpha',
                                                                        'cpu_cores': 2, 'memory_gig': 4,
                                                                        'start_date': str(now), 'end_date': str(now),
                                                                        'namespaces': {'namespace_ci': {'pods': [{'pod': None,

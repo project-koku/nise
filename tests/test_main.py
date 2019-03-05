@@ -122,12 +122,12 @@ class CommandLineTestCase(TestCase):
         options = {}
         options['start_date'] = datetime.today()
         options['static_report_file'] = 'tests/aws_static_report.yml'
-        _load_static_report_data(self.parser, options)
+        _load_static_report_data(options)
         self.assertIsNotNone(options['static_report_data'])
         self.assertIsNotNone(options['start_date'])
 
         missing_options = {}
-        _load_static_report_data(self.parser, missing_options)
+        _load_static_report_data(missing_options)
         self.assertIsNone(missing_options.get('static_report_data'))
 
 
@@ -138,5 +138,6 @@ class CommandLineTestCase(TestCase):
         """
         options = {}
         options['static_report_file'] = 'tests/aws_static_report.yml'
-        with self.assertRaises(SystemExit):
-            _load_static_report_data(self.parser, options)
+        _load_static_report_data(options)
+        self.assertIsNotNone(options.get('start_date'))
+        self.assertIsNotNone(options.get('end_date'))
