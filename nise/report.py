@@ -225,7 +225,7 @@ def _create_generator_dates_from_yaml(attributes, month):
     if attributes.get('start_date') <= month.get('start') and \
             attributes.get('end_date') >= month.get('end'):
         gen_start_date = month.get('start')
-        gen_end_date = month.get('end')
+        gen_end_date = month.get('end') + relativedelta(days=1)
 
     # Generator starts before month start and ends within month
     if attributes.get('start_date') <= month.get('start') and \
@@ -243,9 +243,8 @@ def _create_generator_dates_from_yaml(attributes, month):
     if attributes.get('start_date') >= month.get('start') and \
             attributes.get('end_date') >= month.get('end'):
         gen_start_date = attributes.get('start_date')
-        gen_end_date = month.get('end')
+        gen_end_date = month.get('end') + relativedelta(days=1)
 
-    gen_end_date += relativedelta(days=1)
     return gen_start_date, gen_end_date
 
 
