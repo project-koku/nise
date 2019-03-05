@@ -244,6 +244,8 @@ def _create_generator_dates_from_yaml(attributes, month):
             attributes.get('end_date') >= month.get('end'):
         gen_start_date = attributes.get('start_date')
         gen_end_date = month.get('end')
+
+    gen_end_date += relativedelta(days=1)
     return gen_start_date, gen_end_date
 
 
