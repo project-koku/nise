@@ -15,8 +15,8 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """Cost and Usage Generator CLI."""
-
 import argparse
+import calendar
 import datetime
 import os
 
@@ -281,7 +281,10 @@ def _load_static_report_data(options):
                 attributes['end_date'] = str(generated_end_date)
 
             options['start_date'] = min(start_dates)
-            options['end_date'] = max(end_dates)
+            latest_date = max(end_dates)
+            last_day_of_month = calendar.monthrange(year=latest_date.year,
+                                                    month=latest_date.month)[1]
+            options['end_date'] = latest_date.replace(day=last_day_of_month, hour=0, minute=0)
             options['static_report_data'] = static_report_data
 
 
