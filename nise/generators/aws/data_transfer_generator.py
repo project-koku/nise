@@ -34,14 +34,22 @@ class DataTransferGenerator(AWSGenerator):
         self._amount = None
         self._rate = None
         self._product_sku = None
+        self._product_code = 'AmazonEC2'
+        self._product_name = 'Amazon Elastic Compute Cloud'
 
         if attributes:
+            if attributes.get('product_code'):
+                self._product_code = attributes.get('product_code')
+            if attributes.get('product_name'):
+                self._product_name = attributes.get('product_name')
             if attributes.get('amount'):
                 self._amount = attributes.get('amount')
             if attributes.get('rate'):
                 self._rate = attributes.get('rate')
             if attributes.get('product_sku'):
                 self._product_sku = attributes.get('product_sku')
+            if attributes.get('tags'):
+                self._tags = attributes.get('tags')
 
         super().__init__(start_date, end_date, payer_account, usage_accounts, attributes)
 
@@ -72,7 +80,7 @@ class DataTransferGenerator(AWSGenerator):
         trans_desc, operation, description, location1, location2, trans_type, aws_region = \
             self._get_data_transfer(rate)
 
-        row['lineItem/ProductCode'] = 'AmazonEC2'
+        row['lineItem/ProductCode'] = self._product_code
         row['lineItem/UsageType'] = trans_desc
         row['lineItem/Operation'] = operation
         row['lineItem/ResourceId'] = 'i-{}'.format(self.fake.ean8())  # pylint: disable=no-member
@@ -83,7 +91,7 @@ class DataTransferGenerator(AWSGenerator):
         row['lineItem/BlendedRate'] = str(rate)
         row['lineItem/BlendedCost'] = str(cost)
         row['lineItem/LineItemDescription'] = description
-        row['product/ProductName'] = 'Amazon Elastic Compute Cloud'
+        row['product/ProductName'] = self._product_name
         row['product/location'] = location1
         row['product/locationType'] = 'AWS Region'
         row['product/productFamily'] = 'Data Transfer'
@@ -98,6 +106,7 @@ class DataTransferGenerator(AWSGenerator):
         row['pricing/publicOnDemandRate'] = str(rate)
         row['pricing/term'] = 'OnDemand'
         row['pricing/unit'] = 'GB'
+        self._add_tag_data(row)
         return row
 
     def _generate_hourly_data(self, **kwargs):
