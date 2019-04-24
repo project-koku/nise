@@ -210,6 +210,12 @@ class AWSGenerator(AbstractGenerator):
                 ('alpha', 'beta')
             )
 
+    # pylint: disable=no-self-use
+    def _generate_region_short_code(self, region):
+        """Generate the AWS short code for a region."""
+        split_region = region.split('-')
+        return split_region[0][0:2].upper() + split_region[1][0].upper() + split_region[2]
+
     @abstractmethod
     def _update_data(self, row, start, end, **kwargs):
         """Update data with generator specific data."""
