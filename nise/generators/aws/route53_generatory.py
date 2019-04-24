@@ -51,10 +51,11 @@ class Route53Generator(AWSGenerator):
     def _update_data(self, row, start, end, **kwargs):
         """Update data with generator specific data."""
         if self._product_family:
-            product_family, usage_type, rate, cost = ROUTE_53_PRODUCTS_DICT.get(self._product_family)
+            product_family, usage_type, rate, cost = \
+                ROUTE_53_PRODUCTS_DICT.get(self._product_family)
         else:
             product_family, usage_type, rate, cost = choices(ROUTE_53_PRODUCTS,
-                                                            weights=[1, 10])[0]
+                                                             weights=[1, 10])[0]
         operation = self.fake.pystr(min_chars=1, max_chars=6).upper()  # pylint: disable=no-member
         if usage_type == 'HostedZone':
             operation = usage_type
