@@ -40,7 +40,10 @@ from nise.generators.aws import (AWS_COLUMNS,
                                  DataTransferGenerator,
                                  EBSGenerator,
                                  EC2Generator,
-                                 S3Generator)
+                                 RDSGenerator,
+                                 Route53Generator,
+                                 S3Generator,
+                                 VPCGenerator)
 from nise.generators.ocp import (OCPGenerator,
                                  OCP_POD_USAGE,
                                  OCP_REPORT_TYPE_TO_COLS,
@@ -263,7 +266,10 @@ def aws_create_report(options):
         generators = [{'generator': DataTransferGenerator, 'attributes': None},
                       {'generator': EBSGenerator, 'attributes': None},
                       {'generator': EC2Generator, 'attributes': None},
-                      {'generator': S3Generator, 'attributes': None}]
+                      {'generator': S3Generator, 'attributes': None},
+                      {'generator': RDSGenerator, 'attributes': None},
+                      {'generator': Route53Generator, 'attributes': None},
+                      {'generator': VPCGenerator, 'attributes': None}]
         accounts_list = None
 
     months = _create_month_list(start_date, end_date)
