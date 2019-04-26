@@ -255,31 +255,15 @@ def _load_static_report_data(options):
         static_report_data = _load_yaml_file(options.get('static_report_file'))
         for generator_dict in static_report_data.get('generators'):
             for _, attributes in generator_dict.items():
-                start_date = attributes.get('start_date')
-                if start_date == 'last_month':
-                    generated_start_date = today().replace(day=1, hour=0, minute=0, second=0) + \
-                        relativedelta(months=-1)
-                elif start_date == 'today':
-                    generated_start_date = today().replace(hour=0, minute=0, second=0)
-                elif start_date and isinstance(start_date, datetime.date):
-                    generated_start_date = datetime.datetime.fromordinal(start_date.toordinal())
-                elif start_date:
-                    generated_start_date = date_parser.parse(start_date)
-                else:
-                    generated_start_date = today().replace(day=1, hour=0, minute=0, second=0)
-                start_dates.append(generated_start_date)
+                if attributes.get('start_date'):
+                    generated_start_date = calculate_start_date(attributes.get('start_date'))
+                    start_dates.append(generated_start_date)
 
                 if attributes.get('end_date'):
-                    try:
-                        generated_end_date = date_parser.parse(attributes.get('end_date'))
-                    except TypeError:
-                        offset = attributes.get('end_date')
-                        offset_date = generated_start_date + relativedelta(days=offset)
-                        if offset_date.month > generated_start_date.month:
-                            generated_end_date = offset_date
-                        else:
-                            generated_end_date = min(generated_start_date + relativedelta(days=offset),
-                                                    today())
+                    generated_end_date = calculate_end_date(
+                        generated_start_date,
+                        attributes.get('end_date')
+                    )
                 else:
                     generated_end_date = today()
                 end_dates.append(generated_end_date)
@@ -293,6 +277,40 @@ def _load_static_report_data(options):
                                                     month=latest_date.month)[1]
             options['end_date'] = latest_date.replace(day=last_day_of_month, hour=0, minute=0)
             options['static_report_data'] = static_report_data
+
+
+def calculate_start_date(start_date):
+    """Return a datetime for the start date."""
+    if start_date == 'last_month':
+        generated_start_date = today().replace(day=1, hour=0, minute=0, second=0) + \
+            relativedelta(months=-1)
+    elif start_date == 'today':
+        generated_start_date = today().replace(hour=0, minute=0, second=0)
+    elif start_date and isinstance(start_date, datetime.date):
+        generated_start_date = datetime.datetime.fromordinal(start_date.toordinal())
+    elif start_date:
+        generated_start_date = date_parser.parse(start_date)
+    else:
+        generated_start_date = today().replace(day=1, hour=0, minute=0, second=0)
+    return generated_start_date
+
+
+def calculate_end_date(start_date, end_date):
+    """Return a datetime for the end date."""
+    try:
+        if end_date and isinstance(end_date, datetime.date):
+            generated_end_date = datetime.datetime.fromordinal(end_date.toordinal())
+        else:
+            generated_end_date = date_parser.parse(end_date)
+    except TypeError:
+        offset = end_date
+        offset_date = start_date + relativedelta(days=offset)
+        if offset_date.month > start_date.month:
+            generated_end_date = offset_date
+        else:
+            generated_end_date = min(start_date + relativedelta(days=offset),
+                                     today())
+    return generated_end_date
 
 
 def main():
