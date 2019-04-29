@@ -91,6 +91,7 @@ RESERVE_COLS = ('reservation/AvailabilityZone',
                 'reservation/TotalReservedUnits',
                 'reservation/UnitsPerReservation')
 RESOURCE_TAG_COLS = ('resourceTags/user:environment',
+                     'resourceTags/user:app',
                      'resourceTags/user:version',
                      'resourceTags/user:storageclass',
                      'resourceTags/user:openshift_cluster',

@@ -31,17 +31,20 @@ class DataTransferGenerator(AWSGenerator):
 
     def __init__(self, start_date, end_date, payer_account, usage_accounts, attributes=None):
         """Initialize the data transfer generator."""
+        super().__init__(start_date, end_date, payer_account, usage_accounts, attributes)
         self._amount = None
         self._rate = None
         self._product_sku = None
+        self._resource_id = None
         self._product_code = 'AmazonEC2'
         self._product_name = 'Amazon Elastic Compute Cloud'
-
         if attributes:
             if attributes.get('product_code'):
                 self._product_code = attributes.get('product_code')
             if attributes.get('product_name'):
                 self._product_name = attributes.get('product_name')
+            if attributes.get('resource_id'):
+                self._resource_id = attributes.get('resource_id')
             if attributes.get('amount'):
                 self._amount = attributes.get('amount')
             if attributes.get('rate'):
@@ -51,7 +54,6 @@ class DataTransferGenerator(AWSGenerator):
             if attributes.get('tags'):
                 self._tags = attributes.get('tags')
 
-        super().__init__(start_date, end_date, payer_account, usage_accounts, attributes)
 
     def _get_data_transfer(self, rate):
         """Get data transfer info."""
@@ -74,6 +76,10 @@ class DataTransferGenerator(AWSGenerator):
         """Update data with generator specific data."""
         row = self._add_common_usage_info(row, start, end)
 
+        resource_id = self.fake.ean8()
+        if self._resource_id:
+            resource_id = self._resource_id
+
         rate = self._rate if self._rate else round(uniform(0.12, 0.19), 3)
         amount = self._amount if self._amount else uniform(0.000002, 0.09)
         cost = amount * rate
@@ -83,7 +89,7 @@ class DataTransferGenerator(AWSGenerator):
         row['lineItem/ProductCode'] = self._product_code
         row['lineItem/UsageType'] = trans_desc
         row['lineItem/Operation'] = operation
-        row['lineItem/ResourceId'] = 'i-{}'.format(self.fake.ean8())  # pylint: disable=no-member
+        row['lineItem/ResourceId'] = resource_id
         row['lineItem/UsageAmount'] = str(amount)
         row['lineItem/CurrencyCode'] = 'USD'
         row['lineItem/UnblendedRate'] = str(rate)
