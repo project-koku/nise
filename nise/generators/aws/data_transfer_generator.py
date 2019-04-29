@@ -54,7 +54,6 @@ class DataTransferGenerator(AWSGenerator):
             if attributes.get('tags'):
                 self._tags = attributes.get('tags')
 
-
     def _get_data_transfer(self, rate):
         """Get data transfer info."""
         location1, aws_region, _, storage_region1 = self._get_location()
