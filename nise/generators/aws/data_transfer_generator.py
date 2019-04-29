@@ -75,7 +75,7 @@ class DataTransferGenerator(AWSGenerator):
         """Update data with generator specific data."""
         row = self._add_common_usage_info(row, start, end)
 
-        resource_id = self.fake.ean8()
+        resource_id = self.fake.ean8()  # pylint: disable=no-member
         if self._resource_id:
             resource_id = self._resource_id
 
