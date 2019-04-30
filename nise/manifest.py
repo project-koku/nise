@@ -63,10 +63,10 @@ def aws_generate_manifest(fake, template_data):
         (String): S3 storage path
         (String): Rendered template data
     """
-    end = template_data.get('end_date')
+    start = template_data.get('start_date')
     report_name = template_data.get('aws_report_name')
-    bp_start = end.replace(microsecond=0, second=0, minute=0,
-                           hour=0, day=1)
+    bp_start = start.replace(microsecond=0, second=0, minute=0,
+                             hour=0, day=1)
     bp_end = bp_start + relativedelta(months=+1)
 
     range_str = _manifest_datetime_range(bp_start, bp_end)
