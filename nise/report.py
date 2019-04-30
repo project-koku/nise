@@ -223,28 +223,28 @@ def _create_generator_dates_from_yaml(attributes, month):
     """Calculate generator start and end dates based on yaml and current month."""
     gen_start_date = None
     gen_end_date = None
-
+    
     # Generator range is larger then current month on both start and end
-    if attributes.get('start_date') <= month.get('start') and \
-            attributes.get('end_date') >= month.get('end'):
+    if attributes.get('start_date') < month.get('start') and \
+            attributes.get('end_date') > month.get('end').replace(hour=23, minute=59, second=59):
         gen_start_date = month.get('start')
         gen_end_date = month.get('end') + relativedelta(days=1)
 
     # Generator starts before month start and ends within month
     if attributes.get('start_date') <= month.get('start') and \
-            attributes.get('end_date') <= month.get('end'):
+            attributes.get('end_date') <= month.get('end').replace(hour=23, minute=59, second=59):
         gen_start_date = month.get('start')
         gen_end_date = attributes.get('end_date')
 
     # Generator is within month
     if attributes.get('start_date') >= month.get('start') and \
-            attributes.get('end_date') <= month.get('end'):
+            attributes.get('end_date') <= month.get('end').replace(hour=23, minute=59, second=59):
         gen_start_date = attributes.get('start_date')
         gen_end_date = attributes.get('end_date')
 
     # Generator starts within month and ends in next month
     if attributes.get('start_date') >= month.get('start') and \
-            attributes.get('end_date') >= month.get('end'):
+            attributes.get('end_date') > month.get('end').replace(hour=23, minute=59, second=59):
         gen_start_date = attributes.get('start_date')
         gen_end_date = month.get('end') + relativedelta(days=1)
 
