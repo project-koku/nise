@@ -130,18 +130,18 @@ generators:
       # product_family: DNS Zone
       tags:
         resourceTags/user:app: catalog
-  # - Route53Generator:
-  #     start_date: 2019-04-01
-  #     end_date: 2019-07-31
-  #     product_family: DNS Query
-  #     tags:
-  #       resourceTags/user:app: cost
-  # - Route53Generator:
-  #     start_date: 2019-04-01
-  #     end_date: 2019-07-31
-  #     product_family: DNS Query
-  #     tags:
-  #       resourceTags/user:app: analytics
+  - Route53Generator:
+      start_date: 2019-04-01
+      end_date: 2019-07-31
+      product_family: DNS Query
+      tags:
+        resourceTags/user:app: cost
+  - Route53Generator:
+      start_date: 2019-04-01
+      end_date: 2019-07-31
+      product_family: DNS Query
+      tags:
+        resourceTags/user:app: analytics
   - DataTransferGenerator:
       start_date: 2019-04-01
       end_date: 2019-07-31
