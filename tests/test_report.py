@@ -59,7 +59,7 @@ class ReportTestCase(TestCase):
 
     def test_aws_create_report_no_s3(self):
         """Test the aws report creation method no s3."""
-        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0)
+        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
         one_day = datetime.timedelta(days=1)
         yesterday = now - one_day
         aws_create_report({'start_date': yesterday, 'end_date': now, 'aws_report_name': 'cur_report'})
@@ -75,7 +75,7 @@ class ReportTestCase(TestCase):
     def test_aws_create_report_with_s3(self, mock_upload_to_s3):
         """Test the aws report creation method with s3."""
         mock_upload_to_s3.return_value = None
-        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0)
+        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
         one_day = datetime.timedelta(days=1)
         yesterday = now - one_day
         options = {'start_date': yesterday,
@@ -92,7 +92,7 @@ class ReportTestCase(TestCase):
 
     def test_aws_create_report_with_local_dir(self):
         """Test the aws report creation method with local directory."""
-        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0)
+        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
         one_day = datetime.timedelta(days=1)
         yesterday = now - one_day
         local_bucket_path = mkdtemp()
@@ -137,7 +137,7 @@ class ReportTestCase(TestCase):
 
     def test_aws_create_report_with_local_dir_report_prefix(self):
         """Test the aws report creation method with local directory and a report prefix."""
-        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0)
+        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
         one_day = datetime.timedelta(days=1)
         yesterday = now - one_day
         local_bucket_path = mkdtemp()
@@ -157,20 +157,19 @@ class ReportTestCase(TestCase):
 
     def test_aws_create_report_finalize_report_copy(self):
         """Test that an aws finalized copy of a report file has an invoice id."""
-        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0)
-        one_day = datetime.timedelta(days=1)
-        yesterday = now - one_day
+
+        start_date = datetime.datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        end_date = datetime.datetime.now().replace(day=5, hour=0, minute=0, second=0, microsecond=0)
         aws_create_report(
             {
-                'start_date': yesterday,
-                'end_date': now,
+                'start_date': start_date,
+                'end_date': end_date,
                 'aws_report_name': 'cur_report',
                 'aws_finalize_report': 'copy'
             }
         )
-
-        month_output_file_name = '{}-{}-{}'.format(calendar.month_name[now.month],
-                                                   now.year,
+        month_output_file_name = '{}-{}-{}'.format(calendar.month_name[start_date.month],
+                                                   start_date.year,
                                                    'cur_report')
         finalized_file_name = '{}-finalized'.format(month_output_file_name)
         expected_month_output_file = '{}/{}.csv'.format(
@@ -183,7 +182,6 @@ class ReportTestCase(TestCase):
         )
         self.assertTrue(os.path.isfile(expected_month_output_file))
         self.assertTrue(os.path.isfile(expected_finalized_file))
-
         with open(expected_month_output_file, 'r') as f:
             reader = csv.DictReader(f)
             row = next(reader)
@@ -199,20 +197,19 @@ class ReportTestCase(TestCase):
 
     def test_aws_create_report_finalize_report_overwrite(self):
         """Test that an aws report file has an invoice id."""
-        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0)
-        one_day = datetime.timedelta(days=1)
-        yesterday = now - one_day
+        start_date = datetime.datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        end_date = datetime.datetime.now().replace(day=5, hour=0, minute=0, second=0, microsecond=0)
         aws_create_report(
             {
-                'start_date': yesterday,
-                'end_date': now,
+                'start_date': start_date,
+                'end_date': end_date,
                 'aws_report_name': 'cur_report',
                 'aws_finalize_report': 'overwrite'
             }
         )
 
-        month_output_file_name = '{}-{}-{}'.format(calendar.month_name[now.month],
-                                                   now.year,
+        month_output_file_name = '{}-{}-{}'.format(calendar.month_name[start_date.month],
+                                                   start_date.year,
                                                    'cur_report')
         expected_month_output_file = '{}/{}.csv'.format(
             os.getcwd(),
@@ -229,7 +226,7 @@ class ReportTestCase(TestCase):
 
     def test_ocp_create_report(self):
         """Test the ocp report creation method."""
-        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0)
+        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
         one_day = datetime.timedelta(days=1)
         yesterday = now - one_day
         cluster_id = '11112222'
@@ -248,7 +245,7 @@ class ReportTestCase(TestCase):
 
     def test_ocp_create_report_with_local_dir(self):
         """Test the ocp report creation method with local directory."""
-        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0)
+        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
         one_day = datetime.timedelta(days=1)
         yesterday = now - one_day
         local_insights_upload = mkdtemp()
