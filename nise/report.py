@@ -130,7 +130,7 @@ def ocp_route_file(insights_upload, local_path):
             insights_password = os.environ.get('INSIGHTS_PASSWORD')
             response = requests.post(insights_upload,
                                      data={},
-                                     files={'upload': ('payload.tar.gz',
+                                     files={'file': ('payload.tar.gz',
                                                        upload_file,
                                                        'application/vnd.redhat.hccm.tar+tgz')},
                                      auth=(insights_user, insights_password),
