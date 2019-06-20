@@ -101,7 +101,7 @@ Below is an example usage of ``nise`` for OCP data::
 
     nise --start-date 06-03-2018 --ocp --ocp-cluster-id test-001
 
-    nise --start-date 06-03-2018 --ocp --ocp-cluster-id test-001 --insights-upload  https://api.access.redhat.com/r/insights/platform/upload/api/v1/upload
+    nise --start-date 06-03-2018 --ocp --ocp-cluster-id test-001 --insights-upload  https://cloud.redhat.com/api/ingress/v1/upload
 
     nise --start-date 06-03-2018 --ocp --ocp-cluster-id test-001 --insights-upload  /local/path/upload_dir
 
