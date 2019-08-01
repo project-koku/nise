@@ -25,7 +25,8 @@ from dateutil import parser as date_parser
 from dateutil.relativedelta import relativedelta
 
 from nise.report import (aws_create_report,
-                         ocp_create_report)
+                         ocp_create_report,
+                         azure_create_report)
 
 
 def valid_date(date_string):
@@ -64,6 +65,10 @@ def create_parser():
                                 dest='aws',
                                 action='store_true',
                                 help='Create AWS cost and usage report data.')
+    provider_group.add_argument('--azure',
+                                dest='azure',
+                                action='store_true',
+                                help='Create Azure cost and usage report data.')
     provider_group.add_argument('--ocp',
                                 dest='ocp',
                                 action='store_true',
@@ -92,6 +97,21 @@ def create_parser():
                             Can be either \'copy\' to produce a second finalized file locally
                             or \'overwrite\' to finalize the normal report files.
                             """)
+    parser.add_argument('--azure-storage-name',
+                        metavar='AZURE_STORAGE_NAME',
+                        dest='azure_storage_name',
+                        required=False,
+                        help='Azure storage account to place the data.')
+    parser.add_argument('--azure-report-name',
+                        metavar='AZURE_COST_REPORT_NAME',
+                        dest='azure_report_name',
+                        required=False,
+                        help='Directory path to store data in the bucket.')
+    parser.add_argument('--azure-storage-report-prefix',
+                        metavar='AZURE_PREFIX_NAME',
+                        dest='azure_prefix_name',
+                        required=False,
+                        help='Directory path to store data in the bucket.')
     parser.add_argument('--static-report-file',
                         dest='static_report_file',
                         required=False,
@@ -130,6 +150,25 @@ def _get_aws_options(options):
     return (aws_bucket_name, aws_report_name, aws_prefix_name, aws_finalize_report)
 
 
+def _get_azure_options(options):
+    """Obtain all the azure options.
+
+    Args:
+        options (Dict): dictionary of arguments.
+    Returns:
+        azure_storage_name (string): Azure storage account name
+        azure_report_name (string): Azure report name
+        azure_prefix_name (string): Azure report prefix
+        azure_finalize_report (string): Azure finalize choice
+
+    """
+    azure_storage_name = options.get('azure_storage_name')
+    azure_report_name = options.get('azure_report_name')
+    azure_prefix_name = options.get('azure_prefix_name')
+    # azure_finalize_report = options.get('azure_finalize_report')
+    return (azure_storage_name, azure_report_name, azure_prefix_name)
+
+
 def _get_ocp_options(options):
     """Obtain all the ocp options.
 
@@ -156,9 +195,14 @@ def _validate_aws_arguments(parser, options):
     """
     aws_valid = False
     ocp_options = _get_ocp_options(options)
+    azure_options = _get_azure_options(options)
     for ocp_option in ocp_options:
         if ocp_option is not None:
             msg = 'OCP arguments cannot be supplied when generating AWS data.'
+            parser.error(msg)
+    for azure_option in azure_options:
+        if azure_option is not None:
+            msg = 'Azure arguments cannot be supplied when generating AWS data.'
             parser.error(msg)
 
     aws_bucket_name, aws_report_name, _, _ = _get_aws_options(options)
@@ -173,6 +217,40 @@ def _validate_aws_arguments(parser, options):
     return aws_valid
 
 
+def _validate_azure_arguments(parser, options):
+    """Validate azure argument combination.
+
+    Args:
+        parser (Object): ArgParser parser.
+        options (Dict): dictionary of arguments.
+    Raises:
+        (ParserError): If combination is invalid.
+
+    """
+    azure_valid = False
+    ocp_options = _get_ocp_options(options)
+    aws_options = _get_aws_options(options)
+    for ocp_option in ocp_options:
+        if ocp_option is not None:
+            msg = 'OCP arguments cannot be supplied when generating Azure data.'
+            parser.error(msg)
+    for aws_option in aws_options:
+        if aws_option is not None:
+            msg = 'AWS arguments cannot be supplied when generating Azure data.'
+            parser.error(msg)
+
+    azure_storage_name, azure_report_name, _, _ = _get_aws_options(options)
+    if azure_storage_name and azure_report_name:
+        azure_valid = True
+    elif not azure_storage_name and not azure_report_name:
+        azure_valid = True
+    if not azure_valid:
+        msg = 'Both {} and {} must be supplied, if one is provided.'
+        msg = msg.format('--azure-bucket-name', '--azure-report-name')
+        parser.error(msg)
+    return azure_valid
+
+
 def _validate_ocp_arguments(parser, options):
     """Validate ocp argument combination.
 
@@ -185,9 +263,14 @@ def _validate_ocp_arguments(parser, options):
     """
     ocp_valid = False
     aws_options = _get_aws_options(options)
+    azure_options = _get_azure_options(options)
     for aws_option in aws_options:
         if aws_option is not None:
             msg = 'AWS arguments cannot be supplied when generating OCP data.'
+            parser.error(msg)
+    for azure_option in azure_options:
+        if azure_option is not None:
+            msg = 'Azure arguments cannot be supplied when generating AWS data.'
             parser.error(msg)
 
     ocp_cluster_id, insights_upload = _get_ocp_options(options)
@@ -221,16 +304,20 @@ def _validate_provider_inputs(parser, options):
     valid_inputs = False
     provider_type = None
     aws = options.get('aws', False)
+    azure = options.get('azure', False)
     ocp = options.get('ocp', False)
     if aws:
         valid_inputs = _validate_aws_arguments(parser, options)
         provider_type = 'aws'
+    elif azure:
+        valid_inputs = _validate_azure_arguments(parser, options)
+        provider_type = 'azure'
     elif ocp:
         valid_inputs = _validate_ocp_arguments(parser, options)
         provider_type = 'ocp'
     else:
-        msg = 'Either {} or {} must be supplied to generate a report.'
-        msg = msg.format('--aws', '--ocp')
+        msg = 'One of {}, {}, or {} must be supplied to generate a report.'
+        msg = msg.format('--aws', '--azure', '--ocp')
         parser.error(msg)
     return (valid_inputs, provider_type)
 
@@ -324,6 +411,8 @@ def main():
         parser.error('the following arguments are required: --start-date')
     if provider_type == 'aws':
         aws_create_report(options)
+    elif provider_type == 'azure':
+        azure_create_report(options)
     elif provider_type == 'ocp':
         ocp_create_report(options)
 
