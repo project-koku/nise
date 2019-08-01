@@ -14,11 +14,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
-"""Defines the upload mechanism to AWS."""
+"""Defines the upload mechanism to AWS and Azure."""
 
 import boto3
 from botocore.exceptions import ClientError
 from requests.exceptions import ConnectionError as BotoConnectionError
+import os
+from azure.storage.blob import BlockBlobService
 
 
 def upload_to_s3(bucket_name, bucket_file_path, local_path):
@@ -42,5 +44,36 @@ def upload_to_s3(bucket_name, bucket_file_path, local_path):
     except (ClientError, BotoConnectionError,
             boto3.exceptions.S3UploadFailedError) as upload_err:
         print(upload_err)
+        uploaded = False
+    return uploaded
+
+
+def upload_to_storage(storage_account_name, storage_file_name, local_path, storage_file_path):
+
+    """Upload data to a storage account.
+
+    Args:
+        storage_account_name (String): The name of the storage account
+        storage_file_name (String): The container to upload file to
+        local_path  (String): The full local file system path of the file
+        storage_file_path (String): The file path to upload to within container
+    Returns:
+        (Boolean): True if file was uploaded
+    """
+    uploaded = True
+    try:
+        account_key = str(os.environ.get('ACCOUNT_KEY'))
+        print(storage_account_name)
+        print(account_key)
+        # Create the BlockBlockService that is used to call the Blob service for the storage account.
+        block_blob_service = BlockBlobService(
+            account_name='costmgmtacct1234', account_key='ely6Nvm3SdVnuPXllQUPPlnnlAcig5o2H/qCkegbMnWhBggVOwPZEbaRWRrZt87W2Lg0kAnZ/OuwmSjD9VAtuA==')
+
+        # Upload the created file, use local_file_name for the blob name.
+        block_blob_service.create_blob_from_path(
+            storage_file_name, storage_file_path, local_path)
+
+    except Exception as error:
+        print(error)
         uploaded = False
     return uploaded
