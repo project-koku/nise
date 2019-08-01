@@ -25,8 +25,8 @@ def copy_to_local_dir(local_dir_home, local_path, local_file_path=None):
 
     Args:
         local_dir_home (String): Local file path representing the bucket
-        local_file_path (String): The path to store the file to
         local_path  (String): The local file system path of the file
+        local_file_path (String): The path to store the file to
     Returns:
         (Boolean): True if file was uploaded
     """
