@@ -63,8 +63,6 @@ def upload_to_storage(storage_account_name, storage_file_name, local_path, stora
     uploaded = True
     try:
         account_key = str(os.environ.get('ACCOUNT_KEY'))
-        print(storage_account_name)
-        print(account_key)
         # Create the BlockBlockService that is used to call the Blob service for the storage account.
         block_blob_service = BlockBlobService(
             account_name='costmgmtacct1234', account_key='ely6Nvm3SdVnuPXllQUPPlnnlAcig5o2H/qCkegbMnWhBggVOwPZEbaRWRrZt87W2Lg0kAnZ/OuwmSjD9VAtuA==')
