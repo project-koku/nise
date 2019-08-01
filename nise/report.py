@@ -44,12 +44,20 @@ from nise.generators.aws import (AWS_COLUMNS,
                                  Route53Generator,
                                  S3Generator,
                                  VPCGenerator)
+
+from nise.generators.azure import (AZURE_COLUMNS,
+                                   BandwidthGenerator,
+                                   SQLGenerator,
+                                   StorageGenerator,
+                                   VMGenerator,
+                                   VNGenerator)
+
 from nise.generators.ocp import (OCPGenerator,
                                  OCP_POD_USAGE,
                                  OCP_REPORT_TYPE_TO_COLS,
                                  OCP_STORAGE_USAGE)
 from nise.manifest import aws_generate_manifest, ocp_generate_manifest
-from nise.upload import upload_to_s3
+from nise.upload import upload_to_s3, upload_to_storage
 
 
 def create_temporary_copy(path, temp_file_name, temp_dir_name='None'):
@@ -119,6 +127,19 @@ def aws_route_file(bucket_name, bucket_file_path, local_path):
                      local_path)
 
 
+def azure_route_file(storage_account_name, storage_file_name, local_path, storage_file_path=None):
+    """Route file to either storage account or local filesystem."""
+    if os.path.isdir(storage_account_name):
+        copy_to_local_dir(storage_account_name,
+                          local_path,
+                          storage_file_name)
+    else:
+        upload_to_storage(storage_account_name,
+                          storage_file_name,
+                          local_path,
+                          storage_file_path)
+
+
 def ocp_route_file(insights_upload, local_path):
     """Route file to either Upload Service or local filesystem."""
     if os.path.isdir(insights_upload):
@@ -169,7 +190,7 @@ def _create_month_list(start_date, end_date):
 
 
 def _aws_finalize_report(data, static_data=None):
-    """Popualate invoice id for data."""
+    """Populate invoice id for data."""
     data = copy.deepcopy(data)
 
     invoice_id = None
@@ -340,6 +361,71 @@ def aws_create_report(options):
                            temp_cur_zip)
             os.remove(temp_manifest)
             os.remove(temp_cur_zip)
+
+
+# pylint: disable=too-many-locals,too-many-statements
+def azure_create_report(options):
+    """Create a cost usage report file."""
+    data = []
+    start_date = options.get('start_date')
+    end_date = options.get('end_date')
+    static_report_data = options.get('static_report_data')
+    if static_report_data:
+        generators = _get_generators(static_report_data.get('generators'))
+        accounts_list = static_report_data.get('accounts')
+    else:
+        generators = [{'generator': BandwidthGenerator, 'attributes': None},
+                      {'generator': SQLGenerator, 'attributes': None},
+                      {'generator': StorageGenerator, 'attributes': None},
+                      {'generator': VMGenerator, 'attributes': None},
+                      {'generator': VNGenerator, 'attributes': None}]
+        accounts_list = None
+
+    months = _create_month_list(start_date, end_date)
+
+    payer_account, usage_accounts = _generate_accounts(accounts_list)
+
+    for month in months:
+        data = []
+        for generator in generators:
+            generator_cls = generator.get('generator')
+            attributes = generator.get('attributes')
+            gen_start_date = month.get('start')
+            gen_end_date = month.get('end')
+            if attributes:
+                # Skip if generator usage is outside of current month
+                if attributes.get('end_date') < month.get('start'):
+                    continue
+                if attributes.get('start_date') > month.get('end'):
+                    continue
+
+                gen_start_date, gen_end_date = _create_generator_dates_from_yaml(attributes, month)
+
+            gen = generator_cls(gen_start_date, gen_end_date, payer_account,
+                                usage_accounts, attributes)
+            data += gen.generate_data()
+
+        output_file_name = '{}_{}'.format('costreport', uuid4())
+        local_path = '{}/{}.csv'.format(os.getcwd(), output_file_name)
+        output_file_name = output_file_name + ".csv"
+
+        _write_csv(local_path, data, AZURE_COLUMNS)
+
+        azure_storage_account = options.get('azure_storage_name')
+        if azure_storage_account:
+            storage_account_name = str(os.environ.get('ACCOUNT_NAME'))
+            container_name = options.get('azure_report_name')
+            file_path = container_name + '/' + output_file_name
+
+            # # azure blob upload
+            # azure_route_file(storage_account_name,
+            #                  container_name,
+            #                  local_path,
+            #                  file_path)
+            # local dir upload
+            azure_route_file(azure_storage_account,
+                             file_path,
+                             local_path)
 
 
 def ocp_create_report(options):  # noqa: C901
