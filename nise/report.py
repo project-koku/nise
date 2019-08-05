@@ -417,11 +417,11 @@ def azure_create_report(options):
             container_name = options.get('azure_report_name')
             file_path = container_name + '/' + output_file_name
 
-            # # azure blob upload
-            # azure_route_file(storage_account_name,
-            #                  container_name,
-            #                  local_path,
-            #                  file_path)
+            # azure blob upload
+            azure_route_file(storage_account_name,
+                             container_name,
+                             local_path,
+                             output_file_name)
             # local dir upload
             azure_route_file(azure_storage_account,
                              file_path,
