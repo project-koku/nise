@@ -34,6 +34,22 @@ generators:
         family: 'General Purpose'
         cost: 1.000
         rate: 0.500
+  - RDSGenerator:
+      start_date: today
+      processor_arch: 64-bit
+      resource_id: 99995555
+      product_sku: VEAJHRNKTJZB
+      region: us-west-1a
+      tags:
+        resourceTags/user:openshift_node: ocp-nod
+      instance_type:
+        inst_type: db.t3.medium
+        vcpu: 2
+        memory: '4 GiB'
+        storage: 'EBS Only'
+        family: 'Memory Optimized'
+        cost: 1.000
+        rate: 0.500
 
 
 accounts:
