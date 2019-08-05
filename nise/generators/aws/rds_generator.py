@@ -43,9 +43,12 @@ class RDSGenerator(AWSGenerator):
         self._processor_arch = choice(self.ARCHS)
         self._product_sku = self.fake.pystr(min_chars=12, max_chars=12).upper()  # pylint: disable=no-member
         self._instance_type = choice(self.INSTANCE_TYPES)
+        self._resource_id = 'i-{}'.format(self.fake.ean8())  # pylint: disable=no-member
         if self.attributes:
             if self.attributes.get('product_sku'):
                 self._product_sku = self.attributes.get('product_sku')
+            if self.attributes.get('resource_id'):
+                self._resource_id = 'i-{}'.format(self.attributes.get('resource_id'))
             if self.attributes.get('tags'):
                 self._tags = self.attributes.get('tags')
             instance_type = self.attributes.get('instance_type')
@@ -63,7 +66,7 @@ class RDSGenerator(AWSGenerator):
         """Create an amazon resource name."""
         arn = 'arn:aws:rds:{}:{}:db:{}'.format(avail_zone,
                                                self.payer_account,
-                                               self.fake.ean8())  # pylint: disable=no-member
+                                               self._resource_id)  # pylint: disable=no-member
         return arn
 
     # pylint: disable=too-many-locals,too-many-statements
