@@ -30,6 +30,7 @@ def upload_to_s3(bucket_name, bucket_file_path, local_path):
         local_path  (String): The local file system path of the file
     Returns:
         (Boolean): True if file was uploaded
+
     """
     uploaded = True
     try:
