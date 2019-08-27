@@ -63,10 +63,11 @@ def upload_to_storage(storage_account_name, storage_file_name, local_path, stora
     """
     uploaded = True
     try:
-        account_key = str(os.environ.get('ACCOUNT_KEY'))
+        account_key = str(os.environ.get('AZURE_ACCOUNT_KEY'))
+        storage_account = str(os.environ.get('AZURE_STORAGE_ACCOUNT'))
         # Create the BlockBlockService that is used to call the Blob service for the storage account.
         block_blob_service = BlockBlobService(
-            account_name='costmgmtacct1234', account_key=account_key)
+            account_name=storage_account, account_key=account_key)
 
         # Upload the created file, use local_file_name for the blob name.
         block_blob_service.create_blob_from_path(

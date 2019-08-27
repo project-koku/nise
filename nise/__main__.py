@@ -328,7 +328,7 @@ def _load_yaml_file(filename):
     if filename:
         try:
             with open(filename, 'r+') as yaml_file:
-                yamlfile = yaml.load(yaml_file)
+                yamlfile = yaml.load(yaml_file, Loader=yaml.FullLoader)
         except TypeError:
             yamlfile = yaml.load(filename)
     return yamlfile
