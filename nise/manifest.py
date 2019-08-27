@@ -33,6 +33,7 @@ def _manifest_datetime_str(date_time):
         date_time (DateTime): Date Time to format to string
     Returns:
         (String): Formated date time string
+
     """
     return date_time.strftime('%Y%m%dT000000.000Z')
 
@@ -45,6 +46,7 @@ def _manifest_datetime_range(start, end):
         end (DateTime): e d date time
     Returns:
         (String): Formated date time range
+
     """
     start_str = start.strftime('%Y%m%d')
     end_str = end.strftime('%Y%m%d')
@@ -62,6 +64,7 @@ def aws_generate_manifest(fake, template_data):
     Returns:
         (String): S3 storage path
         (String): Rendered template data
+
     """
     start = template_data.get('start_date')
     report_name = template_data.get('aws_report_name')
@@ -106,6 +109,7 @@ def ocp_generate_manifest(template_data):
         template_data (Dict): data to render template with
     Returns:
         (String): Rendered template data
+
     """
     template_loader = jinja2.FileSystemLoader(searchpath=TEMPLATE_DIR)
     template_env = jinja2.Environment(loader=template_loader)

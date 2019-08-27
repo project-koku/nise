@@ -108,6 +108,7 @@ def _write_manifest(data):
         data    (String): data to store
     Returns:
         (String): Path to temporary file
+
     """
     t_file = NamedTemporaryFile(mode='w', suffix='.json', delete=False)
     t_file.write(data)

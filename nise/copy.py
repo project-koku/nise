@@ -29,6 +29,7 @@ def copy_to_local_dir(local_dir_home, local_path, local_file_path=None):
         local_file_path (String): The path to store the file to
     Returns:
         (Boolean): True if file was uploaded
+
     """
     if not os.path.isdir(local_dir_home):
         print('Path does not exist for the local directory: {}'.format(local_dir_home))
