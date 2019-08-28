@@ -15,6 +15,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """Module for azure bandwidth data generation."""
+import json
 from random import choice, uniform
 
 from nise.generators.azure.azure_generator import AzureGenerator
@@ -42,8 +43,8 @@ class BandwidthGenerator(AzureGenerator):
 
     ADDITIONAL_INFO = (
         {"ConsumptionMeter": "a149966f-73b4-4e1d-b335-d2a572b1e6bd"},
-        {"ImageType": "null", "ServiceType": "null", "VMName": "null", "VMProperties": "null", "VCPUs": 0, "UsageType": "DataTrIn"},
-        {"ImageType": "null", "ServiceType": "null", "VMName": "null", "VMProperties": "null", "VCPUs": 0, "UsageType": "DataTrOut", "ConsumptionMeter": "9995d93a-7d35-4d3f-9c69-7a7fea447ef4"}
+        {"ImageType": None, "ServiceType": None, "VMName": None, "VMProperties": None, "VCPUs": 0, "UsageType": "DataTrIn"},
+        {"ImageType": None, "ServiceType": None, "VMName": None, "VMProperties": None, "VCPUs": 0, "UsageType": "DataTrOut", "ConsumptionMeter": "9995d93a-7d35-4d3f-9c69-7a7fea447ef4"}
     )
 
     def __init__(self, start_date, end_date, payer_account, usage_accounts, attributes=None):
@@ -120,7 +121,7 @@ class BandwidthGenerator(AzureGenerator):
         row['ResourceType'] = 'Microsoft.Storage/storageAccounts'
         row['InstanceId'] = instance_id
         row['OfferId'] = ''
-        row['AdditionalInfo'] = additional_info
+        row['AdditionalInfo'] = json.dumps(additional_info)
         row['ServiceInfo1'] = ''
         row['ServiceInfo2'] = ''
         row['ServiceName'] = self._service_name

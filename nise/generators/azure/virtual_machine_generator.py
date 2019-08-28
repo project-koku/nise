@@ -15,6 +15,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """Module for azure bandwidth data generation."""
+import json
 from random import choice, uniform
 
 from nise.generators.azure.azure_generator import AzureGenerator
@@ -46,8 +47,8 @@ class VMGenerator(AzureGenerator):
     )
 
     ADDITIONAL_INFO = (
-        {"ImageType": "Canonical", "ServiceType": "Standard_A0", "VMName": "null", "VMProperties": "null", "VCPUs": 1, "UsageType": "ComputeHR"},
-        {"UsageType": "ComputeHR", "ImageType": "Canonical", "ServiceType": "Standard_B2s", "VMName": "null", "VMProperties": "Microsoft.AKS.Compute.AKS.Linux.Billing", "VCPUs": 2}
+        {"ImageType": "Canonical", "ServiceType": "Standard_A0", "VMName": None, "VMProperties": None, "VCPUs": 1, "UsageType": "ComputeHR"},
+        {"UsageType": "ComputeHR", "ImageType": "Canonical", "ServiceType": "Standard_B2s", "VMName": None, "VMProperties": "Microsoft.AKS.Compute.AKS.Linux.Billing", "VCPUs": 2}
     )
 
     def __init__(self, start_date, end_date, payer_account, usage_accounts, attributes=None):
@@ -125,7 +126,7 @@ class VMGenerator(AzureGenerator):
         row['ResourceType'] = 'Microsoft.Compute/virtualMachines'
         row['InstanceId'] = instance_id
         row['OfferId'] = ''
-        row['AdditionalInfo'] = additional_info
+        row['AdditionalInfo'] = json.dumps(additional_info)
         row['ServiceInfo1'] = ''
         row['ServiceInfo2'] = service_info_2
         row['ServiceName'] = self._service_name

@@ -15,6 +15,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """Module for azure bandwidth data generation."""
+import json
 from random import choice, uniform
 
 from nise.generators.azure.azure_generator import AzureGenerator
@@ -107,7 +108,7 @@ class SQLGenerator(AzureGenerator):
         row['ResourceType'] = 'Microsoft.Sql/servers'
         row['InstanceId'] = instance_id
         row['OfferId'] = ''
-        row['AdditionalInfo'] = '{"ConsumptionMeter": "a149966f-73b4-4e1d-b335-d2a572b1e6bd"}'
+        row['AdditionalInfo'] = json.dumps('{"ConsumptionMeter": "a149966f-73b4-4e1d-b335-d2a572b1e6bd"}')
         row['ServiceInfo1'] = ''
         row['ServiceInfo2'] = ''
         row['ServiceName'] = self._service_name

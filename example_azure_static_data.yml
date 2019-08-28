@@ -1,67 +1,33 @@
 ---
 generators:
   - BandwidthGenerator:
-      start_date: 2019-06-01
-      meter_id: 55555555-4444-3333-2222-111111111111
-#      resource_location: US East
-#      tags: {"environment": "ci", "project":"p1"}
-  - BandwidthGenerator:
-      start_date: 2019-07-01
+      start_date: today
       meter_id: 55555555-4444-3333-2222-111111111112
-#      resource_location: US East
-#      tags: {"environment": "ci", "project":"p1"}
+      resource_location: "US East"
+      tags: {"environment": "ci", "project":"p1"}
   - SQLGenerator:
-      start_date: 2019-06-01
-      meter_id: 55555555-4444-3333-2222-111111111113
-#      resource_location: US South Central
-#      tags: {"environment": "dev", "project":"p2"}
-      additional_info": {"ConsumptionMeter": "1111aaaa-22bb-33cc-44dd-555555eeeeee"}
-  - SQLGenerator:
-      start_date: 2019-07-01
+      start_date: today
       meter_id: 55555555-4444-3333-2222-111111111114
-#      resource_location: US South Central
-#      tags: {"environment": "dev", "project":"p2"}
-      additional_info": {"ConsumptionMeter": "1111aaaa-22bb-33cc-44dd-555555eeeeee"}
+      resource_location: "US South Central"
+      tags: {"environment": "dev", "project":"p2"}
+      additional_info: {"ConsumptionMeter": "1111aaaa-22bb-33cc-44dd-555555eeeeee"}
   - StorageGenerator:
-      start_date: 2019-06-01
-      meter_id: 55555555-4444-3333-2222-111111111115
-#      resource_location: US North Central
-#      tags: {"environment": "prod", "project":"p3"}
-      additional_info": {"ConsumptionMeter": "1111aaaa-22bb-33cc-44dd-555555eeeeee"}
-  - StorageGenerator:
-      start_date: 2019-07-01
+      start_date: today
       meter_id: 55555555-4444-3333-2222-111111111116
-#      resource_location: US North Central
-#      tags: {"environment": "prod", "project":"p3"}
-      additional_info": {"ConsumptionMeter": "1111aaaa-22bb-33cc-44dd-555555eeeeee"}
+      resource_location: "US North Central"
+      tags: {"environment": "prod", "project":"p3"}
+      additional_info: {"ConsumptionMeter": "1111aaaa-22bb-33cc-44dd-555555eeeeee"}
   - VMGenerator:
-      start_date: 2019-06-01
-      meter_id: 55555555-4444-3333-2222-111111111117
-#      resource_location: US West
-#      tags: {"environment": "prod", "project":"p3"}
-      additional_info": {"ConsumptionMeter": "1111aaaa-22bb-33cc-44dd-555555eeeeee"}
-  - VMGenerator:
-      start_date: 2019-07-01
+      start_date: today
       meter_id: 55555555-4444-3333-2222-111111111118
-#      resource_location: US West
-#      tags: {"environment": "prod", "project":"p3"}
-      additional_info": {"ConsumptionMeter": "1111aaaa-22bb-33cc-44dd-555555eeeeee"}
-  - VNGenerator:
-      start_date: 2019-06-01
-      meter_id: 55555555-4444-3333-2222-111111111119
-#      resource_location: US Central
-#      tags: {"environment": "prod", "project":"p3"}
-      additional_info": {"ConsumptionMeter": "1111aaaa-22bb-33cc-44dd-555555eeeeee"}
-  - VNGenerator:
-      start_date: 2019-07-01
-      meter_id: 55555555-4444-3333-2222-111111111120
-#      resource_location: US Central
-#      tags: {"environment": "prod", "project":"p3"}
-      additional_info": {"ConsumptionMeter": "1111aaaa-22bb-33cc-44dd-555555eeeeee"}
+      resource_location: "US West"
+      tags: {"environment": "prod", "project":"p3"}
+      additional_info: {"ConsumptionMeter": "1111aaaa-22bb-33cc-44dd-555555eeeeee"}
+
 
 
 # SubscriptionGuid
 accounts:
-  payer: 2639de71-ca37-4a17-a104-17665a50e7fc
+  payer: 38f1d748-3ac7-4b7f-a5ae-8b5ff16db82c
   user:
-    - 2639de71-ca37-4a17-a104-17665a50e7fc
+    - 38f1d748-3ac7-4b7f-a5ae-8b5ff16db82c

@@ -16,6 +16,7 @@
 #
 """Defines the abstract generator."""
 import datetime
+import json
 from abc import abstractmethod
 from random import choice, randint
 from nise.generators.generator import AbstractGenerator
@@ -124,15 +125,14 @@ class AzureGenerator(AbstractGenerator):
 
     def _add_tag_data(self, row):
         """Add tag dictionary data options to the row."""
-        if self._tags:
-            row['Tags'] = self._tags
-        else:
-            row['Tags'] = self._pick_tag(
+        if not self._tags:
+            self._tags = self._pick_tag(
                 'environment',
                 ('dev', 'ci', 'qa', 'stage', 'prod'),
                 'project',
                 ('p1', 'p2', 'p3')
             )
+        row['Tags'] = json.dumps(self._tags)
 
     @abstractmethod
     def _update_data(self, row, start, end, **kwargs):

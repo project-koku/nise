@@ -15,6 +15,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """Module for azure bandwidth data generation."""
+import json
 from random import choice, uniform
 
 from nise.generators.azure.azure_generator import AzureGenerator
@@ -117,7 +118,7 @@ class VNGenerator(AzureGenerator):
         row['ResourceType'] = 'Microsoft.Network/publicIPAddresses'
         row['InstanceId'] = instance_id
         row['OfferId'] = ''
-        row['AdditionalInfo'] = additional_info
+        row['AdditionalInfo'] = json.dumps(additional_info)
         row['ServiceInfo1'] = ''
         row['ServiceInfo2'] = ''
         row['ServiceName'] = self._service_name

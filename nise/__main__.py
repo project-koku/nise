@@ -352,7 +352,7 @@ def _load_static_report_data(options):
                         attributes.get('end_date')
                     )
                 else:
-                    if options['azure'] is True:
+                    if options.get('azure'):
                         generated_end_date = today() + datetime.timedelta(hours=24)
                     else:
                         generated_end_date = today()
