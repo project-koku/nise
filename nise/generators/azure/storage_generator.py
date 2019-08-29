@@ -20,7 +20,7 @@ from random import choice, uniform
 from nise.generators.azure.azure_generator import AzureGenerator
 
 
-# pylint: disable=too-many-arguments
+# pylint: disable=too-many-arguments, too-many-instance-attributes
 class StorageGenerator(AzureGenerator):
     """Generator for Storage data."""
 
@@ -98,7 +98,12 @@ class StorageGenerator(AzureGenerator):
         if self._instance_id:
             instance_id = self._instance_id
         else:
-            instance_id = 'subscriptions/' + self.payer_account + '/resourceGroups/' + resource_group + '/providers/Microsoft.Sql/servers/' + resource_name
+            instance_id = '{}/{}/{}/{}/{}/{}'.format('subscriptions',
+                                                     self.payer_account,
+                                                     'resourceGroups',
+                                                     resource_group,
+                                                     '/providers/Microsoft.Sql/servers/',
+                                                     resource_name)
         return resource_group, instance_id, service_tier, meter_sub, meter_name
 
     def _update_data(self, row, start, end, **kwargs):  # pylint: disable=too-many-locals

@@ -25,8 +25,8 @@ from dateutil import parser as date_parser
 from dateutil.relativedelta import relativedelta
 
 from nise.report import (aws_create_report,
-                         ocp_create_report,
-                         azure_create_report)
+                         azure_create_report,
+                         ocp_create_report)
 
 
 def valid_date(date_string):

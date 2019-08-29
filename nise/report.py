@@ -44,14 +44,12 @@ from nise.generators.aws import (AWS_COLUMNS,
                                  Route53Generator,
                                  S3Generator,
                                  VPCGenerator)
-
 from nise.generators.azure import (AZURE_COLUMNS,
                                    BandwidthGenerator,
                                    SQLGenerator,
                                    StorageGenerator,
                                    VMGenerator,
                                    VNGenerator)
-
 from nise.generators.ocp import (OCPGenerator,
                                  OCP_POD_USAGE,
                                  OCP_REPORT_TYPE_TO_COLS,
@@ -135,8 +133,7 @@ def azure_route_file(storage_account_name, storage_file_name, local_path, storag
                           local_path,
                           storage_file_name)
     else:
-        upload_to_storage(storage_account_name,
-                          storage_file_name,
+        upload_to_storage(storage_file_name,
                           local_path,
                           storage_file_path)
 
@@ -408,7 +405,7 @@ def azure_create_report(options):
 
         output_file_name = '{}_{}'.format('costreport', uuid4())
         local_path = '{}/{}.csv'.format(os.getcwd(), output_file_name)
-        output_file_name = output_file_name + ".csv"
+        output_file_name = output_file_name + '.csv'
 
         _write_csv(local_path, data, AZURE_COLUMNS)
 

@@ -21,7 +21,7 @@ from random import choice, uniform
 from nise.generators.azure.azure_generator import AzureGenerator
 
 
-# pylint: disable=too-many-arguments
+# pylint: disable=too-many-arguments, too-many-instance-attributes
 class SQLGenerator(AzureGenerator):
     """Generator for SQL Database data."""
 
@@ -76,7 +76,12 @@ class SQLGenerator(AzureGenerator):
         if self._instance_id:
             instance_id = self._instance_id
         else:
-            instance_id = 'subscriptions/' + self.payer_account + '/resourceGroups/' + resource_group + '/providers/Microsoft.Sql/servers/' + resource_name
+            instance_id = '{}/{}/{}/{}/{}/{}'.format('subscriptions',
+                                                     self.payer_account,
+                                                     'resourceGroups',
+                                                     resource_group,
+                                                     '/providers/Microsoft.Sql/servers/',
+                                                     resource_name)
         return resource_group, instance_id
 
     def _update_data(self, row, start, end, **kwargs):  # pylint: disable=too-many-locals
@@ -93,7 +98,7 @@ class SQLGenerator(AzureGenerator):
         cost = self._pre_tax_cost if self._pre_tax_cost else amount * rate
         azure_region, meter_region = self._get_location_info()
         resource_group, instance_id = self._get_resource_info()
-
+        additional_info_str = '{"ConsumptionMeter": "a149966f-73b4-4e1d-b335-d2a572b1e6bd"}'
         row['ResourceGroup'] = resource_group
         row['ResourceLocation'] = azure_region
         row['MeterCategory'] = self._service_name
@@ -108,7 +113,7 @@ class SQLGenerator(AzureGenerator):
         row['ResourceType'] = 'Microsoft.Sql/servers'
         row['InstanceId'] = instance_id
         row['OfferId'] = ''
-        row['AdditionalInfo'] = json.dumps('{"ConsumptionMeter": "a149966f-73b4-4e1d-b335-d2a572b1e6bd"}')
+        row['AdditionalInfo'] = json.dumps(additional_info_str)
         row['ServiceInfo1'] = ''
         row['ServiceInfo2'] = ''
         row['ServiceName'] = self._service_name

@@ -19,6 +19,7 @@ import datetime
 import json
 from abc import abstractmethod
 from random import choice, randint
+
 from nise.generators.generator import AbstractGenerator
 
 AZURE_COLUMNS = ('SubscriptionGuid',

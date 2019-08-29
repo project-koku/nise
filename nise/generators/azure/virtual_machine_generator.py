@@ -21,7 +21,7 @@ from random import choice, uniform
 from nise.generators.azure.azure_generator import AzureGenerator
 
 
-# pylint: disable=too-many-arguments
+# pylint: disable=too-many-arguments, too-many-instance-attributes
 class VMGenerator(AzureGenerator):
     """Generator for Virtual Machine data."""
 
@@ -47,8 +47,10 @@ class VMGenerator(AzureGenerator):
     )
 
     ADDITIONAL_INFO = (
-        {"ImageType": "Canonical", "ServiceType": "Standard_A0", "VMName": None, "VMProperties": None, "VCPUs": 1, "UsageType": "ComputeHR"},
-        {"UsageType": "ComputeHR", "ImageType": "Canonical", "ServiceType": "Standard_B2s", "VMName": None, "VMProperties": "Microsoft.AKS.Compute.AKS.Linux.Billing", "VCPUs": 2}
+        {'ImageType': 'Canonical', 'ServiceType': 'Standard_A0', 'VMName': None,
+         'VMProperties': None, 'VCPUs': 1, 'UsageType': 'ComputeHR'},
+        {'UsageType': 'ComputeHR', 'ImageType': 'Canonical', 'ServiceType': 'Standard_B2s',
+         'VMName': None, 'VMProperties': 'Microsoft.AKS.Compute.AKS.Linux.Billing', 'VCPUs': 2}
     )
 
     def __init__(self, start_date, end_date, payer_account, usage_accounts, attributes=None):
@@ -94,8 +96,15 @@ class VMGenerator(AzureGenerator):
         if self._instance_id:
             instance_id = self._instance_id
         else:
-            instance_id = 'subscriptions/' + self.payer_account + '/resourceGroups/' + resource_group + '/providers/Microsoft.Storage/storageAccounts/' + resource_name
-        return resource_group, instance_id, service_tier, meter_sub, meter_name, additional_info, service_info_2
+            storage_accts_str = '/providers/Microsoft.Storage/storageAccounts/'
+            instance_id = '{}/{}/{}/{}/{}/{}'.format('subscriptions',
+                                                     self.payer_account,
+                                                     'resourceGroups',
+                                                     resource_group,
+                                                     storage_accts_str,
+                                                     resource_name)
+        return (resource_group, instance_id, service_tier, meter_sub,
+                meter_name, additional_info, service_info_2)
 
     def _update_data(self, row, start, end, **kwargs):  # pylint: disable=too-many-locals
         """Update data with generator specific data."""
@@ -110,7 +119,9 @@ class VMGenerator(AzureGenerator):
         amount = self._usage_quantity if self._usage_quantity else uniform(0.000002, 0.09)
         cost = self._pre_tax_cost if self._pre_tax_cost else amount * rate
         azure_region, meter_region = self._get_location_info()
-        resource_group, instance_id, service_tier, meter_sub, meter_name, additional_info, service_info_2 = self._get_resource_info()
+        # pylint: disable=line-too-long
+        resource_group, instance_id, service_tier, meter_sub, meter_name, additional_info, service_info_2 = \
+            self._get_resource_info()
 
         row['ResourceGroup'] = resource_group
         row['ResourceLocation'] = azure_region

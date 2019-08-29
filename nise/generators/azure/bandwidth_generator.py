@@ -21,7 +21,7 @@ from random import choice, uniform
 from nise.generators.azure.azure_generator import AzureGenerator
 
 
-# pylint: disable=too-many-arguments
+# pylint: disable=too-many-arguments, too-many-instance-attributes
 class BandwidthGenerator(AzureGenerator):
     """Generator for Bandwidth data."""
 
@@ -42,9 +42,12 @@ class BandwidthGenerator(AzureGenerator):
     )
 
     ADDITIONAL_INFO = (
-        {"ConsumptionMeter": "a149966f-73b4-4e1d-b335-d2a572b1e6bd"},
-        {"ImageType": None, "ServiceType": None, "VMName": None, "VMProperties": None, "VCPUs": 0, "UsageType": "DataTrIn"},
-        {"ImageType": None, "ServiceType": None, "VMName": None, "VMProperties": None, "VCPUs": 0, "UsageType": "DataTrOut", "ConsumptionMeter": "9995d93a-7d35-4d3f-9c69-7a7fea447ef4"}
+        {'ConsumptionMeter': 'a149966f-73b4-4e1d-b335-d2a572b1e6bd'},
+        {'ImageType': None, 'ServiceType': None, 'VMName': None,
+         'VMProperties': None, 'VCPUs': 0, 'UsageType': 'DataTrIn'},
+        {'ImageType': None, 'ServiceType': None, 'VMName': None,
+         'VMProperties': None, 'VCPUs': 0, 'UsageType': 'DataTrOut',
+         'ConsumptionMeter': '9995d93a-7d35-4d3f-9c69-7a7fea447ef4'}
     )
 
     def __init__(self, start_date, end_date, payer_account, usage_accounts, attributes=None):
@@ -89,7 +92,13 @@ class BandwidthGenerator(AzureGenerator):
         if self._instance_id:
             instance_id = self._instance_id
         else:
-            instance_id = 'subscriptions/' + self.payer_account + '/resourceGroups/' + resource_group + '/providers/Microsoft.Storage/storageAccounts/' + resource_name
+            storage_accts_str = '/providers/Microsoft.Storage/storageAccounts/'
+            instance_id = '{}/{}/{}/{}/{}/{}'.format('subscriptions',
+                                                     self.payer_account,
+                                                     'resourceGroups',
+                                                     resource_group,
+                                                     storage_accts_str,
+                                                     resource_name)
         return resource_group, instance_id, additional_info
 
     def _update_data(self, row, start, end, **kwargs):  # pylint: disable=too-many-locals

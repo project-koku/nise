@@ -21,7 +21,7 @@ from random import choice, uniform
 from nise.generators.azure.azure_generator import AzureGenerator
 
 
-# pylint: disable=too-many-arguments
+# pylint: disable=too-many-arguments,too-many-instance-attributes
 class VNGenerator(AzureGenerator):
     """Generator for Virtual Network data."""
 
@@ -41,7 +41,7 @@ class VNGenerator(AzureGenerator):
     )
 
     ADDITIONAL_INFO = (
-        {"ConsumptionMeter": "f114cb19-ea64-40b5-bcd7-aee474b62853"}
+        {'ConsumptionMeter': 'f114cb19-ea64-40b5-bcd7-aee474b62853'}
     )
 
     def __init__(self, start_date, end_date, payer_account, usage_accounts, attributes=None):
@@ -86,7 +86,13 @@ class VNGenerator(AzureGenerator):
         if self._instance_id:
             instance_id = self._instance_id
         else:
-            instance_id = 'subscriptions/' + self.payer_account + '/resourceGroups/' + resource_group + '/providers/Microsoft.Network/publicIPAddresses/' + resource_name
+            ip_addr_str = '/providers/Microsoft.Network/publicIPAddresses/'
+            instance_id = '{}/{}/{}/{}/{}/{}'.format('subscriptions',
+                                                     self.payer_account,
+                                                     'resourceGroups',
+                                                     resource_group,
+                                                     ip_addr_str,
+                                                     resource_name)
         return resource_group, instance_id, service_tier, meter_sub, meter_name, additional_info
 
     def _update_data(self, row, start, end, **kwargs):  # pylint: disable=too-many-locals
@@ -102,7 +108,8 @@ class VNGenerator(AzureGenerator):
         amount = self._usage_quantity if self._usage_quantity else uniform(0.000002, 0.09)
         cost = self._pre_tax_cost if self._pre_tax_cost else amount * rate
         azure_region, meter_region = self._get_location_info()
-        resource_group, instance_id, service_tier, meter_sub, meter_name, additional_info = self._get_resource_info()
+        resource_group, instance_id, service_tier, meter_sub, meter_name, additional_info = \
+            self._get_resource_info()
 
         row['ResourceGroup'] = resource_group
         row['ResourceLocation'] = azure_region
