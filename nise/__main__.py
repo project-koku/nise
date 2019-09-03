@@ -31,7 +31,7 @@ from nise.report import (aws_create_report,
 def valid_date(date_string):
     """Create date from date string."""
     try:
-        valid = datetime.datetime.strptime(date_string, '%m-%d-%Y')
+        valid = datetime.datetime.strptime(date_string, '%Y-%m-%d')
     except ValueError:
         msg = '{} is an unsupported date format.'.format(date_string)
         raise argparse.ArgumentTypeError(msg)
@@ -52,14 +52,14 @@ def create_parser():
                         dest='start_date',
                         required=False,
                         type=valid_date,
-                        help='Date to start generating data (MM-DD-YYYY)')
+                        help='Date to start generating data (YYYY-MM-DD)')
     parser.add_argument('--end-date',
                         metavar='DATE',
                         dest='end_date',
                         required=False,
                         type=valid_date,
                         default=today(),
-                        help='Date to end generating data (MM-DD-YYYY). Default is today.')
+                        help='Date to end generating data (YYYY-MM-DD). Default is today.')
     provider_group.add_argument('--aws',
                                 dest='aws',
                                 action='store_true',
