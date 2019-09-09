@@ -198,11 +198,17 @@ def _validate_ocp_arguments(parser, options):
     elif insights_upload is not None and not os.path.isdir(insights_upload):
         insights_user = os.environ.get('INSIGHTS_USER')
         insights_password = os.environ.get('INSIGHTS_PASSWORD')
-        if insights_user is None or insights_password is None:
-            msg = 'The environment must have INSIGHTS_USER and ' \
-                'INSIGHTS_PASSWORD defined when {} {} is supplied.'
+        insights_account_id = os.environ.get('INSIGHTS_ACCOUNT_ID')
+        insights_org_id = os.environ.get('INSIGHTS_ORG_ID')
+        if (insights_account_id is None or insights_org_id is None) and \
+                (insights_user is None or insights_password is None):
+            msg = 'The environment must have \nINSIGHTS_USER and ' \
+                'INSIGHTS_PASSWORD or\nINSIGHTS_ACCOUNT_ID and INSIGHTS_ORG_ID' \
+                'defined when {} {} is supplied.'
             msg = msg.format('--insights-upload', insights_upload)
             parser.error(msg)
+        # Either set of acceptable credentials are acceptable
+        ocp_valid = True
     else:
         ocp_valid = True
     return ocp_valid
