@@ -30,6 +30,7 @@ from unittest.mock import ANY, patch
 from nise.report import (aws_create_report,
                          ocp_create_report,
                          post_payload_to_ingest_service,
+                         ocp_route_file,
                          _create_month_list,
                          _get_generators,
                          _write_csv,
@@ -475,7 +476,7 @@ class ReportTestCase(TestCase):
             'x-rh-identity': base64.b64encode(json.dumps(header).encode('UTF-8'))
         }
 
-        response = post_payload_to_ingest_service(insights_upload, temp_file.name)
+        post_payload_to_ingest_service(insights_upload, temp_file.name)
         self.assertEqual(mock_post.call_args[1].get('headers'), headers)
         self.assertNotIn('auth', mock_post.call_args[1])
 
@@ -498,5 +499,28 @@ class ReportTestCase(TestCase):
         auth = (insights_user, insights_password)
 
         post_payload_to_ingest_service(insights_upload, temp_file.name)
+        self.assertEqual(mock_post.call_args[1].get('auth'), auth)
+        self.assertNotIn('headers', mock_post.call_args[1])
+
+    @patch.dict(os.environ, {'INSIGHTS_USER': '12345', 'INSIGHTS_PASSWORD': '54321'})
+    @patch('nise.report.requests.post')
+    def test_ocp_route_file(self, mock_post):
+        """Test that a response is good."""
+        insights_user = os.environ.get('INSIGHTS_USER')
+        insights_password = os.environ.get('INSIGHTS_PASSWORD')
+
+        temp_file = NamedTemporaryFile(mode='w', delete=False)
+        headers = ['col1', 'col2']
+        data = [{'col1': 'r1c1', 'col2': 'r1c2'},
+                {'col1': 'r2c1', 'col2': 'r2c2'}]
+        _write_csv(temp_file.name, data, headers)
+
+        insights_upload = 'test'
+
+        auth = (insights_user, insights_password)
+
+        mock_post.return_value.status_code = 202
+        ocp_route_file(insights_upload, temp_file.name)
+
         self.assertEqual(mock_post.call_args[1].get('auth'), auth)
         self.assertNotIn('headers', mock_post.call_args[1])
