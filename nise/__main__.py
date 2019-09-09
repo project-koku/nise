@@ -207,6 +207,8 @@ def _validate_ocp_arguments(parser, options):
                 'defined when {} {} is supplied.'
             msg = msg.format('--insights-upload', insights_upload)
             parser.error(msg)
+        # Either set of acceptable credentials are acceptable
+        ocp_valid = True
     else:
         ocp_valid = True
     return ocp_valid

@@ -14,8 +14,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
+import os
 from datetime import datetime, date
 from unittest import TestCase
+from unittest.mock import patch
 
 from nise.__main__ import (create_parser,
                            main,
@@ -88,6 +90,35 @@ class CommandLineTestCase(TestCase):
         with self.assertRaises(SystemExit):
             options = {'ocp': True, 'aws_bucket_name': 'mybucket', 'ocp_cluster_id': '123'}
             _validate_provider_inputs(self.parser, options)
+
+    @patch.dict(os.environ, {'INSIGHTS_ACCOUNT_ID': '12345', 'INSIGHTS_ORG_ID': '54321'})
+    def test_ocp_inputs_insights_upload_account_org_ids(self):
+        """
+        Test where user passes an invalid ocp argument combination.
+        """
+
+        options = {'ocp': True, 'insights_upload': 'true', 'ocp_cluster_id': '123'}
+        is_valid, _ = _validate_provider_inputs(self.parser, options)
+        self.assertTrue(is_valid)
+
+    @patch.dict(os.environ, {'INSIGHTS_USER': '12345', 'INSIGHTS_PASSWORD': '54321'})
+    def test_ocp_inputs_insights_upload_user_pass(self):
+        """
+        Test where user passes an invalid ocp argument combination.
+        """
+
+        options = {'ocp': True, 'insights_upload': 'true', 'ocp_cluster_id': '123'}
+        is_valid, _ = _validate_provider_inputs(self.parser, options)
+        self.assertTrue(is_valid)
+
+    def test_ocp_inputs_insights_upload_no_envs(self):
+        """
+        Test where user passes an invalid ocp argument combination.
+        """
+        with self.assertRaises(SystemExit):
+            options = {'ocp': True, 'insights_upload': 'true', 'ocp_cluster_id': '123'}
+            _validate_provider_inputs(self.parser, options)
+
 
     def test_ocp_no_cluster_id(self):
         """
