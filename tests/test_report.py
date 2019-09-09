@@ -435,7 +435,7 @@ class ReportTestCase(TestCase):
         generators = _get_generators(None)
         self.assertEqual(generators, [])
 
-        generator_list = [{'EC2Generator': {'start_date': '1-21-2019', 'end_date': '1-22-2019'}}]
+        generator_list = [{'EC2Generator': {'start_date': '2019-01-21', 'end_date': '2019-01-22'}}]
         generators = _get_generators(generator_list)
 
         self.assertIsNotNone(generators)
