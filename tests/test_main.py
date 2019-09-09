@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
-from datetime import datetime
+from datetime import datetime, date
 from unittest import TestCase
 
 from nise.__main__ import (create_parser,
@@ -36,10 +36,10 @@ class CommandLineTestCase(TestCase):
 
     def test_valid_date(self):
         """Test valid date."""
-        now = datetime.now()
-        date_str = now.strftime('%m-%d-%Y')
+        date_obj = date(2018, 1, 2)
+        date_str = '2018-01-02'
         out_date = valid_date(date_str)
-        self.assertEqual(now.date(), out_date.date())
+        self.assertEqual(date_obj, out_date.date())
 
     def test_with_empty_args(self):
         """
@@ -120,7 +120,7 @@ class CommandLineTestCase(TestCase):
         Test to load static report data from option.
         """
         options = {}
-        options['start_date'] = datetime.today()
+        options['start_date'] = date.today()
         options['static_report_file'] = 'tests/aws_static_report.yml'
         _load_static_report_data(options)
         self.assertIsNotNone(options['static_report_data'])
