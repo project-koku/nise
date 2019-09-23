@@ -142,8 +142,7 @@ class AzureGenerator(AbstractGenerator):
     def _generate_hourly_data(self, **kwargs):
         """Create hourly data."""
         # not required for azure
-        data = []
-        return data
+        return []
 
     @abstractmethod
     def _generate_daily_data(self):

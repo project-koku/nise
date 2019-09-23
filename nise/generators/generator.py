@@ -98,7 +98,7 @@ class AbstractGenerator(ABC):
 
     @abstractmethod
     def _generate_hourly_data(self, **kwargs):
-        """Create houldy data."""
+        """Create hourly data."""
 
     @abstractmethod
     def generate_data(self):
