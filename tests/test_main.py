@@ -14,8 +14,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
-from datetime import datetime
+import os
+from datetime import datetime, date
 from unittest import TestCase
+from unittest.mock import patch
 
 from nise.__main__ import (create_parser,
                            main,
@@ -36,10 +38,10 @@ class CommandLineTestCase(TestCase):
 
     def test_valid_date(self):
         """Test valid date."""
-        now = datetime.now()
-        date_str = now.strftime('%m-%d-%Y')
+        date_obj = date(2018, 1, 2)
+        date_str = '2018-01-02'
         out_date = valid_date(date_str)
-        self.assertEqual(now.date(), out_date.date())
+        self.assertEqual(date_obj, out_date.date())
 
     def test_with_empty_args(self):
         """
@@ -89,6 +91,35 @@ class CommandLineTestCase(TestCase):
             options = {'ocp': True, 'aws_bucket_name': 'mybucket', 'ocp_cluster_id': '123'}
             _validate_provider_inputs(self.parser, options)
 
+    @patch.dict(os.environ, {'INSIGHTS_ACCOUNT_ID': '12345', 'INSIGHTS_ORG_ID': '54321'})
+    def test_ocp_inputs_insights_upload_account_org_ids(self):
+        """
+        Test where user passes an invalid ocp argument combination.
+        """
+
+        options = {'ocp': True, 'insights_upload': 'true', 'ocp_cluster_id': '123'}
+        is_valid, _ = _validate_provider_inputs(self.parser, options)
+        self.assertTrue(is_valid)
+
+    @patch.dict(os.environ, {'INSIGHTS_USER': '12345', 'INSIGHTS_PASSWORD': '54321'})
+    def test_ocp_inputs_insights_upload_user_pass(self):
+        """
+        Test where user passes an invalid ocp argument combination.
+        """
+
+        options = {'ocp': True, 'insights_upload': 'true', 'ocp_cluster_id': '123'}
+        is_valid, _ = _validate_provider_inputs(self.parser, options)
+        self.assertTrue(is_valid)
+
+    def test_ocp_inputs_insights_upload_no_envs(self):
+        """
+        Test where user passes an invalid ocp argument combination.
+        """
+        with self.assertRaises(SystemExit):
+            options = {'ocp': True, 'insights_upload': 'true', 'ocp_cluster_id': '123'}
+            _validate_provider_inputs(self.parser, options)
+
+
     def test_ocp_no_cluster_id(self):
         """
         Test where user passes ocp without cluster id combination.
@@ -120,7 +151,7 @@ class CommandLineTestCase(TestCase):
         Test to load static report data from option.
         """
         options = {}
-        options['start_date'] = datetime.today()
+        options['start_date'] = date.today()
         options['static_report_file'] = 'tests/aws_static_report.yml'
         _load_static_report_data(options)
         self.assertIsNotNone(options['static_report_data'])

@@ -15,11 +15,13 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """Module responsible for generating the cost and usage report."""
+import base64
 import calendar
 import copy
 import csv
 import gzip
 import importlib
+import json
 import os
 import random
 import shutil
@@ -100,6 +102,7 @@ def _write_manifest(data):
         data    (String): data to store
     Returns:
         (String): Path to temporary file
+
     """
     t_file = NamedTemporaryFile(mode='w', suffix='.json', delete=False)
     t_file.write(data)
@@ -125,22 +128,51 @@ def ocp_route_file(insights_upload, local_path):
         extract_payload(insights_upload,
                         local_path)
     else:
-        with open(local_path, 'rb') as upload_file:
-            insights_user = os.environ.get('INSIGHTS_USER')
-            insights_password = os.environ.get('INSIGHTS_PASSWORD')
-            response = requests.post(insights_upload,
-                                     data={},
-                                     files={'file': ('payload.tar.gz',
-                                                     upload_file,
-                                                     'application/vnd.redhat.hccm.tar+tgz')},
-                                     auth=(insights_user, insights_password),
-                                     verify=False)
-            if response.status_code == 202:
-                print('File uploaded successfully.')
-                print(response.text)
-            else:
-                print('{} File upload failed.'.format(response.status_code))
-                print(response.text)
+        response = post_payload_to_ingest_service(insights_upload, local_path)
+        if response.status_code == 202:
+            print('File uploaded successfully.')
+            print(response.text)
+        else:
+            print('{} File upload failed.'.format(response.status_code))
+            print(response.text)
+
+
+def post_payload_to_ingest_service(insights_upload, local_path):
+    """POST the payload to Insights via header or basic auth."""
+    insights_account_id = os.environ.get('INSIGHTS_ACCOUNT_ID')
+    insights_org_id = os.environ.get('INSIGHTS_ORG_ID')
+    insights_user = os.environ.get('INSIGHTS_USER')
+    insights_password = os.environ.get('INSIGHTS_PASSWORD')
+    with open(local_path, 'rb') as upload_file:
+        if insights_account_id and insights_org_id:
+            header = {
+                'identity': {
+                    'account_number': insights_account_id,
+                    'internal': {'org_id': insights_org_id}
+                }
+
+            }
+            headers = {
+                'x-rh-identity': base64.b64encode(json.dumps(header).encode('UTF-8'))
+            }
+            return requests.post(
+                insights_upload,
+                data={},
+                files={
+                    'file': ('payload.tar.gz',
+                             upload_file,
+                             'application/vnd.redhat.hccm.tar+tgz')
+                },
+                headers=headers
+            )
+
+        return requests.post(insights_upload,
+                             data={},
+                             files={'file': ('payload.tar.gz',
+                                             upload_file,
+                                             'application/vnd.redhat.hccm.tar+tgz')},
+                             auth=(insights_user, insights_password),
+                             verify=False)
 
 
 def _create_month_list(start_date, end_date):
