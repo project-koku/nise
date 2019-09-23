@@ -59,8 +59,8 @@ Usage
 ===========
 nise is a command line tool. Currently only accepting a limited number of arguments:
 
-- *--start-date MM-dd-YYYY* (not supplied, if using --static-report-file yaml)
-- *--end-date MM-dd-YYYY* (optional, defaults to today and current hour)
+- *--start-date YYYY-MM-dd* (not supplied, if using --static-report-file yaml)
+- *--end-date YYYY-MM-dd* (optional, defaults to today and current hour)
 - (--aws | --ocp) required provider type
 - *--aws-s3-bucket-name bucket_name*  (optional, must include --aws-s3-report-name) Note: Use local directory path to populate a "local S3 bucket".
 - *--aws-s3-report-name report_name*  (optional, must include --aws-s3-bucket-name)
@@ -83,15 +83,15 @@ Note: `--static-report-file` usage dates has a special `full_period` key value w
 
 Below is an example usage of ``nise`` for AWS data::
 
-    nise --start-date 06-03-2018 --aws
+    nise --start-date 2018-06-03 --aws
 
-    nise --start-date 06-20-2018 --aws --aws-s3-bucket-name testbucket --aws-s3-report-name cur
+    nise --start-date 2018-06-20 --aws --aws-s3-bucket-name testbucket --aws-s3-report-name cur
 
-    nise --start-date 06-20-2018 --aws --aws-s3-bucket-name /local/path/testbucket --aws-s3-report-name cur
+    nise --start-date 2018-06-20 --aws --aws-s3-bucket-name /local/path/testbucket --aws-s3-report-name cur
 
-    nise --start-date 06-20-2018 --aws --aws-s3-bucket-name /local/path/testbucket --aws-s3-report-name cur --aws-s3-report-prefix my-prefix
+    nise --start-date 2018-06-20 --aws --aws-s3-bucket-name /local/path/testbucket --aws-s3-report-name cur --aws-s3-report-prefix my-prefix
 
-    nise --start-date 06-20-2018 --aws --aws-finalize copy
+    nise --start-date 2018-06-20 --aws --aws-finalize copy
 
     nise --aws --static-report-file aws_static_data.yml
 
@@ -99,11 +99,11 @@ Generated reports will be generated in monthly .csv files with the file format <
 
 Below is an example usage of ``nise`` for OCP data::
 
-    nise --start-date 06-03-2018 --ocp --ocp-cluster-id test-001
+    nise --start-date 2018-06-03 --ocp --ocp-cluster-id test-001
 
-    nise --start-date 06-03-2018 --ocp --ocp-cluster-id test-001 --insights-upload  https://cloud.redhat.com/api/ingress/v1/upload
+    nise --start-date 2018-06-03 --ocp --ocp-cluster-id test-001 --insights-upload  https://cloud.redhat.com/api/ingress/v1/upload
 
-    nise --start-date 06-03-2018 --ocp --ocp-cluster-id test-001 --insights-upload  /local/path/upload_dir
+    nise --start-date 2018-06-03 --ocp --ocp-cluster-id test-001 --insights-upload  /local/path/upload_dir
 
     nise --ocp --ocp-cluster-id my-cluster-id --static-report-file ocp_static_data.yml
 
