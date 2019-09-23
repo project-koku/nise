@@ -34,6 +34,7 @@ from nise.report import (aws_create_report,
                          post_payload_to_ingest_service,
                          ocp_route_file,
                          _create_month_list,
+                         _generate_azure_filename,
                          _get_generators,
                          _write_csv,
                          _write_manifest)
@@ -550,6 +551,15 @@ class AzureReportTestCase(TestCase):
     """
     TestCase class for Azure report functions.
     """
+
+    def test_generate_azure_filename(self):
+        """Test that."""
+        cur_path = os.getcwd()
+        temp = '/private/tmp'
+        os.chdir(temp)
+        tup = _generate_azure_filename()
+        self.assertEqual(tup[0], temp + '/' + tup[1])
+        os.chdir(cur_path)
 
     @patch('nise.report._generate_azure_filename')
     def test_azure_create_report(self, mock_name):

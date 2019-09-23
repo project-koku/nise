@@ -283,6 +283,7 @@ class TestDataTransferGenerator(AWSGeneratorTestCase):
         generator = DataTransferGenerator(self.two_hours_ago, self.now,
                                  self.payer_account, self.usage_accounts,
                                  self.attributes)
+        self.assertIsNotNone(generator._product_sku)
         data = generator.generate_data()
         self.assertNotEqual(data, [])
 
