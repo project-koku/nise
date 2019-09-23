@@ -83,6 +83,14 @@ def _write_csv(output_file, data, header):
             writer.writerow(row)
 
 
+def _generate_azure_filename():
+    """Generate filename for azure report."""
+    output_file_name = '{}_{}'.format('costreport', uuid4())
+    local_path = '{}/{}.csv'.format(os.getcwd(), output_file_name)
+    output_file_name = output_file_name + '.csv'
+    return (local_path, output_file_name)
+
+
 def _gzip_report(report_path):
     """Compress the report."""
     t_file = NamedTemporaryFile(mode='wb', suffix='.csv.gz', delete=False)
@@ -434,9 +442,7 @@ def azure_create_report(options):
                                 usage_accounts, attributes)
             data += gen.generate_data()
 
-        output_file_name = '{}_{}'.format('costreport', uuid4())
-        local_path = '{}/{}.csv'.format(os.getcwd(), output_file_name)
-        output_file_name = output_file_name + '.csv'
+        local_path, output_file_name = _generate_azure_filename()
 
         _write_csv(local_path, data, AZURE_COLUMNS)
 
