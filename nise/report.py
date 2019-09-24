@@ -91,6 +91,12 @@ def _generate_azure_filename():
     return (local_path, output_file_name)
 
 
+def _generate_azure_date_range(month):
+    start = month.get('start').replace(day=1)
+    end = start + relativedelta(months=+1, days=-1)
+    return start.strftime('%Y%m%d') + '-' + end.strftime('%Y%m%d')
+
+
 def _gzip_report(report_path):
     """Compress the report."""
     t_file = NamedTemporaryFile(mode='wb', suffix='.csv.gz', delete=False)
@@ -443,14 +449,21 @@ def azure_create_report(options):
             data += gen.generate_data()
 
         local_path, output_file_name = _generate_azure_filename()
+        date_range = _generate_azure_date_range(month)
 
         _write_csv(local_path, data, AZURE_COLUMNS)
 
         azure_storage_account = options.get('azure_storage_name')
+        prefix_name = options.get('azure_prefix_name')
         if azure_storage_account:
+            file_path = ''
+            if prefix_name:
+                file_path += prefix_name + '/'
             storage_account_name = str(os.environ.get('ACCOUNT_NAME'))
             container_name = options.get('azure_report_name')
-            file_path = container_name + '/' + output_file_name
+            file_path += container_name + '/'
+            file_path += date_range + '/'
+            file_path += output_file_name
 
             # azure blob upload
             azure_route_file(storage_account_name,

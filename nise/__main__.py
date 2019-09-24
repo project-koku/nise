@@ -115,8 +115,7 @@ def create_parser():
     parser.add_argument('--static-report-file',
                         dest='static_report_file',
                         required=False,
-                        help="""Generate static data based on yaml.
-                            """)
+                        help='Generate static data based on yaml.')
     parser.add_argument('--ocp-cluster-id',
                         metavar='OCP_CLUSTER_ID',
                         dest='ocp_cluster_id',
@@ -239,14 +238,14 @@ def _validate_azure_arguments(parser, options):
             msg = 'AWS arguments cannot be supplied when generating Azure data.'
             parser.error(msg)
 
-    azure_storage_name, azure_report_name, _, _ = _get_aws_options(options)
+    azure_storage_name, azure_report_name, _ = _get_azure_options(options)
     if azure_storage_name and azure_report_name:
         azure_valid = True
     elif not azure_storage_name and not azure_report_name:
         azure_valid = True
     if not azure_valid:
         msg = 'Both {} and {} must be supplied, if one is provided.'
-        msg = msg.format('--azure-bucket-name', '--azure-report-name')
+        msg = msg.format('--azure-storage-name', '--azure-report-name')
         parser.error(msg)
     return azure_valid
 

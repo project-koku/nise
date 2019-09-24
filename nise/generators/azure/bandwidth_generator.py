@@ -62,20 +62,20 @@ class BandwidthGenerator(AzureGenerator):
         self._service_name = 'Bandwidth'
         self._service_tier = 'Bandwidth'
         if attributes:
-            if attributes.get('_service_name'):
-                self._service_name = attributes.get('_service_name')
-            if attributes.get('_service_tier'):
-                self._service_tier = attributes.get('_service_tier')
-            if attributes.get('_instance_id'):
-                self._instance_id = attributes.get('_instance_id')
-            if attributes.get('_meter_id'):
-                self._meter_id = attributes.get('_meter_id')
-            if attributes.get('_usage_quantity'):
-                self._usage_quantity = attributes.get('_usage_quantity')
-            if attributes.get('_resource_rate'):
-                self._resource_rate = attributes.get('_resource_rate')
-            if attributes.get('_pre_tax_cost'):
-                self._pre_tax_cost = attributes.get('_pre_tax_cost')
+            if attributes.get('service_name'):
+                self._service_name = attributes.get('service_name')
+            if attributes.get('service_tier'):
+                self._service_tier = attributes.get('service_tier')
+            if attributes.get('instance_id'):
+                self._instance_id = attributes.get('instance_id')
+            if attributes.get('meter_id'):
+                self._meter_id = attributes.get('meter_id')
+            if attributes.get('usage_quantity'):
+                self._usage_quantity = attributes.get('usage_quantity')
+            if attributes.get('resource_rate'):
+                self._resource_rate = attributes.get('resource_rate')
+            if attributes.get('pre_tax_cost'):
+                self._pre_tax_cost = attributes.get('pre_tax_cost')
             if attributes.get('tags'):
                 self._tags = attributes.get('tags')
 
