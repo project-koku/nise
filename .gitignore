@@ -105,6 +105,7 @@ venv.bak/
 
 .vscode
 .sw*
+*.code-workspace
 
 # Generated csv files
 *.csv
