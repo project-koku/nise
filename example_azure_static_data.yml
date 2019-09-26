@@ -1,24 +1,24 @@
 ---
 generators:
   - BandwidthGenerator:
-      start_date: today
+      start_date: 2019-08-02
       meter_id: 55555555-4444-3333-2222-111111111112
       resource_location: "US East"
       tags: {"environment": "ci", "project":"p1"}
   - SQLGenerator:
-      start_date: today
+      start_date: 2019-08-02
       meter_id: 55555555-4444-3333-2222-111111111114
       resource_location: "US South Central"
       tags: {"environment": "dev", "project":"p2"}
       additional_info: {"ConsumptionMeter": "1111aaaa-22bb-33cc-44dd-555555eeeeee"}
   - StorageGenerator:
-      start_date: today
+      start_date: 2019-08-02
       meter_id: 55555555-4444-3333-2222-111111111116
       resource_location: "US North Central"
       tags: {"environment": "prod", "project":"p3"}
       additional_info: {"ConsumptionMeter": "1111aaaa-22bb-33cc-44dd-555555eeeeee"}
   - VMGenerator:
-      start_date: today
+      start_date: 2019-08-02
       meter_id: 55555555-4444-3333-2222-111111111118
       resource_location: "US West"
       tags: {"environment": "prod", "project":"p3"}
