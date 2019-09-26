@@ -222,7 +222,7 @@ class AWSGenerator(AbstractGenerator):
         """Update data with generator specific data."""
 
     def _generate_hourly_data(self, **kwargs):
-        """Create houldy data."""
+        """Create hourly data."""
         data = []
         for hour in self.hours:
             start = hour.get('start')
@@ -234,4 +234,4 @@ class AWSGenerator(AbstractGenerator):
 
     @abstractmethod
     def generate_data(self):
-        """Responsibile for generating data."""
+        """Responsible for generating data."""

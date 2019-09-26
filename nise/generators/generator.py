@@ -102,4 +102,4 @@ class AbstractGenerator(ABC):
 
     @abstractmethod
     def generate_data(self):
-        """Responsibile for generating data."""
+        """Responsible for generating data."""
