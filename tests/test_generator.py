@@ -228,6 +228,7 @@ class TestRDSGenerator(AWSGeneratorTestCase):
                                  self.payer_account, self.usage_accounts,
                                  self.attributes)
         self.assertEqual(generator._product_sku, self.product_sku)
+        self.assertEqual(generator._resource_id, self._resource_id)
         self.assertEqual(generator._tags, self.tags)
         self.assertEqual(generator._instance_type[:-1], tuple(self.instance_type.values()))
 
