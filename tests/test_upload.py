@@ -20,6 +20,7 @@ from unittest import TestCase
 from unittest.mock import Mock, patch
 
 import boto3
+from botocore.exceptions import ClientError
 
 from nise.upload import upload_to_s3
 
@@ -35,11 +36,26 @@ class UploadTestCase(TestCase):
         bucket_name = 'my_bucket'
         s3_client = Mock()
         s3_client.Bucket.create.return_value = Mock()
-        s3_client.Bucket.upload_file.return_value = Mock()
+        s3_client.Bucket.return_value.upload_file.return_value = Mock()
         mock_boto_resource.return_value = s3_client
         s3_client = boto3.resource('s3')
         s3_client.Bucket(bucket_name).create()
         t_file = NamedTemporaryFile(delete=False)
         success = upload_to_s3(bucket_name, '/file.txt', t_file.name)
         self.assertTrue(success)
+        os.remove(t_file.name)
+
+    @patch('boto3.resource')
+    def test_upload_failure(self, mock_boto_resource):
+        """Test upload_to_s3 method with mock s3."""
+        bucket_name = 'my_bucket'
+        s3_client = Mock()
+        s3_client.Bucket.create.return_value = Mock()
+        s3_client.Bucket.return_value.upload_file.side_effect = ClientError({'Error': {}}, 'Create')
+        mock_boto_resource.return_value = s3_client
+        s3_client = boto3.resource('s3')
+        s3_client.Bucket(bucket_name).create()
+        t_file = NamedTemporaryFile(delete=False)
+        success = upload_to_s3(bucket_name, '/file.txt', t_file.name)
+        self.assertFalse(success)
         os.remove(t_file.name)
