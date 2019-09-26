@@ -226,7 +226,6 @@ class TestRDSGenerator(AWSGeneratorTestCase):
                                  self.payer_account, self.usage_accounts)
         self.assertIsNotNone(generator._product_sku)
         self.assertIsNotNone(generator._resource_id)
-        self.assertIsNotNone(generator._tags)
         self.assertIsNotNone(generator._instance_type)
 
 
