@@ -16,8 +16,12 @@ before_install:
 install:
   - pip install tox
 
+before_script:
+  - ./cc-test-reporter before-build
+
 script:
   - tox
 
 after_success:
+  - codecov
   - ./cc-test-reporter after-build
