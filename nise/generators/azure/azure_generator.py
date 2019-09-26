@@ -152,4 +152,4 @@ class AzureGenerator(AbstractGenerator):
     def generate_data(self):
         """Responsible for generating data."""
 
-#change comment
+# change comment
