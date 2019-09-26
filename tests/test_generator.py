@@ -223,7 +223,8 @@ class TestRDSGenerator(AWSGeneratorTestCase):
     def test_init_no_attributes(self):
         """Test the init wihout attributes."""
         generator = RDSGenerator(self.two_hours_ago, self.now,
-                                 self.payer_account, self.usage_accounts)
+                                 self.payer_account, self.usage_accounts,
+                                 attributes={})
         self.assertIsNotNone(generator._product_sku)
         self.assertIsNotNone(generator._resource_id)
         self.assertIsNotNone(generator._instance_type)
