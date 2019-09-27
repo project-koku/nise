@@ -164,7 +164,6 @@ def _get_azure_options(options):
     azure_storage_name = options.get('azure_storage_name')
     azure_report_name = options.get('azure_report_name')
     azure_prefix_name = options.get('azure_prefix_name')
-    # azure_finalize_report = options.get('azure_finalize_report')
     return (azure_storage_name, azure_report_name, azure_prefix_name)
 
 
