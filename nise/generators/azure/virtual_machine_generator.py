@@ -21,6 +21,7 @@ from nise.generators.azure.azure_generator import AzureGenerator
 # pylint: disable=too-many-arguments, too-many-instance-attributes
 class VMGenerator(AzureGenerator):
     """Generator for Virtual Machine data."""
+
     SERVICE_METER = (
         ('A Series', 'A Series', 'A0', '100 Hours'),
         ('BS Series', 'BS Series', 'B2s', ''),
@@ -45,6 +46,7 @@ class VMGenerator(AzureGenerator):
         {'UsageType': 'ComputeHR', 'ImageType': 'Canonical', 'ServiceType': 'Standard_B2s',
          'VMName': None, 'VMProperties': 'Microsoft.AKS.Compute.AKS.Linux.Billing', 'VCPUs': 2}
     )
+
     def __init__(self, start_date, end_date, payer_account, usage_accounts, attributes=None):
         """Initialize the data transfer generator."""
         self._service_name = 'Virtual Machines'

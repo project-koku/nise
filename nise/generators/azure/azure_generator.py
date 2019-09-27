@@ -17,7 +17,6 @@
 """Defines the abstract generator."""
 import datetime
 import json
-from abc import abstractmethod
 from random import choice, randint, uniform
 
 from nise.generators.generator import AbstractGenerator
@@ -48,7 +47,7 @@ AZURE_COLUMNS = ('SubscriptionGuid',
                  'UnitOfMeasure')
 
 
-# pylint: disable=too-few-public-methods, too-many-arguments
+# pylint: disable=too-few-public-methods, too-many-arguments, too-many-instance-attributes
 class AzureGenerator(AbstractGenerator):
     """Defines an abstract class for generators."""
 
@@ -86,7 +85,7 @@ class AzureGenerator(AbstractGenerator):
 
     SERVICE_NAMES = ['SQL Database', 'Storage', 'Virtual Machines', 'Virtual Network']
 
-    def __init__(self, start_date, end_date, payer_account, usage_accounts, attributes={}):
+    def __init__(self, start_date, end_date, payer_account, usage_accounts, attributes=None):
         """Initialize the generator."""
         self.payer_account = payer_account
         self.usage_accounts = usage_accounts
@@ -127,6 +126,7 @@ class AzureGenerator(AbstractGenerator):
             service_name = choice(self.SERVICE_NAMES)
         return self.ACCTS_STR[service_name]
 
+    # pylint: disable=too-many-locals
     def _get_resource_info(self, service_meter, ex_resource, add_info, service_info):
         """Return resource information."""
         service_tier, meter_sub, meter_name, units_of_measure = choice(service_meter)
@@ -223,9 +223,9 @@ class AzureGenerator(AbstractGenerator):
         azure_region, meter_region = self._get_location_info()
         # pylint: disable=line-too-long
         (resource_group, instance_id, service_tier, meter_sub,
-            meter_name, units_of_measure, additional_info, service_info_2) = \
-                self._get_resource_info(self.SERVICE_METER, self.EXAMPLE_RESOURCE,
-                                        self.ADDITIONAL_INFO, self.SERVICE_INFO_2)
+         meter_name, units_of_measure, additional_info, service_info_2) = \
+            self._get_resource_info(self.SERVICE_METER, self.EXAMPLE_RESOURCE,
+                                    self.ADDITIONAL_INFO, self.SERVICE_INFO_2)
         if not additional_info:
             additional_info = ''
         if not service_info_2:

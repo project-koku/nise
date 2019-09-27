@@ -15,19 +15,19 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """Module for azure bandwidth data generation."""
-from random import choice, uniform
-
 from nise.generators.azure.azure_generator import AzureGenerator
 
 
 # pylint: disable=too-many-arguments, too-many-instance-attributes
 class StorageGenerator(AzureGenerator):
     """Generator for Storage data."""
+
     SERVICE_METER = (
         ('General Block Blob', 'General Block Blob', 'Write Operations', '100000000'),
         ('General Block Blob', 'General Block Blob', 'Read Operations', '100000000'),
         ('General Block Blob', 'General Block Blob', 'Delete Operations', '100000000'),
-        ('General Block Blob', 'General Block Blob', 'List and Create Container Operations', '100000000'),
+        ('General Block Blob', 'General Block Blob',
+         'List and Create Container Operations', '100000000'),
         ('General Block Blob', 'General Block Blob', 'GRS Write Operations', '100000000'),
         ('Blob Storage', 'Tiered Block Blob', 'Hot RA-GRS Data Stored', '100 GB/Month'),
         ('Blob Storage', 'Tiered Block Blob', 'Hot GRS Write Operations', '1000000'),
@@ -44,7 +44,8 @@ class StorageGenerator(AzureGenerator):
         ('Tables', 'Tables', 'LRS Data Stored', '100 GB/Month'),
         ('Tables', 'Tables', 'RA-GRS Data Stored', '100 GB/Month'),
         ('Standard SSD Managed Disks', 'Standard SSD Managed Disks', 'E4 Disks', '1 /Month'),
-        ('Standard SSD Managed Disks', 'Standard SSD Managed Disks', 'Disk Operations', '100000000'),
+        ('Standard SSD Managed Disks', 'Standard SSD Managed Disks',
+         'Disk Operations', '100000000'),
         ('Premium SSD Managed Disks', 'Premium SSD Managed Disks', 'P10 Disks', ''),
         ('Premium SSD Managed Disks', 'Premium SSD Managed Disks', 'Disk Operations', ''),
         ('Standard Page Blob', 'Standard Page Blob', 'Disk Read Operations', '100000000'),

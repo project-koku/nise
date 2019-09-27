@@ -21,6 +21,7 @@ from nise.generators.azure.azure_generator import AzureGenerator
 # pylint: disable=too-many-arguments,too-many-instance-attributes
 class VNGenerator(AzureGenerator):
     """Generator for Virtual Network data."""
+
     SERVICE_METER = (
         ('IP Addresses', 'IP Addresses', 'Dynamic Public IP - Free', ''),
     )

@@ -21,6 +21,7 @@ from nise.generators.azure.azure_generator import AzureGenerator
 # pylint: disable=too-many-arguments, too-many-instance-attributes
 class BandwidthGenerator(AzureGenerator):
     """Generator for Bandwidth data."""
+
     SERVICE_METER = (
         ('Bandwidth', '', 'Data Transfer In', '10 GB'),
         ('Bandwidth', '', 'Data Transfer Out - Free', '')
