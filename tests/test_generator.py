@@ -220,14 +220,23 @@ class TestRDSGenerator(AWSGeneratorTestCase):
     #     """Set up each test."""
     #     super().setUp()
 
+    def test_init_no_attributes(self):
+        """Test the init wihout attributes."""
+        generator = RDSGenerator(self.two_hours_ago, self.now,
+                                 self.payer_account, self.usage_accounts,
+                                 attributes={'empty': 'dictionary'})
+        self.assertIsNotNone(generator._product_sku)
+        self.assertIsNotNone(generator._resource_id)
+        self.assertIsNotNone(generator._instance_type)
+
 
     def test_init_with_attributes(self):
         """Test the unique init options for RDS."""
-
         generator = RDSGenerator(self.two_hours_ago, self.now,
                                  self.payer_account, self.usage_accounts,
                                  self.attributes)
         self.assertEqual(generator._product_sku, self.product_sku)
+        self.assertEqual(generator._resource_id, 'i-' + self.resource_id)
         self.assertEqual(generator._tags, self.tags)
         self.assertEqual(generator._instance_type[:-1], tuple(self.instance_type.values()))
 
@@ -277,14 +286,6 @@ class TestDataTransferGenerator(AWSGeneratorTestCase):
 
         self.assertEqual(row['product/servicecode'], 'AWSDataTransfer')
         self.assertEqual(row['product/productFamily'], 'Data Transfer')
-
-    def test_generate_data(self):
-        """Test that the Data Transfer generate_data method works."""
-        generator = DataTransferGenerator(self.two_hours_ago, self.now,
-                                 self.payer_account, self.usage_accounts,
-                                 self.attributes)
-        data = generator.generate_data()
-        self.assertNotEqual(data, [])
 
 
 class TestEBSGenerator(AWSGeneratorTestCase):
