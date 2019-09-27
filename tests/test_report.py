@@ -42,7 +42,7 @@ from nise.generators.ocp.ocp_generator import OCP_REPORT_TYPE_TO_COLS
 
 MOCK_AZURE_REPORT_FILENAME = '{}/costreport_12345678-1234-5678-1234-567812345678.csv'.format(os.getcwd())
 
-class ReportTestCase(TestCase):
+class MiscReportTestCase(TestCase):
     """
     TestCase class for report functions
     """
@@ -586,44 +586,6 @@ class AzureReportTestCase(TestCase):
                    'azure_report_name': 'cur_report'}
         azure_create_report(options)
         expected_month_output_file = MOCK_AZURE_REPORT_FILENAME
-        self.assertTrue(os.path.isfile(expected_month_output_file))
-        os.remove(expected_month_output_file)
-        shutil.rmtree(local_storage_path)
-
-    @skip
-    @patch('nise.report._generate_azure_filename')
-    def test_azure_create_report_with_local_dir_static_generation(self, mock_name):
-        """Test the aws report creation method with local directory and static generation."""
-        mock_name.side_effect = mock_generate_azure_filename
-        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0)
-        one_day = datetime.timedelta(days=1)
-        yesterday = now - one_day
-        local_storage_path = mkdtemp()
-
-        static_azure_data = {'generators': [{'BandwidthGenerator': {'start_date': str(yesterday.date()), 'end_date': str(now.date()),
-                                                            'service_name': '32-bit', 'service_tier': 55555555,
-                                                            'instance_id': 'VEAJHRNKTJZQ', 'meter_id': '55555555-4444-3333-2222-111111111112',
-                                                            'usage_quantity': 'something', 'resource_rate': 'something',
-                                                            'pre_tax_cost': 'something',
-                                                            'tags': {"environment": "ci", "project":"p1"}}},
-                                          {'S3Generator': {'start_date': str(yesterday.date()), 'end_date': str(now.date()),
-                                                           'product_sku': 'VEAJHRNAAAAA', 'amount': 10, 'rate': 3}},
-                                          {'EBSGenerator': {'start_date': str(yesterday.date()), 'end_date': str(now.date()),
-                                                            'product_sku': 'VEAJHRNBBBBB', 'amount': 10, 'rate': 3,
-                                                            'resource_id': 12345678}},
-                                          {'DataTransferGenerator': {'start_date': str(yesterday.date()), 'end_date': str(now.date()),
-                                                                     'product_sku': 'VEAJHRNCCCCC', 'amount': 10, 'rate': 3}}],
-                           'accounts': {'payer': '12345678-1234-5678-1234-567812345678', 'user': ['12345678-1234-5678-1234-567812345678']}}
-        options = {'start_date': yesterday,
-                   'end_date': now,
-                   'azure_storage_name': local_storage_path,
-                   'azure_report_name': 'cur_report',
-                   'static_report_data': static_azure_data}
-        azure_create_report(options)
-        month_output_file_name = '{}-{}-{}'.format(calendar.month_name[now.month],
-                                                   now.year,
-                                                   'cur_report')
-        expected_month_output_file = '{}/{}.csv'.format(os.getcwd(), month_output_file_name)
         self.assertTrue(os.path.isfile(expected_month_output_file))
         os.remove(expected_month_output_file)
         shutil.rmtree(local_storage_path)

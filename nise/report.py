@@ -279,7 +279,6 @@ def _get_generators(generator_list):
                     attributes['end_date'] = parser.parse(attributes.get('end_date'))
                 generator_obj['attributes'] = attributes
                 generators.append(generator_obj)
-
     return generators
 
 
@@ -417,11 +416,11 @@ def azure_create_report(options):
         generators = _get_generators(static_report_data.get('generators'))
         accounts_list = static_report_data.get('accounts')
     else:
-        generators = [{'generator': BandwidthGenerator, 'attributes': None},
-                      {'generator': SQLGenerator, 'attributes': None},
-                      {'generator': StorageGenerator, 'attributes': None},
-                      {'generator': VMGenerator, 'attributes': None},
-                      {'generator': VNGenerator, 'attributes': None}]
+        generators = [{'generator': BandwidthGenerator, 'attributes': {}},
+                      {'generator': SQLGenerator, 'attributes': {}},
+                      {'generator': StorageGenerator, 'attributes': {}},
+                      {'generator': VMGenerator, 'attributes': {}},
+                      {'generator': VNGenerator, 'attributes': {}}]
         accounts_list = None
 
     months = _create_month_list(start_date, end_date)
@@ -432,7 +431,7 @@ def azure_create_report(options):
         data = []
         for generator in generators:
             generator_cls = generator.get('generator')
-            attributes = generator.get('attributes')
+            attributes = generator.get('attributes', {})
             gen_start_date = month.get('start')
             gen_end_date = month.get('end')
             if attributes:
