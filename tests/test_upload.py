@@ -20,9 +20,10 @@ from unittest import TestCase
 from unittest.mock import Mock, patch
 
 import boto3
+from azure.storage.blob import BlockBlobService
 from botocore.exceptions import ClientError
 
-from nise.upload import upload_to_s3
+from nise.upload import upload_to_s3, upload_to_storage
 
 
 class UploadTestCase(TestCase):
@@ -31,7 +32,7 @@ class UploadTestCase(TestCase):
     """
 
     @patch('boto3.resource')
-    def test_upload_success(self, mock_boto_resource):
+    def test_upload_to_s3_success(self, mock_boto_resource):
         """Test upload_to_s3 method with mock s3."""
         bucket_name = 'my_bucket'
         s3_client = Mock()
@@ -46,7 +47,7 @@ class UploadTestCase(TestCase):
         os.remove(t_file.name)
 
     @patch('boto3.resource')
-    def test_upload_failure(self, mock_boto_resource):
+    def test_upload_to_s3_failure(self, mock_boto_resource):
         """Test upload_to_s3 method with mock s3."""
         bucket_name = 'my_bucket'
         s3_client = Mock()
@@ -57,5 +58,24 @@ class UploadTestCase(TestCase):
         s3_client.Bucket(bucket_name).create()
         t_file = NamedTemporaryFile(delete=False)
         success = upload_to_s3(bucket_name, '/file.txt', t_file.name)
+        self.assertFalse(success)
+        os.remove(t_file.name)
+
+    @patch.object(BlockBlobService, 'create_blob_from_path')
+    def test_upload_to_azure_success(self, mock_blob_service):
+        """Test upload_to_s3 method with mock s3."""
+        container_name = 'my_container'
+        t_file = NamedTemporaryFile(delete=False)
+        success = upload_to_storage(container_name, '/file.txt', t_file.name)
+        self.assertTrue(success)
+        os.remove(t_file.name)
+
+    @patch.object(BlockBlobService, 'create_blob_from_path')
+    def test_upload_to_azure_failure(self, mock_blob_service):
+        """Test upload_to_s3 method with mock s3."""
+        mock_blob_service.side_effect = Exception({'Error': {}}, 'Create')
+        container_name = 'my_container'
+        t_file = NamedTemporaryFile(delete=False)
+        success = upload_to_storage(container_name, '/file.txt', t_file.name)
         self.assertFalse(success)
         os.remove(t_file.name)

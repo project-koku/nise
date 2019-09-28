@@ -72,6 +72,7 @@ def upload_to_storage(storage_file_name, local_path, storage_file_path):
         # Upload the created file, use local_file_name for the blob name.
         block_blob_service.create_blob_from_path(
             storage_file_name, storage_file_path, local_path)
+        print(f'uploaded {storage_file_name} to {storage_account}')
     # pylint: disable=broad-except
     except Exception as error:
         print(error)

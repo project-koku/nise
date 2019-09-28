@@ -558,6 +558,7 @@ class AzureReportTestCase(TestCase):
         self.assertIsNotNone(tup[0])
         self.assertIsNotNone(tup[1])
 
+    @patch.dict(os.environ, {'AZURE_STORAGE_ACCOUNT': 'None'})
     @patch('nise.report._generate_azure_filename')
     def test_azure_create_report(self, mock_name):
         """Test the azure report creation method."""
@@ -572,9 +573,10 @@ class AzureReportTestCase(TestCase):
         self.assertTrue(os.path.isfile(local_path))
         os.remove(local_path)
 
+    @patch.dict(os.environ, {'AZURE_STORAGE_ACCOUNT': 'None'})
     @patch('nise.report._generate_azure_filename')
     def test_azure_create_report_with_local_dir(self, mock_name):
-        """Test the aws report creation method with local directory."""
+        """Test the azure report creation method with local directory."""
         mock_name.side_effect = mock_generate_azure_filename
         now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
         one_day = datetime.timedelta(days=1)
@@ -589,3 +591,24 @@ class AzureReportTestCase(TestCase):
         self.assertTrue(os.path.isfile(expected_month_output_file))
         os.remove(expected_month_output_file)
         shutil.rmtree(local_storage_path)
+
+    @patch.dict(os.environ, {'AZURE_STORAGE_ACCOUNT': 'NOT None'})
+    @patch('nise.report.upload_to_storage')
+    @patch('nise.report._generate_azure_filename')
+    def test_azure_create_report_upload_to_azure(self, mock_name, mock_upload):
+        """Test the azure upload is called when environment variable is set."""
+        mock_name.side_effect = mock_generate_azure_filename
+        mock_upload.return_value = True
+        os.environ['AZURE_STORAGE_ACCOUNT'] = 'not none'
+        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
+        one_day = datetime.timedelta(days=1)
+        yesterday = now - one_day
+        local_storage_path = mkdtemp()
+        options = {'start_date': yesterday,
+                   'end_date': now,
+                   'azure_prefic_name': 'prefix',
+                   'azure_storage_name': local_storage_path,
+                   'azure_report_name': 'cur_report'}
+        azure_create_report(options)
+        mock_upload.assert_called()
+        os.remove(MOCK_AZURE_REPORT_FILENAME)
