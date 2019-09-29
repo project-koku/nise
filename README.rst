@@ -121,6 +121,25 @@ Generated AWS reports will be generated in monthly .csv files with the file form
 
 Generated OCP reports will be generated in monthly .csv files with the file format <Month>-<Year>-<Cluster-ID>.csv.
 
+AZURE
+-----
+
+Note: To upload to AZURE, you must have AZURE_STORAGE_ACCOUNT and AZURE_ACCOUNT_KEY set in your environment.
+
+Below is an example usage of ``nise`` for AZURE data::
+
+    nise --start-date 2019-08-01 --azure
+
+    nise --start-date 2019-08-01 --azure --azure-storage-name container --azure-report-name cur
+
+    nise --start-date 2019-08-01 --azure --azure-storage-name /local/path/container --azure-report-name cur
+
+    nise --start-date 2019-08-01 --azure --azure-storage-name /local/path/container --azure-report-name cur --azure-storage-report-prefix my-prefix
+
+    nise --start-date 2019-08-01 --azure --azure-storage-name /local/path/container --azure-report-name cur --azure-storage-report-prefix my-prefix --static-report-file example_azure_static_data.yml
+
+    nise --azure --static-report-file azure_static_data.yml
+
 Contributing
 =============
 
