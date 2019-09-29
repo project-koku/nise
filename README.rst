@@ -140,6 +140,25 @@ Below is an example usage of ``nise`` for AZURE data::
 
     nise --azure --static-report-file azure_static_data.yml
 
+To add an AZURE-local provider::
+
+    {
+        "name": "Test Azure Source",
+        "type": "AZURE-local",
+        "authentication": {
+            "credentials": {
+                "subscription_id": "12345678-1234-5678-1234-567812345678",
+                "tenant_id": "12345678-1234-5678-1234-567812345678",
+                "client_id": "12345678-1234-5678-1234-567812345678",
+                "client_secret": "12345"
+            }
+        }, "billing_source": {
+            "data_source": { "resource_group": { "directory": "cost", "export_name": "costreport"},
+                "storage_account": { "local_dir": "/tmp", "container": "local_container" }
+            }
+        }
+    }
+
 Contributing
 =============
 
