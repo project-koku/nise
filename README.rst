@@ -153,8 +153,15 @@ To add an AZURE-local provider::
                 "client_secret": "12345"
             }
         }, "billing_source": {
-            "data_source": { "resource_group": { "directory": "cost", "export_name": "costreport"},
-                "storage_account": { "local_dir": "/tmp", "container": "local_container" }
+            "data_source": {
+                "resource_group": {
+                    "directory": --azure-storage-report-prefix,
+                    "export_name": --azure-report-name
+                },
+                "storage_account": {
+                    "local_dir": "/tmp/local_container",
+                    "container": ""
+                }
             }
         }
     }
