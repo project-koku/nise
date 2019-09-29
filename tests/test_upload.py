@@ -41,8 +41,8 @@ class UploadTestCase(TestCase):
         mock_boto_resource.return_value = s3_client
         s3_client = boto3.resource('s3')
         s3_client.Bucket(bucket_name).create()
-        t_file = NamedTemporaryFile(delete=False)
-        success = upload_to_s3(bucket_name, '/file.txt', t_file.name)
+        with NamedTemporaryFile(delete=False) as t_file:
+            success = upload_to_s3(bucket_name, '/file.txt', t_file.name)
         self.assertTrue(success)
         os.remove(t_file.name)
 
@@ -56,26 +56,26 @@ class UploadTestCase(TestCase):
         mock_boto_resource.return_value = s3_client
         s3_client = boto3.resource('s3')
         s3_client.Bucket(bucket_name).create()
-        t_file = NamedTemporaryFile(delete=False)
-        success = upload_to_s3(bucket_name, '/file.txt', t_file.name)
+        with NamedTemporaryFile(delete=False) as t_file:
+            success = upload_to_s3(bucket_name, '/file.txt', t_file.name)
         self.assertFalse(success)
         os.remove(t_file.name)
 
     @patch.object(BlockBlobService, 'create_blob_from_path')
     def test_upload_to_azure_success(self, mock_blob_service):
-        """Test upload_to_s3 method with mock s3."""
+        """Test successful upload_to_storage method with mock."""
         container_name = 'my_container'
-        t_file = NamedTemporaryFile(delete=False)
-        success = upload_to_storage(container_name, '/file.txt', t_file.name)
+        with NamedTemporaryFile(delete=False) as t_file:
+            success = upload_to_storage(container_name, '/file.txt', t_file.name)
         self.assertTrue(success)
         os.remove(t_file.name)
 
     @patch.object(BlockBlobService, 'create_blob_from_path')
     def test_upload_to_azure_failure(self, mock_blob_service):
-        """Test upload_to_s3 method with mock s3."""
-        mock_blob_service.side_effect = Exception({'Error': {}}, 'Create')
+        """Test failure upload_to_storage method with mock."""
+        mock_blob_service.side_effect = Exception
         container_name = 'my_container'
-        t_file = NamedTemporaryFile(delete=False)
-        success = upload_to_storage(container_name, '/file.txt', t_file.name)
+        with NamedTemporaryFile(delete=False) as t_file:
+            success = upload_to_storage(container_name, '/file.txt', t_file.name)
         self.assertFalse(success)
         os.remove(t_file.name)
