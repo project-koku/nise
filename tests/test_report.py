@@ -21,24 +21,19 @@ import datetime
 import json
 import os
 import shutil
+from tempfile import NamedTemporaryFile, mkdtemp
+from unittest import TestCase, skip
+from unittest.mock import ANY, patch
 from uuid import uuid4
 
-from tempfile import (mkdtemp, NamedTemporaryFile)
+from dateutil.relativedelta import relativedelta
 
-from unittest import skip, TestCase
-from unittest.mock import ANY, patch
-
-from nise.report import (aws_create_report,
-                         azure_create_report,
-                         ocp_create_report,
-                         post_payload_to_ingest_service,
-                         ocp_route_file,
-                         _create_month_list,
-                         _generate_azure_filename,
-                         _get_generators,
-                         _write_csv,
-                         _write_manifest)
 from nise.generators.ocp.ocp_generator import OCP_REPORT_TYPE_TO_COLS
+from nise.report import (_create_month_list, _generate_azure_filename,
+                         _get_generators, _write_csv, _write_manifest,
+                         aws_create_report, azure_create_report,
+                         ocp_create_report, ocp_route_file,
+                         post_payload_to_ingest_service)
 
 MOCK_AZURE_REPORT_FILENAME = '{}/costreport_12345678-1234-5678-1234-567812345678.csv'.format(os.getcwd())
 
@@ -568,6 +563,38 @@ class AzureReportTestCase(TestCase):
         yesterday = now - one_day
         options = {'start_date': yesterday,
                    'end_date': now}
+        azure_create_report(options)
+        local_path = MOCK_AZURE_REPORT_FILENAME
+        self.assertTrue(os.path.isfile(local_path))
+        os.remove(local_path)
+
+    @patch.dict(os.environ, {'AZURE_STORAGE_ACCOUNT': 'None'})
+    @patch('nise.report._generate_azure_filename')
+    def test_azure_create_report_with_static_data(self, mock_name):
+        """Test the azure report creation method."""
+        mock_name.side_effect = mock_generate_azure_filename
+        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
+        one_day = datetime.timedelta(days=1)
+        yesterday = now - one_day
+        static_azure_data = {'generators': [
+            {'BandwidthGenerator': {
+                'start_date': str(yesterday.date()),
+                'end_date': str(now.date()),
+                }},
+            {'SQLGenerator': { # usage outside current month
+                'start_date': str(yesterday.date() + relativedelta(months=-2)),
+                'end_date': str(now.date() + relativedelta(months=-2)),
+                }},
+            {'StorageGenerator': { # usage outside current month
+                'start_date': str(yesterday.date() + relativedelta(months=+2)),
+                'end_date': str(now.date() + relativedelta(months=+2)),
+            }
+            }]}
+        options = {'start_date': yesterday,
+                   'end_date': now,
+                   'azure_prefix_name': 'cost_report',
+                   'azure_storage_name': 'cost',
+                   'static_report_data': static_azure_data}
         azure_create_report(options)
         local_path = MOCK_AZURE_REPORT_FILENAME
         self.assertTrue(os.path.isfile(local_path))
