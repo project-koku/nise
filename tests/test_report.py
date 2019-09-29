@@ -593,6 +593,7 @@ class AzureReportTestCase(TestCase):
         options = {'start_date': yesterday,
                    'end_date': now,
                    'azure_prefix_name': 'cost_report',
+                   'azure_report_name': 'report',
                    'azure_storage_name': 'cost',
                    'static_report_data': static_azure_data}
         azure_create_report(options)

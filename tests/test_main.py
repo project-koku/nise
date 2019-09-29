@@ -78,6 +78,14 @@ class CommandLineTestCase(TestCase):
         valid = _validate_provider_inputs(self.parser, options)
         self.assertTrue(valid)
 
+    def test_valid_azure_no_input(self):
+        """
+        Test where user passes no s3 argument combination.
+        """
+        options = {'azure': True}
+        valid = _validate_provider_inputs(self.parser, options)
+        self.assertTrue(valid)
+
     def test_valid_azure_inputs(self):
         """
         Test where user passes a valid s3 argument combination.
@@ -112,6 +120,9 @@ class CommandLineTestCase(TestCase):
         """
         Test where user passes an invalid azure argument combination.
         """
+        with self.assertRaises(SystemExit):
+            options = {'azure': True, 'azure_report_name': 'report'}
+            _validate_provider_inputs(self.parser, options)
         with self.assertRaises(SystemExit):
             options = {'azure': True, 'aws_bucket_name': 'mybucket'}
             _validate_provider_inputs(self.parser, options)
@@ -195,6 +206,7 @@ class CommandLineTestCase(TestCase):
         _load_static_report_data(options)
         self.assertIsNotNone(options['static_report_data'])
         self.assertIsNotNone(options['start_date'])
+        self.assertIsNotNone(options['end_date'])
 
         missing_options = {}
         _load_static_report_data(missing_options)

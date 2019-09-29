@@ -332,9 +332,9 @@ def _load_yaml_file(filename):
     if filename:
         try:
             with open(filename, 'r+') as yaml_file:
-                yamlfile = yaml.load(yaml_file, Loader=yaml.FullLoader)
+                yamlfile = yaml.safe_load(yaml_file)
         except TypeError:
-            yamlfile = yaml.load(filename)
+            yamlfile = yaml.safe_load(filename)
     return yamlfile
 
 
@@ -392,7 +392,12 @@ def calculate_start_date(start_date):
 def calculate_end_date(start_date, end_date):
     """Return a datetime for the end date."""
     try:
-        if end_date and isinstance(end_date, datetime.date):
+        if end_date == 'last_month':
+            generated_end_date = today().replace(day=1, hour=0, minute=0, second=0) + \
+                relativedelta(months=-1)
+        elif end_date == 'today':
+            generated_end_date = today().replace(hour=0, minute=0, second=0)
+        elif end_date and isinstance(end_date, datetime.date):
             generated_end_date = datetime.datetime.fromordinal(end_date.toordinal())
         else:
             generated_end_date = date_parser.parse(end_date)
