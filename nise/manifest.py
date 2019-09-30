@@ -77,16 +77,9 @@ def aws_generate_manifest(fake, template_data):
     report_id = fake.sha256(raw_output=False)
     prefix_name = template_data.get('aws_prefix_name')
     if prefix_name:
-        report_key = '{prefix_name}/{report_name}/{range_str}/{assembly_id}/{report_name}-1.csv.gz'
-        report_key = report_key.format(prefix_name=prefix_name,
-                                       report_name=report_name,
-                                       range_str=range_str,
-                                       assembly_id=assembly_id)
+        report_key = f'{prefix_name}/{report_name}/{range_str}/{assembly_id}/{report_name}-1.csv.gz'
     else:
-        report_key = '/{report_name}/{range_str}/{assembly_id}/{report_name}-1.csv.gz'
-        report_key = report_key.format(report_name=report_name,
-                                       range_str=range_str,
-                                       assembly_id=assembly_id)
+        report_key = f'/{report_name}/{range_str}/{assembly_id}/{report_name}-1.csv.gz'
     render_data = {'assembly_id': assembly_id,
                    'report_id': report_id,
                    'billing_period_start': _manifest_datetime_str(bp_start),
