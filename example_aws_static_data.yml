@@ -1,7 +1,7 @@
 ---
 generators:
   - EC2Generator:
-      start_date: last_month
+      start_date: 2019-08-02
       processor_arch: 32-bit
       resource_id: 55555555
       product_sku: VEAJHRNKTJZQ

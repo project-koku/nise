@@ -121,6 +121,51 @@ Generated AWS reports will be generated in monthly .csv files with the file form
 
 Generated OCP reports will be generated in monthly .csv files with the file format <Month>-<Year>-<Cluster-ID>.csv.
 
+AZURE
+-----
+
+Note: To upload to AZURE, you must have AZURE_STORAGE_ACCOUNT and AZURE_ACCOUNT_KEY set in your environment.
+
+Below is an example usage of ``nise`` for AZURE data::
+
+    nise --start-date 2019-08-01 --azure
+
+    nise --start-date 2019-08-01 --azure --azure-storage-name container --azure-report-name cur
+
+    nise --start-date 2019-08-01 --azure --azure-storage-name /local/path/container --azure-report-name cur
+
+    nise --start-date 2019-08-01 --azure --azure-storage-name /local/path/container --azure-report-name cur --azure-storage-report-prefix my-prefix
+
+    nise --start-date 2019-08-01 --azure --azure-storage-name /local/path/container --azure-report-name cur --azure-storage-report-prefix my-prefix --static-report-file example_azure_static_data.yml
+
+    nise --azure --static-report-file azure_static_data.yml
+
+To add an AZURE-local provider::
+
+    {
+        "name": "Test Azure Source",
+        "type": "AZURE-local",
+        "authentication": {
+            "credentials": {
+                "subscription_id": "12345678-1234-5678-1234-567812345678",
+                "tenant_id": "12345678-1234-5678-1234-567812345678",
+                "client_id": "12345678-1234-5678-1234-567812345678",
+                "client_secret": "12345"
+            }
+        }, "billing_source": {
+            "data_source": {
+                "resource_group": {
+                    "directory": --azure-storage-report-prefix,
+                    "export_name": --azure-report-name
+                },
+                "storage_account": {
+                    "local_dir": "/tmp/local_container",
+                    "container": ""
+                }
+            }
+        }
+    }
+
 Contributing
 =============
 
