@@ -17,7 +17,7 @@ azure = "*"
 
 [dev-packages]
 
-pylint = "==2.3.1"
+pylint = "==2.4.2"
 tox = ">=3.0.0"
 coverage = ">=4.5.0"
 pyyaml = ">=3.13"
