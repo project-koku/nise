@@ -52,12 +52,15 @@ from nise.generators.azure import (AZURE_COLUMNS,
                                    StorageGenerator,
                                    VMGenerator,
                                    VNGenerator)
+from nise.generators.gcp import (CloudStorageGenerator,
+                                 ComputeEngineGenerator,
+                                 GCP_REPORT_COLUMNS)
 from nise.generators.ocp import (OCPGenerator,
                                  OCP_POD_USAGE,
                                  OCP_REPORT_TYPE_TO_COLS,
                                  OCP_STORAGE_USAGE)
 from nise.manifest import aws_generate_manifest, ocp_generate_manifest
-from nise.upload import upload_to_s3, upload_to_storage
+from nise.upload import upload_to_gcp_storage, upload_to_s3, upload_to_storage
 
 
 def create_temporary_copy(path, temp_file_name, temp_dir_name='None'):
@@ -169,6 +172,18 @@ def ocp_route_file(insights_upload, local_path):
             print(response.text)
 
 
+def gcp_route_file(bucket_name, bucket_file_path, local_path):
+    """Route file to either GCP bucket or local filesystem."""
+    if os.path.isdir(bucket_name):
+        copy_to_local_dir(bucket_name,
+                          local_path,
+                          bucket_file_path,)
+    else:
+        upload_to_gcp_storage(bucket_name,
+                              bucket_file_path,
+                              local_path)
+
+
 def post_payload_to_ingest_service(insights_upload, local_path):
     """POST the payload to Insights via header or basic auth."""
     insights_account_id = os.environ.get('INSIGHTS_ACCOUNT_ID')
@@ -249,7 +264,7 @@ def _aws_finalize_report(data, static_data=None):
 
 
 def _generate_accounts(static_report_data=None):
-    """Generate payer and useage accounts."""
+    """Generate payer and usage accounts."""
     if static_report_data:
         payer_account = static_report_data.get('payer')
         usage_accounts = tuple(static_report_data.get('user'))
@@ -548,3 +563,49 @@ def ocp_create_report(options):  # noqa: C901
             os.remove(temp_manifest)
             os.remove(temp_manifest_name)
             os.remove(temp_usage_zip)
+
+
+# pylint: disable=too-many-locals,too-many-statements
+def gcp_create_report(options):
+    """Create a GCP cost usage report file."""
+    fake = Faker()
+
+    start_date = options.get('start_date')
+    end_date = options.get('end_date')
+    report_prefix = options.get('gcp_report_prefix') or fake.word()  # pylint: disable=maybe-no-member
+    gcp_bucket_name = options.get('gcp_bucket_name')
+
+    account_name = '{}-{}'.format(fake.word(), fake.word())  # pylint: disable=maybe-no-member
+    project_number = fake.ean13()  # pylint: disable=maybe-no-member
+
+    project_id = '{}-{}-{}'.format(fake.word(), fake.word(), fake.ean8())  # pylint: disable=maybe-no-member
+
+    static_report_data = options.get('static_report_data')
+    if static_report_data:
+        generators = _get_generators(static_report_data.get('generators'))
+    else:
+        generators = [
+            {'generator': CloudStorageGenerator, 'attributes': None},
+            {'generator': ComputeEngineGenerator, 'attributes': None}
+
+        ]
+    data = {}
+
+    for generator in generators:
+        generator_cls = generator.get('generator')
+        gen = generator_cls(start_date, end_date, account_name, project_number, project_id)
+        data.update(gen.generate_data())
+
+    monthly_files = []
+    for day, daily_data in data.items():
+        output_file_name = '{}-{}.csv'.format(report_prefix,
+                                              day.strftime('%Y-%m-%d'))
+
+        output_file_path = os.path.join(os.getcwd(), output_file_name)
+        monthly_files.append(output_file_path)
+        _write_csv(output_file_path, daily_data, GCP_REPORT_COLUMNS)
+
+    if gcp_bucket_name:
+        gcp_route_file(gcp_bucket_name,
+                       output_file_path,
+                       output_file_name)

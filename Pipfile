@@ -1,28 +1,22 @@
 [[source]]
-
 url = "https://pypi.python.org/simple"
 verify_ssl = true
 name = "pypi"
 
-
 [packages]
-
 setuptools = "*"
 faker = "*"
 boto3 = ">=1.7.42"
 requests = ">=2.19.1"
 jinja2 = ">=2.10"
 azure = "*"
-
+google-cloud-storage = "~=1.19.1"
 
 [dev-packages]
-
 pylint = "==2.3.1"
 tox = ">=3.0.0"
 coverage = ">=4.5.0"
 pyyaml = ">=3.13"
 
-
 [requires]
-
 python_version = "3.6"
