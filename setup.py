@@ -8,7 +8,8 @@ setup(
         'nise.generators',
         'nise.generators.aws',
         'nise.generators.ocp',
-        'nise.generators.azure'
+        'nise.generators.azure',
+        'nise.generators.gcp'
     ],
     install_requires=[
         'Faker',
