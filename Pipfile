@@ -9,6 +9,8 @@ faker = "*"
 boto3 = ">=1.7.42"
 requests = ">=2.19.1"
 jinja2 = ">=2.10"
+azure = "*"
+google-cloud-storage = "~=1.19.1"
 
 [dev-packages]
 pylint = "==2.3.1"
