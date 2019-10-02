@@ -15,7 +15,9 @@ setup(
         'Faker',
         'boto3',
         'requests',
-        'jinja2'
+        'jinja2',
+        'azure',
+        'google-cloud-storage~=1.19.1'
     ],
     entry_points = {
         'console_scripts': [
