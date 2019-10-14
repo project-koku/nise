@@ -525,10 +525,10 @@
         },
         "azure-mgmt-storage": {
             "hashes": [
-                "sha256:512a29798833453f8c32a5b6d038a459649bbb5b9970ac23c982b5787057fa2b",
-                "sha256:9577cea1f7a86ca1db6f14539bd05ce27f43ebe590cc7f23c943961a2c5c1cdc"
+                "sha256:c0a3d5ad87f618dc40e18e141f96695f30291d2f4ecd21592fbc11a395ae0db2",
+                "sha256:de16dc6441782752242f5f724cd533ed387d6a8ac42baf3215f97a7577714709"
             ],
-            "version": "==2.0.0"
+            "version": "==4.2.0"
         },
         "azure-mgmt-subscription": {
             "hashes": [
