@@ -467,26 +467,25 @@ def azure_create_report(options):
 
         _write_csv(local_path, data, AZURE_COLUMNS)
 
-        azure_storage_account = options.get('azure_storage_name')
-        prefix_name = options.get('azure_prefix_name')
-        if azure_storage_account:
+        azure_container_name = options.get('azure_container_name')
+        if azure_container_name:
             file_path = ''
-            if prefix_name:
-                file_path += prefix_name + '/'
             storage_account_name = str(os.environ.get('AZURE_STORAGE_ACCOUNT'))
-            container_name = options.get('azure_report_name')
-            file_path += container_name + '/'
+            file_path += azure_container_name + '/'
+            if options.get('azure_prefix_name'):
+                file_path += options.get('azure_prefix_name') + '/'
+            file_path += options.get('azure_report_name') + '/'
             file_path += date_range + '/'
             file_path += output_file_name
 
             # azure blob upload
             if storage_account_name != 'None':
                 azure_route_file(storage_account_name,
-                                 container_name,
+                                 azure_container_name,
                                  local_path,
-                                 date_range + '/' + output_file_name)
+                                 file_path)
             # local dir upload
-            azure_route_file(azure_storage_account,
+            azure_route_file(azure_container_name,
                              file_path,
                              local_path)
 

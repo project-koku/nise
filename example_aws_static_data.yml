@@ -18,7 +18,6 @@ generators:
         cost: 1.000
         rate: 0.500
   - EC2Generator:
-      end_date: 10
       processor_arch: 32-bit
       resource_id: 55555556
       product_sku: VEAJHRNKTJZA
@@ -35,7 +34,6 @@ generators:
         cost: 1.000
         rate: 0.500
   - RDSGenerator:
-      start_date: today
       processor_arch: 64-bit
       resource_id: 99995555
       product_sku: VEAJHRNKTJZB

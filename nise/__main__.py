@@ -102,11 +102,11 @@ def create_parser():
                             Can be either \'copy\' to produce a second finalized file locally
                             or \'overwrite\' to finalize the normal report files.
                             """)
-    parser.add_argument('--azure-storage-name',
-                        metavar='AZURE_STORAGE_NAME',
-                        dest='azure_storage_name',
+    parser.add_argument('--azure-container-name',
+                        metavar='AZURE_CONTAINER_NAME',
+                        dest='azure_container_name',
                         required=False,
-                        help='Azure storage account to place the data.')
+                        help='Azure container to place the data.')
     parser.add_argument('--azure-report-name',
                         metavar='AZURE_COST_REPORT_NAME',
                         dest='azure_report_name',
@@ -176,7 +176,7 @@ def _get_azure_options(options):
         azure_finalize_report (string): Azure finalize choice
 
     """
-    azure_storage_name = options.get('azure_storage_name')
+    azure_storage_name = options.get('azure_container_name')
     azure_report_name = options.get('azure_report_name')
     azure_prefix_name = options.get('azure_prefix_name')
     return (azure_storage_name, azure_report_name, azure_prefix_name)
