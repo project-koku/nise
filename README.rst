@@ -143,15 +143,24 @@ Below is an example usage of ``nise`` for AZURE data::
 
     nise --start-date 2019-08-01 --azure
 
-    nise --start-date 2019-08-01 --azure --azure-storage-name container --azure-report-name cur
+    nise --start-date 2019-08-01 --azure --azure-container-name container --azure-report-name cur
 
-    nise --start-date 2019-08-01 --azure --azure-storage-name /local/path/container --azure-report-name cur
+    nise --start-date 2019-08-01 --azure --azure-container-name /local/path/container --azure-report-name cur
 
-    nise --start-date 2019-08-01 --azure --azure-storage-name /local/path/container --azure-report-name cur --azure-storage-report-prefix my-prefix
+    nise --start-date 2019-08-01 --azure --azure-container-name /local/path/container --azure-report-name cur --azure-report-prefix my-prefix
 
-    nise --start-date 2019-08-01 --azure --azure-storage-name /local/path/container --azure-report-name cur --azure-storage-report-prefix my-prefix --static-report-file example_azure_static_data.yml
+    nise --start-date 2019-08-01 --azure --azure-container-name /local/path/container --azure-report-name cur --azure-report-prefix my-prefix --static-report-file example_azure_static_data.yml
 
     nise --azure --static-report-file azure_static_data.yml
+
+Example upload to AZURE::
+
+    AZURE_STORAGE_ACCOUNT=storage_account AZURE_ACCOUNT_KEY=key nise --start-date 2019-08-01 --azure --azure-container-name container --azure-report-prefix this_is_prefix  --azure-report-name this_is_report --static-report-file example_azure_static_data.yml
+
+will put the generated reports in the :code:`container` container with the following structure::
+
+    this_is_prefix/this_is_report/date_range/costreport_{uuid}.csv
+
 
 To add an AZURE-local provider::
 
@@ -168,7 +177,7 @@ To add an AZURE-local provider::
         }, "billing_source": {
             "data_source": {
                 "resource_group": {
-                    "directory": --azure-storage-report-prefix,
+                    "directory": --azure-report-prefix,
                     "export_name": --azure-report-name
                 },
                 "storage_account": {

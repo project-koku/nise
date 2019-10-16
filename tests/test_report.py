@@ -608,7 +608,7 @@ class AzureReportTestCase(TestCase):
                    'end_date': now,
                    'azure_prefix_name': 'cost_report',
                    'azure_report_name': 'report',
-                   'azure_storage_name': 'cost',
+                   'azure_container_name': 'cost',
                    'static_report_data': static_azure_data}
         azure_create_report(options)
         local_path = self.MOCK_AZURE_REPORT_FILENAME
@@ -626,7 +626,7 @@ class AzureReportTestCase(TestCase):
         local_storage_path = mkdtemp()
         options = {'start_date': yesterday,
                    'end_date': now,
-                   'azure_storage_name': local_storage_path,
+                   'azure_container_name': local_storage_path,
                    'azure_report_name': 'cur_report'}
         azure_create_report(options)
         expected_month_output_file = self.MOCK_AZURE_REPORT_FILENAME
@@ -635,13 +635,12 @@ class AzureReportTestCase(TestCase):
         shutil.rmtree(local_storage_path)
 
     @patch.dict(os.environ, {'AZURE_STORAGE_ACCOUNT': 'NOT None'})
-    @patch('nise.report.upload_to_storage')
+    @patch('nise.report.upload_to_azure_container')
     @patch('nise.report._generate_azure_filename')
     def test_azure_create_report_upload_to_azure(self, mock_name, mock_upload):
         """Test the azure upload is called when environment variable is set."""
         mock_name.side_effect = self.mock_generate_azure_filename
         mock_upload.return_value = True
-        os.environ['AZURE_STORAGE_ACCOUNT'] = 'not none'
         now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
         one_day = datetime.timedelta(days=1)
         yesterday = now - one_day
@@ -649,7 +648,7 @@ class AzureReportTestCase(TestCase):
         options = {'start_date': yesterday,
                    'end_date': now,
                    'azure_prefic_name': 'prefix',
-                   'azure_storage_name': local_storage_path,
+                   'azure_container_name': local_storage_path,
                    'azure_report_name': 'cur_report'}
         azure_create_report(options)
         mock_upload.assert_called()

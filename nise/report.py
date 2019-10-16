@@ -60,7 +60,7 @@ from nise.generators.ocp import (OCPGenerator,
                                  OCP_REPORT_TYPE_TO_COLS,
                                  OCP_STORAGE_USAGE)
 from nise.manifest import aws_generate_manifest, ocp_generate_manifest
-from nise.upload import upload_to_gcp_storage, upload_to_s3, upload_to_storage
+from nise.upload import upload_to_azure_container, upload_to_gcp_storage, upload_to_s3
 
 
 def create_temporary_copy(path, temp_file_name, temp_dir_name='None'):
@@ -147,14 +147,14 @@ def aws_route_file(bucket_name, bucket_file_path, local_path):
 
 def azure_route_file(storage_account_name, storage_file_name, local_path, storage_file_path=None):
     """Route file to either storage account or local filesystem."""
-    if os.path.isdir(storage_account_name):
+    if storage_file_path is None:
         copy_to_local_dir(storage_account_name,
                           local_path,
                           storage_file_name)
     else:
-        upload_to_storage(storage_file_name,
-                          local_path,
-                          storage_file_path)
+        upload_to_azure_container(storage_file_name,
+                                  local_path,
+                                  storage_file_path)
 
 
 def ocp_route_file(insights_upload, local_path):
@@ -467,28 +467,27 @@ def azure_create_report(options):
 
         _write_csv(local_path, data, AZURE_COLUMNS)
 
-        azure_storage_account = options.get('azure_storage_name')
-        prefix_name = options.get('azure_prefix_name')
-        if azure_storage_account:
+        azure_container_name = options.get('azure_container_name')
+        if azure_container_name:
             file_path = ''
-            if prefix_name:
-                file_path += prefix_name + '/'
             storage_account_name = str(os.environ.get('AZURE_STORAGE_ACCOUNT'))
-            container_name = options.get('azure_report_name')
-            file_path += container_name + '/'
+            if options.get('azure_prefix_name'):
+                file_path += options.get('azure_prefix_name') + '/'
+            file_path += options.get('azure_report_name') + '/'
             file_path += date_range + '/'
             file_path += output_file_name
 
             # azure blob upload
             if storage_account_name != 'None':
                 azure_route_file(storage_account_name,
-                                 container_name,
+                                 azure_container_name,
                                  local_path,
-                                 date_range + '/' + output_file_name)
+                                 file_path)
             # local dir upload
-            azure_route_file(azure_storage_account,
-                             file_path,
-                             local_path)
+            else:
+                azure_route_file(azure_container_name,
+                                 file_path,
+                                 local_path)
 
 
 def ocp_create_report(options):  # noqa: C901
