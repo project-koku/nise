@@ -25,7 +25,7 @@ from azure.storage.blob import BlockBlobService
 from botocore.exceptions import ClientError
 from google.cloud.exceptions import GoogleCloudError
 
-from nise.upload import upload_to_s3, upload_to_gcp_storage, upload_to_storage
+from nise.upload import upload_to_azure_container, upload_to_gcp_storage, upload_to_s3
 
 
 fake = faker.Faker()
@@ -71,7 +71,7 @@ class UploadTestCase(TestCase):
         """Test successful upload_to_storage method with mock."""
         container_name = 'my_container'
         with NamedTemporaryFile(delete=False) as t_file:
-            success = upload_to_storage(container_name, '/file.txt', t_file.name)
+            success = upload_to_azure_container(container_name, '/file.txt', t_file.name)
         self.assertTrue(success)
         os.remove(t_file.name)
 
@@ -81,7 +81,7 @@ class UploadTestCase(TestCase):
         mock_blob_service.side_effect = Exception
         container_name = 'my_container'
         with NamedTemporaryFile(delete=False) as t_file:
-            success = upload_to_storage(container_name, '/file.txt', t_file.name)
+            success = upload_to_azure_container(container_name, '/file.txt', t_file.name)
         self.assertFalse(success)
         os.remove(t_file.name)
 

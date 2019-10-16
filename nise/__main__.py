@@ -170,16 +170,16 @@ def _get_azure_options(options):
     Args:
         options (Dict): dictionary of arguments.
     Returns:
-        azure_storage_name (string): Azure storage account name
+        azure_container_name (string): Azure storage account name
         azure_report_name (string): Azure report name
         azure_prefix_name (string): Azure report prefix
         azure_finalize_report (string): Azure finalize choice
 
     """
-    azure_storage_name = options.get('azure_container_name')
+    azure_container_name = options.get('azure_container_name')
     azure_report_name = options.get('azure_report_name')
     azure_prefix_name = options.get('azure_prefix_name')
-    return (azure_storage_name, azure_report_name, azure_prefix_name)
+    return (azure_container_name, azure_report_name, azure_prefix_name)
 
 
 def _get_ocp_options(options):
@@ -278,14 +278,14 @@ def _validate_azure_arguments(parser, options):
             msg = 'GCP arguments cannot be supplied when generating AWS data.'
             parser.error(msg)
 
-    azure_storage_name, azure_report_name, _ = _get_azure_options(options)
-    if azure_storage_name and azure_report_name:
+    azure_container_name, azure_report_name, _ = _get_azure_options(options)
+    if azure_container_name and azure_report_name:
         azure_valid = True
-    elif not azure_storage_name and not azure_report_name:
+    elif not azure_container_name and not azure_report_name:
         azure_valid = True
     if not azure_valid:
         msg = 'Both {} and {} must be supplied, if one is provided.'
-        msg = msg.format('--azure-storage-name', '--azure-report-name')
+        msg = msg.format('--azure-container-name', '--azure-report-name')
         parser.error(msg)
     return azure_valid
 

@@ -91,7 +91,7 @@ class CommandLineTestCase(TestCase):
         Test where user passes a valid s3 argument combination.
         """
         options = {'azure': True,
-                   'azure_storage_name': 'storage',
+                   'azure_container_name': 'storage',
                    'azure_report_name': 'report',
                    'azure_prefix_name': 'value'}
         valid = _validate_provider_inputs(self.parser, options)
@@ -113,7 +113,7 @@ class CommandLineTestCase(TestCase):
             options = {'aws': True, 'ocp_cluster_id': '123'}
             _validate_provider_inputs(self.parser, options)
         with self.assertRaises(SystemExit):
-            options = {'aws': True, 'azure_storage_name': '123'}
+            options = {'aws': True, 'azure_container_name': '123'}
             _validate_provider_inputs(self.parser, options)
         with self.assertRaises(SystemExit):
             options = {'azure': True, 'gcp_report_prefix': 'gcp-report'}
@@ -144,7 +144,7 @@ class CommandLineTestCase(TestCase):
             options = {'ocp': True, 'aws_bucket_name': 'mybucket'}
             _validate_provider_inputs(self.parser, options)
         with self.assertRaises(SystemExit):
-            options = {'ocp': True, 'azure_storage_name': '123'}
+            options = {'ocp': True, 'azure_container_name': '123'}
             _validate_provider_inputs(self.parser, options)
         with self.assertRaises(SystemExit):
             options = {'azure': True, 'gcp_report_prefix': 'gcp-report'}
