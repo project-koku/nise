@@ -60,7 +60,7 @@ from nise.generators.ocp import (OCPGenerator,
                                  OCP_REPORT_TYPE_TO_COLS,
                                  OCP_STORAGE_USAGE)
 from nise.manifest import aws_generate_manifest, ocp_generate_manifest
-from nise.upload import upload_to_gcp_storage, upload_to_s3, upload_to_azure_container
+from nise.upload import upload_to_azure_container, upload_to_gcp_storage, upload_to_s3
 
 
 def create_temporary_copy(path, temp_file_name, temp_dir_name='None'):
