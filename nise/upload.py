@@ -51,7 +51,7 @@ def upload_to_s3(bucket_name, bucket_file_path, local_path):
     return uploaded
 
 
-def upload_to_storage(storage_file_name, local_path, storage_file_path):
+def upload_to_azure_container(storage_file_name, local_path, storage_file_path):
     """Upload data to a storage account.
 
     Args:

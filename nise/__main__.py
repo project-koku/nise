@@ -112,7 +112,7 @@ def create_parser():
                         dest='azure_report_name',
                         required=False,
                         help='Directory path to store data in the bucket.')
-    parser.add_argument('--azure-storage-report-prefix',
+    parser.add_argument('--azure-report-prefix',
                         metavar='AZURE_PREFIX_NAME',
                         dest='azure_prefix_name',
                         required=False,

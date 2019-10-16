@@ -60,7 +60,7 @@ from nise.generators.ocp import (OCPGenerator,
                                  OCP_REPORT_TYPE_TO_COLS,
                                  OCP_STORAGE_USAGE)
 from nise.manifest import aws_generate_manifest, ocp_generate_manifest
-from nise.upload import upload_to_gcp_storage, upload_to_s3, upload_to_storage
+from nise.upload import upload_to_gcp_storage, upload_to_s3, upload_to_azure_container
 
 
 def create_temporary_copy(path, temp_file_name, temp_dir_name='None'):
@@ -147,14 +147,14 @@ def aws_route_file(bucket_name, bucket_file_path, local_path):
 
 def azure_route_file(storage_account_name, storage_file_name, local_path, storage_file_path=None):
     """Route file to either storage account or local filesystem."""
-    if os.path.isdir(storage_account_name):
+    if storage_file_path == None:
         copy_to_local_dir(storage_account_name,
                           local_path,
                           storage_file_name)
     else:
-        upload_to_storage(storage_file_name,
-                          local_path,
-                          storage_file_path)
+        upload_to_azure_container(storage_file_name,
+                                  local_path,
+                                  storage_file_path)
 
 
 def ocp_route_file(insights_upload, local_path):
@@ -471,7 +471,6 @@ def azure_create_report(options):
         if azure_container_name:
             file_path = ''
             storage_account_name = str(os.environ.get('AZURE_STORAGE_ACCOUNT'))
-            file_path += azure_container_name + '/'
             if options.get('azure_prefix_name'):
                 file_path += options.get('azure_prefix_name') + '/'
             file_path += options.get('azure_report_name') + '/'
@@ -485,9 +484,10 @@ def azure_create_report(options):
                                  local_path,
                                  file_path)
             # local dir upload
-            azure_route_file(azure_container_name,
-                             file_path,
-                             local_path)
+            else:
+                azure_route_file(azure_container_name,
+                                 file_path,
+                                 local_path)
 
 
 def ocp_create_report(options):  # noqa: C901
