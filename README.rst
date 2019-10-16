@@ -177,7 +177,7 @@ To add an AZURE-local provider::
         }, "billing_source": {
             "data_source": {
                 "resource_group": {
-                    "directory": --azure-storage-report-prefix,
+                    "directory": --azure-report-prefix,
                     "export_name": --azure-report-name
                 },
                 "storage_account": {
