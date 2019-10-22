@@ -102,6 +102,7 @@ class AzureGenerator(AbstractGenerator):
         self._consumed = None
         self._resource_type = None
         self._meter_cache = {}
+
         if attributes:
             if attributes.get('service_name'):
                 self._service_name = attributes.get('service_name')
@@ -119,6 +120,8 @@ class AzureGenerator(AbstractGenerator):
                 self._pre_tax_cost = attributes.get('pre_tax_cost')
             if attributes.get('tags'):
                 self._tags = attributes.get('tags')
+            if attributes.get('meter_cache'):
+                self._meter_cache = attributes.get('meter_cache')
         super().__init__(start_date, end_date)
 
     def _get_accts_str(self, service_name):
@@ -284,3 +287,7 @@ class AzureGenerator(AbstractGenerator):
         """Responsible for generating data."""
         data = self._generate_daily_data()
         return data
+
+    def get_meter_cache(self):
+        """Return the meter cache for cross month generation."""
+        return self._meter_cache

@@ -442,6 +442,7 @@ def azure_create_report(options):
 
     payer_account, usage_accounts = _generate_accounts(accounts_list)
 
+    meter_cache = {}
     for month in months:
         data = []
         for generator in generators:
@@ -458,9 +459,11 @@ def azure_create_report(options):
 
                 gen_start_date, gen_end_date = _create_generator_dates_from_yaml(attributes, month)
 
+            attributes['meter_cache'] = meter_cache
             gen = generator_cls(gen_start_date, gen_end_date, payer_account,
                                 usage_accounts, attributes)
             data += gen.generate_data()
+            meter_cache = gen.get_meter_cache()
 
         local_path, output_file_name = _generate_azure_filename()
         date_range = _generate_azure_date_range(month)
