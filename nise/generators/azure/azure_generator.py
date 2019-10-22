@@ -101,6 +101,7 @@ class AzureGenerator(AbstractGenerator):
         self._service_tier = None
         self._consumed = None
         self._resource_type = None
+        self._meter_cache = {}
         if attributes:
             if attributes.get('service_name'):
                 self._service_name = attributes.get('service_name')
@@ -126,10 +127,17 @@ class AzureGenerator(AbstractGenerator):
             service_name = choice(self.SERVICE_NAMES)
         return self.ACCTS_STR[service_name]
 
+    def _get_cached_meter_values(self, meter_id, service_meter):
+        """Return meter cached meter data to ensure meter_id and values are consistent."""
+        if not self._meter_cache.get(meter_id):
+            self._meter_cache[meter_id] = choice(service_meter)
+        return self._meter_cache.get(meter_id)
+
     # pylint: disable=too-many-locals
-    def _get_resource_info(self, service_meter, ex_resource, add_info, service_info):
+    def _get_resource_info(self, meter_id, service_meter, ex_resource, add_info, service_info):
         """Return resource information."""
-        service_tier, meter_sub, meter_name, units_of_measure = choice(service_meter)
+        service_tier, meter_sub, meter_name, units_of_measure = self._get_cached_meter_values(meter_id, service_meter)
+
         resource_group, resource_name = choice(ex_resource)
         additional_info = choice(add_info)
         service_info_2 = choice(service_info)
@@ -224,7 +232,7 @@ class AzureGenerator(AbstractGenerator):
         # pylint: disable=line-too-long
         (resource_group, instance_id, service_tier, meter_sub,
          meter_name, units_of_measure, additional_info, service_info_2) = \
-            self._get_resource_info(self.SERVICE_METER, self.EXAMPLE_RESOURCE,
+            self._get_resource_info(meter_id, self.SERVICE_METER, self.EXAMPLE_RESOURCE,
                                     self.ADDITIONAL_INFO, self.SERVICE_INFO_2)
         if not additional_info:
             additional_info = ''
