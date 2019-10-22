@@ -139,7 +139,8 @@ class AzureGenerator(AbstractGenerator):
     # pylint: disable=too-many-locals
     def _get_resource_info(self, meter_id, service_meter, ex_resource, add_info, service_info):
         """Return resource information."""
-        service_tier, meter_sub, meter_name, units_of_measure = self._get_cached_meter_values(meter_id, service_meter)
+        service_tier, meter_sub, meter_name, units_of_measure = \
+            self._get_cached_meter_values(meter_id, service_meter)
 
         resource_group, resource_name = choice(ex_resource)
         additional_info = choice(add_info)
