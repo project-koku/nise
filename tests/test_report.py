@@ -522,6 +522,7 @@ class OCPReportTestCase(TestCase):
     @patch('nise.report.requests.post')
     def test_ocp_route_file(self, mock_post):
         """Test that a response is good."""
+        options = {'upload_bool': True}
         insights_user = os.environ.get('INSIGHTS_USER')
         insights_password = os.environ.get('INSIGHTS_PASSWORD')
 
@@ -536,7 +537,7 @@ class OCPReportTestCase(TestCase):
         auth = (insights_user, insights_password)
 
         mock_post.return_value.status_code = 202
-        ocp_route_file(insights_upload, temp_file.name)
+        ocp_route_file(options, insights_upload, temp_file.name)
 
         self.assertEqual(mock_post.call_args[1].get('auth'), auth)
         self.assertNotIn('headers', mock_post.call_args[1])
@@ -567,7 +568,6 @@ class AzureReportTestCase(TestCase):
         self.assertIsNotNone(tup[0])
         self.assertIsNotNone(tup[1])
 
-    @patch.dict(os.environ, {'AZURE_STORAGE_ACCOUNT': 'None'})
     @patch('nise.report._generate_azure_filename')
     def test_azure_create_report(self, mock_name):
         """Test the azure report creation method."""
@@ -582,7 +582,6 @@ class AzureReportTestCase(TestCase):
         self.assertTrue(os.path.isfile(local_path))
         os.remove(local_path)
 
-    @patch.dict(os.environ, {'AZURE_STORAGE_ACCOUNT': 'None'})
     @patch('nise.report._generate_azure_filename')
     def test_azure_create_report_with_static_data(self, mock_name):
         """Test the azure report creation method."""
@@ -647,6 +646,7 @@ class AzureReportTestCase(TestCase):
         local_storage_path = mkdtemp()
         options = {'start_date': yesterday,
                    'end_date': now,
+                   'upload_bool': True,
                    'azure_prefic_name': 'prefix',
                    'azure_container_name': local_storage_path,
                    'azure_report_name': 'cur_report'}
@@ -677,12 +677,12 @@ class GCPReportTestCase(TestCase):
     @patch('nise.report.upload_to_gcp_storage')
     def test_gcp_route_file_local(self, mock_upload, mock_copy):
         """Test that if bucket_name is a valid directory the file is not uploaded."""
-
+        options = {'upload_bool': False}
         local_path = fake.file_path()
         remote_path = fake.file_path()
 
         with TemporaryDirectory() as temp_dir:
-            gcp_route_file(temp_dir, local_path, remote_path)
+            gcp_route_file(options, temp_dir, local_path, remote_path)
             mock_copy.assert_called()
             mock_upload.assert_not_called()
 
@@ -690,10 +690,11 @@ class GCPReportTestCase(TestCase):
     @patch('nise.report.upload_to_gcp_storage')
     def test_gcp_route_file_upload(self, mock_upload, mock_copy):
         """Test that if bucket_name is not a valid directory the file is uploaded."""
+        options = {'upload_bool': True}
         bucket = fake.file_path()
         local_path = fake.file_path()
         remote_path = fake.file_path()
-        gcp_route_file(bucket, local_path, remote_path)
+        gcp_route_file(options, bucket, local_path, remote_path)
 
         mock_copy.assert_not_called()
         mock_upload.assert_called()

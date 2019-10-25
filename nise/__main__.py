@@ -49,6 +49,11 @@ def create_parser():
     """Create the parser for incoming data."""
     parser = argparse.ArgumentParser()
     provider_group = parser.add_mutually_exclusive_group(required=True)
+    parser.add_argument('--upload',
+                        dest='upload_bool',
+                        required=False,
+                        action='store_true',
+                        help='Specify if the generated data is to be uploaded to cloud provider.')
     parser.add_argument('--start-date',
                         metavar='DATE',
                         dest='start_date',
@@ -324,7 +329,7 @@ def _validate_ocp_arguments(parser, options):
         msg = '{} must be supplied.'
         msg = msg.format('--ocp-cluster-id')
         parser.error(msg)
-    elif insights_upload is not None and not os.path.isdir(insights_upload):
+    elif insights_upload is not None and options.get('upload_bool'):
         insights_user = os.environ.get('INSIGHTS_USER')
         insights_password = os.environ.get('INSIGHTS_PASSWORD')
         insights_account_id = os.environ.get('INSIGHTS_ACCOUNT_ID')

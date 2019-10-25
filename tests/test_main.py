@@ -175,7 +175,7 @@ class CommandLineTestCase(TestCase):
         Test where user passes an invalid ocp argument combination.
         """
         with self.assertRaises(SystemExit):
-            options = {'ocp': True, 'insights_upload': 'true', 'ocp_cluster_id': '123'}
+            options = {'ocp': True, 'insights_upload': 'true', 'ocp_cluster_id': '123', 'upload_bool': True}
             _validate_provider_inputs(self.parser, options)
 
     def test_ocp_no_cluster_id(self):

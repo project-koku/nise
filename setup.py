@@ -16,7 +16,7 @@ setup(
         'boto3',
         'requests',
         'jinja2',
-        'azure',
+        'azure-storage-blob',
         'google-cloud-storage~=1.19.1'
     ],
     entry_points = {

@@ -133,9 +133,9 @@ def _write_manifest(data):
     return t_file.name
 
 
-def aws_route_file(bucket_name, bucket_file_path, local_path):
+def aws_route_file(options, bucket_name, bucket_file_path, local_path):
     """Route file to either S3 bucket or local filesystem."""
-    if os.path.isdir(bucket_name):
+    if not options.get('upload_bool'):
         copy_to_local_dir(bucket_name,
                           local_path,
                           bucket_file_path,)
@@ -145,9 +145,11 @@ def aws_route_file(bucket_name, bucket_file_path, local_path):
                      local_path)
 
 
-def azure_route_file(storage_account_name, storage_file_name, local_path, storage_file_path=None):
+def azure_route_file(
+        options, storage_account_name, storage_file_name, local_path, storage_file_path=None
+):
     """Route file to either storage account or local filesystem."""
-    if storage_file_path is None:
+    if not options.get('upload_bool'):
         copy_to_local_dir(storage_account_name,
                           local_path,
                           storage_file_name)
@@ -157,9 +159,9 @@ def azure_route_file(storage_account_name, storage_file_name, local_path, storag
                                   storage_file_path)
 
 
-def ocp_route_file(insights_upload, local_path):
+def ocp_route_file(options, insights_upload, local_path):
     """Route file to either Upload Service or local filesystem."""
-    if os.path.isdir(insights_upload):
+    if not options.get('upload_bool'):
         extract_payload(insights_upload,
                         local_path)
     else:
@@ -172,9 +174,9 @@ def ocp_route_file(insights_upload, local_path):
             print(response.text)
 
 
-def gcp_route_file(bucket_name, bucket_file_path, local_path):
+def gcp_route_file(options, bucket_name, bucket_file_path, local_path):
     """Route file to either GCP bucket or local filesystem."""
-    if os.path.isdir(bucket_name):
+    if not options.get('upload_bool'):
         copy_to_local_dir(bucket_name,
                           local_path,
                           bucket_file_path,)
@@ -407,13 +409,16 @@ def aws_create_report(options):
             s3_assembly_manifest_path = s3_assembly_path + '/' + report_name + '-Manifest.json'
             temp_manifest = _write_manifest(manifest_data)
             temp_cur_zip = _gzip_report(month_output_file)
-            aws_route_file(aws_bucket_name,
+            aws_route_file(options,
+                           aws_bucket_name,
                            s3_month_manifest_path,
                            temp_manifest)
-            aws_route_file(aws_bucket_name,
+            aws_route_file(options,
+                           aws_bucket_name,
                            s3_assembly_manifest_path,
                            temp_manifest)
-            aws_route_file(aws_bucket_name,
+            aws_route_file(options,
+                           aws_bucket_name,
                            s3_cur_path,
                            temp_cur_zip)
             os.remove(temp_manifest)
@@ -482,13 +487,15 @@ def azure_create_report(options):
 
             # azure blob upload
             if storage_account_name != 'None':
-                azure_route_file(storage_account_name,
+                azure_route_file(options,
+                                 storage_account_name,
                                  azure_container_name,
                                  local_path,
                                  file_path)
             # local dir upload
             else:
-                azure_route_file(azure_container_name,
+                azure_route_file(options,
+                                 azure_container_name,
                                  file_path,
                                  local_path)
 
@@ -559,7 +566,7 @@ def ocp_create_report(options):  # noqa: C901
             temp_manifest = _write_manifest(manifest_data)
             temp_manifest_name = create_temporary_copy(temp_manifest, 'manifest.json', 'payload')
             temp_usage_zip = _tar_gzip_report(os.path.dirname(temp_manifest_name))
-            ocp_route_file(insights_upload, temp_usage_zip)
+            ocp_route_file(options, insights_upload, temp_usage_zip)
             for temp_usage_file in temp_files.values():
                 os.remove(temp_usage_file)
             os.remove(temp_manifest)
@@ -608,6 +615,7 @@ def gcp_create_report(options):
         _write_csv(output_file_path, daily_data, GCP_REPORT_COLUMNS)
 
     if gcp_bucket_name:
-        gcp_route_file(gcp_bucket_name,
+        gcp_route_file(options,
+                       gcp_bucket_name,
                        output_file_path,
                        output_file_name)

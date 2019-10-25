@@ -32,8 +32,8 @@ def copy_to_local_dir(local_dir_home, local_path, local_file_path=None):
 
     """
     if not os.path.isdir(local_dir_home):
-        print('Path does not exist for the local directory: {}'.format(local_dir_home))
-        return False
+        print('Path does not exist for the local directory: {}\nCreating...'.format(local_dir_home))
+        os.makedirs(local_dir_home, exist_ok=True)
     full_bucket_path = local_dir_home
     outpath = local_path
     if local_file_path:

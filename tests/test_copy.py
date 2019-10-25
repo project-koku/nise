@@ -41,12 +41,12 @@ class CopyTestCase(TestCase):
         self.assertTrue(success)
 
         expected_full_file_path = '{}{}'.format(bucket_name, bucket_file_path)
-        self.assertTrue(os.path.isfile(expected_full_file_path))        
+        self.assertTrue(os.path.isfile(expected_full_file_path))
 
         shutil.rmtree(bucket_name)
         os.remove(source_file.name)
 
-    def test_copy_failure(self):
+    def test_copy_success_when_dir_not_exist(self):
         """Test copy_to_local_dir method when local directory (bucket does not exist)."""
         source_file = NamedTemporaryFile(delete=False)
         source_file.seek(0)
@@ -58,7 +58,7 @@ class CopyTestCase(TestCase):
         bucket_file_path = '/bucket_location'
 
         success = copy_to_local_dir(bad_bucket_name, source_file.name, bucket_file_path)
-        self.assertFalse(success)
+        self.assertTrue(success)
 
         shutil.rmtree(bucket_name)
         os.remove(source_file.name)
