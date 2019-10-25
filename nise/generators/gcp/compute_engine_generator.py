@@ -30,14 +30,28 @@ class ComputeEngineGenerator(GCPGenerator):
 
     def _update_data(self, row):  # pylint: disable=arguments-differ
         """Update a data row with compute values."""
-        compute = choice(self.COMPUTE)
-        row['line_item'] = compute[0]
-        row['measurement1'] = compute[0]
-        row['measurement1_total_consumption'] = self.fake.pyint()  # pylint: disable=maybe-no-member
-        row['measurement1_units'] = compute[1]
-        row['cost'] = self.fake.pyint()  # pylint: disable=maybe-no-member
-        row['currency'] = 'USD'
-        row['description'] = compute[2]
+        if self.attributes:
+            row['Line Item'] = self.attributes['Line Item']
+            row['Measurement1'] = self.attributes['Measurement1']
+            row['Measurement1 Total Consumption'] = \
+                self.attributes['Measurement1 Total Consumption']
+            row['Measurement1 Units'] = self.attributes['Measurement1 Units']
+            row['Cost'] = self.attributes['Cost']
+            row['Currency'] = self.attributes['Currency']
+            row['Description'] = self.attributes['Description']
+            row['Credit1'] = self.attributes['Credit1']
+            row['Credit1 Amount'] = self.attributes['Credit1 Amount']
+            row['Credit1 Currency'] = self.attributes['Credit1 Currency']
+
+        else:
+            compute = choice(self.COMPUTE)
+            row['Line Item'] = compute[0]
+            row['Measurement1'] = compute[0]
+            row['Measurement1 Total Consumption'] = self.fake.pyint()  # pylint: disable=maybe-no-member
+            row['Measurement1 Units'] = compute[1]
+            row['Cost'] = self.fake.pyint()  # pylint: disable=maybe-no-member
+            row['Currency'] = 'USD'
+            row['Description'] = compute[2]
         return row
 
     def generate_data(self):

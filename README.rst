@@ -210,6 +210,8 @@ Below is an example usage of ``nise`` for GCP data::
 
     nise --gcp --start-date 2018-06-03 --end-date 2018-06-08 --gcp-report-prefix my-gcp-data --gcp-bucket-name my-gcp-bucket
 
+    nise --gcp --static-report-file gcp_static_data.yml
+
 
 Generated reports will be generated in daily .csv files with the file format <Report-Prefix>-<Year>-<Month>-<Day>.csv.
 

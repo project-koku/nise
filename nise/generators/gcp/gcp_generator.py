@@ -6,18 +6,17 @@ from random import randint
 from nise.generators.generator import AbstractGenerator
 
 
-GCP_REPORT_COLUMNS = ('account_id', 'line_item', 'start_time', 'end_time', 'project',
-                      'measurement1', 'measurement1_total_consumption', 'measurement1_units',
-                      'cost', 'currency', 'project_number', 'project_id',
-                      'project_name', 'project_labels', 'description')
+GCP_REPORT_COLUMNS = ('Account ID', 'Line Item', 'Start Time', 'End Time',
+                      'Project', 'Measurement1', 'Measurement1 Total Consumption',
+                      'Measurement1 Units', 'Credit1', 'Credit1 Amount',
+                      'Credit1 Currency', 'Cost', 'Currency', 'Project Number',
+                      'Project ID', 'Project Name', 'Project Labels', 'Description')
 
 
 class GCPGenerator(AbstractGenerator):
     """Abstract class for GCP generators."""
 
-    def __init__(self, start_date, end_date, account,  # pylint: disable=too-many-arguments
-                 project_number, project_id,
-                 num_instances=randint(2, 60)):
+    def __init__(self, start_date, end_date, project, attributes=None):
         """
         Initialize the generator.
 
@@ -31,11 +30,9 @@ class GCPGenerator(AbstractGenerator):
 
         """
         super().__init__(start_date, end_date)
-        self.account = account
-        self.project_number = project_number
-        self.project_id = project_id
-
-        self.num_instances = num_instances
+        self.project = project
+        self.num_instances = 1 if attributes else randint(2, 60)
+        self.attributes = attributes
 
     @staticmethod
     def _create_days_list(start_date, end_date):
@@ -76,23 +73,11 @@ class GCPGenerator(AbstractGenerator):
         row = {}
         for column in GCP_REPORT_COLUMNS:
             row[column] = ''
-            if column == 'start_time':
+            if column == 'Start Time':
                 row[column] = GCPGenerator.timestamp(start)
-            elif column == 'end_time':
+            elif column == 'End Time':
                 row[column] = GCPGenerator.timestamp(end)
-            elif column == 'account_id':
-                row[column] = self.account
-            elif column == 'project':
-                row[column] = self.project_number
-            elif column == 'project_number':
-                row[column] = self.project_number
-            elif column == 'project_id':
-                row[column] = self.project_id
-            elif column == 'project_name':
-                row[column] = self.project_id
-            elif column == 'project_labels':
-                row[column] = ''
-
+        row.update(self.project)
         return row
 
     def _add_common_usage_info(self, row, start, end, **kwargs):
