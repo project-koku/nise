@@ -22,9 +22,8 @@ import json
 import os
 import shutil
 from tempfile import NamedTemporaryFile, TemporaryDirectory, mkdtemp
-from unittest import TestCase, skip
-from unittest.mock import ANY, patch
-from uuid import uuid4
+from unittest import TestCase
+from unittest.mock import patch
 
 import faker
 from dateutil.relativedelta import relativedelta
@@ -218,6 +217,7 @@ class AWSReportTestCase(TestCase):
         one_day = datetime.timedelta(days=1)
         yesterday = now - one_day
         options = {
+            'upload_bool': True,
             'start_date': yesterday,
             'end_date': now,
             'aws_bucket_name': 'my_bucket',
@@ -782,20 +782,21 @@ class AzureReportTestCase(TestCase):
                 },
             ]
         }
+        local_storage_path = mkdtemp()
         options = {
             'start_date': yesterday,
             'end_date': now,
             'azure_prefix_name': 'cost_report',
             'azure_report_name': 'report',
-            'azure_container_name': 'cost',
+            'azure_container_name': local_storage_path,
             'static_report_data': static_azure_data,
         }
         azure_create_report(options)
         local_path = self.MOCK_AZURE_REPORT_FILENAME
         self.assertTrue(os.path.isfile(local_path))
         os.remove(local_path)
+        shutil.rmtree(local_storage_path)
 
-    @patch.dict(os.environ, {'AZURE_STORAGE_ACCOUNT': 'None'})
     @patch('nise.report._generate_azure_filename')
     def test_azure_create_report_with_local_dir(self, mock_name):
         """Test the azure report creation method with local directory."""
