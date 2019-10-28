@@ -64,6 +64,7 @@ Usage
 ===========
 nise is a command line tool. Currently only accepting a limited number of arguments:
 
+- *--upload* (optional, if supplied, generated reports will upload to cloud provider)
 - *--start-date YYYY-MM-dd* (not supplied, if using --static-report-file yaml)
 - *--end-date YYYY-MM-dd* (optional, defaults to today and current hour)
 - (--aws | --ocp | --gcp | --azure) required provider type
