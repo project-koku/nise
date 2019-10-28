@@ -30,13 +30,20 @@ import faker
 from dateutil.relativedelta import relativedelta
 
 from nise.generators.ocp.ocp_generator import OCP_REPORT_TYPE_TO_COLS
-from nise.report import (_create_month_list, _generate_azure_filename,
-                         _get_generators, _write_csv, _write_manifest,
-                         aws_create_report, azure_create_report,
-                         gcp_create_report, gcp_route_file,
-                         ocp_create_report, ocp_route_file,
-                         post_payload_to_ingest_service)
-
+from nise.report import (
+    _create_month_list,
+    _generate_azure_filename,
+    _get_generators,
+    _write_csv,
+    _write_manifest,
+    aws_create_report,
+    azure_create_report,
+    gcp_create_report,
+    gcp_route_file,
+    ocp_create_report,
+    ocp_route_file,
+    post_payload_to_ingest_service,
+)
 
 
 fake = faker.Faker()
@@ -51,41 +58,54 @@ class MiscReportTestCase(TestCase):
         """Test the writing of the CSV data."""
         temp_file = NamedTemporaryFile(mode='w', delete=False)
         headers = ['col1', 'col2']
-        data = [{'col1': 'r1c1', 'col2': 'r1c2'},
-                {'col1': 'r2c1', 'col2': 'r2c2'}]
+        data = [{'col1': 'r1c1', 'col2': 'r1c2'}, {'col1': 'r2c1', 'col2': 'r2c2'}]
         _write_csv(temp_file.name, data, headers)
         self.assertTrue(os.path.exists(temp_file.name))
         os.remove(temp_file.name)
 
     def test_write_manifest(self):
         """Test the writing of the manifest data."""
-        data = '[{"col1": "r1c1", "col2": "r1c2"},' \
-               '{"col1": "r2c1", "col2": "r2c2"}]'
+        data = '[{"col1": "r1c1", "col2": "r1c2"},' '{"col1": "r2c1", "col2": "r2c2"}]'
         manifest_path = _write_manifest(data)
         self.assertTrue(os.path.exists(manifest_path))
         os.remove(manifest_path)
 
     def test_create_month_list(self):
         """Test to create month lists."""
-        test_matrix = [{
-            'start_date': datetime.datetime(year=2018, month=1, day=15),
-            'end_date': datetime.datetime(year=2018, month=1, day=30),
-            'expected_list': [{'name': 'January',
-                               'start': datetime.datetime(year=2018, month=1, day=15),
-                               'end': datetime.datetime(year=2018, month=1, day=30)}]},
-                       {
-            'start_date': datetime.datetime(year=2018, month=11, day=15),
-            'end_date': datetime.datetime(year=2019, month=1, day=5),
-            'expected_list': [{'name': 'November',
-                               'start': datetime.datetime(year=2018, month=11, day=15),
-                               'end': datetime.datetime(year=2018, month=11, day=30)},
-                              {'name': 'December',
-                               'start': datetime.datetime(year=2018, month=12, day=1),
-                               'end': datetime.datetime(year=2018, month=12, day=31)},
-                              {'name': 'January',
-                               'start': datetime.datetime(year=2019, month=1, day=1),
-                               'end': datetime.datetime(year=2019, month=1, day=5)}]},
-                       ]
+        test_matrix = [
+            {
+                'start_date': datetime.datetime(year=2018, month=1, day=15),
+                'end_date': datetime.datetime(year=2018, month=1, day=30),
+                'expected_list': [
+                    {
+                        'name': 'January',
+                        'start': datetime.datetime(year=2018, month=1, day=15),
+                        'end': datetime.datetime(year=2018, month=1, day=30),
+                    }
+                ],
+            },
+            {
+                'start_date': datetime.datetime(year=2018, month=11, day=15),
+                'end_date': datetime.datetime(year=2019, month=1, day=5),
+                'expected_list': [
+                    {
+                        'name': 'November',
+                        'start': datetime.datetime(year=2018, month=11, day=15),
+                        'end': datetime.datetime(year=2018, month=11, day=30),
+                    },
+                    {
+                        'name': 'December',
+                        'start': datetime.datetime(year=2018, month=12, day=1),
+                        'end': datetime.datetime(year=2018, month=12, day=31),
+                    },
+                    {
+                        'name': 'January',
+                        'start': datetime.datetime(year=2019, month=1, day=1),
+                        'end': datetime.datetime(year=2019, month=1, day=5),
+                    },
+                ],
+            },
+        ]
 
         for test_case in test_matrix:
             output = _create_month_list(test_case['start_date'], test_case['end_date'])
@@ -96,14 +116,20 @@ class MiscReportTestCase(TestCase):
         generators = _get_generators(None)
         self.assertEqual(generators, [])
 
-        generator_list = [{'EC2Generator': {'start_date': '2019-01-21', 'end_date': '2019-01-22'}}]
+        generator_list = [
+            {'EC2Generator': {'start_date': '2019-01-21', 'end_date': '2019-01-22'}}
+        ]
         generators = _get_generators(generator_list)
 
         self.assertIsNotNone(generators)
         self.assertEqual(len(generators), 1)
 
-        self.assertIsInstance(generators[0].get('attributes').get('start_date'), datetime.datetime)
-        self.assertIsInstance(generators[0].get('attributes').get('end_date'), datetime.datetime)
+        self.assertIsInstance(
+            generators[0].get('attributes').get('start_date'), datetime.datetime
+        )
+        self.assertIsInstance(
+            generators[0].get('attributes').get('end_date'), datetime.datetime
+        )
         self.assertEqual(generators[0].get('attributes').get('start_date').month, 1)
         self.assertEqual(generators[0].get('attributes').get('start_date').day, 21)
         self.assertEqual(generators[0].get('attributes').get('start_date').year, 2019)
@@ -111,7 +137,9 @@ class MiscReportTestCase(TestCase):
         self.assertEqual(generators[0].get('attributes').get('end_date').day, 22)
         self.assertEqual(generators[0].get('attributes').get('end_date').year, 2019)
 
-    @patch.dict(os.environ, {'INSIGHTS_ACCOUNT_ID': '12345', 'INSIGHTS_ORG_ID': '54321'})
+    @patch.dict(
+        os.environ, {'INSIGHTS_ACCOUNT_ID': '12345', 'INSIGHTS_ORG_ID': '54321'}
+    )
     @patch('nise.report.requests.post')
     def test_post_payload_to_ingest_service_with_identity_header(self, mock_post):
         """Test that the identity header path is taken."""
@@ -120,17 +148,15 @@ class MiscReportTestCase(TestCase):
 
         temp_file = NamedTemporaryFile(mode='w', delete=False)
         headers = ['col1', 'col2']
-        data = [{'col1': 'r1c1', 'col2': 'r1c2'},
-                {'col1': 'r2c1', 'col2': 'r2c2'}]
+        data = [{'col1': 'r1c1', 'col2': 'r1c2'}, {'col1': 'r2c1', 'col2': 'r2c2'}]
         _write_csv(temp_file.name, data, headers)
 
         insights_upload = {}
         header = {
             'identity': {
                 'account_number': insights_account_id,
-                'internal': {'org_id': insights_org_id}
+                'internal': {'org_id': insights_org_id},
             }
-
         }
         headers = {
             'x-rh-identity': base64.b64encode(json.dumps(header).encode('UTF-8'))
@@ -139,7 +165,6 @@ class MiscReportTestCase(TestCase):
         post_payload_to_ingest_service(insights_upload, temp_file.name)
         self.assertEqual(mock_post.call_args[1].get('headers'), headers)
         self.assertNotIn('auth', mock_post.call_args[1])
-
 
     @patch.dict(os.environ, {'INSIGHTS_USER': '12345', 'INSIGHTS_PASSWORD': '54321'})
     @patch('nise.report.requests.post')
@@ -150,8 +175,7 @@ class MiscReportTestCase(TestCase):
 
         temp_file = NamedTemporaryFile(mode='w', delete=False)
         headers = ['col1', 'col2']
-        data = [{'col1': 'r1c1', 'col2': 'r1c2'},
-                {'col1': 'r2c1', 'col2': 'r2c2'}]
+        data = [{'col1': 'r1c1', 'col2': 'r1c2'}, {'col1': 'r2c1', 'col2': 'r2c2'}]
         _write_csv(temp_file.name, data, headers)
 
         insights_upload = {}
@@ -173,12 +197,16 @@ class AWSReportTestCase(TestCase):
         now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
         one_day = datetime.timedelta(days=1)
         yesterday = now - one_day
-        aws_create_report({'start_date': yesterday, 'end_date': now, 'aws_report_name': 'cur_report'})
+        aws_create_report(
+            {'start_date': yesterday, 'end_date': now, 'aws_report_name': 'cur_report'}
+        )
 
-        month_output_file_name = '{}-{}-{}'.format(calendar.month_name[now.month],
-                                                   now.year,
-                                                   'cur_report')
-        expected_month_output_file = '{}/{}.csv'.format(os.getcwd(), month_output_file_name)
+        month_output_file_name = '{}-{}-{}'.format(
+            calendar.month_name[now.month], now.year, 'cur_report'
+        )
+        expected_month_output_file = '{}/{}.csv'.format(
+            os.getcwd(), month_output_file_name
+        )
         self.assertTrue(os.path.isfile(expected_month_output_file))
         os.remove(expected_month_output_file)
 
@@ -189,15 +217,19 @@ class AWSReportTestCase(TestCase):
         now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
         one_day = datetime.timedelta(days=1)
         yesterday = now - one_day
-        options = {'start_date': yesterday,
-                   'end_date': now,
-                   'aws_bucket_name': 'my_bucket',
-                   'aws_report_name': 'cur_report'}
+        options = {
+            'start_date': yesterday,
+            'end_date': now,
+            'aws_bucket_name': 'my_bucket',
+            'aws_report_name': 'cur_report',
+        }
         aws_create_report(options)
-        month_output_file_name = '{}-{}-{}'.format(calendar.month_name[now.month],
-                                                   now.year,
-                                                   'cur_report')
-        expected_month_output_file = '{}/{}.csv'.format(os.getcwd(), month_output_file_name)
+        month_output_file_name = '{}-{}-{}'.format(
+            calendar.month_name[now.month], now.year, 'cur_report'
+        )
+        expected_month_output_file = '{}/{}.csv'.format(
+            os.getcwd(), month_output_file_name
+        )
         self.assertTrue(os.path.isfile(expected_month_output_file))
         os.remove(expected_month_output_file)
 
@@ -207,15 +239,19 @@ class AWSReportTestCase(TestCase):
         one_day = datetime.timedelta(days=1)
         yesterday = now - one_day
         local_bucket_path = mkdtemp()
-        options = {'start_date': yesterday,
-                   'end_date': now,
-                   'aws_bucket_name': local_bucket_path,
-                   'aws_report_name': 'cur_report'}
+        options = {
+            'start_date': yesterday,
+            'end_date': now,
+            'aws_bucket_name': local_bucket_path,
+            'aws_report_name': 'cur_report',
+        }
         aws_create_report(options)
-        month_output_file_name = '{}-{}-{}'.format(calendar.month_name[now.month],
-                                                   now.year,
-                                                   'cur_report')
-        expected_month_output_file = '{}/{}.csv'.format(os.getcwd(), month_output_file_name)
+        month_output_file_name = '{}-{}-{}'.format(
+            calendar.month_name[now.month], now.year, 'cur_report'
+        )
+        expected_month_output_file = '{}/{}.csv'.format(
+            os.getcwd(), month_output_file_name
+        )
         self.assertTrue(os.path.isfile(expected_month_output_file))
         os.remove(expected_month_output_file)
         shutil.rmtree(local_bucket_path)
@@ -226,16 +262,20 @@ class AWSReportTestCase(TestCase):
         one_day = datetime.timedelta(days=1)
         yesterday = now - one_day
         local_bucket_path = mkdtemp()
-        options = {'start_date': yesterday,
-                   'end_date': now,
-                   'aws_bucket_name': local_bucket_path,
-                   'aws_report_name': 'cur_report',
-                   'aws_prefix_name': 'my_prefix'}
+        options = {
+            'start_date': yesterday,
+            'end_date': now,
+            'aws_bucket_name': local_bucket_path,
+            'aws_report_name': 'cur_report',
+            'aws_prefix_name': 'my_prefix',
+        }
         aws_create_report(options)
-        month_output_file_name = '{}-{}-{}'.format(calendar.month_name[now.month],
-                                                   now.year,
-                                                   'cur_report')
-        expected_month_output_file = '{}/{}.csv'.format(os.getcwd(), month_output_file_name)
+        month_output_file_name = '{}-{}-{}'.format(
+            calendar.month_name[now.month], now.year, 'cur_report'
+        )
+        expected_month_output_file = '{}/{}.csv'.format(
+            os.getcwd(), month_output_file_name
+        )
         self.assertTrue(os.path.isfile(expected_month_output_file))
         os.remove(expected_month_output_file)
         shutil.rmtree(local_bucket_path)
@@ -243,28 +283,28 @@ class AWSReportTestCase(TestCase):
     def test_aws_create_report_finalize_report_copy(self):
         """Test that an aws finalized copy of a report file has an invoice id."""
 
-        start_date = datetime.datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-        end_date = datetime.datetime.now().replace(day=5, hour=0, minute=0, second=0, microsecond=0)
+        start_date = datetime.datetime.now().replace(
+            day=1, hour=0, minute=0, second=0, microsecond=0
+        )
+        end_date = datetime.datetime.now().replace(
+            day=5, hour=0, minute=0, second=0, microsecond=0
+        )
         aws_create_report(
             {
                 'start_date': start_date,
                 'end_date': end_date,
                 'aws_report_name': 'cur_report',
-                'aws_finalize_report': 'copy'
+                'aws_finalize_report': 'copy',
             }
         )
-        month_output_file_name = '{}-{}-{}'.format(calendar.month_name[start_date.month],
-                                                   start_date.year,
-                                                   'cur_report')
+        month_output_file_name = '{}-{}-{}'.format(
+            calendar.month_name[start_date.month], start_date.year, 'cur_report'
+        )
         finalized_file_name = '{}-finalized'.format(month_output_file_name)
         expected_month_output_file = '{}/{}.csv'.format(
-            os.getcwd(),
-            month_output_file_name
+            os.getcwd(), month_output_file_name
         )
-        expected_finalized_file = '{}/{}.csv'.format(
-            os.getcwd(),
-            finalized_file_name
-        )
+        expected_finalized_file = '{}/{}.csv'.format(os.getcwd(), finalized_file_name)
         self.assertTrue(os.path.isfile(expected_month_output_file))
         self.assertTrue(os.path.isfile(expected_finalized_file))
         with open(expected_month_output_file, 'r') as f:
@@ -282,23 +322,26 @@ class AWSReportTestCase(TestCase):
 
     def test_aws_create_report_finalize_report_overwrite(self):
         """Test that an aws report file has an invoice id."""
-        start_date = datetime.datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-        end_date = datetime.datetime.now().replace(day=5, hour=0, minute=0, second=0, microsecond=0)
+        start_date = datetime.datetime.now().replace(
+            day=1, hour=0, minute=0, second=0, microsecond=0
+        )
+        end_date = datetime.datetime.now().replace(
+            day=5, hour=0, minute=0, second=0, microsecond=0
+        )
         aws_create_report(
             {
                 'start_date': start_date,
                 'end_date': end_date,
                 'aws_report_name': 'cur_report',
-                'aws_finalize_report': 'overwrite'
+                'aws_finalize_report': 'overwrite',
             }
         )
 
-        month_output_file_name = '{}-{}-{}'.format(calendar.month_name[start_date.month],
-                                                   start_date.year,
-                                                   'cur_report')
+        month_output_file_name = '{}-{}-{}'.format(
+            calendar.month_name[start_date.month], start_date.year, 'cur_report'
+        )
         expected_month_output_file = '{}/{}.csv'.format(
-            os.getcwd(),
-            month_output_file_name
+            os.getcwd(), month_output_file_name
         )
         self.assertTrue(os.path.isfile(expected_month_output_file))
 
@@ -316,31 +359,76 @@ class AWSReportTestCase(TestCase):
         yesterday = now - one_day
         local_bucket_path = mkdtemp()
 
-        static_aws_data = {'generators': [{'EC2Generator': {'start_date': str(yesterday.date()), 'end_date': str(now.date()),
-                                                            'processor_arch': '32-bit', 'resource_id': 55555555,
-                                                            'product_sku': 'VEAJHRNKTJZQ', 'region': 'us-east-1a',
-                                                            'tags': {'resourceTags/user:environment': 'dev', 'resourceTags/user:version': 'alpha'},
-                                                            'instance_type': {'inst_type': 'm5.large', 'vcpu': 2, 'memory': '8 GiB',
-                                                                              'storage': 'EBS Only', 'family': 'General Purpose',
-                                                                              'cost': 1.0, 'rate': 0.5}}},
-                                          {'S3Generator': {'start_date': str(yesterday.date()), 'end_date': str(now.date()),
-                                                           'product_sku': 'VEAJHRNAAAAA', 'amount': 10, 'rate': 3}},
-                                          {'EBSGenerator': {'start_date': str(yesterday.date()), 'end_date': str(now.date()),
-                                                            'product_sku': 'VEAJHRNBBBBB', 'amount': 10, 'rate': 3,
-                                                            'resource_id': 12345678}},
-                                          {'DataTransferGenerator': {'start_date': str(yesterday.date()), 'end_date': str(now.date()),
-                                                                     'product_sku': 'VEAJHRNCCCCC', 'amount': 10, 'rate': 3}}],
-                           'accounts': {'payer': 9999999999999, 'user': [9999999999999]}}
-        options = {'start_date': yesterday,
-                   'end_date': now,
-                   'aws_bucket_name': local_bucket_path,
-                   'aws_report_name': 'cur_report',
-                   'static_report_data': static_aws_data}
+        static_aws_data = {
+            'generators': [
+                {
+                    'EC2Generator': {
+                        'start_date': str(yesterday.date()),
+                        'end_date': str(now.date()),
+                        'processor_arch': '32-bit',
+                        'resource_id': 55555555,
+                        'product_sku': 'VEAJHRNKTJZQ',
+                        'region': 'us-east-1a',
+                        'tags': {
+                            'resourceTags/user:environment': 'dev',
+                            'resourceTags/user:version': 'alpha',
+                        },
+                        'instance_type': {
+                            'inst_type': 'm5.large',
+                            'vcpu': 2,
+                            'memory': '8 GiB',
+                            'storage': 'EBS Only',
+                            'family': 'General Purpose',
+                            'cost': 1.0,
+                            'rate': 0.5,
+                        },
+                    }
+                },
+                {
+                    'S3Generator': {
+                        'start_date': str(yesterday.date()),
+                        'end_date': str(now.date()),
+                        'product_sku': 'VEAJHRNAAAAA',
+                        'amount': 10,
+                        'rate': 3,
+                    }
+                },
+                {
+                    'EBSGenerator': {
+                        'start_date': str(yesterday.date()),
+                        'end_date': str(now.date()),
+                        'product_sku': 'VEAJHRNBBBBB',
+                        'amount': 10,
+                        'rate': 3,
+                        'resource_id': 12345678,
+                    }
+                },
+                {
+                    'DataTransferGenerator': {
+                        'start_date': str(yesterday.date()),
+                        'end_date': str(now.date()),
+                        'product_sku': 'VEAJHRNCCCCC',
+                        'amount': 10,
+                        'rate': 3,
+                    }
+                },
+            ],
+            'accounts': {'payer': 9999999999999, 'user': [9999999999999]},
+        }
+        options = {
+            'start_date': yesterday,
+            'end_date': now,
+            'aws_bucket_name': local_bucket_path,
+            'aws_report_name': 'cur_report',
+            'static_report_data': static_aws_data,
+        }
         aws_create_report(options)
-        month_output_file_name = '{}-{}-{}'.format(calendar.month_name[now.month],
-                                                   now.year,
-                                                   'cur_report')
-        expected_month_output_file = '{}/{}.csv'.format(os.getcwd(), month_output_file_name)
+        month_output_file_name = '{}-{}-{}'.format(
+            calendar.month_name[now.month], now.year, 'cur_report'
+        )
+        expected_month_output_file = '{}/{}.csv'.format(
+            os.getcwd(), month_output_file_name
+        )
         self.assertTrue(os.path.isfile(expected_month_output_file))
         os.remove(expected_month_output_file)
         shutil.rmtree(local_bucket_path)
@@ -352,18 +440,26 @@ class AWSReportTestCase(TestCase):
         yesterday = now - one_day
         local_bucket_path = mkdtemp()
 
-        static_aws_data = {'generators': [{'EC2Generator': {'start_date': str(now), 'end_date': str(now)}}],
-                           'accounts': {'payer': 9999999999999, 'user': [9999999999999]}}
-        options = {'start_date': yesterday,
-                   'end_date': now,
-                   'aws_bucket_name': local_bucket_path,
-                   'aws_report_name': 'cur_report',
-                   'static_report_data': static_aws_data}
+        static_aws_data = {
+            'generators': [
+                {'EC2Generator': {'start_date': str(now), 'end_date': str(now)}}
+            ],
+            'accounts': {'payer': 9999999999999, 'user': [9999999999999]},
+        }
+        options = {
+            'start_date': yesterday,
+            'end_date': now,
+            'aws_bucket_name': local_bucket_path,
+            'aws_report_name': 'cur_report',
+            'static_report_data': static_aws_data,
+        }
         aws_create_report(options)
-        month_output_file_name = '{}-{}-{}'.format(calendar.month_name[now.month],
-                                                   now.year,
-                                                   'cur_report')
-        expected_month_output_file = '{}/{}.csv'.format(os.getcwd(), month_output_file_name)
+        month_output_file_name = '{}-{}-{}'.format(
+            calendar.month_name[now.month], now.year, 'cur_report'
+        )
+        expected_month_output_file = '{}/{}.csv'.format(
+            os.getcwd(), month_output_file_name
+        )
         self.assertTrue(os.path.isfile(expected_month_output_file))
         os.remove(expected_month_output_file)
         shutil.rmtree(local_bucket_path)
@@ -380,16 +476,19 @@ class OCPReportTestCase(TestCase):
         one_day = datetime.timedelta(days=1)
         yesterday = now - one_day
         cluster_id = '11112222'
-        options = {'start_date': yesterday,
-                   'end_date': now,
-                   'ocp_cluster_id': cluster_id}
+        options = {
+            'start_date': yesterday,
+            'end_date': now,
+            'ocp_cluster_id': cluster_id,
+        }
         ocp_create_report(options)
         for report_type in OCP_REPORT_TYPE_TO_COLS.keys():
-            month_output_file_name = '{}-{}-{}-{}'.format(calendar.month_name[now.month],
-                                                          now.year,
-                                                          cluster_id,
-                                                          report_type)
-            expected_month_output_file = '{}/{}.csv'.format(os.getcwd(), month_output_file_name)
+            month_output_file_name = '{}-{}-{}-{}'.format(
+                calendar.month_name[now.month], now.year, cluster_id, report_type
+            )
+            expected_month_output_file = '{}/{}.csv'.format(
+                os.getcwd(), month_output_file_name
+            )
             self.assertTrue(os.path.isfile(expected_month_output_file))
             os.remove(expected_month_output_file)
 
@@ -400,17 +499,20 @@ class OCPReportTestCase(TestCase):
         yesterday = now - one_day
         local_insights_upload = mkdtemp()
         cluster_id = '11112222'
-        options = {'start_date': yesterday,
-                   'end_date': now,
-                   'insights_upload': local_insights_upload,
-                   'ocp_cluster_id': cluster_id}
+        options = {
+            'start_date': yesterday,
+            'end_date': now,
+            'insights_upload': local_insights_upload,
+            'ocp_cluster_id': cluster_id,
+        }
         ocp_create_report(options)
         for report_type in OCP_REPORT_TYPE_TO_COLS.keys():
-            month_output_file_name = '{}-{}-{}-{}'.format(calendar.month_name[now.month],
-                                                          now.year,
-                                                          cluster_id,
-                                                          report_type)
-            expected_month_output_file = '{}/{}.csv'.format(os.getcwd(), month_output_file_name)
+            month_output_file_name = '{}-{}-{}-{}'.format(
+                calendar.month_name[now.month], now.year, cluster_id, report_type
+            )
+            expected_month_output_file = '{}/{}.csv'.format(
+                os.getcwd(), month_output_file_name
+            )
             self.assertTrue(os.path.isfile(expected_month_output_file))
             os.remove(expected_month_output_file)
         shutil.rmtree(local_insights_upload)
@@ -422,43 +524,75 @@ class OCPReportTestCase(TestCase):
         yesterday = now - one_day
         local_insights_upload = mkdtemp()
         cluster_id = '11112222'
-        static_ocp_data = {'generators': [{'OCPGenerator': {'start_date': str(yesterday.date()), 'end_date': str(now.date()),
-                                                            'nodes': [{'node': None, 'node_name': 'alpha',
-                                                                       'cpu_cores': 2, 'memory_gig': 4,
-                                                                       'namespaces': {'namespace_ci': {'pods': [{'pod': None,
-                                                                                                                 'pod_name': 'pod_name1',
-                                                                                                                 'cpu_request': 5,
-                                                                                                                 'mem_request_gig': 2,
-                                                                                                                 'cpu_limit': 5,
-                                                                                                                 'mem_limit_gig': 2,
-                                                                                                                 'pod_seconds': 3600,
-                                                                                                                 'cpu_usage': {'1-21-2019': 1,
-                                                                                                                               '1-22-2019': 2,
-                                                                                                                               '1-23-2019': 4},
-                                                                                                                 'mem_usage_gig': {'1-21-2019': 1,
-                                                                                                                                   '1-22-2019': 2,
-                                                                                                                                   '1-23-2019': 4},
-                                                                                                                 'labels': 'label_key1:label_value1|label_key2:label_value2'},
-                                                                                                                {'pod': None,
-                                                                                                                 'pod_name': 'pod_name2',
-                                                                                                                 'cpu_request': 10,
-                                                                                                                 'mem_request_gig': 4,
-                                                                                                                 'cpu_limit': 10,
-                                                                                                                 'mem_limit_gig': 4,
-                                                                                                                 'labels': 'label_key3:label_value3|label_key4:label_value4'}]}}}]}}]}
-        options = {'start_date': yesterday,
-                   'end_date': now,
-                   'insights_upload': local_insights_upload,
-                   'ocp_cluster_id': cluster_id,
-                   'static_report_data': static_ocp_data}
+        static_ocp_data = {
+            'generators': [
+                {
+                    'OCPGenerator': {
+                        'start_date': str(yesterday.date()),
+                        'end_date': str(now.date()),
+                        'nodes': [
+                            {
+                                'node': None,
+                                'node_name': 'alpha',
+                                'cpu_cores': 2,
+                                'memory_gig': 4,
+                                'namespaces': {
+                                    'namespace_ci': {
+                                        'pods': [
+                                            {
+                                                'pod': None,
+                                                'pod_name': 'pod_name1',
+                                                'cpu_request': 5,
+                                                'mem_request_gig': 2,
+                                                'cpu_limit': 5,
+                                                'mem_limit_gig': 2,
+                                                'pod_seconds': 3600,
+                                                'cpu_usage': {
+                                                    '1-21-2019': 1,
+                                                    '1-22-2019': 2,
+                                                    '1-23-2019': 4,
+                                                },
+                                                'mem_usage_gig': {
+                                                    '1-21-2019': 1,
+                                                    '1-22-2019': 2,
+                                                    '1-23-2019': 4,
+                                                },
+                                                'labels': 'label_key1:label_value1|label_key2:label_value2',
+                                            },
+                                            {
+                                                'pod': None,
+                                                'pod_name': 'pod_name2',
+                                                'cpu_request': 10,
+                                                'mem_request_gig': 4,
+                                                'cpu_limit': 10,
+                                                'mem_limit_gig': 4,
+                                                'labels': 'label_key3:label_value3|label_key4:label_value4',
+                                            },
+                                        ]
+                                    }
+                                },
+                            }
+                        ],
+                    }
+                }
+            ]
+        }
+        options = {
+            'start_date': yesterday,
+            'end_date': now,
+            'insights_upload': local_insights_upload,
+            'ocp_cluster_id': cluster_id,
+            'static_report_data': static_ocp_data,
+        }
         ocp_create_report(options)
 
         for report_type in OCP_REPORT_TYPE_TO_COLS.keys():
-            month_output_file_name = '{}-{}-{}-{}'.format(calendar.month_name[now.month],
-                                                          now.year,
-                                                          cluster_id,
-                                                          report_type)
-            expected_month_output_file = '{}/{}.csv'.format(os.getcwd(), month_output_file_name)
+            month_output_file_name = '{}-{}-{}-{}'.format(
+                calendar.month_name[now.month], now.year, cluster_id, report_type
+            )
+            expected_month_output_file = '{}/{}.csv'.format(
+                os.getcwd(), month_output_file_name
+            )
             self.assertTrue(os.path.isfile(expected_month_output_file))
             os.remove(expected_month_output_file)
         shutil.rmtree(local_insights_upload)
@@ -470,49 +604,80 @@ class OCPReportTestCase(TestCase):
         yesterday = now - one_day
         local_insights_upload = mkdtemp()
         cluster_id = '11112222'
-        static_ocp_data = {'generators': [{'OCPGenerator': {'start_date': str(yesterday.date()), 'end_date': str(now.date()),
-                                                            'nodes': [{'node': None, 'node_name': 'alpha',
-                                                                       'cpu_cores': 2, 'memory_gig': 4,
-                                                                       'start_date': str(now), 'end_date': str(now),
-                                                                       'namespaces': {'namespace_ci': {'pods': [{'pod': None,
-                                                                                                                 'pod_name': 'pod_name1',
-                                                                                                                 'cpu_request': 5,
-                                                                                                                 'mem_request_gig': 2,
-                                                                                                                 'cpu_limit': 5,
-                                                                                                                 'mem_limit_gig': 2,
-                                                                                                                 'pod_seconds': 3600},
-                                                                                                                {'pod': None,
-                                                                                                                 'pod_name': 'pod_name2',
-                                                                                                                 'cpu_request': 10,
-                                                                                                                 'mem_request_gig': 4,
-                                                                                                                 'cpu_limit': 10,
-                                                                                                                 'mem_limit_gig': 4}],
-                                                                                                       'volumes': [{
-                                                                                                           'volume': None,
-                                                                                                           'volume_name': 'pvc-1234',
-                                                                                                           'storage_class': 'gp2',
-                                                                                                           'volume_request_gig': 20,
-                                                                                                           'volume_claims': [
-                                                                                                               {'volume_claim_name': 'pod1_data',
-                                                                                                                'pod_name': 'pod_name1',
-                                                                                                                'capacity_gig': 5
-                                                                                                                }
-                                                                                                           ]
-                                                                                                       }]
-                                                                                                       }}}]}}]}
-        options = {'start_date': yesterday,
-                   'end_date': now,
-                   'insights_upload': local_insights_upload,
-                   'ocp_cluster_id': cluster_id,
-                   'static_report_data': static_ocp_data}
+        static_ocp_data = {
+            'generators': [
+                {
+                    'OCPGenerator': {
+                        'start_date': str(yesterday.date()),
+                        'end_date': str(now.date()),
+                        'nodes': [
+                            {
+                                'node': None,
+                                'node_name': 'alpha',
+                                'cpu_cores': 2,
+                                'memory_gig': 4,
+                                'start_date': str(now),
+                                'end_date': str(now),
+                                'namespaces': {
+                                    'namespace_ci': {
+                                        'pods': [
+                                            {
+                                                'pod': None,
+                                                'pod_name': 'pod_name1',
+                                                'cpu_request': 5,
+                                                'mem_request_gig': 2,
+                                                'cpu_limit': 5,
+                                                'mem_limit_gig': 2,
+                                                'pod_seconds': 3600,
+                                            },
+                                            {
+                                                'pod': None,
+                                                'pod_name': 'pod_name2',
+                                                'cpu_request': 10,
+                                                'mem_request_gig': 4,
+                                                'cpu_limit': 10,
+                                                'mem_limit_gig': 4,
+                                            },
+                                        ],
+                                        'volumes': [
+                                            {
+                                                'volume': None,
+                                                'volume_name': 'pvc-1234',
+                                                'storage_class': 'gp2',
+                                                'volume_request_gig': 20,
+                                                'volume_claims': [
+                                                    {
+                                                        'volume_claim_name': 'pod1_data',
+                                                        'pod_name': 'pod_name1',
+                                                        'capacity_gig': 5,
+                                                    }
+                                                ],
+                                            }
+                                        ],
+                                    }
+                                },
+                            }
+                        ],
+                    }
+                }
+            ]
+        }
+        options = {
+            'start_date': yesterday,
+            'end_date': now,
+            'insights_upload': local_insights_upload,
+            'ocp_cluster_id': cluster_id,
+            'static_report_data': static_ocp_data,
+        }
         ocp_create_report(options)
 
         for report_type in OCP_REPORT_TYPE_TO_COLS.keys():
-            month_output_file_name = '{}-{}-{}-{}'.format(calendar.month_name[now.month],
-                                                          now.year,
-                                                          cluster_id,
-                                                          report_type)
-            expected_month_output_file = '{}/{}.csv'.format(os.getcwd(), month_output_file_name)
+            month_output_file_name = '{}-{}-{}-{}'.format(
+                calendar.month_name[now.month], now.year, cluster_id, report_type
+            )
+            expected_month_output_file = '{}/{}.csv'.format(
+                os.getcwd(), month_output_file_name
+            )
             self.assertTrue(os.path.isfile(expected_month_output_file))
             os.remove(expected_month_output_file)
 
@@ -528,8 +693,7 @@ class OCPReportTestCase(TestCase):
 
         temp_file = NamedTemporaryFile(mode='w', delete=False)
         headers = ['col1', 'col2']
-        data = [{'col1': 'r1c1', 'col2': 'r1c2'},
-                {'col1': 'r2c1', 'col2': 'r2c2'}]
+        data = [{'col1': 'r1c1', 'col2': 'r1c2'}, {'col1': 'r2c1', 'col2': 'r2c2'}]
         _write_csv(temp_file.name, data, headers)
 
         insights_upload = 'test'
@@ -550,17 +714,25 @@ class AzureReportTestCase(TestCase):
 
     def setUp(self):
         """Setup shared variables for AzureReportTestCase."""
-        self.MOCK_AZURE_REPORT_FILENAME = \
-            '{}/costreport_12345678-1234-5678-1234-567812345678.csv'.format(os.getcwd())
+        self.MOCK_AZURE_REPORT_FILENAME = (
+            f'{os.getcwd()}/costreport_12345678-1234-5678-1234-567812345678.csv'
+        )
 
     @staticmethod
     def mock_generate_azure_filename():
         """Create a fake azure filename."""
         fake_uuid = '12345678-1234-5678-1234-567812345678'
-        output_file_name = '{}_{}'.format('costreport', fake_uuid)
-        local_path = '{}/{}.csv'.format(os.getcwd(), output_file_name)
-        output_file_name = output_file_name + '.csv'
+        output_file_name = f'costreport_{fake_uuid}.csv'
+        local_path = f'{os.getcwd()}/{output_file_name}'
         return local_path, output_file_name
+
+    @staticmethod
+    def build_azure_path(options):
+        path = ''
+        path += options.get('azure_prefix_name') + '/'
+        path += options.get('azure_container_name') + '/'
+        path += options.get('azure_report_name') + '/'
+        return path
 
     def test_generate_azure_filename(self):
         """Test that _generate_azure_filename returns not empty tuple."""
@@ -575,8 +747,7 @@ class AzureReportTestCase(TestCase):
         now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
         one_day = datetime.timedelta(days=1)
         yesterday = now - one_day
-        options = {'start_date': yesterday,
-                   'end_date': now}
+        options = {'start_date': yesterday, 'end_date': now}
         azure_create_report(options)
         local_path = self.MOCK_AZURE_REPORT_FILENAME
         self.assertTrue(os.path.isfile(local_path))
@@ -589,26 +760,36 @@ class AzureReportTestCase(TestCase):
         now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
         one_day = datetime.timedelta(days=1)
         yesterday = now - one_day
-        static_azure_data = {'generators': [
-            {'BandwidthGenerator': {
-                'start_date': str(yesterday.date()),
-                'end_date': str(now.date()),
-                }},
-            {'SQLGenerator': { # usage outside current month
-                'start_date': str(yesterday.date() + relativedelta(months=-2)),
-                'end_date': str(now.date() + relativedelta(months=-2)),
-                }},
-            {'StorageGenerator': { # usage outside current month
-                'start_date': str(yesterday.date() + relativedelta(months=+2)),
-                'end_date': str(now.date() + relativedelta(months=+2)),
-            }
-            }]}
-        options = {'start_date': yesterday,
-                   'end_date': now,
-                   'azure_prefix_name': 'cost_report',
-                   'azure_report_name': 'report',
-                   'azure_container_name': 'cost',
-                   'static_report_data': static_azure_data}
+        static_azure_data = {
+            'generators': [
+                {
+                    'BandwidthGenerator': {
+                        'start_date': str(yesterday.date()),
+                        'end_date': str(now.date()),
+                    }
+                },
+                {
+                    'SQLGenerator': {  # usage outside current month
+                        'start_date': str(yesterday.date() + relativedelta(months=-2)),
+                        'end_date': str(now.date() + relativedelta(months=-2)),
+                    }
+                },
+                {
+                    'StorageGenerator': {  # usage outside current month
+                        'start_date': str(yesterday.date() + relativedelta(months=+2)),
+                        'end_date': str(now.date() + relativedelta(months=+2)),
+                    }
+                },
+            ]
+        }
+        options = {
+            'start_date': yesterday,
+            'end_date': now,
+            'azure_prefix_name': 'cost_report',
+            'azure_report_name': 'report',
+            'azure_container_name': 'cost',
+            'static_report_data': static_azure_data,
+        }
         azure_create_report(options)
         local_path = self.MOCK_AZURE_REPORT_FILENAME
         self.assertTrue(os.path.isfile(local_path))
@@ -623,10 +804,12 @@ class AzureReportTestCase(TestCase):
         one_day = datetime.timedelta(days=1)
         yesterday = now - one_day
         local_storage_path = mkdtemp()
-        options = {'start_date': yesterday,
-                   'end_date': now,
-                   'azure_container_name': local_storage_path,
-                   'azure_report_name': 'cur_report'}
+        options = {
+            'start_date': yesterday,
+            'end_date': now,
+            'azure_container_name': local_storage_path,
+            'azure_report_name': 'cur_report',
+        }
         azure_create_report(options)
         expected_month_output_file = self.MOCK_AZURE_REPORT_FILENAME
         self.assertTrue(os.path.isfile(expected_month_output_file))
@@ -644,12 +827,14 @@ class AzureReportTestCase(TestCase):
         one_day = datetime.timedelta(days=1)
         yesterday = now - one_day
         local_storage_path = mkdtemp()
-        options = {'start_date': yesterday,
-                   'end_date': now,
-                   'upload_bool': True,
-                   'azure_prefic_name': 'prefix',
-                   'azure_container_name': local_storage_path,
-                   'azure_report_name': 'cur_report'}
+        options = {
+            'upload_bool': True,
+            'start_date': yesterday,
+            'end_date': now,
+            'azure_prefix_name': 'prefix',
+            'azure_container_name': local_storage_path,
+            'azure_report_name': 'cur_report',
+        }
         azure_create_report(options)
         mock_upload.assert_called()
         os.remove(self.MOCK_AZURE_REPORT_FILENAME)
@@ -659,15 +844,23 @@ class GCPReportTestCase(TestCase):
     """
     Tests for GCP report generation.
     """
+
     def test_gcp_create_report(self):
         """Test the gcp report creation method."""
         now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
         one_day = datetime.timedelta(days=1)
         yesterday = now - one_day
         report_prefix = 'test_report'
-        gcp_create_report({'start_date': yesterday, 'end_date': now, 'gcp_report_prefix': report_prefix})
-        output_file_name = '{}-{}.csv'.format(report_prefix,
-                                              yesterday.strftime('%Y-%m-%d'))
+        gcp_create_report(
+            {
+                'start_date': yesterday,
+                'end_date': now,
+                'gcp_report_prefix': report_prefix,
+            }
+        )
+        output_file_name = '{}-{}.csv'.format(
+            report_prefix, yesterday.strftime('%Y-%m-%d')
+        )
         expected_output_file_path = '{}/{}'.format(os.getcwd(), output_file_name)
 
         self.assertTrue(os.path.isfile(expected_output_file_path))
