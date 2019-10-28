@@ -156,7 +156,7 @@ Below is an example usage of ``nise`` for AZURE data::
 
 Example upload to AZURE::
 
-    AZURE_STORAGE_ACCOUNT=storage_account AZURE_ACCOUNT_KEY=key nise --start-date 2019-08-01 --azure --azure-container-name container --azure-report-prefix this_is_prefix  --azure-report-name this_is_report --static-report-file example_azure_static_data.yml
+    AZURE_STORAGE_ACCOUNT=storage_account AZURE_ACCOUNT_KEY=key nise --upload --start-date 2019-08-01 --azure --azure-container-name container --azure-report-prefix this_is_prefix  --azure-report-name this_is_report --static-report-file example_azure_static_data.yml
 
 will put the generated reports in the :code:`container` container with the following structure::
 
