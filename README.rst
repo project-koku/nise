@@ -55,13 +55,18 @@ To lint the code base ::
 
     tox -e lint
 
+Prereqs
+===========
+
+- AWS population requires prior setup of AWS Cost and Usage Report of same name to be created, as well as associated Bucket, Policy, Role, etc.
+
 Usage
 ===========
 nise is a command line tool. Currently only accepting a limited number of arguments:
 
 - *--start-date YYYY-MM-dd* (not supplied, if using --static-report-file yaml)
 - *--end-date YYYY-MM-dd* (optional, defaults to today and current hour)
-- (--aws | --ocp) required provider type
+- (--aws | --ocp | --gcp | --azure) required provider type
 - *--aws-s3-bucket-name bucket_name*  (optional, must include --aws-s3-report-name) Note: Use local directory path to populate a "local S3 bucket".
 - *--aws-s3-report-name report_name*  (optional, must include --aws-s3-bucket-name)
 - *--aws-s3-report-prefix prefix_name*  (optional)
@@ -69,6 +74,8 @@ nise is a command line tool. Currently only accepting a limited number of argume
 - *--ocp-cluster-id cluster-id* (required when providing ocp type)
 - *--insights-upload UPLOAD_URL* (optional) Note: Use local directory path to populate a "local upload directory".
 - *--static-report-file file_name* (optional) Note: Static report generation based on specified yaml file.  See example_aws[ocp]_static_data.yml for examples.
+- *--gcp-report-prefix prefix_name*  (optional)
+- *--gcp-bucket-name bucket_name*  (optional, see example usage below)
 
 Note: If `--aws-s3-report-name` or `--aws-s3-report-prefix` are specified they should match what is configured in the AWS cost usage report settings.
 
@@ -80,6 +87,9 @@ Note: If `--insights-upload` is and pointing to a URL endpoint you must have INS
 Note: If `--static-report-file` is used start_date will default to first day of current month.  `start_date: last_month` will be first day of previous month.  `start_date: today` will start at the first hour of current day.  `end_date` can support relative days from the `start_date`. i.e `end_date: 2` is two days after start date.
 
 Note: `--static-report-file` usage dates has a special `full_period` key value which will specify a usage for the entire `start_date - end_date` range.
+
+AWS
+---
 
 Below is an example usage of ``nise`` for AWS data::
 
@@ -96,6 +106,9 @@ Below is an example usage of ``nise`` for AWS data::
     nise --aws --static-report-file aws_static_data.yml
 
 Generated reports will be generated in monthly .csv files with the file format <Month>-<Year>-<Report Name>.csv.
+
+OCP
+---
 
 Below is an example usage of ``nise`` for OCP data::
 
@@ -130,13 +143,13 @@ Below is an example usage of ``nise`` for AZURE data::
 
     nise --start-date 2019-08-01 --azure
 
-    nise --start-date 2019-08-01 --azure --azure-storage-name container --azure-report-name cur
+    nise --start-date 2019-08-01 --azure --azure-container-name container --azure-report-name cur
 
-    nise --start-date 2019-08-01 --azure --azure-storage-name /local/path/container --azure-report-name cur
+    nise --start-date 2019-08-01 --azure --azure-container-name /local/path/container --azure-report-name cur
 
-    nise --start-date 2019-08-01 --azure --azure-storage-name /local/path/container --azure-report-name cur --azure-storage-report-prefix my-prefix
+    nise --start-date 2019-08-01 --azure --azure-container-name /local/path/container --azure-report-name cur --azure-report-prefix my-prefix
 
-    nise --start-date 2019-08-01 --azure --azure-storage-name /local/path/container --azure-report-name cur --azure-storage-report-prefix my-prefix --static-report-file example_azure_static_data.yml
+    nise --start-date 2019-08-01 --azure --azure-container-name /local/path/container --azure-report-name cur --azure-report-prefix my-prefix --static-report-file example_azure_static_data.yml
 
     nise --azure --static-report-file azure_static_data.yml
 
@@ -149,6 +162,14 @@ Below is an example usage of ``nise`` for OCP running on AZURE data::
     nise --azure --static-report-file examples/ocp_on_azure/azure_static_data.yml
 
     nise --ocp --ocp-cluster-id my-cluster-id --static-report-file examples/ocp_on_azure/ocp_static_data.yml
+
+Example upload to AZURE::
+
+    AZURE_STORAGE_ACCOUNT=storage_account AZURE_ACCOUNT_KEY=key nise --start-date 2019-08-01 --azure --azure-container-name container --azure-report-prefix this_is_prefix  --azure-report-name this_is_report --static-report-file example_azure_static_data.yml
+
+will put the generated reports in the :code:`container` container with the following structure::
+
+    this_is_prefix/this_is_report/date_range/costreport_{uuid}.csv
 
 To add an AZURE-local provider::
 
@@ -165,7 +186,7 @@ To add an AZURE-local provider::
         }, "billing_source": {
             "data_source": {
                 "resource_group": {
-                    "directory": --azure-storage-report-prefix,
+                    "directory": --azure-report-prefix,
                     "export_name": --azure-report-name
                 },
                 "storage_account": {
@@ -175,6 +196,34 @@ To add an AZURE-local provider::
             }
         }
     }
+
+
+GCP
+---
+
+``--gcp-bucket-name`` could be an local file name or a bucket. When ``--gcp-bucket-name`` matches a file on disk,
+the generated reports will be written to that file. If ``--gcp-bucket-name`` does not match a file on disk,
+nise will attempt to upload the gnerated report to a bucket with that name. When this is the case
+the ``GOOGLE_APPLICATION_CREDENTIALS`` environment variable must be set, and the given bucket-name must match
+and existing bucket that is accessable by the service account indicated in ``GOOGLE_APPLICATION_CREDENTIALS``.
+
+For more information about ``GOOGLE_APPLICATION_CREDENTIALS`` see `the Google Authentication Docs.
+<https://cloud.google.com/docs/authentication/getting-started/>`_.
+
+
+Below is an example usage of ``nise`` for GCP data::
+
+    nise --gcp --start-date 2018-06-03 --end-date 2018-06-08
+
+    nise --gcp --start-date 2018-06-03 --end-date 2018-06-08 --gcp-report-prefix my-gcp-data
+
+    nise --gcp --start-date 2018-06-03 --end-date 2018-06-08 --gcp-report-prefix my-gcp-data --gcp-bucket-name my-gcp-bucket
+
+    nise --gcp --static-report-file gcp_static_data.yml
+
+
+Generated reports will be generated in daily .csv files with the file format <Report-Prefix>-<Year>-<Month>-<Day>.csv.
+
 
 Contributing
 =============

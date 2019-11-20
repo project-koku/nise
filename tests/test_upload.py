@@ -20,10 +20,15 @@ from unittest import TestCase
 from unittest.mock import Mock, patch
 
 import boto3
+import faker
 from azure.storage.blob import BlockBlobService
 from botocore.exceptions import ClientError
+from google.cloud.exceptions import GoogleCloudError
 
-from nise.upload import upload_to_s3, upload_to_storage
+from nise.upload import upload_to_azure_container, upload_to_gcp_storage, upload_to_s3
+
+
+fake = faker.Faker()
 
 
 class UploadTestCase(TestCase):
@@ -66,7 +71,7 @@ class UploadTestCase(TestCase):
         """Test successful upload_to_storage method with mock."""
         container_name = 'my_container'
         with NamedTemporaryFile(delete=False) as t_file:
-            success = upload_to_storage(container_name, '/file.txt', t_file.name)
+            success = upload_to_azure_container(container_name, '/file.txt', t_file.name)
         self.assertTrue(success)
         os.remove(t_file.name)
 
@@ -76,6 +81,49 @@ class UploadTestCase(TestCase):
         mock_blob_service.side_effect = Exception
         container_name = 'my_container'
         with NamedTemporaryFile(delete=False) as t_file:
-            success = upload_to_storage(container_name, '/file.txt', t_file.name)
+            success = upload_to_azure_container(container_name, '/file.txt', t_file.name)
         self.assertFalse(success)
         os.remove(t_file.name)
+
+    @patch.dict(os.environ, {'GOOGLE_APPLICATION_CREDENTIALS': '/path/to/creds'})
+    @patch('nise.upload.storage')
+    def test_gcp_upload_success(self, mock_storage):
+        """Test upload_to_s3 method with mock s3."""
+        bucket_name = fake.slug()
+        local_path = fake.file_path()
+        remote_path = fake.file_path()
+        uploaded = upload_to_gcp_storage(bucket_name, local_path, remote_path)
+
+        mock_client = mock_storage.Client.return_value
+        mock_client.get_bucket.assert_called_with(bucket_name)
+
+        mock_bucket = mock_client.get_bucket.return_value
+        mock_bucket.blob.assert_called_with(remote_path)
+
+        mock_blob = mock_bucket.blob.return_value
+        mock_blob.upload_from_filename.assert_called_with(local_path)
+
+        self.assertTrue(uploaded)
+
+    @patch.dict(os.environ, {'GOOGLE_APPLICATION_CREDENTIALS': '/path/to/creds'})
+    @patch('nise.upload.storage.Client')
+    def test_gcp_upload_error(self, mock_storage):
+        """Test upload_to_s3 method with mock s3."""
+        gcp_client = mock_storage.return_value
+        gcp_client.get_bucket.side_effect = GoogleCloudError('GCP Error')
+
+        bucket_name = fake.slug()
+        local_path = fake.file_path()
+        remote_path = fake.file_path()
+        uploaded = upload_to_gcp_storage(bucket_name, local_path, remote_path)
+
+        self.assertFalse(uploaded)
+
+    def test_gcp_upload_fail_no_credentials(self):
+        """Test upload_to_s3 method with mock s3."""
+        bucket_name = fake.slug()
+        local_path = fake.file_path()
+        remote_path = fake.file_path()
+        uploaded = upload_to_gcp_storage(bucket_name, local_path, remote_path)
+
+        self.assertFalse(uploaded)

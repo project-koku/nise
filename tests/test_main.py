@@ -91,7 +91,7 @@ class CommandLineTestCase(TestCase):
         Test where user passes a valid s3 argument combination.
         """
         options = {'azure': True,
-                   'azure_storage_name': 'storage',
+                   'azure_container_name': 'storage',
                    'azure_report_name': 'report',
                    'azure_prefix_name': 'value'}
         valid = _validate_provider_inputs(self.parser, options)
@@ -113,7 +113,10 @@ class CommandLineTestCase(TestCase):
             options = {'aws': True, 'ocp_cluster_id': '123'}
             _validate_provider_inputs(self.parser, options)
         with self.assertRaises(SystemExit):
-            options = {'aws': True, 'azure_storage_name': '123'}
+            options = {'aws': True, 'azure_container_name': '123'}
+            _validate_provider_inputs(self.parser, options)
+        with self.assertRaises(SystemExit):
+            options = {'azure': True, 'gcp_report_prefix': 'gcp-report'}
             _validate_provider_inputs(self.parser, options)
 
     def test_invalid_azure_inputs(self):
@@ -129,6 +132,9 @@ class CommandLineTestCase(TestCase):
         with self.assertRaises(SystemExit):
             options = {'azure': True, 'ocp_cluster_id': '123'}
             _validate_provider_inputs(self.parser, options)
+        with self.assertRaises(SystemExit):
+            options = {'azure': True, 'gcp_report_prefix': 'gcp-report'}
+            _validate_provider_inputs(self.parser, options)
 
     def test_invalid_ocp_inputs(self):
         """
@@ -138,7 +144,10 @@ class CommandLineTestCase(TestCase):
             options = {'ocp': True, 'aws_bucket_name': 'mybucket'}
             _validate_provider_inputs(self.parser, options)
         with self.assertRaises(SystemExit):
-            options = {'ocp': True, 'azure_storage_name': '123'}
+            options = {'ocp': True, 'azure_container_name': '123'}
+            _validate_provider_inputs(self.parser, options)
+        with self.assertRaises(SystemExit):
+            options = {'azure': True, 'gcp_report_prefix': 'gcp-report'}
             _validate_provider_inputs(self.parser, options)
 
     @patch.dict(os.environ, {'INSIGHTS_ACCOUNT_ID': '12345', 'INSIGHTS_ORG_ID': '54321'})
@@ -169,7 +178,6 @@ class CommandLineTestCase(TestCase):
             options = {'ocp': True, 'insights_upload': 'true', 'ocp_cluster_id': '123'}
             _validate_provider_inputs(self.parser, options)
 
-
     def test_ocp_no_cluster_id(self):
         """
         Test where user passes ocp without cluster id combination.
@@ -195,7 +203,6 @@ class CommandLineTestCase(TestCase):
         data_missing = _load_yaml_file(None)
         self.assertIsNone(data_missing)
 
-
     def test_load_static_report_data(self):
         """
         Test to load static report data from option.
@@ -212,8 +219,6 @@ class CommandLineTestCase(TestCase):
         _load_static_report_data(missing_options)
         self.assertIsNone(missing_options.get('static_report_data'))
 
-
-
     def test_load_static_report_data_no_start_date(self):
         """
         Test to load static report data from option with no start date.
@@ -223,3 +228,33 @@ class CommandLineTestCase(TestCase):
         _load_static_report_data(options)
         self.assertIsNotNone(options.get('start_date'))
         self.assertIsNotNone(options.get('end_date'))
+
+    def test_invalid_gcp_inputs(self):
+        """
+        Test where user args from azure, ocp, and aws when creating gcp data.
+        """
+        with self.assertRaises(SystemExit):
+            options = {'gcp': True, 'azure_report_name': 'report'}
+            _validate_provider_inputs(self.parser, options)
+        with self.assertRaises(SystemExit):
+            options = {'gcp': True, 'aws_bucket_name': 'mybucket'}
+            _validate_provider_inputs(self.parser, options)
+        with self.assertRaises(SystemExit):
+            options = {'gcp': True, 'ocp_cluster_id': '123'}
+            _validate_provider_inputs(self.parser, options)
+
+    def test_invalid_gcp_inputs_aws_args(self):
+        """
+        Test where user aws arg when creating gcp data.
+        """
+        with self.assertRaises(SystemExit):
+            options = {'gcp': True, 'aws_bucket_name': 'my-bucket'}
+            _validate_provider_inputs(self.parser, options)
+
+    def test_no_provider_type_fail(self):
+        """
+        Test that parser fails when no provider type is passed.
+        """
+        with self.assertRaises(SystemExit):
+            options = {}
+            _validate_provider_inputs(self.parser, options)

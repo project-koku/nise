@@ -14,12 +14,14 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
-"""Defines the upload mechanism to AWS and Azure."""
+"""Defines the upload mechanism to various clouds."""
 import os
 
 import boto3
 from azure.storage.blob import BlockBlobService
 from botocore.exceptions import ClientError
+from google.cloud import storage
+from google.cloud.exceptions import GoogleCloudError
 from requests.exceptions import ConnectionError as BotoConnectionError
 
 
@@ -37,7 +39,7 @@ def upload_to_s3(bucket_name, bucket_file_path, local_path):
     uploaded = True
     try:
         s3_client = boto3.resource('s3')
-        s3_client.Bucket(bucket_name).upload_file(local_path,
+        s3_client.Bucket(bucket_name).upload_file(local_path,  # pylint: disable=maybe-no-member
                                                   bucket_file_path)
         msg = 'Uploaded {} to s3 bucket {}.'.format(
             bucket_file_path, bucket_name)
@@ -49,13 +51,14 @@ def upload_to_s3(bucket_name, bucket_file_path, local_path):
     return uploaded
 
 
-def upload_to_storage(storage_file_name, local_path, storage_file_path):
+def upload_to_azure_container(storage_file_name, local_path, storage_file_path):
     """Upload data to a storage account.
 
     Args:
         storage_file_name (String): The container to upload file to
         local_path  (String): The full local file system path of the file
         storage_file_path (String): The file path to upload to within container
+
     Returns:
         (Boolean): True if file was uploaded
 
@@ -76,5 +79,41 @@ def upload_to_storage(storage_file_name, local_path, storage_file_path):
     # pylint: disable=broad-except
     except Exception as error:
         print(error)
+        uploaded = False
+    return uploaded
+
+
+def upload_to_gcp_storage(bucket_name, source_file_name, destination_blob_name):
+    """
+    Upload data to a GCP Storage Bucket.
+
+    Args:
+        bucket_name (String): The container to upload file to
+        source_file_name  (String): The full local file system path of the file
+        destination_blob_name (String): Destination blob name to store in GCP.
+
+    Returns:
+        (Boolean): True if file was uploaded
+
+    """
+    uploaded = True
+
+    if 'GOOGLE_APPLICATION_CREDENTIALS' not in os.environ:
+        print('Please set your GOOGLE_APPLICATION_CREDENTIALS '
+              'environment variable before attempting to load file into'
+              'GCP Storage.')
+        return False
+    try:
+        storage_client = storage.Client()
+
+        bucket = storage_client.get_bucket(bucket_name)
+        blob = bucket.blob(destination_blob_name)
+
+        blob.upload_from_filename(source_file_name)
+
+        print('File {} uploaded to GCP Storage {}.'.format(source_file_name,
+                                                           destination_blob_name))
+    except GoogleCloudError as upload_err:
+        print(upload_err)
         uploaded = False
     return uploaded

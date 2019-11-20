@@ -21,21 +21,26 @@ import datetime
 import json
 import os
 import shutil
-from tempfile import NamedTemporaryFile, mkdtemp
+from tempfile import NamedTemporaryFile, TemporaryDirectory, mkdtemp
 from unittest import TestCase, skip
 from unittest.mock import ANY, patch
 from uuid import uuid4
 
+import faker
 from dateutil.relativedelta import relativedelta
 
 from nise.generators.ocp.ocp_generator import OCP_REPORT_TYPE_TO_COLS
 from nise.report import (_create_month_list, _generate_azure_filename,
                          _get_generators, _write_csv, _write_manifest,
                          aws_create_report, azure_create_report,
+                         gcp_create_report, gcp_route_file,
                          ocp_create_report, ocp_route_file,
                          post_payload_to_ingest_service)
 
-MOCK_AZURE_REPORT_FILENAME = '{}/costreport_12345678-1234-5678-1234-567812345678.csv'.format(os.getcwd())
+
+
+fake = faker.Faker()
+
 
 class MiscReportTestCase(TestCase):
     """
@@ -363,6 +368,7 @@ class AWSReportTestCase(TestCase):
         os.remove(expected_month_output_file)
         shutil.rmtree(local_bucket_path)
 
+
 class OCPReportTestCase(TestCase):
     """
     TestCase class for OCP report functions.
@@ -535,17 +541,25 @@ class OCPReportTestCase(TestCase):
         self.assertEqual(mock_post.call_args[1].get('auth'), auth)
         self.assertNotIn('headers', mock_post.call_args[1])
 
-def mock_generate_azure_filename():
-    fake_uuid = '12345678-1234-5678-1234-567812345678'
-    output_file_name = '{}_{}'.format('costreport', fake_uuid)
-    local_path = '{}/{}.csv'.format(os.getcwd(), output_file_name)
-    output_file_name = output_file_name + '.csv'
-    return local_path, output_file_name
 
 class AzureReportTestCase(TestCase):
     """
     TestCase class for Azure report functions.
     """
+
+    def setUp(self):
+        """Setup shared variables for AzureReportTestCase."""
+        self.MOCK_AZURE_REPORT_FILENAME = \
+            '{}/costreport_12345678-1234-5678-1234-567812345678.csv'.format(os.getcwd())
+
+    @staticmethod
+    def mock_generate_azure_filename():
+        """Create a fake azure filename."""
+        fake_uuid = '12345678-1234-5678-1234-567812345678'
+        output_file_name = '{}_{}'.format('costreport', fake_uuid)
+        local_path = '{}/{}.csv'.format(os.getcwd(), output_file_name)
+        output_file_name = output_file_name + '.csv'
+        return local_path, output_file_name
 
     def test_generate_azure_filename(self):
         """Test that _generate_azure_filename returns not empty tuple."""
@@ -557,14 +571,14 @@ class AzureReportTestCase(TestCase):
     @patch('nise.report._generate_azure_filename')
     def test_azure_create_report(self, mock_name):
         """Test the azure report creation method."""
-        mock_name.side_effect = mock_generate_azure_filename
+        mock_name.side_effect = self.mock_generate_azure_filename
         now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
         one_day = datetime.timedelta(days=1)
         yesterday = now - one_day
         options = {'start_date': yesterday,
                    'end_date': now}
         azure_create_report(options)
-        local_path = MOCK_AZURE_REPORT_FILENAME
+        local_path = self.MOCK_AZURE_REPORT_FILENAME
         self.assertTrue(os.path.isfile(local_path))
         os.remove(local_path)
 
@@ -572,7 +586,7 @@ class AzureReportTestCase(TestCase):
     @patch('nise.report._generate_azure_filename')
     def test_azure_create_report_with_static_data(self, mock_name):
         """Test the azure report creation method."""
-        mock_name.side_effect = mock_generate_azure_filename
+        mock_name.side_effect = self.mock_generate_azure_filename
         now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
         one_day = datetime.timedelta(days=1)
         yesterday = now - one_day
@@ -594,10 +608,10 @@ class AzureReportTestCase(TestCase):
                    'end_date': now,
                    'azure_prefix_name': 'cost_report',
                    'azure_report_name': 'report',
-                   'azure_storage_name': 'cost',
+                   'azure_container_name': 'cost',
                    'static_report_data': static_azure_data}
         azure_create_report(options)
-        local_path = MOCK_AZURE_REPORT_FILENAME
+        local_path = self.MOCK_AZURE_REPORT_FILENAME
         self.assertTrue(os.path.isfile(local_path))
         os.remove(local_path)
 
@@ -605,29 +619,28 @@ class AzureReportTestCase(TestCase):
     @patch('nise.report._generate_azure_filename')
     def test_azure_create_report_with_local_dir(self, mock_name):
         """Test the azure report creation method with local directory."""
-        mock_name.side_effect = mock_generate_azure_filename
+        mock_name.side_effect = self.mock_generate_azure_filename
         now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
         one_day = datetime.timedelta(days=1)
         yesterday = now - one_day
         local_storage_path = mkdtemp()
         options = {'start_date': yesterday,
                    'end_date': now,
-                   'azure_storage_name': local_storage_path,
+                   'azure_container_name': local_storage_path,
                    'azure_report_name': 'cur_report'}
         azure_create_report(options)
-        expected_month_output_file = MOCK_AZURE_REPORT_FILENAME
+        expected_month_output_file = self.MOCK_AZURE_REPORT_FILENAME
         self.assertTrue(os.path.isfile(expected_month_output_file))
         os.remove(expected_month_output_file)
         shutil.rmtree(local_storage_path)
 
     @patch.dict(os.environ, {'AZURE_STORAGE_ACCOUNT': 'NOT None'})
-    @patch('nise.report.upload_to_storage')
+    @patch('nise.report.upload_to_azure_container')
     @patch('nise.report._generate_azure_filename')
     def test_azure_create_report_upload_to_azure(self, mock_name, mock_upload):
         """Test the azure upload is called when environment variable is set."""
-        mock_name.side_effect = mock_generate_azure_filename
+        mock_name.side_effect = self.mock_generate_azure_filename
         mock_upload.return_value = True
-        os.environ['AZURE_STORAGE_ACCOUNT'] = 'not none'
         now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
         one_day = datetime.timedelta(days=1)
         yesterday = now - one_day
@@ -635,8 +648,52 @@ class AzureReportTestCase(TestCase):
         options = {'start_date': yesterday,
                    'end_date': now,
                    'azure_prefic_name': 'prefix',
-                   'azure_storage_name': local_storage_path,
+                   'azure_container_name': local_storage_path,
                    'azure_report_name': 'cur_report'}
         azure_create_report(options)
         mock_upload.assert_called()
-        os.remove(MOCK_AZURE_REPORT_FILENAME)
+        os.remove(self.MOCK_AZURE_REPORT_FILENAME)
+
+
+class GCPReportTestCase(TestCase):
+    """
+    Tests for GCP report generation.
+    """
+    def test_gcp_create_report(self):
+        """Test the gcp report creation method."""
+        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
+        one_day = datetime.timedelta(days=1)
+        yesterday = now - one_day
+        report_prefix = 'test_report'
+        gcp_create_report({'start_date': yesterday, 'end_date': now, 'gcp_report_prefix': report_prefix})
+        output_file_name = '{}-{}.csv'.format(report_prefix,
+                                              yesterday.strftime('%Y-%m-%d'))
+        expected_output_file_path = '{}/{}'.format(os.getcwd(), output_file_name)
+
+        self.assertTrue(os.path.isfile(expected_output_file_path))
+        os.remove(expected_output_file_path)
+
+    @patch('nise.report.copy_to_local_dir')
+    @patch('nise.report.upload_to_gcp_storage')
+    def test_gcp_route_file_local(self, mock_upload, mock_copy):
+        """Test that if bucket_name is a valid directory the file is not uploaded."""
+
+        local_path = fake.file_path()
+        remote_path = fake.file_path()
+
+        with TemporaryDirectory() as temp_dir:
+            gcp_route_file(temp_dir, local_path, remote_path)
+            mock_copy.assert_called()
+            mock_upload.assert_not_called()
+
+    @patch('nise.report.copy_to_local_dir')
+    @patch('nise.report.upload_to_gcp_storage')
+    def test_gcp_route_file_upload(self, mock_upload, mock_copy):
+        """Test that if bucket_name is not a valid directory the file is uploaded."""
+        bucket = fake.file_path()
+        local_path = fake.file_path()
+        remote_path = fake.file_path()
+        gcp_route_file(bucket, local_path, remote_path)
+
+        mock_copy.assert_not_called()
+        mock_upload.assert_called()

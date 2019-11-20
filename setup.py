@@ -8,13 +8,16 @@ setup(
         'nise.generators',
         'nise.generators.aws',
         'nise.generators.ocp',
-        'nise.generators.azure'
+        'nise.generators.azure',
+        'nise.generators.gcp'
     ],
     install_requires=[
         'Faker',
         'boto3',
         'requests',
-        'jinja2'
+        'jinja2',
+        'azure',
+        'google-cloud-storage~=1.19.1'
     ],
     entry_points = {
         'console_scripts': [

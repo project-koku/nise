@@ -52,12 +52,16 @@ from nise.generators.azure import (AZURE_COLUMNS,
                                    StorageGenerator,
                                    VMGenerator,
                                    VNGenerator)
+from nise.generators.gcp import (CloudStorageGenerator,
+                                 ComputeEngineGenerator,
+                                 GCP_REPORT_COLUMNS,
+                                 ProjectGenerator)
 from nise.generators.ocp import (OCPGenerator,
                                  OCP_POD_USAGE,
                                  OCP_REPORT_TYPE_TO_COLS,
                                  OCP_STORAGE_USAGE)
 from nise.manifest import aws_generate_manifest, ocp_generate_manifest
-from nise.upload import upload_to_s3, upload_to_storage
+from nise.upload import upload_to_azure_container, upload_to_gcp_storage, upload_to_s3
 
 
 def create_temporary_copy(path, temp_file_name, temp_dir_name='None'):
@@ -144,14 +148,14 @@ def aws_route_file(bucket_name, bucket_file_path, local_path):
 
 def azure_route_file(storage_account_name, storage_file_name, local_path, storage_file_path=None):
     """Route file to either storage account or local filesystem."""
-    if os.path.isdir(storage_account_name):
+    if storage_file_path is None:
         copy_to_local_dir(storage_account_name,
                           local_path,
                           storage_file_name)
     else:
-        upload_to_storage(storage_file_name,
-                          local_path,
-                          storage_file_path)
+        upload_to_azure_container(storage_file_name,
+                                  local_path,
+                                  storage_file_path)
 
 
 def ocp_route_file(insights_upload, local_path):
@@ -167,6 +171,18 @@ def ocp_route_file(insights_upload, local_path):
         else:
             print('{} File upload failed.'.format(response.status_code))
             print(response.text)
+
+
+def gcp_route_file(bucket_name, bucket_file_path, local_path):
+    """Route file to either GCP bucket or local filesystem."""
+    if os.path.isdir(bucket_name):
+        copy_to_local_dir(bucket_name,
+                          bucket_file_path,
+                          local_path)
+    else:
+        upload_to_gcp_storage(bucket_name,
+                              bucket_file_path,
+                              local_path)
 
 
 def post_payload_to_ingest_service(insights_upload, local_path):
@@ -249,7 +265,7 @@ def _aws_finalize_report(data, static_data=None):
 
 
 def _generate_accounts(static_report_data=None):
-    """Generate payer and useage accounts."""
+    """Generate payer and usage accounts."""
     if static_report_data:
         payer_account = static_report_data.get('payer')
         usage_accounts = tuple(static_report_data.get('user'))
@@ -427,6 +443,7 @@ def azure_create_report(options):
 
     payer_account, usage_accounts = _generate_accounts(accounts_list)
 
+    meter_cache = {}
     for month in months:
         data = []
         for generator in generators:
@@ -443,37 +460,38 @@ def azure_create_report(options):
 
                 gen_start_date, gen_end_date = _create_generator_dates_from_yaml(attributes, month)
 
+            attributes['meter_cache'] = meter_cache
             gen = generator_cls(gen_start_date, gen_end_date, payer_account,
                                 usage_accounts, attributes)
             data += gen.generate_data()
+            meter_cache = gen.get_meter_cache()
 
         local_path, output_file_name = _generate_azure_filename()
         date_range = _generate_azure_date_range(month)
 
         _write_csv(local_path, data, AZURE_COLUMNS)
 
-        azure_storage_account = options.get('azure_storage_name')
-        prefix_name = options.get('azure_prefix_name')
-        if azure_storage_account:
+        azure_container_name = options.get('azure_container_name')
+        if azure_container_name:
             file_path = ''
-            if prefix_name:
-                file_path += prefix_name + '/'
             storage_account_name = str(os.environ.get('AZURE_STORAGE_ACCOUNT'))
-            container_name = options.get('azure_report_name')
-            file_path += container_name + '/'
+            if options.get('azure_prefix_name'):
+                file_path += options.get('azure_prefix_name') + '/'
+            file_path += options.get('azure_report_name') + '/'
             file_path += date_range + '/'
             file_path += output_file_name
 
             # azure blob upload
             if storage_account_name != 'None':
                 azure_route_file(storage_account_name,
-                                 container_name,
+                                 azure_container_name,
                                  local_path,
-                                 date_range + '/' + output_file_name)
+                                 file_path)
             # local dir upload
-            azure_route_file(azure_storage_account,
-                             file_path,
-                             local_path)
+            else:
+                azure_route_file(azure_container_name,
+                                 file_path,
+                                 local_path)
 
 
 def ocp_create_report(options):  # noqa: C901
@@ -548,3 +566,62 @@ def ocp_create_report(options):  # noqa: C901
             os.remove(temp_manifest)
             os.remove(temp_manifest_name)
             os.remove(temp_usage_zip)
+
+
+# pylint: disable=too-many-locals,too-many-statements
+def gcp_create_report(options):
+    """Create a GCP cost usage report file."""
+    fake = Faker()
+
+    report_prefix = options.get('gcp_report_prefix') or fake.word()  # pylint: disable=maybe-no-member
+    gcp_bucket_name = options.get('gcp_bucket_name')
+
+    start_date = options.get('start_date')
+    end_date = options.get('end_date')
+
+    static_report_data = options.get('static_report_data')
+    if static_report_data:
+        generators = _get_generators(static_report_data.get('generators'))
+        projects = static_report_data.get('projects')
+
+    else:
+        generators = [
+            {'generator': CloudStorageGenerator, 'attributes': None},
+            {'generator': ComputeEngineGenerator, 'attributes': None}
+
+        ]
+        account = '{}-{}'.format(fake.word(), fake.word())  # pylint: disable=maybe-no-member
+
+        project_generator = ProjectGenerator(account)
+        projects = project_generator.generate_projects()
+
+    data = {}
+    for project in projects:
+        for generator in generators:
+            attributes = generator.get('attributes', {})
+            if attributes:
+                start_date = attributes.get('start_date')
+                end_date = attributes.get('end_date')
+
+            generator_cls = generator.get('generator')
+            gen = generator_cls(start_date, end_date, project, attributes=attributes)
+            generated_data = gen.generate_data()
+            for key, item in generated_data.items():
+                if key in data:
+                    data[key] += item
+                else:
+                    data[key] = item
+
+    monthly_files = []
+    for day, daily_data in data.items():
+        output_file_name = '{}-{}.csv'.format(report_prefix,
+                                              day.strftime('%Y-%m-%d'))
+
+        output_file_path = os.path.join(os.getcwd(), output_file_name)
+        monthly_files.append(output_file_path)
+        _write_csv(output_file_path, daily_data, GCP_REPORT_COLUMNS)
+
+    if gcp_bucket_name:
+        gcp_route_file(gcp_bucket_name,
+                       output_file_path,
+                       output_file_name)
