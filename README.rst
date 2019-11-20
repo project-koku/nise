@@ -113,9 +113,9 @@ Below is an example usage of ``nise`` for OCP running on AWS data::
 
     # First ensure that the resource_id and dates in both AWS and OCP static report files match
 
-    nise --aws --static-report-file aws_static_data.yml
+    nise --aws --static-report-file examples/ocp_on_aws/aws_static_data.yml
 
-    nise --ocp --ocp-cluster-id my-cluster-id --static-report-file ocp_static_data.yml
+    nise --ocp --ocp-cluster-id my-cluster-id --static-report-file examples/ocp_on_aws/ocp_static_data.yml
 
 Generated AWS reports will be generated in monthly .csv files with the file format <Month>-<Year>-<Report Name>.csv.
 
@@ -139,6 +139,16 @@ Below is an example usage of ``nise`` for AZURE data::
     nise --start-date 2019-08-01 --azure --azure-storage-name /local/path/container --azure-report-name cur --azure-storage-report-prefix my-prefix --static-report-file example_azure_static_data.yml
 
     nise --azure --static-report-file azure_static_data.yml
+
+Below is an example usage of ``nise`` for OCP running on AZURE data::
+
+    # First ensure that the dates in both AWS and OCP static report files match. Then specifcy an instance_id for Azure VMs in the Azure format where the string after the final '/' matches the OpenShift node_name.
+        e.g. instance_id: '/subscriptions/99999999-9999-9999-9999-999999999999/resourceGroups/koku-99hqd-rg/providers/Microsoft.Compute/virtualMachines/master'
+             node_name: master
+
+    nise --azure --static-report-file examples/ocp_on_azure/azure_static_data.yml
+
+    nise --ocp --ocp-cluster-id my-cluster-id --static-report-file examples/ocp_on_azure/ocp_static_data.yml
 
 To add an AZURE-local provider::
 
