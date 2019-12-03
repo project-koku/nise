@@ -54,7 +54,8 @@ from nise.generators.azure import (AZURE_COLUMNS,
                                    VNGenerator)
 from nise.generators.gcp import (CloudStorageGenerator,
                                  ComputeEngineGenerator,
-                                 GCP_REPORT_COLUMNS)
+                                 GCP_REPORT_COLUMNS,
+                                 ProjectGenerator)
 from nise.generators.ocp import (OCPGenerator,
                                  OCP_POD_USAGE,
                                  OCP_REPORT_TYPE_TO_COLS,
@@ -178,8 +179,8 @@ def gcp_route_file(options, bucket_name, bucket_file_path, local_path):
     """Route file to either GCP bucket or local filesystem."""
     if not options.get('upload_bool'):
         copy_to_local_dir(bucket_name,
-                          local_path,
-                          bucket_file_path,)
+                          bucket_file_path,
+                          local_path)
     else:
         upload_to_gcp_storage(bucket_name,
                               bucket_file_path,
@@ -579,31 +580,44 @@ def gcp_create_report(options):
     """Create a GCP cost usage report file."""
     fake = Faker()
 
-    start_date = options.get('start_date')
-    end_date = options.get('end_date')
     report_prefix = options.get('gcp_report_prefix') or fake.word()  # pylint: disable=maybe-no-member
     gcp_bucket_name = options.get('gcp_bucket_name')
 
-    account_name = '{}-{}'.format(fake.word(), fake.word())  # pylint: disable=maybe-no-member
-    project_number = fake.ean13()  # pylint: disable=maybe-no-member
-
-    project_id = '{}-{}-{}'.format(fake.word(), fake.word(), fake.ean8())  # pylint: disable=maybe-no-member
+    start_date = options.get('start_date')
+    end_date = options.get('end_date')
 
     static_report_data = options.get('static_report_data')
     if static_report_data:
         generators = _get_generators(static_report_data.get('generators'))
+        projects = static_report_data.get('projects')
+
     else:
         generators = [
             {'generator': CloudStorageGenerator, 'attributes': None},
             {'generator': ComputeEngineGenerator, 'attributes': None}
 
         ]
-    data = {}
+        account = '{}-{}'.format(fake.word(), fake.word())  # pylint: disable=maybe-no-member
 
-    for generator in generators:
-        generator_cls = generator.get('generator')
-        gen = generator_cls(start_date, end_date, account_name, project_number, project_id)
-        data.update(gen.generate_data())
+        project_generator = ProjectGenerator(account)
+        projects = project_generator.generate_projects()
+
+    data = {}
+    for project in projects:
+        for generator in generators:
+            attributes = generator.get('attributes', {})
+            if attributes:
+                start_date = attributes.get('start_date')
+                end_date = attributes.get('end_date')
+
+            generator_cls = generator.get('generator')
+            gen = generator_cls(start_date, end_date, project, attributes=attributes)
+            generated_data = gen.generate_data()
+            for key, item in generated_data.items():
+                if key in data:
+                    data[key] += item
+                else:
+                    data[key] = item
 
     monthly_files = []
     for day, daily_data in data.items():

@@ -146,6 +146,8 @@ class AzureGenerator(AbstractGenerator):
         additional_info = choice(add_info)
         service_info_2 = choice(service_info)
         if self._instance_id:
+            self._consumed, second_part = accts_str = self._get_accts_str(self._service_name)
+            self._resource_type = self._consumed + '/' + second_part
             instance_id = self._instance_id
         else:
             self._consumed, second_part = accts_str = self._get_accts_str(self._service_name)

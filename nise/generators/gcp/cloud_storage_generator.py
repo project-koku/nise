@@ -20,14 +20,27 @@ class CloudStorageGenerator(GCPGenerator):
 
     def _update_data(self, row):  # pylint: disable=arguments-differ
         """Update a data row with storage values."""
-        storage = choice(self.STORAGE)
-        row['line_item'] = storage[0]
-        row['measurement1'] = storage[0]
-        row['measurement1_total_consumption'] = self.fake.pyint()  # pylint: disable=maybe-no-member
-        row['measurement1_units'] = storage[1]
-        row['cost'] = self.fake.pyint()  # pylint: disable=maybe-no-member
-        row['currency'] = 'USD'
-        row['description'] = storage[2]
+        if self.attributes:
+            row['Line Item'] = self.attributes['Line Item']
+            row['Measurement1'] = self.attributes['Measurement1']
+            row['Measurement1 Total Consumption'] = \
+                self.attributes['Measurement1 Total Consumption']
+            row['Measurement1 Units'] = self.attributes['Measurement1 Units']
+            row['Cost'] = self.attributes['Cost']
+            row['Currency'] = self.attributes['Currency']
+            row['Description'] = self.attributes['Description']
+            row['Credit1'] = self.attributes['Credit1']
+            row['Credit1 Amount'] = self.attributes['Credit1 Amount']
+            row['Credit1 Currency'] = self.attributes['Credit1 Currency']
+        else:
+            storage = choice(self.STORAGE)
+            row['Line Item'] = storage[0]
+            row['Measurement1'] = storage[0]
+            row['Measurement1 Total Consumption'] = self.fake.pyint()  # pylint: disable=maybe-no-member
+            row['Measurement1 Units'] = storage[1]
+            row['Cost'] = self.fake.pyint()  # pylint: disable=maybe-no-member
+            row['Currency'] = 'USD'
+            row['Description'] = storage[2]
         return row
 
     def generate_data(self):
