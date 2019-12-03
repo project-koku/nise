@@ -126,9 +126,9 @@ Below is an example usage of ``nise`` for OCP running on AWS data::
 
     # First ensure that the resource_id and dates in both AWS and OCP static report files match
 
-    nise --aws --static-report-file aws_static_data.yml
+    nise --aws --static-report-file examples/ocp_on_aws/aws_static_data.yml
 
-    nise --ocp --ocp-cluster-id my-cluster-id --static-report-file ocp_static_data.yml
+    nise --ocp --ocp-cluster-id my-cluster-id --static-report-file examples/ocp_on_aws/ocp_static_data.yml
 
 Generated AWS reports will be generated in monthly .csv files with the file format <Month>-<Year>-<Report Name>.csv.
 
@@ -153,6 +153,16 @@ Below is an example usage of ``nise`` for AZURE data::
 
     nise --azure --static-report-file azure_static_data.yml
 
+Below is an example usage of ``nise`` for OCP running on AZURE data::
+
+    # First ensure that the dates in both AWS and OCP static report files match. Then specifcy an instance_id for Azure VMs in the Azure format where the string after the final '/' matches the OpenShift node_name.
+        e.g. instance_id: '/subscriptions/99999999-9999-9999-9999-999999999999/resourceGroups/koku-99hqd-rg/providers/Microsoft.Compute/virtualMachines/master'
+             node_name: master
+
+    nise --azure --static-report-file examples/ocp_on_azure/azure_static_data.yml
+
+    nise --ocp --ocp-cluster-id my-cluster-id --static-report-file examples/ocp_on_azure/ocp_static_data.yml
+
 Example upload to AZURE::
 
     AZURE_STORAGE_ACCOUNT=storage_account AZURE_ACCOUNT_KEY=key nise --start-date 2019-08-01 --azure --azure-container-name container --azure-report-prefix this_is_prefix  --azure-report-name this_is_report --static-report-file example_azure_static_data.yml
@@ -160,7 +170,6 @@ Example upload to AZURE::
 will put the generated reports in the :code:`container` container with the following structure::
 
     this_is_prefix/this_is_report/date_range/costreport_{uuid}.csv
-
 
 To add an AZURE-local provider::
 
