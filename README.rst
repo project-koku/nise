@@ -55,6 +55,16 @@ To lint the code base ::
 
     tox -e lint
 
+
+Publishing
+__________
+
+Please remember to sync your updated dependecies to setup.py with ::
+
+    pipenv-setup sync
+
+After that, simply make sure to increment your version in setup.py, and as soon as it lands on master it'll be built, tagged, and deployed to PyPI.
+
 Prereqs
 ===========
 

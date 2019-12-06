@@ -1,5 +1,3 @@
-sudo: false
-
 language: python
 
 python:
@@ -9,19 +7,56 @@ env:
   TOXENV=for_travis
   CC_TEST_REPORTER_ID=45a9f7a2e55a514bd037ad818a163cf97cec0a50a743602e790d4584909aebe3
 
-before_install:
-  - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
-  - chmod +x ./cc-test-reporter
+jobs:
+  include:
+    - stage: test
+      before_install:
+        - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+        - chmod +x ./cc-test-reporter
+      install: pip install tox codecov
+      before_script: ./cc-test-reporter before-build
+      script: tox
+      after_success:
+        - codecov
+        - ./cc-test-reporter after-build
+    - stage: test build
+      before_install: pip install pipenv
+      install: pipenv install --dev
+      script:
+        - pipenv-setup check
+        - pipenv run python3 setup.py sdist bdist_wheel
+    - stage: deploy
+      if: type = push
+      branches: master
+      before_install:
+        - pip install pipenv
+        - sudo apt-get update
+        - sudo apt-get install expect
+        - openssl aes-256-cbc -K $encrypted_415b34294001_key -iv $encrypted_415b34294001_iv -in nise-travis-ci.enc -out ${TRAVIS_HOME}/deploy_key.pem -d
+      install: pipenv install --dev
+      before_script:
+        - eval "$(ssh-agent -s)"
+        - chmod 600 ${TRAVIS_HOME}/deploy_key.pem
+        - >
+          expect -c "
+            spawn ssh-add ${TRAVIS_HOME}/deploy_key.pem
+            expect \"?assphrase\"
+            send \"\r\"
+            expect eof"
+        - ssh-add -l
+        - git remote add deploy git@github.com:project-koku/nise.git
+        - git fetch deploy
+      script:
+        - export SEMVER=$(python setup.py --version)
+        - pipenv-setup check
+        - pipenv run python3 setup.py sdist bdist_wheel
+        - >
+          if [ ! -z $(git tag -l "${SEMVER}") ]; then
+            echo "Tag already exists, doing nothing";
+          else
+            echo "Creating tag ${SEMVER}";
+            git tag ${SEMVER};
+            git push deploy --tags;
+            pipenv run python3 -m twine upload dist/*
+          fi
 
-install:
-  - pip install tox codecov
-
-before_script:
-  - ./cc-test-reporter before-build
-
-script:
-  - tox
-
-after_success:
-  - codecov
-  - ./cc-test-reporter after-build
