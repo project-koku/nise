@@ -55,6 +55,16 @@ To lint the code base ::
 
     tox -e lint
 
+
+Publishing
+__________
+
+Please remember to sync your updated dependecies to setup.py with ::
+
+    pipenv-setup sync
+
+After that, make sure the version in seyup.py matches your future tag, then simply tag a release in github and travis will take care of the rest.
+
 Prereqs
 ===========
 
