@@ -4,7 +4,6 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-setuptools = "*"
 faker = "*"
 boto3 = ">=1.7.42"
 requests = ">=2.19.1"
@@ -21,6 +20,10 @@ pylint = "==2.3.1"
 tox = ">=3.0.0"
 coverage = ">=4.5.0"
 pyyaml = ">=3.13"
+pipenv-setup = "*"
+setuptools = "*"
+twine = "*"
+secretstorage = {markers = "sys_platform == 'linux'",version = "*"}
 
 [requires]
 python_version = "3.6"
