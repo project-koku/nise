@@ -28,7 +28,7 @@ setup(
         "azure-mgmt-costmanagement>=0.1",
         "azure-mgmt-resource>=7.0",
         "azure-mgmt-storage>=7.1",
-        "azure-storage-blob==1.5.0",
+        "azure-storage-blob>=1.5",
         "azure-storage>=0.36",
         "google-cloud-storage>=1.19",
     ],

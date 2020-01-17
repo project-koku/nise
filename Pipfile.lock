@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "88037f11cb9c17d0150b731d7ae8ca6307477ba1bbef318f9fb46e8b9cfa7a36"
+            "sha256": "669a4b670ffc54fd5aaa447d6e2d20faf899ebab488bcb9093d139e39dedcab7"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -29,6 +29,13 @@
                 "sha256:3d64e9ab995300f42abd5bc0ef02f02bab661321e394d4dbacb4382ea1fb2f72"
             ],
             "version": "==1.1.24"
+        },
+        "azure-core": {
+            "hashes": [
+                "sha256:b8ccbd901d085048e4e3e72627b066923c5bd3780e4c43cf9cf9948aee9bdf9e",
+                "sha256:e2cd99f0c0aef12c168d498cb5bc47a3a45c8ab08112183e3ec97e4dcb33ceb9"
+            ],
+            "version": "==1.2.1"
         },
         "azure-mgmt-costmanagement": {
             "hashes": [
@@ -72,18 +79,11 @@
         },
         "azure-storage-blob": {
             "hashes": [
-                "sha256:6577e9ebca6fd1cf47795f88a1f0949c003fae62eeb6479a05631b765cf73b80",
-                "sha256:f187a878e7a191f4e098159904f72b4146cf70e1aabaf6484ab4ba72fc6f252c"
+                "sha256:b628e2f8a8470a52895e96c43c3321542be3246c61ff9ed4f3856fe87a04a406",
+                "sha256:f6f39a2c297c0ed5db2fbf480ac73a00c1ace94a364d203d2e00081371c27ada"
             ],
             "index": "pypi",
-            "version": "==1.5.0"
-        },
-        "azure-storage-common": {
-            "hashes": [
-                "sha256:4ec87c7537d457ec95252e0e46477e2c1ccf33774ffefd05d8544682cb0ae401",
-                "sha256:de4817cce35a23d1c89563edc38b481ebd8da4655bdf32d26fa2b06095179e4a"
-            ],
-            "version": "==1.4.2"
+            "version": "==12.1.0"
         },
         "boto3": {
             "hashes": [
@@ -455,14 +455,6 @@
                 "sha256:840947ebfa8b58f318d42301cf8c0a20fd794a33b61cc4638e28e9e61ba32f42"
             ],
             "version": "==2.3.3"
-        },
-        "astunparse": {
-            "hashes": [
-                "sha256:5ad93a8456f0d084c3456d059fd9a92cce667963232cbf763eac3bc5b7940872",
-                "sha256:c2652417f2c8b5bb325c885ae329bdf3f86424075c4fd1a128674bc6fba4b8e8"
-            ],
-            "index": "pypi",
-            "version": "==1.6.3"
         },
         "attrs": {
             "hashes": [
@@ -1041,14 +1033,6 @@
                 "sha256:565a021fd19419476b9362b05eeaa094178de64f8361e44468f9e9d7843901e1"
             ],
             "version": "==1.11.2"
-        },
-        "yapf": {
-            "hashes": [
-                "sha256:712e23c468506bf12cadd10169f852572ecc61b266258422d45aaf4ad7ef43de",
-                "sha256:cad8a272c6001b3401de3278238fdc54997b6c2e56baa751788915f879a52fca"
-            ],
-            "index": "pypi",
-            "version": "==0.29.0"
         },
         "zipp": {
             "hashes": [
