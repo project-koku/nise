@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "a4d41c250b787d1a885c039cff7b4df6a5eadfb5f6d307ab327da26a12f67313"
+            "sha256": "88037f11cb9c17d0150b731d7ae8ca6307477ba1bbef318f9fb46e8b9cfa7a36"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -195,11 +195,11 @@
         },
         "faker": {
             "hashes": [
-                "sha256:6eb3581e990e36ef6f1cf37f70f9a799e119e1a7b94a6062a14f1b8d781c67e4",
-                "sha256:c7f7466cb9ba58d582f713494acdb5ebcc462336c5e38c5230b0cdab37069985"
+                "sha256:047d4d1791bfb3756264da670d99df13d799bb36e7d88774b1585a82d05dbaec",
+                "sha256:1b1a58961683b30c574520d0c739c4443e0ef6a185c04382e8cc888273dbebed"
             ],
             "index": "pypi",
-            "version": "==3.0.1"
+            "version": "==4.0.0"
         },
         "google-api-core": {
             "hashes": [
@@ -455,6 +455,14 @@
                 "sha256:840947ebfa8b58f318d42301cf8c0a20fd794a33b61cc4638e28e9e61ba32f42"
             ],
             "version": "==2.3.3"
+        },
+        "astunparse": {
+            "hashes": [
+                "sha256:5ad93a8456f0d084c3456d059fd9a92cce667963232cbf763eac3bc5b7940872",
+                "sha256:c2652417f2c8b5bb325c885ae329bdf3f86424075c4fd1a128674bc6fba4b8e8"
+            ],
+            "index": "pypi",
+            "version": "==1.6.3"
         },
         "attrs": {
             "hashes": [
@@ -1033,6 +1041,14 @@
                 "sha256:565a021fd19419476b9362b05eeaa094178de64f8361e44468f9e9d7843901e1"
             ],
             "version": "==1.11.2"
+        },
+        "yapf": {
+            "hashes": [
+                "sha256:712e23c468506bf12cadd10169f852572ecc61b266258422d45aaf4ad7ef43de",
+                "sha256:cad8a272c6001b3401de3278238fdc54997b6c2e56baa751788915f879a52fca"
+            ],
+            "index": "pypi",
+            "version": "==0.29.0"
         },
         "zipp": {
             "hashes": [
