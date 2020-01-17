@@ -61,9 +61,9 @@ __________
 
 Please remember to sync your updated dependecies to setup.py with ::
 
-    pipenv-setup sync
+    pipenv-setup sync -p
 
-After that, simply make sure to increment your version in setup.py, and as soon as it lands on master it'll be built, tagged, and deployed to PyPI.
+After that, make sure to increment the version in setup.py. As soon as your PR is merged to master, a new koku-nise package will built, tagged, and deployed to PyPI.
 
 Prereqs
 ===========
