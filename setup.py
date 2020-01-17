@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name="koku-nise",
-    version="1.0.0",
+    version="1.0.1",
     author="Project Koku",
     author_email="cost_mgmt@redhat.com",
     description="A tool for generating sample cost and usage data for testing purposes.",
@@ -28,8 +28,7 @@ setup(
         "azure-mgmt-costmanagement>=0.1",
         "azure-mgmt-resource>=7.0",
         "azure-mgmt-storage>=7.1",
-        "azure-storage-blob>=1.5",
-        "azure-storage>=0.36",
+        "azure-storage-blob>=12.1",
         "google-cloud-storage>=1.19",
     ],
     dependency_links=[],

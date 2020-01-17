@@ -18,7 +18,7 @@
 import os
 
 import boto3
-from azure.storage.blob import BlockBlobService
+from azure.storage.blob import ContainerClient
 from botocore.exceptions import ClientError
 from google.cloud import storage
 from google.cloud.exceptions import GoogleCloudError
@@ -65,17 +65,13 @@ def upload_to_azure_container(storage_file_name, local_path, storage_file_path):
     """
     uploaded = True
     try:
-        account_key = str(os.environ.get('AZURE_ACCOUNT_KEY'))
-        storage_account = str(os.environ.get('AZURE_STORAGE_ACCOUNT'))
-        # Create the BlockBlockService that is used to call the
-        # Blob service for the storage account.
-        block_blob_service = BlockBlobService(
-            account_name=storage_account, account_key=account_key)
-
-        # Upload the created file, use local_file_name for the blob name.
-        block_blob_service.create_blob_from_path(
-            storage_file_name, storage_file_path, local_path)
-        print(f'uploaded {storage_file_name} to {storage_account}')
+        # Retrieve the connection string for use with the application.
+        connect_str = os.getenv('AZURE_STORAGE_CONNECTION_STRING')
+        container_client = ContainerClient.from_connection_string(conn_str=connect_str,
+                                                                  container_name=storage_file_name)
+        with open(local_path, "rb") as data:
+            container_client.upload_blob(name=storage_file_path, data=data)
+        print(f'uploaded {storage_file_name} to {storage_file_path}')
     # pylint: disable=broad-except
     except Exception as error:
         print(error)
