@@ -63,20 +63,20 @@ def upload_to_azure_container(storage_file_name, local_path, storage_file_path):
         (Boolean): True if file was uploaded
 
     """
-    uploaded = True
     try:
         # Retrieve the connection string for use with the application.
         connect_str = os.getenv('AZURE_STORAGE_CONNECTION_STRING')
         blob_service_client = BlobServiceClient.from_connection_string(connect_str)
-        blob_client = blob_service_client.get_blob_client(container=storage_file_name)
+        blob_client = blob_service_client.get_blob_client(container=storage_file_name,
+                                                          blob=storage_file_path)
         with open(local_path, 'rb') as data:
-            blob_client.upload_blob(name=storage_file_path, data=data)
+            blob_client.upload_blob(data=data)
         print(f'uploaded {storage_file_name} to {storage_file_path}')
     # pylint: disable=broad-except
     except Exception as error:
         print(error)
-        uploaded = False
-    return uploaded
+        return False
+    return True
 
 
 def upload_to_gcp_storage(bucket_name, source_file_name, destination_blob_name):
