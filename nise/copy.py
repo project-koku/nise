@@ -40,7 +40,7 @@ def copy_to_local_dir(local_dir_home, local_path, local_file_path=None):
         full_bucket_path = '{}/{}'.format(local_dir_home, local_file_path)
         outpath = local_file_path
     os.makedirs(os.path.dirname(full_bucket_path), exist_ok=True)
-    shutil.copy2(local_path, full_bucket_path)
+    shutil.copyfile(local_path, full_bucket_path)
     msg = 'Copied {} to local directory {}.'.format(outpath, local_dir_home)
     print(msg)
     return True
