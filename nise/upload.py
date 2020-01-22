@@ -16,12 +16,15 @@
 #
 """Defines the upload mechanism to various clouds."""
 import os
+import sys
+import traceback
 
 import boto3
 from azure.storage.blob import BlobServiceClient
 from botocore.exceptions import ClientError
 from google.cloud import storage
 from google.cloud.exceptions import GoogleCloudError
+from msrestazure.azure_exceptions import CloudError, ClientException
 from requests.exceptions import ConnectionError as BotoConnectionError
 
 
@@ -73,9 +76,9 @@ def upload_to_azure_container(storage_file_name, local_path, storage_file_path):
         with open(local_path, 'rb') as data:
             blob_client.upload_blob(data=data)
         print(f'uploaded {storage_file_name} to {storage_file_path}')
-    # pylint: disable=broad-except
-    except Exception as error:
+    except (CloudError, ClientException, IOError) as error:
         print(error)
+        traceback.print_exc(file=sys.stderr)
         return False
     return True
 
