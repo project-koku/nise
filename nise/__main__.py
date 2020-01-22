@@ -141,14 +141,12 @@ def create_parser():
                         dest='gcp_bucket_name',
                         required=False,
                         help='GCP storage account to place the data.')
-    parser.add_argument(
-        "--azure-account-name",
-        metavar="AZURE_ACCOUNT_NAME",
-        dest="azure_account_name",
-        required=False,
-        default=os.getenv("AZURE_STORAGE_ACCOUNT"),
-        help="Azure container to place the data.",
-    )
+    parser.add_argument('--azure-account-name',
+                        metavar='AZURE_ACCOUNT_NAME',
+                        dest='azure_account_name',
+                        required=False,
+                        default=os.getenv('AZURE_STORAGE_ACCOUNT'),
+                        help='Azure container to place the data.')
 
     return parser
 

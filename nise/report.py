@@ -148,7 +148,7 @@ def aws_route_file(bucket_name, bucket_file_path, local_path):
 
 def azure_route_file(storage_account_name, storage_file_name, local_path, storage_file_path=None):
     """Route file to either storage account or local filesystem."""
-    connect_str = os.getenv("AZURE_STORAGE_CONNECTION_STRING")
+    connect_str = os.getenv('AZURE_STORAGE_CONNECTION_STRING')
     if storage_file_path is None and connect_str is None:
         copy_to_local_dir(storage_account_name, local_path, storage_file_name)
     else:
