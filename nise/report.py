@@ -471,7 +471,7 @@ def azure_create_report(options):
         azure_container_name = options.get('azure_container_name')
         if azure_container_name:
             file_path = ''
-            storage_account_name = str(os.environ.get('AZURE_STORAGE_ACCOUNT'))
+            storage_account_name = options.get('azure_account_name')
             if options.get('azure_prefix_name'):
                 file_path += options.get('azure_prefix_name') + '/'
             file_path += options.get('azure_report_name') + '/'
