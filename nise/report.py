@@ -148,14 +148,11 @@ def aws_route_file(bucket_name, bucket_file_path, local_path):
 
 def azure_route_file(storage_account_name, storage_file_name, local_path, storage_file_path=None):
     """Route file to either storage account or local filesystem."""
-    if storage_file_path is None:
-        copy_to_local_dir(storage_account_name,
-                          local_path,
-                          storage_file_name)
+    connect_str = os.getenv("AZURE_STORAGE_CONNECTION_STRING")
+    if storage_file_path is None and connect_str is None:
+        copy_to_local_dir(storage_account_name, local_path, storage_file_name)
     else:
-        upload_to_azure_container(storage_file_name,
-                                  local_path,
-                                  storage_file_path)
+        upload_to_azure_container(storage_file_name, local_path, storage_file_path)
 
 
 def ocp_route_file(insights_upload, local_path):
