@@ -22,9 +22,8 @@ import json
 import os
 import shutil
 from tempfile import NamedTemporaryFile, TemporaryDirectory, mkdtemp
-from unittest import TestCase, skip
-from unittest.mock import ANY, patch
-from uuid import uuid4
+from unittest import TestCase
+from unittest.mock import patch
 
 import faker
 from dateutil.relativedelta import relativedelta
@@ -567,7 +566,6 @@ class AzureReportTestCase(TestCase):
         self.assertIsNotNone(tup[0])
         self.assertIsNotNone(tup[1])
 
-    @patch.dict(os.environ, {'AZURE_STORAGE_ACCOUNT': 'None'})
     @patch('nise.report._generate_azure_filename')
     def test_azure_create_report(self, mock_name):
         """Test the azure report creation method."""
@@ -582,7 +580,6 @@ class AzureReportTestCase(TestCase):
         self.assertTrue(os.path.isfile(local_path))
         os.remove(local_path)
 
-    @patch.dict(os.environ, {'AZURE_STORAGE_ACCOUNT': 'None'})
     @patch('nise.report._generate_azure_filename')
     def test_azure_create_report_with_static_data(self, mock_name):
         """Test the azure report creation method."""
@@ -615,7 +612,6 @@ class AzureReportTestCase(TestCase):
         self.assertTrue(os.path.isfile(local_path))
         os.remove(local_path)
 
-    @patch.dict(os.environ, {'AZURE_STORAGE_ACCOUNT': 'None'})
     @patch('nise.report._generate_azure_filename')
     def test_azure_create_report_with_local_dir(self, mock_name):
         """Test the azure report creation method with local directory."""
@@ -634,11 +630,15 @@ class AzureReportTestCase(TestCase):
         os.remove(expected_month_output_file)
         shutil.rmtree(local_storage_path)
 
-    @patch.dict(os.environ, {'AZURE_STORAGE_ACCOUNT': 'NOT None'})
+    @patch.dict(os.environ, {'AZURE_STORAGE_CONNECTION_STRING': (f'DefaultEndpointsProtocol=https;'
+                                                                 f'AccountName={fake.word()};'
+                                                                 f'AccountKey={fake.sha256()};'
+                                                                 f'EndpointSuffix=core.windows.net')})
     @patch('nise.report.upload_to_azure_container')
     @patch('nise.report._generate_azure_filename')
     def test_azure_create_report_upload_to_azure(self, mock_name, mock_upload):
         """Test the azure upload is called when environment variable is set."""
+
         mock_name.side_effect = self.mock_generate_azure_filename
         mock_upload.return_value = True
         now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
@@ -647,6 +647,7 @@ class AzureReportTestCase(TestCase):
         local_storage_path = mkdtemp()
         options = {'start_date': yesterday,
                    'end_date': now,
+                   'azure_account_name': fake.word(),
                    'azure_prefic_name': 'prefix',
                    'azure_container_name': local_storage_path,
                    'azure_report_name': 'cur_report'}
