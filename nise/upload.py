@@ -24,7 +24,7 @@ from azure.storage.blob import BlobServiceClient
 from botocore.exceptions import ClientError
 from google.cloud import storage
 from google.cloud.exceptions import GoogleCloudError
-from msrestazure.azure_exceptions import CloudError, ClientException
+from msrestazure.azure_exceptions import ClientException, CloudError
 from requests.exceptions import ConnectionError as BotoConnectionError
 
 
