@@ -147,7 +147,7 @@ Generated OCP reports will be generated in monthly .csv files with the file form
 AZURE
 -----
 
-Note: To upload to AZURE, you must have AZURE_STORAGE_ACCOUNT and AZURE_ACCOUNT_KEY set in your environment.
+Note: To upload to AZURE, you must have AZURE_STORAGE_ACCOUNT and AZURE_STORAGE_CONNECTION_STRING set in your environment.
 
 Below is an example usage of ``nise`` for AZURE data::
 
@@ -175,7 +175,9 @@ Below is an example usage of ``nise`` for OCP running on AZURE data::
 
 Example upload to AZURE::
 
-    AZURE_STORAGE_ACCOUNT=storage_account AZURE_ACCOUNT_KEY=key nise --start-date 2019-08-01 --azure --azure-container-name container --azure-report-prefix this_is_prefix  --azure-report-name this_is_report --static-report-file example_azure_static_data.yml
+    AZURE_STORAGE_ACCOUNT='my_storage_account' \
+    AZURE_STORAGE_CONNECTION_STRING='DefaultEndpointsProtocol=https;AccountName=my_storage_account;AccountKey=XXXXXXXXXXXXXXXXXXXXXXXXXX;EndpointSuffix=core.windows.net' \
+    nise --start-date 2019-08-01 --azure --azure-container-name container --azure-report-prefix this_is_prefix  --azure-report-name this_is_report --static-report-file example_azure_static_data.yml
 
 will put the generated reports in the :code:`container` container with the following structure::
 
