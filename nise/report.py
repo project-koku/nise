@@ -149,10 +149,10 @@ def aws_route_file(bucket_name, bucket_file_path, local_path):
 def azure_route_file(storage_account_name, storage_file_name, local_path, storage_file_path=None):
     """Route file to either storage account or local filesystem."""
     connect_str = os.getenv('AZURE_STORAGE_CONNECTION_STRING')
-    if storage_file_path is None and connect_str is None:
-        copy_to_local_dir(storage_account_name, local_path, storage_file_name)
-    else:
+    if storage_file_path and connect_str:
         upload_to_azure_container(storage_file_name, local_path, storage_file_path)
+    else:
+        copy_to_local_dir(storage_account_name, local_path, storage_file_name)
 
 
 def ocp_route_file(insights_upload, local_path):
@@ -471,7 +471,6 @@ def azure_create_report(options):
         azure_container_name = options.get('azure_container_name')
         if azure_container_name:
             file_path = ''
-            storage_account_name = options.get('azure_account_name')
             if options.get('azure_prefix_name'):
                 file_path += options.get('azure_prefix_name') + '/'
             file_path += options.get('azure_report_name') + '/'
@@ -479,7 +478,8 @@ def azure_create_report(options):
             file_path += output_file_name
 
             # azure blob upload
-            if storage_account_name != 'None':
+            storage_account_name = options.get('azure_account_name', None)
+            if storage_account_name:
                 azure_route_file(storage_account_name,
                                  azure_container_name,
                                  local_path,

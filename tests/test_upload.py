@@ -80,7 +80,7 @@ class UploadTestCase(TestCase):
     @patch.object(BlobServiceClient, 'from_connection_string')
     def test_upload_to_azure_failure(self, mock_blob_service):
         """Test failure upload_to_storage method with mock."""
-        mock_blob_service.side_effect = Exception
+        mock_blob_service.side_effect = IOError
         container_name = 'my_container'
         with NamedTemporaryFile(delete=False) as t_file:
             success = upload_to_azure_container(container_name, t_file.name, '/file.txt')
