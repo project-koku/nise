@@ -91,6 +91,7 @@ nise is a command line tool. Currently only accepting a limited number of argume
 - *--static-report-file file_name* (optional) Note: Static report generation based on specified yaml file.  See example_aws[ocp]_static_data.yml for examples.
 - *--gcp-report-prefix prefix_name*  (optional)
 - *--gcp-bucket-name bucket_name*  (optional, see example usage below)
+- *--write-monthly* (optional, writes monthly files)
 
 Note: If `--aws-s3-report-name` or `--aws-s3-report-prefix` are specified they should match what is configured in the AWS cost usage report settings.
 
@@ -131,7 +132,7 @@ Below is an example usage of ``nise`` for OCP data::
 
     nise --start-date 2018-06-03 --ocp --ocp-cluster-id test-001 --insights-upload  https://cloud.redhat.com/api/ingress/v1/upload
 
-    nise --start-date 2018-06-03 --ocp --ocp-cluster-id test-001 --insights-upload  /local/path/upload_dir
+    nise --start-date 2018-06-03 --ocp --write-monthly --ocp-cluster-id test-001 --insights-upload  /local/path/upload_dir
 
     nise --ocp --ocp-cluster-id my-cluster-id --static-report-file ocp_static_data.yml
 
