@@ -37,6 +37,7 @@ To build the command line tool run ::
 
     python setup.py install
 
+If attempting to generate data for koku, we recommend you take a look at the working with masu `documentation <https://github.com/project-koku/nise/blob/master/docs/working_with_masu.rst>`_.
 
 Testing and Linting
 -------------------
