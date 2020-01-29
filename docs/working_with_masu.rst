@@ -5,7 +5,7 @@ Ingesting Nise data with Koku
 About
 ~~~~~
 
-Nise is a developer tool for generating sample cost and use data. The primary use case for Nise is to create sample reports for development and testing of <https://github.com/project-koku/koku>`_ Koku. This document provides a walkthrough for how to use Nise to generate sample data and then ingest that data with Koku.
+Nise is a developer tool for generating sample cost and use data. The primary use case for Nise is to create sample reports for development and testing of Koku. This document provides a walkthrough for how to use Nise to generate sample data and then ingest that data with Koku.
 
 Ingesting sample OCP data
 =========================
