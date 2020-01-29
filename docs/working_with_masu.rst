@@ -1,6 +1,6 @@
-===========
-Working with Masu
-===========
+=============================
+Ingesting Nise data with Koku
+=============================
 ~~~~~
 About
 ~~~~~
@@ -19,10 +19,10 @@ Create and Ingest OCP Sample Data
 ---------------------------------
 **Step One: The Nise Command**
 
-To create and ingest OCP sample data, there are three required pieces of information..
+To create and ingest OCP sample data, there are three required pieces of information.
 
    1. :code:`--ocp-cluster-id $(cluster_id)` <string> Ex. my-cluster_id
-   2. :code:`--insights-upload testing/pvc_dir/insights_local` Masu Expected location
+   2. :code:`--insights-upload testing/pvc_dir/insights_local`
    3. :code:`--static-report-file $(srf_yaml)` Path to a static report `file <https://github.com/project-koku/nise/blob/master/example_aws_static_data.yml>`_
 
 .. highlight:: bash
@@ -60,10 +60,10 @@ Generate and ingest sample OCP data as described in the `Create and Ingest OCP S
 
 **Step Two: The AWS Nise command**
 
-To create a basic AWS provider you will have to provide three key peices of information.
+To create and ingest AWS sample data, there are three required pieces of information.
 
    1. :code:`--aws-s3-report-name $(report_name)` <string> Ex. testing_magic
-   2. :code:`--aws-s3-bucket-name testing/local_providers/aws_local` Masu Expected location
+   2. :code:`--aws-s3-bucket-name testing/local_providers/aws_local`
    3. :code:`--static-report-file $(srf_yaml)` Path to a static report file
 
 - The static report file must be matching pair to the ocp file where the resource_id & dates are the same. The file must be the matching `file <https://github.com/project-koku/nise/blob/master/examples/ocp_on_aws/aws_static_data.yml>`_ in the example.

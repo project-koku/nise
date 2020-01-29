@@ -37,7 +37,7 @@ To build the command line tool run ::
 
     python setup.py install
 
-For generating sample data for developing or testing Koku, please refer to `Working with Masu <https://github.com/project-koku/nise/blob/master/docs/working_with_masu.rst>`_.
+For generating sample data for developing or testing Koku, please refer to `Ingesting Nise data with Koku <https://github.com/project-koku/nise/blob/master/docs/working_with_masu.rst>`_.
 
 Testing and Linting
 -------------------
