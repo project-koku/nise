@@ -10,7 +10,7 @@ generators:
           memory_gig: 8
           resource_id: 55555555
           namespaces:
-            install-test:
+            mobile:
               pods:
                 - pod:
                   pod_name: pod_name1
@@ -19,20 +19,20 @@ generators:
                   cpu_limit: 1
                   mem_limit_gig: 4
                   pod_seconds: 3600
-                  labels: label_environment:dev|label_app:catalog|label_version:prod
+                  labels: label_environment:Jupiter|label_app:mobile|label_version:Mars
               volumes:
                 - volume:
                   volume_name: pvc-volume_1
                   storage_class: gp2
                   volume_request_gig: 20
-                  labels: label_environment:dev|label_app:catalog|label_version:prod|label_storageclass:bravo
+                  labels: label_environment:Jupiter|label_app:mobile|label_version:Mars|label_storageclass:Baldur
                   volume_claims:
                   - volume_claim:
                     volume_claim_name: pod_name1_data
                     pod_name: pod_name1
-                    labels: label_environment:dev|label_app:catalog|label_version:prod|label_storageclass:bravo
+                    labels: label_environment:Jupiter|label_app:mobile|label_version:Mars|label_storageclass:Baldur
                     capacity_gig: 20
-            catalog:
+            news-site:
               pods:
                 - pod:
                   pod_name: pod_name2
@@ -41,18 +41,18 @@ generators:
                   cpu_limit: 1
                   mem_limit_gig: 4
                   pod_seconds: 3600
-                  labels: label_environment:dev|label_app:catalog|label_version:prod
+                  labels: label_environment:Jupiter|label_app:mobile|label_version:Mars
               volumes:
                 - volume:
                   volume_name: pvc-volume_2
                   storage_class: gp2
                   volume_request_gig: 20
-                  labels: label_environment:dev|label_app:catalog|label_version:prod|label_storageclass:delta
+                  labels: label_environment:Jupiter|label_app:mobile|label_version:Mars|label_storageclass:Loki
                   volume_claims:
                   - volume_claim:
                     volume_claim_name: pod_name2_data
                     pod_name: pod_name2
-                    labels: label_environment:dev|label_app:catalog|label_version:prod|label_storageclass:delta
+                    labels: label_environment:Jupiter|label_app:mobile|label_version:Mars|label_storageclass:Loki
                     capacity_gig: 20
         - node:
           node_name: compute_2
@@ -60,7 +60,7 @@ generators:
           memory_gig: 8
           resource_id: 55555556
           namespaces:
-            cost-management:
+            banking:
               pods:
                 - pod:
                   pod_name: pod_name3
@@ -69,18 +69,18 @@ generators:
                   cpu_limit: 1
                   mem_limit_gig: 4
                   pod_seconds: 3600
-                  labels: label_environment:qe|label_app:cost|label_version:beta
+                  labels: label_environment:qe|label_app:banking|label_version:MilkyWay
               volumes:
                 - volume:
                   volume_name: pvc-volume_3
                   storage_class: gp2
                   volume_request_gig: 20
-                  labels: label_environment:qe|label_app:cost|label_version:beta|label_storageclass:epsilon
+                  labels: label_environment:qe|label_app:banking|label_version:MilkyWay|label_storageclass:Odin
                   volume_claims:
                   - volume_claim:
                     volume_claim_name: pod_name3_data
                     pod_name: pod_name3
-                    labels: label_environment:qe|label_app:cost|label_version:beta|label_storageclass:epsilon
+                    labels: label_environment:qe|label_app:banking|label_version:MilkyWay|label_storageclass:Odin
                     capacity_gig: 20
         - node:
           node_name: compute_3
@@ -88,7 +88,7 @@ generators:
           memory_gig: 8
           resource_id: 55555557
           namespaces:
-            analytics:
+            weather:
               pods:
                 - pod:
                   pod_name: pod_name4
@@ -97,21 +97,21 @@ generators:
                   cpu_limit: 2
                   mem_limit_gig: 4
                   pod_seconds: 3600
-                  labels: label_environment:prod|label_app:analytics|label_version:gamma
+                  labels: label_environment:Mars|label_app:weather|label_version:Andromeda
               volumes:
                 - volume:
                   volume_name: pvc-volume_4
                   storage_class: gp2
                   volume_request_gig: 20
-                  labels: label_environment:prod|label_app:analytics|label_version:gamma|label_storageclass:charlie
+                  labels: label_environment:Mars|label_app:weather|label_version:Andromeda|label_storageclass:Thor
                   volume_claims:
                   - volume_claim:
                     volume_claim_name: pod_name4_data
                     pod_name: pod_name4
-                    labels: label_environment:prod|label_app:analytics|label_version:gamma|label_storageclass:charlie
+                    labels: label_environment:Mars|label_app:weather|label_version:Andromeda|label_storageclass:Thor
                     capacity_gig: 20
         - node:
-          node_name: master
+          node_name: Sombrero
           cpu_cores: 2
           memory_gig: 8
           resource_id: 55555558
@@ -125,7 +125,7 @@ generators:
                   cpu_limit: 1
                   mem_limit_gig: 4
                   pod_seconds: 3600
-                  labels: label_environment:prod|label_app:master|label_version:master
+                  labels: label_environment:Mars|label_app:Sombrero|label_version:Sombrero
             openshift:
               pods:
                 - pod:
@@ -135,4 +135,4 @@ generators:
                   cpu_limit: 1
                   mem_limit_gig: 4
                   pod_seconds: 3600
-                  labels: label_environment:dev|label_app:master|label_version:master
+                  labels: label_environment:Jupiter|label_app:Sombrero|label_version:Sombrero
