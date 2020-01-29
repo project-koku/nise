@@ -35,7 +35,7 @@ generators:
       service_name: Virtual Machines
       meter_id: 55555555-4444-3333-2222-111111111125
       resource_location: "US East"
-      instance_id: '/subscriptions/99999999-9999-9999-9999-999999999999/resourceGroups/koku-99hqd-rg/providers/Microsoft.Compute/virtualMachines/Sombrero'
+      instance_id: '/subscriptions/99999999-9999-9999-9999-999999999999/resourceGroups/koku-99hqd-rg/providers/Microsoft.Compute/virtualMachines/master'
       tags:
         version: Sombrero
   - StorageGenerator:

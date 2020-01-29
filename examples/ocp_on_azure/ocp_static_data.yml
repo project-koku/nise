@@ -8,7 +8,7 @@ generators:
           node_name: compute_1
           cpu_cores: 2
           memory_gig: 8
-          resource_id: 55555555
+          resource_id: 99999995
           namespaces:
             mobile:
               pods:
@@ -58,7 +58,7 @@ generators:
           node_name: compute_2
           cpu_cores: 2
           memory_gig: 8
-          resource_id: 55555556
+          resource_id: 99999996
           namespaces:
             banking:
               pods:
@@ -86,7 +86,7 @@ generators:
           node_name: compute_3
           cpu_cores: 2
           memory_gig: 8
-          resource_id: 55555557
+          resource_id: 99999997
           namespaces:
             weather:
               pods:
@@ -111,10 +111,10 @@ generators:
                     labels: label_environment:Mars|label_app:weather|label_version:Andromeda|label_storageclass:Thor
                     capacity_gig: 20
         - node:
-          node_name: Sombrero
+          node_name: master
           cpu_cores: 2
           memory_gig: 8
-          resource_id: 55555558
+          resource_id: 99999998
           namespaces:
             kube-system:
               pods:
