@@ -21,11 +21,13 @@ from unittest.mock import Mock, patch
 
 import boto3
 import faker
-from azure.storage.blob import BlockBlobService
 from botocore.exceptions import ClientError
 from google.cloud.exceptions import GoogleCloudError
 
-from nise.upload import upload_to_azure_container, upload_to_gcp_storage, upload_to_s3
+from nise.upload import (BlobServiceClient,
+                         upload_to_azure_container,
+                         upload_to_gcp_storage,
+                         upload_to_s3)
 
 
 fake = faker.Faker()
@@ -66,22 +68,22 @@ class UploadTestCase(TestCase):
         self.assertFalse(success)
         os.remove(t_file.name)
 
-    @patch.object(BlockBlobService, 'create_blob_from_path')
-    def test_upload_to_azure_success(self, mock_blob_service):
+    @patch.object(BlobServiceClient, 'from_connection_string')
+    def test_upload_to_azure_success(self, _):
         """Test successful upload_to_storage method with mock."""
         container_name = 'my_container'
         with NamedTemporaryFile(delete=False) as t_file:
-            success = upload_to_azure_container(container_name, '/file.txt', t_file.name)
+            success = upload_to_azure_container(container_name, t_file.name, '/file.txt')
         self.assertTrue(success)
         os.remove(t_file.name)
 
-    @patch.object(BlockBlobService, 'create_blob_from_path')
+    @patch.object(BlobServiceClient, 'from_connection_string')
     def test_upload_to_azure_failure(self, mock_blob_service):
         """Test failure upload_to_storage method with mock."""
-        mock_blob_service.side_effect = Exception
+        mock_blob_service.side_effect = IOError
         container_name = 'my_container'
         with NamedTemporaryFile(delete=False) as t_file:
-            success = upload_to_azure_container(container_name, '/file.txt', t_file.name)
+            success = upload_to_azure_container(container_name, t_file.name, '/file.txt')
         self.assertFalse(success)
         os.remove(t_file.name)
 

@@ -4,26 +4,25 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-faker = "*"
-boto3 = ">=1.7.42"
-requests = ">=2.19.1"
+faker = ">=3.0"
+boto3 = ">=1.11"
+requests = ">=2.22"
 jinja2 = ">=2.10"
-azure-mgmt-costmanagement = "==0.1.0"
-azure-mgmt-resource = "*"
-azure-mgmt-storage = "*"
-azure-storage-blob = "==1.5.0"
-azure-storage = "==0.36.0"
-google-cloud-storage = "~=1.19.1"
+azure-mgmt-costmanagement = ">=0.1"
+azure-mgmt-resource = ">=7.0"
+azure-mgmt-storage = ">=7.1"
+azure-storage-blob = ">=12.1"
+google-cloud-storage = ">=1.19"
 
 [dev-packages]
-pylint = "==2.3.1"
-tox = ">=3.0.0"
-coverage = ">=4.5.0"
-pyyaml = ">=3.13"
+pylint = ">=2.3"
+tox = ">=3.14"
+coverage = ">=5.0"
+PyYaml = ">=5.3"
 pipenv-setup = "*"
-setuptools = "*"
-twine = "*"
-secretstorage = {markers = "sys_platform == 'linux'",version = "*"}
+setuptools = ">=44.0"
+twine = ">=3.1"
+secretstorage = {markers = "sys_platform == 'linux'",version = ">=3.1"}
 
 [requires]
 python_version = "3.6"

@@ -57,13 +57,18 @@ To lint the code base ::
 
 
 Publishing
-__________
+----------
 
 Please remember to sync your updated dependecies to setup.py with ::
 
-    pipenv-setup sync
+    pipenv-setup sync -p
 
-After that, simply make sure to increment your version in setup.py, and as soon as it lands on master it'll be built, tagged, and deployed to PyPI.
+After that, make sure to increment the version in setup.py. As soon as your PR is merged to master, a new koku-nise package will built, tagged, and deployed to PyPI.
+
+Finer Publishing Details
+________________________
+
+All of the deployment is driven entirely by Travis, so if issues ever crop up, start in ``.travis.yml``. Non-master branches will run test code and build stages, while master will run those two in addition to the deploy stage assuming the previous two stages succeed. There are three things that must happen before a deployment is successful, a successful artifact build, dependencies verified in sync between the requirements files, and setup.py, and the tag must not yet exist in git. The dependency syncing/verification is done with the `pipenv-setup <https://github.com/Madoshakalaka/pipenv-setup>`_ tool. After the artifact is deployed, it'll be available at `PyPI <https://pypi.org/project/koku-nise/#history>`_.
 
 Prereqs
 ===========
@@ -86,6 +91,7 @@ nise is a command line tool. Currently only accepting a limited number of argume
 - *--static-report-file file_name* (optional) Note: Static report generation based on specified yaml file.  See example_aws[ocp]_static_data.yml for examples.
 - *--gcp-report-prefix prefix_name*  (optional)
 - *--gcp-bucket-name bucket_name*  (optional, see example usage below)
+- *--write-monthly* (optional, writes monthly files)
 
 Note: If `--aws-s3-report-name` or `--aws-s3-report-prefix` are specified they should match what is configured in the AWS cost usage report settings.
 
@@ -126,7 +132,7 @@ Below is an example usage of ``nise`` for OCP data::
 
     nise --start-date 2018-06-03 --ocp --ocp-cluster-id test-001 --insights-upload  https://cloud.redhat.com/api/ingress/v1/upload
 
-    nise --start-date 2018-06-03 --ocp --ocp-cluster-id test-001 --insights-upload  /local/path/upload_dir
+    nise --start-date 2018-06-03 --ocp --write-monthly --ocp-cluster-id test-001 --insights-upload  /local/path/upload_dir
 
     nise --ocp --ocp-cluster-id my-cluster-id --static-report-file ocp_static_data.yml
 
@@ -147,7 +153,7 @@ Generated OCP reports will be generated in monthly .csv files with the file form
 AZURE
 -----
 
-Note: To upload to AZURE, you must have AZURE_STORAGE_ACCOUNT and AZURE_ACCOUNT_KEY set in your environment.
+Note: To upload to AZURE, you must have AZURE_STORAGE_ACCOUNT and AZURE_STORAGE_CONNECTION_STRING set in your environment.
 
 Below is an example usage of ``nise`` for AZURE data::
 
@@ -175,7 +181,9 @@ Below is an example usage of ``nise`` for OCP running on AZURE data::
 
 Example upload to AZURE::
 
-    AZURE_STORAGE_ACCOUNT=storage_account AZURE_ACCOUNT_KEY=key nise --start-date 2019-08-01 --azure --azure-container-name container --azure-report-prefix this_is_prefix  --azure-report-name this_is_report --static-report-file example_azure_static_data.yml
+    AZURE_STORAGE_ACCOUNT='my_storage_account' \
+    AZURE_STORAGE_CONNECTION_STRING='DefaultEndpointsProtocol=https;AccountName=my_storage_account;AccountKey=XXXXXXXXXXXXXXXXXXXXXXXXXX;EndpointSuffix=core.windows.net' \
+    nise --start-date 2019-08-01 --azure --azure-container-name container --azure-report-prefix this_is_prefix  --azure-report-name this_is_report --static-report-file example_azure_static_data.yml
 
 will put the generated reports in the :code:`container` container with the following structure::
 

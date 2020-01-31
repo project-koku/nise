@@ -8,7 +8,7 @@ generators:
       resource_location: "US East"
       instance_id: '/subscriptions/99999999-9999-9999-9999-999999999999/resourceGroups/koku-99hqd-rg/providers/Microsoft.Compute/virtualMachines/compute_1'
       tags:
-        resourceTags/user:version: prod
+        version: prod
   - VMGenerator:
       start_date: 2019-11-01
       end_date: 2019-11-30
@@ -17,8 +17,8 @@ generators:
       resource_location: "US East"
       instance_id: '/subscriptions/99999999-9999-9999-9999-999999999999/resourceGroups/koku-99hqd-rg/providers/Microsoft.Compute/virtualMachines/compute_2'
       tags:
-        resourceTags/user:environment: dev
-        resourceTags/user:version: beta
+        environment: dev
+        version: beta
   - VMGenerator:
       start_date: 2019-11-01
       end_date: 2019-11-30
@@ -27,8 +27,8 @@ generators:
       resource_location: "US East"
       instance_id: '/subscriptions/99999999-9999-9999-9999-999999999999/resourceGroups/koku-99hqd-rg/providers/Microsoft.Compute/virtualMachines/compute_3'
       tags:
-        resourceTags/user:environment: dev
-        resourceTags/user:version: gamma
+        environment: dev
+        version: gamma
   - VMGenerator:
       start_date: 2019-11-01
       end_date: 2019-11-30
@@ -37,7 +37,7 @@ generators:
       resource_location: "US East"
       instance_id: '/subscriptions/99999999-9999-9999-9999-999999999999/resourceGroups/koku-99hqd-rg/providers/Microsoft.Compute/virtualMachines/master'
       tags:
-        resourceTags/user:version: master
+        version: master
   - StorageGenerator:
       start_date: 2019-11-01
       end_date: 2019-11-30
@@ -46,7 +46,7 @@ generators:
       amount: 10
       rate: 0.05
       tags:
-        resourceTags/user:storageclass: charlie
+        storageclass: charlie
   - StorageGenerator:
       start_date: 2019-11-01
       end_date: 2019-11-30
@@ -55,7 +55,7 @@ generators:
       amount: 10
       rate: 0.01
       tags:
-        resourceTags/user:storageclass: bravo
+        storageclass: bravo
   - StorageGenerator:
       start_date: 2019-11-01
       end_date: 2019-11-30
@@ -64,7 +64,7 @@ generators:
       amount: 10
       rate: 0.01
       tags:
-        resourceTags/user:storageclass: delta
+        storageclass: delta
   - StorageGenerator:
       start_date: 2019-11-01
       end_date: 2019-11-30
@@ -73,7 +73,7 @@ generators:
       amount: 10
       rate: 0.01
       tags:
-        resourceTags/user:storageclass: epsilon
+        storageclass: epsilon
   - StorageGenerator:
       start_date: 2019-11-01
       end_date: 2019-11-30
@@ -82,37 +82,37 @@ generators:
       amount: 10
       rate: 0.01
       tags:
-        resourceTags/user:storageclass: gamma
+        storageclass: gamma
   - SQLGenerator:
       start_date: 2019-11-01
       end_date: 2019-11-30
       meter_id: 55555555-4444-3333-2222-111111111119
       resource_location: "US South Central"
       tags:
-        resourceTags/user:app: analytics
+        app: analytics
   - VNGenerator:
       start_date: 2019-11-01
       end_date: 2019-11-30
       tags:
-        resourceTags/user:app: cost
+        app: cost
   - VNGenerator:
       start_date: 2019-11-01
       end_date: 2019-11-30
       # product_family: DNS Zone
       tags:
-        resourceTags/user:app: catalog
+        app: catalog
   - VNGenerator:
       start_date: 2019-11-01
       end_date: 2019-11-30
       # product_family: DNS Query
       tags:
-        resourceTags/user:app: cost
+        app: cost
   - VNGenerator:
       start_date: 2019-11-01
       end_date: 2019-11-30
       # product_family: DNS Query
       tags:
-        resourceTags/user:app: analytics
+        app: analytics
 
 # SubscriptionGuid
 accounts:

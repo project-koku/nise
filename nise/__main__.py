@@ -141,7 +141,17 @@ def create_parser():
                         dest='gcp_bucket_name',
                         required=False,
                         help='GCP storage account to place the data.')
-
+    parser.add_argument('--azure-account-name',
+                        metavar='AZURE_ACCOUNT_NAME',
+                        dest='azure_account_name',
+                        required=False,
+                        default=os.getenv('AZURE_STORAGE_ACCOUNT'),
+                        help='Azure container to place the data.')
+    parser.add_argument('--write-monthly',
+                        dest='write_monthly',
+                        action='store_true',
+                        required=False,
+                        help='Writes the monthly files.')
     return parser
 
 
@@ -173,13 +183,14 @@ def _get_azure_options(options):
         azure_container_name (string): Azure storage account name
         azure_report_name (string): Azure report name
         azure_prefix_name (string): Azure report prefix
-        azure_finalize_report (string): Azure finalize choice
+        azure_account_name (string): Azure account name
 
     """
     azure_container_name = options.get('azure_container_name')
     azure_report_name = options.get('azure_report_name')
     azure_prefix_name = options.get('azure_prefix_name')
-    return (azure_container_name, azure_report_name, azure_prefix_name)
+    azure_account_name = options.get('azure_account_name')
+    return (azure_container_name, azure_report_name, azure_prefix_name, azure_account_name)
 
 
 def _get_ocp_options(options):
@@ -278,7 +289,7 @@ def _validate_azure_arguments(parser, options):
             msg = 'GCP arguments cannot be supplied when generating AWS data.'
             parser.error(msg)
 
-    azure_container_name, azure_report_name, _ = _get_azure_options(options)
+    azure_container_name, azure_report_name, _, _ = _get_azure_options(options)
     if azure_container_name and azure_report_name:
         azure_valid = True
     elif not azure_container_name and not azure_report_name:

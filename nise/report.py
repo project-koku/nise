@@ -87,6 +87,16 @@ def _write_csv(output_file, data, header):
             writer.writerow(row)
 
 
+def _remove_files(file_list):
+    """Remove files."""
+    for file_path in file_list:
+        try:
+            os.remove(file_path)
+        except FileNotFoundError:
+            print('File {0} was not found.'.format(file_path))
+            raise FileNotFoundError
+
+
 def _generate_azure_filename():
     """Generate filename for azure report."""
     output_file_name = '{}_{}'.format('costreport', uuid4())
@@ -148,14 +158,11 @@ def aws_route_file(bucket_name, bucket_file_path, local_path):
 
 def azure_route_file(storage_account_name, storage_file_name, local_path, storage_file_path=None):
     """Route file to either storage account or local filesystem."""
-    if storage_file_path is None:
-        copy_to_local_dir(storage_account_name,
-                          local_path,
-                          storage_file_name)
+    connect_str = os.getenv('AZURE_STORAGE_CONNECTION_STRING')
+    if storage_file_path and connect_str:
+        upload_to_azure_container(storage_file_name, local_path, storage_file_path)
     else:
-        upload_to_azure_container(storage_file_name,
-                                  local_path,
-                                  storage_file_path)
+        copy_to_local_dir(storage_account_name, local_path, storage_file_name)
 
 
 def ocp_route_file(insights_upload, local_path):
@@ -355,8 +362,12 @@ def aws_create_report(options):
 
     payer_account, usage_accounts = _generate_accounts(accounts_list)
 
+    aws_bucket_name = options.get('aws_bucket_name')
+    aws_report_name = options.get('aws_report_name')
+    write_monthly = options.get('write_monthly', False)
     for month in months:
         data = []
+        monthly_files = []
         fake = Faker()
         for generator in generators:
             generator_cls = generator.get('generator')
@@ -378,8 +389,9 @@ def aws_create_report(options):
 
         month_output_file_name = '{}-{}-{}'.format(month.get('name'),
                                                    gen_start_date.year,
-                                                   options.get('aws_report_name'))
+                                                   aws_report_name)
         month_output_file = '{}/{}.csv'.format(os.getcwd(), month_output_file_name)
+        monthly_files.append(month_output_file)
         if aws_finalize_report and aws_finalize_report == 'overwrite':
             data = _aws_finalize_report(data, static_report_data)
         elif aws_finalize_report and aws_finalize_report == 'copy':
@@ -391,12 +403,11 @@ def aws_create_report(options):
                 finalized_file_name
             )
             _write_csv(finalized_output_file, finalized_data, AWS_COLUMNS)
+            monthly_files.append(finalized_output_file)
 
         _write_csv(month_output_file, data, AWS_COLUMNS)
 
-        aws_bucket_name = options.get('aws_bucket_name')
         if aws_bucket_name:
-            report_name = options.get('aws_report_name')
             manifest_values = {'account': payer_account}
             manifest_values.update(options)
             manifest_values['start_date'] = gen_start_date
@@ -404,8 +415,8 @@ def aws_create_report(options):
             s3_cur_path, manifest_data = aws_generate_manifest(fake, manifest_values)
             s3_assembly_path = os.path.dirname(s3_cur_path)
             s3_month_path = os.path.dirname(s3_assembly_path)
-            s3_month_manifest_path = s3_month_path + '/' + report_name + '-Manifest.json'
-            s3_assembly_manifest_path = s3_assembly_path + '/' + report_name + '-Manifest.json'
+            s3_month_manifest_path = s3_month_path + '/' + aws_report_name + '-Manifest.json'
+            s3_assembly_manifest_path = s3_assembly_path + '/' + aws_report_name + '-Manifest.json'
             temp_manifest = _write_manifest(manifest_data)
             temp_cur_zip = _gzip_report(month_output_file)
             aws_route_file(aws_bucket_name,
@@ -419,6 +430,8 @@ def aws_create_report(options):
                            temp_cur_zip)
             os.remove(temp_manifest)
             os.remove(temp_cur_zip)
+        if not write_monthly:
+            _remove_files(monthly_files)
 
 
 # pylint: disable=too-many-locals,too-many-statements
@@ -444,8 +457,16 @@ def azure_create_report(options):
     payer_account, usage_accounts = _generate_accounts(accounts_list)
 
     meter_cache = {}
+    # The options params are not going to change so we don't
+    # have to keep resetting the var inside of the for loop
+    azure_container_name = options.get('azure_container_name')
+    storage_account_name = options.get('azure_account_name')
+    azure_prefix_name = options.get('azure_prefix_name')
+    azure_report_name = options.get('azure_report_name')
+    write_monthly = options.get('write_monthly', False)
     for month in months:
         data = []
+        monthly_files = []
         for generator in generators:
             generator_cls = generator.get('generator')
             attributes = generator.get('attributes', {})
@@ -470,19 +491,19 @@ def azure_create_report(options):
         date_range = _generate_azure_date_range(month)
 
         _write_csv(local_path, data, AZURE_COLUMNS)
+        monthly_files.append(local_path)
 
-        azure_container_name = options.get('azure_container_name')
         if azure_container_name:
             file_path = ''
-            storage_account_name = str(os.environ.get('AZURE_STORAGE_ACCOUNT'))
-            if options.get('azure_prefix_name'):
-                file_path += options.get('azure_prefix_name') + '/'
-            file_path += options.get('azure_report_name') + '/'
+            if azure_prefix_name:
+                file_path += azure_prefix_name + '/'
+            file_path += azure_report_name + '/'
             file_path += date_range + '/'
             file_path += output_file_name
 
             # azure blob upload
-            if storage_account_name != 'None':
+            storage_account_name = options.get('azure_account_name', None)
+            if storage_account_name:
                 azure_route_file(storage_account_name,
                                  azure_container_name,
                                  local_path,
@@ -492,8 +513,11 @@ def azure_create_report(options):
                 azure_route_file(azure_container_name,
                                  file_path,
                                  local_path)
+        if not write_monthly:
+            _remove_files(monthly_files)
 
 
+# pylint: disable=R0912
 def ocp_create_report(options):  # noqa: C901
     """Create a usage report file."""
     start_date = options.get('start_date')
@@ -506,6 +530,8 @@ def ocp_create_report(options):  # noqa: C901
         generators = [{'generator': OCPGenerator, 'attributes': None}]
 
     months = _create_month_list(start_date, end_date)
+    insights_upload = options.get('insights_upload')
+    write_monthly = options.get('write_monthly', False)
     for month in months:
         data = {
             OCP_POD_USAGE: [],
@@ -539,8 +565,6 @@ def ocp_create_report(options):  # noqa: C901
             month_output_file = '{}/{}.csv'.format(os.getcwd(), month_output_file_name)
             monthly_files.append(month_output_file)
             _write_csv(month_output_file, data[report_type], OCP_REPORT_TYPE_TO_COLS[report_type])
-
-        insights_upload = options.get('insights_upload')
         if insights_upload:
             ocp_assembly_id = uuid4()
             report_datetime = gen_start_date
@@ -566,6 +590,8 @@ def ocp_create_report(options):  # noqa: C901
             os.remove(temp_manifest)
             os.remove(temp_manifest_name)
             os.remove(temp_usage_zip)
+        if not write_monthly:
+            _remove_files(monthly_files)
 
 
 # pylint: disable=too-many-locals,too-many-statements
@@ -625,3 +651,7 @@ def gcp_create_report(options):
         gcp_route_file(gcp_bucket_name,
                        output_file_path,
                        output_file_name)
+
+    write_monthly = options.get('write_monthly', False)
+    if not write_monthly:
+        _remove_files(monthly_files)
