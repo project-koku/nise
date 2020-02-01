@@ -140,7 +140,7 @@ def generate_labels(num_labels : int) -> str :
     return '|'.join(f'label_{e[0]}:{e[1]}' for e in zip(FAKER.words(num_labels), FAKER.words(num_labels)))
 
 
-def build_data(config : dicta) -> dicta :
+def build_data(config : dicta, _random : bool = False) -> dicta :
     """
     Build a structure to fill out a nise yaml template
     Struture has the form of:
@@ -151,7 +151,7 @@ def build_data(config : dicta) -> dicta :
               cpu_cores: int,     (config.max_node_cpu_cores)
               memory_gig: int,    (config.max_node_memory_gig)
               resource_id: str,   (dynamic)
-              <namespaces>: [     (namespace is dynamic. number of namespaces controlled by config.max_node_namespaces)
+              namespaces: [     (number of namespaces controlled by config.max_node_namespaces)
                   {namespace: str,   (dynamic)
                    pods: [           (number of pods controlled by config.max_node_namespace_pods)
                        pod_name: str,        (dynamic)
@@ -186,9 +186,13 @@ def build_data(config : dicta) -> dicta :
 
     data = dicta(start_date=str(config.start_date), end_date=str(config.end_date), nodes=[])
 
-    max_nodes = FAKER.random_int(1, config.max_nodes)
+    if _random:
+        max_nodes = FAKER.random_int(1, config.max_nodes)
+    else:
+        max_nodes = config.max_nodes
+    
     for node_ix in range(max_nodes):
-        print(f"Building node {node_ix}/{max_nodes}...", file=sys.stderr)
+        print(f"Building node {node_ix + 1}/{max_nodes}...", file=sys.stderr)
 
         node = dicta(name=generate_name(config), 
                      cpu_cores=FAKER.random_int(1, config.max_node_cpu_cores),
@@ -197,16 +201,24 @@ def build_data(config : dicta) -> dicta :
                      namespaces=[])
         data.nodes.append(node)
 
-        max_namespaces = FAKER.random_int(1, config.max_node_namespaces)
+        if _random:
+            max_namespaces = FAKER.random_int(1, config.max_node_namespaces)
+        else:
+            max_namespaces = config.max_node_namespaces
+
         for namespace_ix in range(max_namespaces):
-            print(f"Building node {node_ix}/{max_nodes}; namespace {namespace_ix}/{max_namespaces}...", file=sys.stderr)
+            print(f"Building node {node_ix + 1}/{max_nodes}; namespace {namespace_ix + 1}/{max_namespaces}...", file=sys.stderr)
             
             namespace = dicta(name=generate_name(config, prefix=node.name),
                               pods=[],
                               volumes=[])
             node.namespaces.append(namespace)
 
-            max_pods = FAKER.random_int(1, config.max_node_namespace_pods)
+            if _random:
+                max_pods = FAKER.random_int(1, config.max_node_namespace_pods)
+            else:
+                max_pods = config.max_node_namespace_pods
+            
             print(f"Building {max_pods} pods...", file=sys.stderr)
             for pod_ix in range(max_pods):
                 pod = dicta(name=generate_name(config, 
@@ -222,7 +234,11 @@ def build_data(config : dicta) -> dicta :
                             labels=generate_labels(config.max_node_namespace_pod_labels))
                 namespace.pods.append(pod)
             
-            max_volumes = FAKER.random_int(1, config.max_node_namespace_volumes)
+            if _random:
+                max_volumes = FAKER.random_int(1, config.max_node_namespace_volumes)
+            else:
+                max_volumes = config.max_node_namespace_volumes
+            
             print(f"Building {max_volumes} volumes...", file=sys.stderr)
             for volume_ix in range(max_volumes):
                 volume = dicta(name=generate_name(config, 
@@ -235,7 +251,12 @@ def build_data(config : dicta) -> dicta :
                             volume_claims=[])
                 namespace.volumes.append(volume)
 
-                for volume_claim_ix in range(FAKER.random_int(1, config.max_node_namespace_volume_volume_claims)):
+                if _random:
+                    max_volume_claims = FAKER.random_int(1, config.max_node_namespace_volume_volume_claims)
+                else:
+                    max_volume_claims = config.max_node_namespace_volume_volume_claims
+                
+                for volume_claim_ix in range(max_volume_claims):
                     pod_name = namespace.pods[-1 if volume_claim_ix >= len(namespace.pods) else volume_claim_ix].name
                     volume_claim = dicta(name=generate_name(config, 
                                                             prefix=namespace.name + '-vol-claim', 
@@ -325,6 +346,7 @@ def init_args() -> ArgumentParser :
     parser.add_argument('-s', '--start-date', dest='start_date', type=str, required=False, metavar='YYYY-MM-DD', help='Start date (overrides template, default is first day of last month)')
     parser.add_argument('-e', '--end-date', dest='end_date', type=str, required=False, metavar='YYYY-MM-DD', help='End date (overrides template, default is last day of current month)')
     parser.add_argument('-n', '--num-nodes', dest='num_nodes', type=int, required=False, metavar='INT', help='Number of nodes to generate (overrides template, default is 1)')
+    parser.add_argument('-r', '--random', dest='random', action='store_true', required=False, default=False, help='Randomize the number of nodes, namespaces, pods, volumes, volume-claims')
 
     return parser
 
@@ -335,6 +357,9 @@ def handle_args(args : Namespace) -> Namespace :
     Returns:
         Namespace
     """
+    if not os.path.exists(args.config_file_name):
+        raise FileNotFoundError(f'Cannot find file "{args.config_file_name}"')
+
     if not os.path.exists(args.template_file_name):
         raise FileNotFoundError(f'Cannot find file "{args.template_file_name}"')
 
@@ -346,7 +371,7 @@ def handle_args(args : Namespace) -> Namespace :
     if args.end_date:
         args.end_date = parse(args.end_date).date()
     
-    if args.num_nodes and args.num_nodes < 1:
+    if args.num_nodes is not None and args.num_nodes < 1:
         args.num_nodes = None
     
     return args
@@ -392,7 +417,7 @@ def process_template(args : Namespace, config : dicta) -> None :
     Returns:
         None
     """
-    data = build_data(config)
+    data = build_data(config, args.random)
 
     template_file_name = os.path.abspath(args.template_file_name)
     template_loader = FileSystemLoader(os.path.dirname(template_file_name))
