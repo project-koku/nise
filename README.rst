@@ -37,6 +37,7 @@ To build the command line tool run ::
 
     python setup.py install
 
+For generating sample data for developing or testing Koku, please refer to `Ingesting Nise data with Koku <https://github.com/project-koku/nise/blob/master/docs/working_with_masu.rst>`_.
 
 Testing and Linting
 -------------------
@@ -57,13 +58,18 @@ To lint the code base ::
 
 
 Publishing
-__________
+----------
 
 Please remember to sync your updated dependecies to setup.py with ::
 
     pipenv-setup sync -p
 
 After that, make sure to increment the version in setup.py. As soon as your PR is merged to master, a new koku-nise package will built, tagged, and deployed to PyPI.
+
+Finer Publishing Details
+________________________
+
+All of the deployment is driven entirely by Travis, so if issues ever crop up, start in ``.travis.yml``. Non-master branches will run test code and build stages, while master will run those two in addition to the deploy stage assuming the previous two stages succeed. There are three things that must happen before a deployment is successful, a successful artifact build, dependencies verified in sync between the requirements files, and setup.py, and the tag must not yet exist in git. The dependency syncing/verification is done with the `pipenv-setup <https://github.com/Madoshakalaka/pipenv-setup>`_ tool. After the artifact is deployed, it'll be available at `PyPI <https://pypi.org/project/koku-nise/#history>`_.
 
 Prereqs
 ===========

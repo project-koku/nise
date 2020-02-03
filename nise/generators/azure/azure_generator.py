@@ -231,8 +231,8 @@ class AzureGenerator(AbstractGenerator):
         else:
             meter_id = self.fake.uuid4()  # pylint: disable=no-member
 
-        rate = self._resource_rate if self._resource_rate else round(uniform(0.12, 0.19), 5)
-        amount = self._usage_quantity if self._usage_quantity else uniform(0.000002, 0.09)
+        rate = self._resource_rate if self._resource_rate else round(uniform(0.1, 0.50), 5)
+        amount = self._usage_quantity if self._usage_quantity else uniform(0.01, 1)
         cost = self._pre_tax_cost if self._pre_tax_cost else amount * rate
         azure_region, meter_region = self._get_location_info()
         # pylint: disable=line-too-long
