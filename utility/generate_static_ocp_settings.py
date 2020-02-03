@@ -30,7 +30,6 @@ import os
 import re
 import sys
 import time
-from typing import Callable
 import yaml
 
 
@@ -72,7 +71,7 @@ class dicta(dict):
         return self.__class__(self)
 
 
-def generate_words(config : dicta) -> str:
+def generate_words(config):
     """
     Generate a hyphen-separated string of words.
     The number of words is specified in the config. (config.max_name_words)
@@ -80,7 +79,7 @@ def generate_words(config : dicta) -> str:
     return '-'.join(FAKER.words(config.max_name_words))
 
 
-def generate_number_str(config : dicta) -> str :
+def generate_number_str(config):
     """
     Generate a string of digits of arbitrary length.
     The maximum length is specified in the config. (config.max_resource_id_length)
@@ -88,7 +87,7 @@ def generate_number_str(config : dicta) -> str :
     return str(FAKER.random_int(0, 10 ** config.max_resource_id_length)).zfill(config.max_resource_id_length)
 
 
-def generate_name(config : dicta, prefix : str ='', suffix : str ='', dynamic : bool = True, generator : Callable = generate_words, cache : set = SEEN_NAMES) -> str :
+def generate_name(config, prefix='', suffix='', dynamic=True, generator=generate_words, cache=SEEN_NAMES):
     """
     Generate a random resource name using faker.
     Params:
@@ -116,7 +115,7 @@ def generate_name(config : dicta, prefix : str ='', suffix : str ='', dynamic : 
     return DBL_DASH.sub('-', new_name)
 
 
-def generate_resource_id(config : dicta, prefix : str = '', suffix : str = '', dynamic : bool = True) -> str :
+def generate_resource_id(config, prefix='', suffix='', dynamic=True):
     """
     Generate a random resource id using faker.
     Params:
@@ -132,7 +131,7 @@ def generate_resource_id(config : dicta, prefix : str = '', suffix : str = '', d
     return generate_name(config, prefix=prefix, suffix=suffix, dynamic=dynamic, generator=generate_number_str, cache=SEEN_RESOURCE_IDS)
 
 
-def generate_labels(num_labels : int) -> str :
+def generate_labels(num_labels):
     """
     Generate a string of pipe-separated label:var sets
     Params:
@@ -143,7 +142,7 @@ def generate_labels(num_labels : int) -> str :
     return '|'.join(f'label_{e[0]}:{e[1]}' for e in zip(FAKER.words(num_labels), FAKER.words(num_labels)))
 
 
-def build_data(config : dicta, _random : bool = False) -> dicta :
+def build_data(config, _random=False):
     """
     Build a structure to fill out a nise yaml template
     Struture has the form of:
@@ -302,7 +301,7 @@ def build_data(config : dicta, _random : bool = False) -> dicta :
     return data
 
 
-def default_config() -> dicta :
+def default_config():
     """
     Generate a config object with all values set to defaults
     Returns:
@@ -331,7 +330,7 @@ def default_config() -> dicta :
                  max_node_namespace_volume_volume_claim_capacity_gig=20)
 
 
-def validate_config(config : dicta) -> bool :
+def validate_config(config):
     """
     Validates that all known parts of a config are the required types
     Params:
@@ -365,7 +364,7 @@ def validate_config(config : dicta) -> bool :
     return True
 
 
-def init_args() -> ArgumentParser :
+def init_args():
     """
     Initialize the argument parser.
     Returns:
@@ -424,7 +423,7 @@ def init_args() -> ArgumentParser :
     return parser
 
 
-def handle_args(args : Namespace) -> Namespace :
+def handle_args(args):
     """
     Parse and validate the arguments.
     Returns:
@@ -450,7 +449,7 @@ def handle_args(args : Namespace) -> Namespace :
     return args
     
 
-def init_config(args : Namespace) -> dicta:
+def init_config(args):
     """
     Initialize the config object for template processing.
     Params:
@@ -483,7 +482,7 @@ def init_config(args : Namespace) -> dicta:
     return config
 
 
-def process_template(args : Namespace, config : dicta) -> None :
+def process_template(args, config):
     """
     Process the jinja2 template using supplied parameter data.
     Produces an output file (if specified) or writes data to stdout.
