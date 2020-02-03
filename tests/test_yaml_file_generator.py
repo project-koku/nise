@@ -23,41 +23,50 @@ from unittest.mock import patch
 import shutil
 
 
-FILE_DIR = os.path.abspath(__file__)
-UTILITY_DIR = os.path.join(os.path.sep, *FILE_DIR.split(os.path.sep)[:-2], 'utility')
-
+FILE_DIR = os.path.dirname(os.path.abspath(__file__))
+UTILITY_DIR = os.path.join(os.path.dirname(FILE_DIR), 'utility')
 CACHE_PATH = os.path.join(UTILITY_DIR, '__pycache__')
-if os.path.exists(CACHE_PATH):
-    shutil.rmtree(CACHE_PATH)
-
-yg = SourceFileLoader('yaml_generator', os.path.join(UTILITY_DIR, 'generate_static_ocp_settings.py')).load_module()
 
 
 class YamlGeneratorTestCase(TestCase):
     """
     Base TestCase class, sets up a CLI parser
     """
+    @classmethod
+    def setUpClass(cls):
+        if os.path.exists(CACHE_PATH):
+            shutil.rmtree(CACHE_PATH)
+
+        cls.yg = SourceFileLoader('yaml_generator', os.path.join(UTILITY_DIR, 'generate_static_ocp_settings.py')).load_module()
+
+
+    @classmethod
+    def tearDownClass(cls):
+        if os.path.exists(CACHE_PATH):
+            shutil.rmtree(CACHE_PATH)
+
+
     def test_default_config(self):
         """Test default configuration."""
-        dc = yg.default_config()
-        self.assertTrue(isinstance(dc, yg.dicta))
-        self.assertTrue(yg.validate_config(dc))
+        dc = self.yg.default_config()
+        self.assertTrue(isinstance(dc, self.yg.dicta))
+        self.assertTrue(self.yg.validate_config(dc))
 
 
     def test_config_validator(self):
         """Test config validation """
-        dc = yg.default_config()
-        self.assertTrue(yg.validate_config(dc))
+        dc = self.yg.default_config()
+        self.assertTrue(self.yg.validate_config(dc))
         with self.assertRaises(TypeError):
             dc.start_date = ''
-            self.assertFalse(yg.validate_config(dc))
+            self.assertFalse(self.yg.validate_config(dc))
 
 
     def test_dicta(self):
         """
         Test dicta class
         """
-        td = yg.dicta()
+        td = self.yg.dicta()
         self.assertEqual(len(td), 0)
 
         td.test = 1
@@ -68,7 +77,7 @@ class YamlGeneratorTestCase(TestCase):
         self.assertEqual(td.test, 2)
         
         td2 = td.copy()
-        self.assertTrue(isinstance(td2, yg.dicta))
+        self.assertTrue(isinstance(td2, self.yg.dicta))
         self.assertEqual(td2, td)
 
         with self.assertRaises(KeyError):
@@ -82,49 +91,49 @@ class YamlGeneratorTestCase(TestCase):
         """
         Test the raw word generator
         """
-        dc = yg.default_config()
-        txt = yg.generate_words(dc)
-        self.assertEqual(len(txt.split('-')), dc.name_wordiness)
+        dc = self.yg.default_config()
+        txt = self.yg.generate_words(dc)
+        self.assertEqual(len(txt.split('-')), dc.max_name_words)
 
 
     def test_number_str_generator(self):
         """
         Test the raw number string generator
         """
-        dc = yg.default_config()
-        txt = yg.generate_number_str(dc)
+        dc = self.yg.default_config()
+        txt = self.yg.generate_number_str(dc)
         self.assertTrue(txt.isdigit())
-        self.assertEqual(len(txt), dc.max_resource_id_digits)
+        self.assertEqual(len(txt), dc.max_resource_id_length)
 
 
     def test_generate_name(self):
         """
         Test the name generator
         """
-        dc = yg.default_config()
-        name = yg.generate_name(dc)
-        self.assertEqual(len(name.split('-')), dc.name_wordiness)
+        dc = self.yg.default_config()
+        name = self.yg.generate_name(dc)
+        self.assertEqual(len(name.split('-')), dc.max_name_words)
         self.assertFalse(name.isdigit())
         prefix = '___'
         suffix = '^^^'
-        name = yg.generate_name(dc, prefix=prefix)
+        name = self.yg.generate_name(dc, prefix=prefix)
         self.assertTrue(name.startswith(prefix + '-'))
         self.assertTrue(len(name) - len(prefix + '-') > 0)
-        name = yg.generate_name(dc, prefix=prefix, suffix=suffix)
+        name = self.yg.generate_name(dc, prefix=prefix, suffix=suffix)
         self.assertTrue(name.startswith(prefix + '-'))
         self.assertTrue(name.endswith('-' + suffix))
         self.assertTrue(len(name.replace(prefix + '-', '').replace('-' + suffix, '')) > 0)
-        name = yg.generate_name(dc, prefix=prefix, suffix=suffix, dynamic=False)
+        name = self.yg.generate_name(dc, prefix=prefix, suffix=suffix, dynamic=False)
         self.assertTrue(name.startswith(prefix + '-'))
         self.assertTrue(name.endswith('-' + suffix))
         self.assertTrue('--' not in name)
-        self.assertEqual(len(name.replace(prefix + '-', '').replace('-' + suffix, '')), 0)
+        self.assertEqual(len(name.replace(prefix + '-', '').replace(suffix, '')), 0)
 
 
     def test_generate_resource_id(self):
         """ Test resource id generation """
-        dc = yg.default_config()
-        res_id = yg.generate_resource_id(dc)
+        dc = self.yg.default_config()
+        res_id = self.yg.generate_resource_id(dc)
         self.assertEqual(len(res_id), dc.max_resource_id_length)
         self.assertTrue(res_id.isdigit())
 
@@ -133,9 +142,9 @@ class YamlGeneratorTestCase(TestCase):
         """
         Test label string generator
         """
-        label_str = yg.generate_labels(0)
+        label_str = self.yg.generate_labels(0)
         self.assertEqual(len(label_str), 0)
-        label_str = yg.generate_labels(2)
+        label_str = self.yg.generate_labels(2)
         labels = label_str.split('|')
         self.assertEqual(len(labels), 2)
         labels = [len(l.split(':')) == 2 for l in labels]
@@ -146,31 +155,28 @@ class YamlGeneratorTestCase(TestCase):
         """
         Test create data static and random
         """
-        def check_exact(val, config_val):
+        def check_exact(val, config_val, **kwargs):
             return val == config_val
         
-        def check_range(val, config_val):
-            return 1 <= val <= config_val
+        def check_range(val, config_val, v_min=1):
+            return v_min <= val <= config_val
         
-        def validate_data(config, _random, check_func):
+        def validate_data(data, config, check_func):
             node_keys = sorted(['name', 'cpu_cores', 'memory_gig', 'resource_id', 'namespaces'])
             namespace_keys = sorted(['name', 'pods', 'volumes'])
             pod_keys = sorted(['name', 'cpu_request', 'mem_request_gig', 'cpu_limit', 'mem_limit_gig', 'pod_seconds', 'labels'])
             volume_keys = sorted(['name', 'storage_class', 'volume_request_gig', 'labels', 'volume_claims'])
-            volume_claim_keys = sorted(['name', 'pod_name', 'labels' 'capacity_gig'])
+            volume_claim_keys = sorted(['name', 'pod_name', 'labels', 'capacity_gig'])
             
-            print(config, file=sys.stderr)
-
-            data = yg.build_data(config, _random)
-            self.assertTrue(isinstance(data, yg.dicta))
+            self.assertTrue(isinstance(data, self.yg.dicta))
 
             self.assertTrue(isinstance(data.start_date, str) and isinstance(data.end_date, str))
-            self.assertTrue(check_func(len(data.nodes), config.num_nodes))
+            self.assertTrue(check_func(len(data.nodes), config.max_nodes))
 
             for node in data.nodes:
                 self.assertEqual(sorted(node.keys()), node_keys)
-                self.assertTrue(1 <= node.cpu_cores <= config.max_node_cpu_cores)
-                self.assertTrue(1 <= node.memory_gig <= config.max_node_memory_gig)
+                self.assertTrue(check_func(node.cpu_cores, config.max_node_cpu_cores))
+                self.assertTrue(check_func(node.memory_gig, config.max_node_memory_gig))
                 self.assertTrue(node.resource_id is not None and node.name is not None and node.name != '')
                 self.assertEqual(len(node.namespaces), config.max_node_namespaces)
 
@@ -183,44 +189,50 @@ class YamlGeneratorTestCase(TestCase):
                     
                     for pod in namespace.pods:
                         self.assertEqual(sorted(pod.keys()), pod_keys)
-                        self.assertTrue(1 <= pod.cpu_request <= node.cpu_cores)
-                        self.assertTrue(1 <= pod.mem_request_gig <= node.memory_gig)
-                        self.assertTrue(1 <= pod.cpu_limit <= node.cpu_cores)
-                        self.assertTrue(1 <= pod.mem_limit_gig <= node.memory_gig)
-                        self.assertTrue(config.min_node_namespace_pod_seconds <= pod.pod_seconds <= config.max_node_namespace_pod_seconds)
+                        self.assertTrue(check_func(pod.cpu_request, node.cpu_cores))
+                        self.assertTrue(check_func(pod.mem_request_gig, node.memory_gig))
+                        self.assertTrue(check_func(pod.cpu_limit, node.cpu_cores))
+                        self.assertTrue(check_func(pod.mem_limit_gig, node.memory_gig))
+                        self.assertTrue(check_func(pod.pod_seconds, 
+                                                   config.max_node_namespace_pod_seconds, 
+                                                   v_min=config.min_node_namespace_pod_seconds))
                         self.assertEqual(len(pod.labels.split('|')), config.max_node_namespace_pod_labels)
                         self.assertTrue(pod.name is not None and pod.name != '')
                     
                     for volume in namespace.volumes:
                         self.assertEqual(sorted(volume.keys()), volume_keys)
                         self.assertTrue(volume.storage_class in config.storage_classes)
-                        self.assertTrue(1 <= volume.volume_request_gig <= config.max_node_namespace_volume_request_gig)
+                        self.assertTrue(check_func(volume.volume_request_gig, config.max_node_namespace_volume_request_gig))
                         self.assertEqual(len(volume.labels.split('|')), config.max_node_namespace_volume_labels)
                         self.assertTrue(volume.name is not None and volume.name != '')
                         self.assertTrue(check_func(len(volume.volume_claims), config.max_node_namespace_volume_volume_claims))
 
                         for volume_claim in volume.volume_claims:
-                            self.assertEqual(volume_claim.keys(), volume_claim_keys)
+                            self.assertEqual(sorted(volume_claim.keys()), volume_claim_keys)
                             self.assertEqual(len(volume_claim.labels.split('|')), config.max_node_namespace_volume_volume_claim_labels)
                             self.assertTrue(volume_claim.name is not None and volume_claim.name != '')
                             self.assertTrue(volume_claim.pod_name in pod_names)
-                            self.assertTrue(1 <= volume_claim.capacity_gig <= config.max_node_namespace_volume_volume_claim_capacity_gig)
+                            self.assertTrue(check_func(volume_claim.capacity_gig, 
+                                                       config.max_node_namespace_volume_volume_claim_capacity_gig))
 
-        dc = yg.default_config()
-        dc.num_nodes = 2
+        dc = self.yg.default_config()
+        dc.max_nodes = 2
         dc.num_node_namespaces = 2
         dc.num_node_namespace_pods = 2
         dc.num_node_namespace_volumes = 2
 
-        validate_data(dc, False, check_exact)
-        validate_data(dc, True, check_range)
+        data = self.yg.build_data(dc, False)
+        validate_data(data, dc, check_exact)
+
+        data = self.yg.build_data(dc, True)
+        validate_data(data, dc, check_range)
 
 
     def test_init_args(self):
         """
         Test creation of the argument parser
         """
-        p = yg.init_args()
+        p = self.yg.init_args()
         self.assertTrue(isinstance(p, argparse.ArgumentParser))
 
 
@@ -231,8 +243,10 @@ class YamlGeneratorTestCase(TestCase):
         args = argparse.Namespace()
         args.end_date = '9999-12-31'
         args.template_file_name = __file__
-        with self.assertRaises(yg.DateRangeArgError):
-            yg.handle_args(args)
+        args.config_file_name = args.start_date = args.num_nodes = None
+        args.random = False
+        with self.assertRaises(self.yg.DateRangeArgsError):
+            self.yg.handle_args(args)
 
 
     def test_handle_missing_end_date_arg(self):
@@ -242,8 +256,10 @@ class YamlGeneratorTestCase(TestCase):
         args = argparse.Namespace()
         args.start_date = '9999-12-31'
         args.template_file_name = __file__
-        with self.assertRaises(yg.DateRangeArgError):
-            yg.handle_args(args)
+        args.config_file_name = args.end_date = args.num_nodes = None
+        args.random = False
+        with self.assertRaises(self.yg.DateRangeArgsError):
+            self.yg.handle_args(args)
 
 
     def test_handle_args_date_range(self):
@@ -254,7 +270,9 @@ class YamlGeneratorTestCase(TestCase):
         args.start_date = '9999-12-31'
         args.end_date = '9999-12-31'
         args.template_file_name = __file__
-        yg.handle_args(args)
+        args.config_file_name = args.num_nodes = None
+        args.random = False
+        self.yg.handle_args(args)
         self.assertTrue(isinstance(args.start_date, date))
         self.assertTrue(isinstance(args.end_date, date))
 
@@ -265,8 +283,10 @@ class YamlGeneratorTestCase(TestCase):
         """
         args = argparse.Namespace()
         args.template_file_name = '\b'
+        args.start_date = args.end_date = args.config_file_name = args.num_nodes = None
+        args.random = False
         with self.assertRaises(FileNotFoundError):
-            yg.handle_args(args)
+            self.yg.handle_args(args)
 
 
     def test_unfindable_args_config_file(self):
@@ -276,8 +296,9 @@ class YamlGeneratorTestCase(TestCase):
         args = argparse.Namespace()
         args.config_file_name = '\b'
         args.template_file_name = __file__
+        args.start_date = args.end_date = args.num_nodes = None
         with self.assertRaises(FileNotFoundError):
-            yg.handle_args(args)
+            self.yg.handle_args(args)
 
 
     def test_zero_num_nodes_arg(self):
@@ -287,8 +308,9 @@ class YamlGeneratorTestCase(TestCase):
         args = argparse.Namespace()
 
         args.template_file_name = __file__
+        args.start_date = args.end_date = args.config_file_name = None
         args.num_nodes = 0
-        args = yg.handle_args(args)
+        args = self.yg.handle_args(args)
         self.assertTrue(args.num_nodes is None)
 
 
@@ -300,7 +322,8 @@ class YamlGeneratorTestCase(TestCase):
 
         args.template_file_name = __file__
         args.num_nodes = -1
-        args = yg.handle_args(args)
+        args.start_date = args.end_date = args.config_file_name = None
+        args = self.yg.handle_args(args)
         self.assertTrue(args.num_nodes is None)
 
 
@@ -312,7 +335,8 @@ class YamlGeneratorTestCase(TestCase):
 
         args.template_file_name = __file__
         args.num_nodes = 10
-        args = yg.handle_args(args)
+        args.start_date = args.end_date = args.config_file_name = None
+        args = self.yg.handle_args(args)
         self.assertEqual(args.num_nodes, 10)
 
 
@@ -324,16 +348,18 @@ class YamlGeneratorTestCase(TestCase):
 
         test_template_file_name = os.path.join(FILE_DIR, 'test_yaml_generator_template.yml.j2')
         test_config_file_name = os.path.join(FILE_DIR, 'test_yaml_generator_config.yml')
-        config_file_data = yaml.safe_load(open(test_config_file_name, 'rt'))
+        with open(test_config_file_name, 'rt') as settings_file:
+            config_file_data = yaml.safe_load(settings_file)
 
         args = argparse.Namespace()
         args.template_file_name = test_template_file_name
         args.config_file_name = test_config_file_name
         args.start_date = date.today()
         args.end_date = date.today()
+        args.num_nodes = None
         args.random = False
 
-        config = yg.init_config(args)
+        config = self.yg.init_config(args)
 
         for k in config_file_data.keys():
             if k.endswith('date'):
@@ -347,7 +373,7 @@ class YamlGeneratorTestCase(TestCase):
         test_template_file_name = os.path.join(FILE_DIR, 'test_yaml_generator_template.yml.j2')
         test_config_file_name = os.path.join(FILE_DIR, 'test_yaml_generator_config.yml')
         test_output_file_name = os.path.join(FILE_DIR, 'test_ocp_generated.yml')
-        config = yg.default_config()
+        config = self.yg.default_config()
 
         if os.path.exists(test_output_file_name):
             os.unlink(test_output_file_name)
@@ -358,7 +384,7 @@ class YamlGeneratorTestCase(TestCase):
         args.config_file_name = test_config_file_name
         args.random = False
 
-        yg.process_template(args, config)
+        self.yg.process_template(args, config)
         self.assertTrue(os.path.exists(test_output_file_name))
         os.unlink(test_output_file_name)
 

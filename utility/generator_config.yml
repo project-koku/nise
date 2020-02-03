@@ -1,15 +1,20 @@
 start_date: '2019-06-01'
 end_date: '2020-01-31'
+# Storage class designations
 storage_classes:
 - gp2
-name_wordiness: 2
+# Maximum number of words in name
+max_name_words: 2
+# Maximm resource id length (This will be a left-zero-padded string)
 max_resource_id_length: 10
+# These are the max settings by entity and sub-entity definition
 max_nodes: 20
 max_node_cpu_cores: 16
 max_node_memory_gig: 64
 max_node_namespaces: 5
 max_node_namespace_pods: 50
 min_node_namespace_pod_seconds: 300
+# This will be the pod_seconds setting when random is False
 max_node_namespace_pod_seconds: 3600
 max_node_namespace_pod_labels: 5
 max_node_namespace_volumes: 50

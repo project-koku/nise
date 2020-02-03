@@ -2,7 +2,7 @@ start_date: '2020-01-01'
 end_date: '2020-01-31'
 storage_classes:
 - gp2
-name_wordiness: 2
+max_name_words: 2
 max_resource_id_length: 10
 max_nodes: 2
 max_node_cpu_cores: 16
