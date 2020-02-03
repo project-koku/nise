@@ -1015,11 +1015,10 @@
         },
         "zipp": {
             "hashes": [
-                "sha256:57147f6b0403b59f33fd357f169f860e031303415aeb7d04ede4839d23905ab8",
-                "sha256:7ae5ccaca427bafa9760ac3cd8f8c244bfc259794b5b6bb9db4dda2241575d09"
+                "sha256:ccc94ed0909b58ffe34430ea5451f07bc0c76467d7081619a454bf5c98b89e28",
+                "sha256:feae2f18633c32fc71f2de629bfb3bd3c9325cd4419642b1f1da42ee488d9b98"
             ],
-            "markers": "python_version < '3.8'",
-            "version": "==2.0.0"
+            "version": "==2.1.0"
         }
     }
 }
