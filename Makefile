@@ -1,5 +1,5 @@
-DATE		= $(shell date)
-PYTHON		= $(shell which python)
+DATE    = $(shell date)
+PYTHON  = $(shell which python)
 
 TOPDIR = $(shell pwd)
 IQE_CMD = 'iqe tests plugin --debug hccm -k test_api -m hccm_smoke'
@@ -11,6 +11,7 @@ help:
 	@echo "  clean               to remove client egg"
 	@echo "  test                to run unit tests"
 	@echo "  run-iqe             ro runs iqe tests with local changes. (Defaults to smoke tests.)"
+	@echo "                          @param IQE_CMD - The iqe command you want to run defaults to: ($(IQE_CMD))"
 
 install: clean
 	$(PYTHON) setup.py build -f
