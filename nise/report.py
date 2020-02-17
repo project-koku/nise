@@ -192,12 +192,25 @@ def gcp_route_file(bucket_name, bucket_file_path, local_path):
                               local_path)
 
 
+def _convert_bytes(num):
+    """Convert bytes to MB, GB, etc.."""
+    for mem_size in ['bytes', 'KB', 'MB', 'GB', 'TB']:
+        if num < 1024.0:
+            return '%3.1f %s' % (num, mem_size)
+        num /= 1024.0
+    return None
+
+
 def post_payload_to_ingest_service(insights_upload, local_path):
     """POST the payload to Insights via header or basic auth."""
     insights_account_id = os.environ.get('INSIGHTS_ACCOUNT_ID')
     insights_org_id = os.environ.get('INSIGHTS_ORG_ID')
     insights_user = os.environ.get('INSIGHTS_USER')
     insights_password = os.environ.get('INSIGHTS_PASSWORD')
+    if os.path.isfile(local_path):
+        file_info = os.stat(local_path)
+        filesize = _convert_bytes(file_info.st_size)
+    print('Upload File: (%s) filesize is %s.' % (local_path, filesize))
     with open(local_path, 'rb') as upload_file:
         if insights_account_id and insights_org_id:
             header = {
