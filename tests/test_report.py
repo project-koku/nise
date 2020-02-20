@@ -32,6 +32,7 @@ from nise.generators.ocp.ocp_generator import OCP_REPORT_TYPE_TO_COLS
 from nise.report import (_create_month_list, _generate_azure_filename,
                          _get_generators, _write_csv, _remove_files,
                          _write_manifest,aws_create_report,
+                         _convert_bytes,
                          azure_create_report, gcp_create_report,
                          gcp_route_file, ocp_create_report,
                          ocp_route_file, post_payload_to_ingest_service)
@@ -45,6 +46,17 @@ class MiscReportTestCase(TestCase):
     """
     TestCase class for report functions
     """
+
+    def test_convert_bytes(self):
+        """Test the _convert_bytes method."""
+        expected = '5.0 GB'
+        result = _convert_bytes(5368709120)
+        self.assertEqual(expected, str(result))
+        # The covert function can't handle a number outside of TB
+        expected = None
+        petabyte_value = 100000000000000000000
+        result = _convert_bytes(petabyte_value)
+        self.assertEqual(result, expected)
 
     def test_write_csv(self):
         """Test the writing of the CSV data."""
