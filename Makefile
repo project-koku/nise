@@ -4,6 +4,9 @@ PYTHON  = $(shell which python)
 TOPDIR = $(shell pwd)
 IQE_CMD = 'iqe tests plugin --debug hccm -k test_api -m hccm_smoke'
 
+DOCKER := $(shell command -v docker 2> /dev/null)
+PODMAN := $(shell command -v podman 2> /dev/null)
+
 help:
 	@echo "Please use \`make <target>' where <target> is one of:"
 	@echo "  help                to show this message"
@@ -19,8 +22,15 @@ install: clean
 
 clean:
 	-rm -rf dist/ build/ koku_nise.egg-info/
-	docker stop iqe-nise | true
-	docker rm iqe-nise | true
+ifdef DOCKER
+	docker stop iqe-nise 2> /dev/null | true
+	docker rm iqe-nise 2> /dev/null | true
+endif
+ifdef PODMAN
+	podman stop 2> /dev/null | true
+	podman rm iqe-nise 2> /dev/null | true
+endif
+
 
 test:
 	tox -e py36
