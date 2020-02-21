@@ -286,7 +286,7 @@ def _validate_azure_arguments(parser, options):
             parser.error(msg)
     for gcp_option in gcp_options:
         if gcp_option is not None:
-            msg = 'GCP arguments cannot be supplied when generating AWS data.'
+            msg = 'GCP arguments cannot be supplied when generating Azure data.'
             parser.error(msg)
 
     azure_container_name, azure_report_name, _, _ = _get_azure_options(options)
@@ -323,7 +323,7 @@ def _validate_ocp_arguments(parser, options):
             parser.error(msg)
     for azure_option in azure_options:
         if azure_option is not None:
-            msg = 'Azure arguments cannot be supplied when generating AWS data.'
+            msg = 'Azure arguments cannot be supplied when generating OCP data.'
             parser.error(msg)
     for gcp_option in gcp_options:
         if gcp_option is not None:
@@ -378,7 +378,7 @@ def _validate_gcp_arguments(parser, options):
             parser.error(msg)
     for azure_option in azure_options:
         if azure_option is not None:
-            msg = 'Azure arguments cannot be supplied when generating AWS data.'
+            msg = 'Azure arguments cannot be supplied when generating GCP data.'
             parser.error(msg)
     return True
 
