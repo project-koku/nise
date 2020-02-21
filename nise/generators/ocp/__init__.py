@@ -16,6 +16,7 @@
 #
 """Module for aws data generators."""
 from nise.generators.ocp.ocp_generator import (OCPGenerator,  # noqa: F401
+                                               OCP_NODE_LABEL,
                                                OCP_POD_USAGE,
                                                OCP_REPORT_TYPE_TO_COLS,
                                                OCP_STORAGE_USAGE)

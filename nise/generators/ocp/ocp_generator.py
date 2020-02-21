@@ -28,6 +28,7 @@ from nise.generators.generator import (AbstractGenerator,
 
 OCP_POD_USAGE = 'ocp_pod_usage'
 OCP_STORAGE_USAGE = 'ocp_storage_usage'
+OCP_NODE_LABEL = 'ocp_node_label'
 OCP_POD_USAGE_COLUMNS = ('report_period_start', 'report_period_end', 'pod', 'namespace',
                          'node', 'resource_id', 'interval_start', 'interval_end',
                          'pod_usage_cpu_core_seconds', 'pod_request_cpu_core_seconds',
@@ -43,9 +44,12 @@ OCP_STORAGE_COLUMNS = ('report_period_start', 'report_period_end', 'interval_sta
                        'volume_request_storage_byte_seconds',
                        'persistentvolumeclaim_usage_byte_seconds', 'persistentvolume_labels',
                        'persistentvolumeclaim_labels')
+OCP_NODE_LABEL_COLUMNS = ('report_period_start', 'report_period_end', 'interval_start',
+                          'interval_end', 'node', 'node_labels')
 OCP_REPORT_TYPE_TO_COLS = {
     OCP_POD_USAGE: OCP_POD_USAGE_COLUMNS,
-    OCP_STORAGE_USAGE: OCP_STORAGE_COLUMNS
+    OCP_STORAGE_USAGE: OCP_STORAGE_COLUMNS,
+    OCP_NODE_LABEL: OCP_NODE_LABEL_COLUMNS
 }
 
 
@@ -80,6 +84,10 @@ class OCPGenerator(AbstractGenerator):
             OCP_STORAGE_USAGE: {
                 '_generate_hourly_data': self._gen_hourly_storage_usage,
                 '_update_data': self._update_storage_data
+            },
+            OCP_NODE_LABEL: {
+                '_generate_hourly_data': self._gen_hourly_node_label_usage,
+                '_update_data': self._update_node_label_data
             }
         }
 
@@ -102,17 +110,23 @@ class OCPGenerator(AbstractGenerator):
                         'cpu_cores': item.get('cpu_cores', randint(2, 16)),
                         'memory_bytes': memory_bytes,
                         'resource_id': 'i-' + resource_id,
-                        'namespaces': item.get('namespaces')}
+                        'namespaces': item.get('namespaces'),
+                        'node_labels': item.get('node_labels')
+                        }
                 nodes.append(node)
         else:
             num_nodes = randint(2, 6)
+            seeded_labels = {'node-role.kubernetes.io/master': [''],
+                             'node-role.kubernetes.io/infra': ['']}
             for node_num in range(0, num_nodes):  # pylint: disable=W0612
                 memory_gig = randint(2, 8)
                 memory_bytes = memory_gig * 1024 * 1024 * 1024
                 node = {'name': 'node_' + self.fake.word(),  # pylint: disable=no-member
                         'cpu_cores': randint(2, 16),
                         'memory_bytes': memory_bytes,
-                        'resource_id': 'i-' + self.fake.word()}  # pylint: disable=no-member
+                        'resource_id': 'i-' + self.fake.word(),  # pylint: disable=no-member
+                        'node_labels': self._gen_openshift_labels(seeding=seeded_labels)
+                        }
                 nodes.append(node)
         return nodes
 
@@ -132,7 +146,7 @@ class OCPGenerator(AbstractGenerator):
                     namespaces[namespace] = node
         return namespaces
 
-    def _gen_pod_labels(self):
+    def _gen_openshift_labels(self, seeding=None):
         """Create pod labels for output data."""
         seeded_labels = {'environment': ['dev', 'ci', 'qa', 'stage', 'prod'],
                          'app': self.apps,
@@ -140,6 +154,8 @@ class OCPGenerator(AbstractGenerator):
                          'market': self.markets,
                          'version': self.versions
                          }
+        if seeding:
+            seeded_labels = seeding
         gen_label_keys = [self.fake.word(), self.fake.word(), self.fake.word(),  # pylint: disable=no-member
                           self.fake.word(), self.fake.word(), self.fake.word()]  # pylint: disable=no-member
         all_label_keys = list(seeded_labels.keys()) + gen_label_keys
@@ -223,7 +239,7 @@ class OCPGenerator(AbstractGenerator):
                                  'cpu_limit': round(uniform(cpu_request, 1.0), 5),
                                  'mem_request_gig': mem_request_gig,
                                  'mem_limit_gig': round(uniform(mem_request_gig, 80.0), 2),
-                                 'pod_labels': self._gen_pod_labels()}
+                                 'pod_labels': self._gen_openshift_labels()}
         return pods, namespace2pod
 
     def _gen_volumes(self, namespaces, namespace2pods):  # pylint: disable=R0914
@@ -279,7 +295,7 @@ class OCPGenerator(AbstractGenerator):
                         volume_claims[vol_claim] = {
                             'namespace': namespace,
                             'volume': volume,
-                            'labels': self._gen_pod_labels(),
+                            'labels': self._gen_openshift_labels(),
                             'capacity': claim_capacity,
                             'pod': pod,
                         }
@@ -288,7 +304,7 @@ class OCPGenerator(AbstractGenerator):
                         'volume': volume,
                         'storage_class': choice(('gp2', 'fast', 'slow', 'gold')),
                         'volume_request': vol_request,
-                        'labels': self._gen_pod_labels(),
+                        'labels': self._gen_openshift_labels(),
                         'volume_claims': volume_claims
                     }
         return volumes
@@ -380,6 +396,15 @@ class OCPGenerator(AbstractGenerator):
         row.update(data)
         return row
 
+    def _update_node_label_data(self, row, start, end, **kwargs):  # pylint: disable=R0914, W0613, R0201
+        """Update data with generator specific data."""
+        data = {
+            'node': kwargs.get('node'),
+            'node_labels': kwargs.get('node_labels')
+        }
+        row.update(data)
+        return row
+
     def _update_data(self, row, start, end, **kwargs):  # pylint: disable=R0914
         """Update data with generator specific data."""
         row = self._add_common_usage_info(row, start, end)
@@ -449,6 +474,19 @@ class OCPGenerator(AbstractGenerator):
                                             volume_request=volume_request, volume_labels=vol_labels,
                                             namespace=namespace, **kwargs)
                     data.append(row)
+        return data
+
+    def _gen_hourly_node_label_usage(self, **kwargs):  # pylint: disable=R0914
+        """Create hourly data for nodel label report."""
+        data = []
+        for hour in self.hours:
+            start = hour.get('start')
+            end = hour.get('end')
+            for node in self.nodes:
+                row = self._init_data_row(start, end, **kwargs)
+                row = self._update_data(row, start, end, node_labels=node.get('node_labels'),
+                                        node=node.get('name'), **kwargs)
+                data.append(row)
         return data
 
     def _generate_hourly_data(self, **kwargs):   # pylint: disable=too-many-locals
