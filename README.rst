@@ -56,6 +56,18 @@ To lint the code base ::
 
     tox -e lint
 
+Nise and IQE Tests
+------------------
+
+The iqe tests use nise to generate mock data; therefore, we need to ensure that our nise changes do not break the iqe tests. To do this you will need to copy the `.env.example` to a `.env` file.
+After the `.env` file is configured you will then need to run ::
+
+    make run-iqe
+
+The `make run-iqe` command by default will run the smoke tests. However, if you want to run a specific iqe test command you can pass it in through the `IQE_CMD` parameter ::
+
+    make run-iqe IQE_CMD='iqe tests plugin hccm -k test_api_aws_provider_create_foo_resource_name'
+
 
 Publishing
 ----------
