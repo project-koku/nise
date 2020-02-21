@@ -57,6 +57,7 @@ from nise.generators.gcp import (CloudStorageGenerator,
                                  GCP_REPORT_COLUMNS,
                                  ProjectGenerator)
 from nise.generators.ocp import (OCPGenerator,
+                                 OCP_NODE_LABEL,
                                  OCP_POD_USAGE,
                                  OCP_REPORT_TYPE_TO_COLS,
                                  OCP_STORAGE_USAGE)
@@ -548,7 +549,8 @@ def ocp_create_report(options):  # noqa: C901
     for month in months:
         data = {
             OCP_POD_USAGE: [],
-            OCP_STORAGE_USAGE: []
+            OCP_STORAGE_USAGE: [],
+            OCP_NODE_LABEL: []
         }
         for generator in generators:
             generator_cls = generator.get('generator')
