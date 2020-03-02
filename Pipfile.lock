@@ -54,11 +54,10 @@
         },
         "azure-mgmt-storage": {
             "hashes": [
-                "sha256:9926a4118e1c27af7bef54ec2d70a9ad26566015c11c63897f84ee657173e331",
-                "sha256:b4dc00bf960d98e7d03d70737fbccfedfe946b112602b375539a4fde02dfd20f"
+                "sha256:65bdf2d3bbf589d2856c39ff104bd9722faa4bddc55c6137e10a0a15dec758c4",
+                "sha256:7429c82e15e2cadc9c45387186ae9082667fced1ac41f8dc9e31e537ad0a9305"
             ],
-            "index": "pypi",
-            "version": "==7.1.0"
+            "version": "==7.2.0"
         },
         "azure-storage-blob": {
             "hashes": [
