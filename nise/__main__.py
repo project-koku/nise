@@ -523,12 +523,12 @@ def main():
     """Run data generation program."""
     parser = create_parser()
     args = parser.parse_args()
+    options = vars(args)
     _, provider_type = _validate_provider_inputs(parser, options)
 
     if not options.get('start_date'):
         parser.error('the following arguments are required: --start-date')
 
-    options = vars(args)
     run(provider_type, options)
 
 
