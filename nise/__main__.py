@@ -505,10 +505,10 @@ def calculate_end_date(start_date, end_date):
     return generated_end_date
 
 
-def run(options):
+def run(provider_type, options):
     """Run nise."""
     _load_static_report_data(options)
-    _, provider_type = _validate_provider_inputs(parser, options)
+
     if not options.get('start_date'):
         parser.error('the following arguments are required: --start-date')
     if provider_type == 'aws':
@@ -525,8 +525,9 @@ def main():
     """Run data generation program."""
     parser = create_parser()
     args = parser.parse_args()
+    _, provider_type = _validate_provider_inputs(parser, options)
     options = vars(args)
-    run(options)
+    run(provider_type, options)
 
 
 if __name__ == '__main__':
