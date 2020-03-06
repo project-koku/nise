@@ -509,8 +509,6 @@ def run(provider_type, options):
     """Run nise."""
     _load_static_report_data(options)
 
-    if not options.get('start_date'):
-        parser.error('the following arguments are required: --start-date')
     if provider_type == 'aws':
         aws_create_report(options)
     elif provider_type == 'azure':
@@ -526,6 +524,10 @@ def main():
     parser = create_parser()
     args = parser.parse_args()
     _, provider_type = _validate_provider_inputs(parser, options)
+
+    if not options.get('start_date'):
+        parser.error('the following arguments are required: --start-date')
+
     options = vars(args)
     run(provider_type, options)
 
