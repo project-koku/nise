@@ -505,11 +505,8 @@ def calculate_end_date(start_date, end_date):
     return generated_end_date
 
 
-def main():
-    """Run data generation program."""
-    parser = create_parser()
-    args = parser.parse_args()
-    options = vars(args)
+def run(options):
+    """Run nise."""
     _load_static_report_data(options)
     _, provider_type = _validate_provider_inputs(parser, options)
     if not options.get('start_date'):
@@ -522,6 +519,14 @@ def main():
         ocp_create_report(options)
     elif provider_type == 'gcp':
         gcp_create_report(options)
+
+
+def main():
+    """Run data generation program."""
+    parser = create_parser()
+    args = parser.parse_args()
+    options = vars(args)
+    run(options)
 
 
 if __name__ == '__main__':
