@@ -965,10 +965,10 @@
         },
         "virtualenv": {
             "hashes": [
-                "sha256:0d62c70883c0342d59c11d0ddac0d954d0431321a41ab20851facf2b222598f3",
-                "sha256:55059a7a676e4e19498f1aad09b8313a38fcc0cdbe4fdddc0e9b06946d21b4bb"
+                "sha256:5eba85dfa176fde0425b9b3042ed83f05a1b6309a616b8a3e2a9a94f4bfa27b7",
+                "sha256:99f131be2f90ff2a8fd711261a27845b6c50fc008bef815e710c7fa844eb1467"
             ],
-            "version": "==16.7.9"
+            "version": "==20.0.9"
         },
         "vistir": {
             "hashes": [
