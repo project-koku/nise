@@ -32,10 +32,10 @@
         },
         "azure-core": {
             "hashes": [
-                "sha256:b8ccbd901d085048e4e3e72627b066923c5bd3780e4c43cf9cf9948aee9bdf9e",
-                "sha256:e2cd99f0c0aef12c168d498cb5bc47a3a45c8ab08112183e3ec97e4dcb33ceb9"
+                "sha256:8bdb12b8e937c5bdf495faadf7741ea1958436e2d24c9c5ca7bd7a5ca7a9e42f",
+                "sha256:bcfc4502c4cfbdcbe82301119439f52542fa4a42dfc1dadd647bba8b01819823"
             ],
-            "version": "==1.2.1"
+            "version": "==1.2.2"
         },
         "azure-mgmt-costmanagement": {
             "hashes": [
