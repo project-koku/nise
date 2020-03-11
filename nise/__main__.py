@@ -30,6 +30,10 @@ from nise.report import (aws_create_report,
                          ocp_create_report)
 
 
+class NiseError(Exception):
+    pass
+
+
 def valid_date(date_string):
     """Create date from date string."""
     try:
@@ -508,6 +512,9 @@ def calculate_end_date(start_date, end_date):
 def run(provider_type, options):
     """Run nise."""
     _load_static_report_data(options)
+    if not options.get('start_date'):
+        raise NiseError("'start_date' is required in static files.")
+
 
     if provider_type == 'aws':
         aws_create_report(options)
@@ -526,7 +533,7 @@ def main():
     options = vars(args)
     _, provider_type = _validate_provider_inputs(parser, options)
 
-    if not options.get('start_date'):
+    if not (options.get('start_date') or options.get('static_report_file')):
         parser.error('the following arguments are required: --start-date')
 
     run(provider_type, options)
