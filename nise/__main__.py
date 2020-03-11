@@ -31,6 +31,7 @@ from nise.report import (aws_create_report,
 
 
 class NiseError(Exception):
+    """A Nise Exception class."""
     pass
 
 
@@ -514,7 +515,6 @@ def run(provider_type, options):
     _load_static_report_data(options)
     if not options.get('start_date'):
         raise NiseError("'start_date' is required in static files.")
-
 
     if provider_type == 'aws':
         aws_create_report(options)
