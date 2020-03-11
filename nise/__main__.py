@@ -32,7 +32,6 @@ from nise.report import (aws_create_report,
 
 class NiseError(Exception):
     """A Nise Exception class."""
-    pass
 
 
 def valid_date(date_string):
