@@ -399,7 +399,9 @@ def aws_create_report(options):
 
             gen = generator_cls(gen_start_date, gen_end_date, payer_account,
                                 usage_accounts, attributes)
-            data += gen.generate_data()
+            for line in gen.generate_data():
+                import pdb; pdb.set_trace()
+                data += line
 
         month_output_file_name = '{}-{}-{}'.format(month.get('name'),
                                                    gen_start_date.year,
