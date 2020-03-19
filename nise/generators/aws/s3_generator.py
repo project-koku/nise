@@ -88,5 +88,4 @@ class S3Generator(AWSGenerator):
 
     def generate_data(self):
         """Responsibile for generating data."""
-        data = self._generate_hourly_data()
-        return data
+        return self._generate_hourly_data()

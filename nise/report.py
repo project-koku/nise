@@ -31,6 +31,8 @@ from datetime import datetime
 from tempfile import NamedTemporaryFile, gettempdir
 from uuid import uuid4
 
+from random import randint
+
 import requests
 from dateutil import parser
 from dateutil.relativedelta import relativedelta
@@ -418,19 +420,21 @@ def aws_create_report(options):
 
             gen = generator_cls(gen_start_date, gen_end_date, payer_account,
                                 usage_accounts, attributes)
-            for hour in gen.generate_data():
-                data += [hour]
-                if len(data) == 200:
-                    file_number += 1
-                    month_output_file = write_aws_file(file_number,
-                                                       aws_report_name,
-                                                       month.get('name'),
-                                                       gen_start_date.year,
-                                                       data,
-                                                       aws_finalize_report,
-                                                       static_report_data)
-                    monthly_files.append(month_output_file)
-                    data.clear()
+            num_instances = 1 if attributes else randint(2, 60)
+            for instance in range(0, num_instances):  # pylint: disable=W0612
+                for hour in gen.generate_data():
+                    data += [hour]
+                    if len(data) == 200:
+                        file_number += 1
+                        month_output_file = write_aws_file(file_number,
+                                                        aws_report_name,
+                                                        month.get('name'),
+                                                        gen_start_date.year,
+                                                        data,
+                                                        aws_finalize_report,
+                                                        static_report_data)
+                        monthly_files.append(month_output_file)
+                        data.clear()
 
         if file_number != 0:
             file_number += 1
