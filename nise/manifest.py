@@ -76,15 +76,20 @@ def aws_generate_manifest(fake, template_data):
     assembly_id = uuid4()
     report_id = fake.sha256(raw_output=False)
     prefix_name = template_data.get('aws_prefix_name')
-    if prefix_name:
-        report_key = f'{prefix_name}/{report_name}/{range_str}/{assembly_id}/{report_name}-1.csv.gz'
-    else:
-        report_key = f'/{report_name}/{range_str}/{assembly_id}/{report_name}-1.csv.gz'
+    file_names = template_data.get('file_names')
+    report_keys = []
+    for file_name in file_names:
+        file_base_name = os.path.basename(file_name)
+        if prefix_name:
+            report_key = f'{prefix_name}/{report_name}/{range_str}/{assembly_id}/{file_base_name}.gz'
+        else:
+            report_key = f'/{report_name}/{range_str}/{assembly_id}/{file_base_name}.gz'
+        report_keys.append(report_key)
     render_data = {'assembly_id': assembly_id,
                    'report_id': report_id,
                    'billing_period_start': _manifest_datetime_str(bp_start),
                    'billing_period_end': _manifest_datetime_str(bp_end),
-                   'report_key': report_key,
+                   'report_key': ','.join(map(str, report_keys)),
                    'compression': 'GZIP',
                    'bucket': template_data.get('aws_bucket_name')}
     render_data.update(template_data)
@@ -92,7 +97,8 @@ def aws_generate_manifest(fake, template_data):
     template_env = jinja2.Environment(loader=template_loader)
     template = template_env.get_template(AWS_TEMPLATE_FILE)
     output = template.render(render_data)
-    return report_key, output
+    assembly_path = os.path.dirname(report_keys[0])
+    return assembly_path, output
 
 
 def ocp_generate_manifest(template_data):

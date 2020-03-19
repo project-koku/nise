@@ -452,24 +452,29 @@ def aws_create_report(options):
             manifest_values.update(options)
             manifest_values['start_date'] = gen_start_date
             manifest_values['end_date'] = gen_end_date
+            manifest_values['file_names'] = monthly_files
             s3_cur_path, manifest_data = aws_generate_manifest(fake, manifest_values)
+
             s3_assembly_path = os.path.dirname(s3_cur_path)
             s3_month_path = os.path.dirname(s3_assembly_path)
             s3_month_manifest_path = s3_month_path + '/' + aws_report_name + '-Manifest.json'
             s3_assembly_manifest_path = s3_assembly_path + '/' + aws_report_name + '-Manifest.json'
             temp_manifest = _write_manifest(manifest_data)
-            temp_cur_zip = _gzip_report(month_output_file)
             aws_route_file(aws_bucket_name,
                            s3_month_manifest_path,
                            temp_manifest)
             aws_route_file(aws_bucket_name,
                            s3_assembly_manifest_path,
                            temp_manifest)
-            aws_route_file(aws_bucket_name,
-                           s3_cur_path,
-                           temp_cur_zip)
+
+            for monthly_file in monthly_files:
+                temp_cur_zip = _gzip_report(monthly_file)
+                destination_file = '{}/{}.gz'.format(s3_cur_path, os.path.basename(monthly_file))
+                aws_route_file(aws_bucket_name,
+                            destination_file,
+                            temp_cur_zip)
+                os.remove(temp_cur_zip)
             os.remove(temp_manifest)
-            os.remove(temp_cur_zip)
         if not write_monthly:
             _remove_files(monthly_files)
 
