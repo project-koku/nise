@@ -351,12 +351,22 @@ def _create_generator_dates_from_yaml(attributes, month):
     return gen_start_date, gen_end_date
 
 
-def write_aws_file(file_number, aws_report_name, month_name, year, data):
-    file_name = '{}-{}-{}-{}'.format(month_name, year, aws_report_name, file_number)
+def write_aws_file(file_number, aws_report_name, month_name, year, data, aws_finalize_report, static_report_data):
+    if file_number != 0:
+        file_name = '{}-{}-{}-{}'.format(month_name, year, aws_report_name, str(file_number))
+    else:
+        file_name = '{}-{}-{}'.format(month_name, year, aws_report_name)
+
+    if aws_finalize_report and aws_finalize_report == 'overwrite':
+        data = _aws_finalize_report(data, static_report_data)
+    elif aws_finalize_report and aws_finalize_report == 'copy':
+        # Currently only a local option as this does not simulate
+        data = _aws_finalize_report(data, static_report_data)
+        file_name = '{}-finalized'.format(file_name)
 
     full_file_name = '{}/{}.csv'.format(os.getcwd(), file_name)
     _write_csv(full_file_name, data, AWS_COLUMNS)
-    data.clear()
+
     return full_file_name
 
 # pylint: disable=too-many-locals,too-many-statements
@@ -412,40 +422,26 @@ def aws_create_report(options):
                 data += [hour]
                 if len(data) == 200:
                     file_number += 1
-                    month_output_file_name_part = '{}-{}-{}-{}'.format(month.get('name'),
-                                            gen_start_date.year,
-                                            aws_report_name,
-                                            str(file_number))
-                    month_output_file_part = '{}/{}.csv'.format(os.getcwd(), month_output_file_name_part)
-                    monthly_files.append(month_output_file_part)
-                    _write_csv(month_output_file_part, data, AWS_COLUMNS)
+                    month_output_file = write_aws_file(file_number,
+                                                       aws_report_name,
+                                                       month.get('name'),
+                                                       gen_start_date.year,
+                                                       data,
+                                                       aws_finalize_report,
+                                                       static_report_data)
+                    monthly_files.append(month_output_file)
                     data.clear()
+
         if file_number != 0:
             file_number += 1
-            month_output_file_name = '{}-{}-{}-{}'.format(month.get('name'),
-                                                    gen_start_date.year,
-                                                    aws_report_name,
-                                                    str(file_number))
-        else:
-            month_output_file_name = '{}-{}-{}'.format(month.get('name'),
-                                                    gen_start_date.year,
-                                                    aws_report_name)
-        month_output_file = '{}/{}.csv'.format(os.getcwd(), month_output_file_name)
+        month_output_file = write_aws_file(file_number,
+                                           aws_report_name,
+                                           month.get('name'),
+                                           gen_start_date.year,
+                                           data,
+                                           aws_finalize_report,
+                                           static_report_data)
         monthly_files.append(month_output_file)
-        if aws_finalize_report and aws_finalize_report == 'overwrite':
-            data = _aws_finalize_report(data, static_report_data)
-        elif aws_finalize_report and aws_finalize_report == 'copy':
-            # Currently only a local option as this does not simulate
-            finalized_data = _aws_finalize_report(data, static_report_data)
-            finalized_file_name = '{}-finalized'.format(month_output_file_name)
-            finalized_output_file = '{}/{}.csv'.format(
-                os.getcwd(),
-                finalized_file_name
-            )
-            _write_csv(finalized_output_file, finalized_data, AWS_COLUMNS)
-            monthly_files.append(finalized_output_file)
-
-        _write_csv(month_output_file, data, AWS_COLUMNS)
 
         if aws_bucket_name:
             manifest_values = {'account': payer_account}
