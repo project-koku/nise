@@ -81,6 +81,7 @@ def create_temporary_copy(path, temp_file_name, temp_dir_name='None'):
 
 def _write_csv(output_file, data, header):
     """Output csv file data."""
+    import pdb; pdb.set_trace()
     with open(output_file, 'w') as file:
         writer = csv.DictWriter(file, fieldnames=header)
         writer.writeheader()
@@ -399,9 +400,7 @@ def aws_create_report(options):
 
             gen = generator_cls(gen_start_date, gen_end_date, payer_account,
                                 usage_accounts, attributes)
-            for line in gen.generate_data():
-                import pdb; pdb.set_trace()
-                data += line
+            data += gen.generate_data()
 
         month_output_file_name = '{}-{}-{}'.format(month.get('name'),
                                                    gen_start_date.year,

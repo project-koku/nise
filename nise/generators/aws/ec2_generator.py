@@ -124,5 +124,6 @@ class EC2Generator(AWSGenerator):
         data = []
         num_instances = self.num_instances
         for instance in range(0, num_instances):  # pylint: disable=W0612
-            yield self._generate_hourly_data()
-
+            for hour in self._generate_hourly_data():
+                data += [hour]
+        return data
