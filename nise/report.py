@@ -81,7 +81,6 @@ def create_temporary_copy(path, temp_file_name, temp_dir_name='None'):
 
 def _write_csv(output_file, data, header):
     """Output csv file data."""
-    import pdb; pdb.set_trace()
     with open(output_file, 'w') as file:
         writer = csv.DictWriter(file, fieldnames=header)
         writer.writeheader()
@@ -352,6 +351,14 @@ def _create_generator_dates_from_yaml(attributes, month):
     return gen_start_date, gen_end_date
 
 
+def write_aws_file(file_number, aws_report_name, month_name, year, data):
+    file_name = '{}-{}-{}-{}'.format(month_name, year, aws_report_name, file_number)
+
+    full_file_name = '{}/{}.csv'.format(os.getcwd(), file_name)
+    _write_csv(full_file_name, data, AWS_COLUMNS)
+    data.clear()
+    return full_file_name
+
 # pylint: disable=too-many-locals,too-many-statements
 def aws_create_report(options):
     """Create a cost usage report file."""
@@ -382,6 +389,7 @@ def aws_create_report(options):
     write_monthly = options.get('write_monthly', False)
     for month in months:
         data = []
+        file_number = 0
         monthly_files = []
         fake = Faker()
         for generator in generators:
@@ -400,11 +408,28 @@ def aws_create_report(options):
 
             gen = generator_cls(gen_start_date, gen_end_date, payer_account,
                                 usage_accounts, attributes)
-            data += gen.generate_data()
-
-        month_output_file_name = '{}-{}-{}'.format(month.get('name'),
-                                                   gen_start_date.year,
-                                                   aws_report_name)
+            for hour in gen.generate_data():
+                data += [hour]
+                if len(data) == 200:
+                    file_number += 1
+                    month_output_file_name_part = '{}-{}-{}-{}'.format(month.get('name'),
+                                            gen_start_date.year,
+                                            aws_report_name,
+                                            str(file_number))
+                    month_output_file_part = '{}/{}.csv'.format(os.getcwd(), month_output_file_name_part)
+                    monthly_files.append(month_output_file_part)
+                    _write_csv(month_output_file_part, data, AWS_COLUMNS)
+                    data.clear()
+        if file_number != 0:
+            file_number += 1
+            month_output_file_name = '{}-{}-{}-{}'.format(month.get('name'),
+                                                    gen_start_date.year,
+                                                    aws_report_name,
+                                                    str(file_number))
+        else:
+            month_output_file_name = '{}-{}-{}'.format(month.get('name'),
+                                                    gen_start_date.year,
+                                                    aws_report_name)
         month_output_file = '{}/{}.csv'.format(os.getcwd(), month_output_file_name)
         monthly_files.append(month_output_file)
         if aws_finalize_report and aws_finalize_report == 'overwrite':
