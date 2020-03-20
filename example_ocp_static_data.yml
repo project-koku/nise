@@ -1,7 +1,7 @@
 ---
 generators:
   - OCPGenerator:
-      start_date: 2020-03-01
+      start_date: last_month
       nodes:
         - node:
           node_name: alpha
