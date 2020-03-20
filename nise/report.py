@@ -603,11 +603,9 @@ def ocp_create_report(options):  # noqa: C901
                 gen_start_date, gen_end_date = _create_generator_dates_from_yaml(attributes, month)
 
             gen = generator_cls(gen_start_date, gen_end_date, attributes)
-            import pdb; pdb.set_trace()
             for report_type in gen.ocp_report_generation.keys():
-                monthly_data = gen.generate_data(report_type)
-                for monthly_report_data in monthly_data.items():
-                    data[report_type] += monthly_report_data
+                for hour in gen.generate_data(report_type):
+                    data[report_type] += [hour]
 
         monthly_files = []
         for report_type in data.keys():  # pylint: disable=C0201
@@ -617,7 +615,7 @@ def ocp_create_report(options):  # noqa: C901
                                                           report_type)
             month_output_file = '{}/{}.csv'.format(os.getcwd(), month_output_file_name)
             monthly_files.append(month_output_file)
-            _write_csv(month_output_file, data[report_type][1], OCP_REPORT_TYPE_TO_COLS[report_type])
+            _write_csv(month_output_file, data[report_type], OCP_REPORT_TYPE_TO_COLS[report_type])
         if insights_upload:
             ocp_assembly_id = uuid4()
             report_datetime = gen_start_date
