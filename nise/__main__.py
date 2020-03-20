@@ -70,8 +70,8 @@ def create_parser():
                         dest='row_limit',
                         required=False,
                         type=int,
-                        default=400,
-                        help='Maximum number of lines per report file. Default is 400.')
+                        default=100000,
+                        help='Maximum number of lines per report file. Default is 100000.')
     provider_group.add_argument('--aws',
                                 dest='aws',
                                 action='store_true',
