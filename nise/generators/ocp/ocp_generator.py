@@ -416,7 +416,6 @@ class OCPGenerator(AbstractGenerator):
 
     def _gen_hourly_pods_usage(self, **kwargs):  # pylint: disable=R0914
         """Create hourly data for pod usage."""
-        data = []
         for hour in self.hours:
             start = hour.get('start')
             end = hour.get('end')
@@ -484,14 +483,13 @@ class OCPGenerator(AbstractGenerator):
                                         node=node.get('name'), **kwargs)
                 yield row
 
-    def _generate_hourly_data(self, **kwargs):   # pylint: disable=too-many-locals
+    def _generate_hourly_data(self, **kwargs):
         """Create hourly data."""
-        if kwargs:
-            report_type = kwargs.get(REPORT_TYPE)
-            method = self.ocp_report_generation.get(report_type).get('_generate_hourly_data')
-            return method(**kwargs)
+        report_type = kwargs.get(REPORT_TYPE)
+        method = self.ocp_report_generation.get(report_type).get('_generate_hourly_data')
+        return method(**kwargs)
 
-    def generate_data(self, report_type):
+    def generate_data(self, report_type=None):
         """Responsibile for generating data."""
         meta = {REPORT_TYPE: report_type}
         return self._generate_hourly_data(**meta)

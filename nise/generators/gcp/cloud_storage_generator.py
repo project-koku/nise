@@ -43,7 +43,7 @@ class CloudStorageGenerator(GCPGenerator):
             row['Description'] = storage[2]
         return row
 
-    def generate_data(self):
+    def generate_data(self, report_type=None):
         """Generate GCP storage data for some days."""
         days = self._create_days_list(self.start_date, self.end_date)
         data = {}

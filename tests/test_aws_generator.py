@@ -36,7 +36,7 @@ class TestGenerator(AWSGenerator):
     def _update_data(self, row, start, end):
         return None
 
-    def generate_data(self):
+    def generate_data(self, report_type=None):
         return []
 
 

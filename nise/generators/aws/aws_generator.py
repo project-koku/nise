@@ -231,5 +231,5 @@ class AWSGenerator(AbstractGenerator):
             yield row
 
     @abstractmethod
-    def generate_data(self):
+    def generate_data(self, report_type=None):
         """Responsible for generating data."""

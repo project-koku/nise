@@ -286,7 +286,7 @@ class AzureGenerator(AbstractGenerator):
             data.append(row)
         return data
 
-    def generate_data(self):
+    def generate_data(self, report_type=None):
         """Responsible for generating data."""
         data = self._generate_daily_data()
         return data
