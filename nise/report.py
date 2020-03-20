@@ -379,6 +379,7 @@ def aws_create_report(options):
     end_date = options.get('end_date')
     aws_finalize_report = options.get('aws_finalize_report')
     static_report_data = options.get('static_report_data')
+
     if static_report_data:
         generators = _get_generators(static_report_data.get('generators'))
         accounts_list = static_report_data.get('accounts')
@@ -424,7 +425,7 @@ def aws_create_report(options):
             for instance in range(0, num_instances):  # pylint: disable=W0612
                 for hour in gen.generate_data():
                     data += [hour]
-                    if len(data) == 200:
+                    if len(data) == options.get('max_rows'):
                         file_number += 1
                         month_output_file = write_aws_file(file_number,
                                                         aws_report_name,
