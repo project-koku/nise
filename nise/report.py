@@ -454,7 +454,6 @@ def aws_create_report(options):
             manifest_values['end_date'] = gen_end_date
             manifest_values['file_names'] = monthly_files
             s3_cur_path, manifest_data = aws_generate_manifest(fake, manifest_values)
-            import pdb; pdb.set_trace()
             s3_month_path = os.path.dirname(s3_cur_path)
             s3_month_manifest_path = s3_month_path + '/' + aws_report_name + '-Manifest.json'
             s3_assembly_manifest_path = s3_cur_path + '/' + aws_report_name + '-Manifest.json'

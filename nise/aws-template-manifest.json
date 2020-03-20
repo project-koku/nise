@@ -183,5 +183,5 @@
         "end": "{{ billing_period_end }}"
     },
     "bucket": "{{ bucket }}",
-    "reportKeys": ["{{ report_key }}"]
+    "reportKeys": {{ report_key }}
 }

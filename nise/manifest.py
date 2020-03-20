@@ -17,6 +17,7 @@
 """Creates the manifest file associated with the CUR."""
 import os
 from uuid import uuid4
+import json
 
 import jinja2
 from dateutil.relativedelta import relativedelta
@@ -85,11 +86,12 @@ def aws_generate_manifest(fake, template_data):
         else:
             report_key = f'/{report_name}/{range_str}/{assembly_id}/{file_base_name}.gz'
         report_keys.append(report_key)
+
     render_data = {'assembly_id': assembly_id,
                    'report_id': report_id,
                    'billing_period_start': _manifest_datetime_str(bp_start),
                    'billing_period_end': _manifest_datetime_str(bp_end),
-                   'report_key': ','.join(map(str, report_keys)),
+                   'report_key': json.dumps(report_keys),
                    'compression': 'GZIP',
                    'bucket': template_data.get('aws_bucket_name')}
     render_data.update(template_data)
