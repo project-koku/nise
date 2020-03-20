@@ -498,10 +498,9 @@ class OCPGenerator(AbstractGenerator):
             data = method(**kwargs)
         return data
 
-    def generate_data(self):
+    def generate_data(self, report_type):
         """Responsibile for generating data."""
         data = {}
-        for report_type in self.ocp_report_generation.keys():  # pylint: disable=C0201
-            meta = {REPORT_TYPE: report_type}
-            data[report_type] = self._generate_hourly_data(**meta)
+        meta = {REPORT_TYPE: report_type}
+        data[report_type] = self._generate_hourly_data(**meta)
         return data
