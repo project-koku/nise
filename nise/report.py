@@ -28,10 +28,9 @@ import shutil
 import string
 import tarfile
 from datetime import datetime
+from random import randint
 from tempfile import NamedTemporaryFile, gettempdir
 from uuid import uuid4
-
-from random import randint
 
 import requests
 from dateutil import parser
@@ -353,7 +352,10 @@ def _create_generator_dates_from_yaml(attributes, month):
     return gen_start_date, gen_end_date
 
 
-def write_aws_file(file_number, aws_report_name, month_name, year, data, aws_finalize_report, static_report_data):
+# pylint: disable=too-many-arguments
+def write_aws_file(file_number, aws_report_name, month_name, year, data,
+                   aws_finalize_report, static_report_data):
+    """Write AWS data to a file."""
     if file_number != 0:
         file_name = '{}-{}-{}-{}'.format(month_name, year, aws_report_name, str(file_number))
     else:
@@ -373,7 +375,8 @@ def write_aws_file(file_number, aws_report_name, month_name, year, data, aws_fin
 
     return full_file_name
 
-# pylint: disable=too-many-locals,too-many-statements
+
+# pylint: disable=too-many-locals,too-many-statements,too-many-branches
 def aws_create_report(options):
     """Create a cost usage report file."""
     data = []
@@ -427,15 +430,15 @@ def aws_create_report(options):
             for instance in range(0, num_instances):  # pylint: disable=W0612
                 for hour in gen.generate_data():
                     data += [hour]
-                    if len(data) == options.get('max_rows'):
+                    if len(data) == options.get('row_limit'):
                         file_number += 1
                         month_output_file = write_aws_file(file_number,
-                                                        aws_report_name,
-                                                        month.get('name'),
-                                                        gen_start_date.year,
-                                                        data,
-                                                        aws_finalize_report,
-                                                        static_report_data)
+                                                           aws_report_name,
+                                                           month.get('name'),
+                                                           gen_start_date.year,
+                                                           data,
+                                                           aws_finalize_report,
+                                                           static_report_data)
                         monthly_files.append(month_output_file)
                         data.clear()
 
@@ -473,8 +476,8 @@ def aws_create_report(options):
                 temp_cur_zip = _gzip_report(monthly_file)
                 destination_file = '{}/{}.gz'.format(s3_cur_path, os.path.basename(monthly_file))
                 aws_route_file(aws_bucket_name,
-                            destination_file,
-                            temp_cur_zip)
+                               destination_file,
+                               temp_cur_zip)
                 os.remove(temp_cur_zip)
             os.remove(temp_manifest)
         if not write_monthly:

@@ -66,8 +66,8 @@ def create_parser():
                         type=valid_date,
                         default=today(),
                         help='Date to end generating data (YYYY-MM-DD). Default is today.')
-    parser.add_argument('--file-max-rows',
-                        dest='max_rows',
+    parser.add_argument('--file-row-limit',
+                        dest='row_limit',
                         required=False,
                         type=int,
                         default=400,

@@ -15,9 +15,9 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """Creates the manifest file associated with the CUR."""
+import json
 import os
 from uuid import uuid4
-import json
 
 import jinja2
 from dateutil.relativedelta import relativedelta
@@ -82,7 +82,8 @@ def aws_generate_manifest(fake, template_data):
     for file_name in file_names:
         file_base_name = os.path.basename(file_name)
         if prefix_name:
-            report_key = f'{prefix_name}/{report_name}/{range_str}/{assembly_id}/{file_base_name}.gz'
+            report_key = (f'{prefix_name}/{report_name}/{range_str}'
+                          f'/{assembly_id}/{file_base_name}.gz')
         else:
             report_key = f'/{report_name}/{range_str}/{assembly_id}/{file_base_name}.gz'
         report_keys.append(report_key)

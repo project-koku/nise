@@ -419,6 +419,47 @@ class AWSReportTestCase(TestCase):
         expected_month_output_file = '{}/{}.csv'.format(os.getcwd(), month_output_file_name)
         self.assertFalse(os.path.isfile(expected_month_output_file))
 
+    def test_aws_create_report_with_local_dir_static_generation_multi_file(self):
+        """Test the aws report creation method with local directory and static generation in multiple files."""
+        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0)
+        one_day = datetime.timedelta(days=1)
+        yesterday = now - one_day
+        local_bucket_path = mkdtemp()
+
+        static_aws_data = {'generators': [{'EC2Generator': {'start_date': str(yesterday.date()), 'end_date': str(now.date()),
+                                                            'processor_arch': '32-bit', 'resource_id': 55555555,
+                                                            'product_sku': 'VEAJHRNKTJZQ', 'region': 'us-east-1a',
+                                                            'tags': {'resourceTags/user:environment': 'dev', 'resourceTags/user:version': 'alpha'},
+                                                            'instance_type': {'inst_type': 'm5.large', 'vcpu': 2, 'memory': '8 GiB',
+                                                                              'storage': 'EBS Only', 'family': 'General Purpose',
+                                                                              'cost': 1.0, 'rate': 0.5}}},
+                                          {'S3Generator': {'start_date': str(yesterday.date()), 'end_date': str(now.date()),
+                                                           'product_sku': 'VEAJHRNAAAAA', 'amount': 10, 'rate': 3}},
+                                          {'EBSGenerator': {'start_date': str(yesterday.date()), 'end_date': str(now.date()),
+                                                            'product_sku': 'VEAJHRNBBBBB', 'amount': 10, 'rate': 3,
+                                                            'resource_id': 12345678}},
+                                          {'DataTransferGenerator': {'start_date': str(yesterday.date()), 'end_date': str(now.date()),
+                                                                     'product_sku': 'VEAJHRNCCCCC', 'amount': 10, 'rate': 3}}],
+                           'accounts': {'payer': 9999999999999, 'user': [9999999999999]}}
+        options = {'start_date': yesterday,
+                   'end_date': now,
+                   'aws_bucket_name': local_bucket_path,
+                   'aws_report_name': 'cur_report',
+                   'static_report_data': static_aws_data,
+                   'row_limit': 35,
+                   'write_monthly': True}
+        aws_create_report(options)
+        month_output_file_name = '{}-{}-{}'.format(calendar.month_name[now.month],
+                                                   now.year,
+                                                   'cur_report')
+        expected_month_output_file_1 = '{}/{}-1.csv'.format(os.getcwd(), month_output_file_name)
+        expected_month_output_file_2 = '{}/{}-2.csv'.format(os.getcwd(), month_output_file_name)
+
+        self.assertTrue(os.path.isfile(expected_month_output_file_1))
+        self.assertTrue(os.path.isfile(expected_month_output_file_2))
+        os.remove(expected_month_output_file_1)
+        os.remove(expected_month_output_file_2)
+        shutil.rmtree(local_bucket_path)
 
 class OCPReportTestCase(TestCase):
     """
