@@ -363,8 +363,10 @@ def write_aws_file(file_number, aws_report_name, month_name, year, data, aws_fin
         data = _aws_finalize_report(data, static_report_data)
     elif aws_finalize_report and aws_finalize_report == 'copy':
         # Currently only a local option as this does not simulate
-        data = _aws_finalize_report(data, static_report_data)
-        file_name = '{}-finalized'.format(file_name)
+        finalized_data = _aws_finalize_report(data, static_report_data)
+        file_name_finalized = '{}-finalized'.format(file_name)
+        full_file_name = '{}/{}.csv'.format(os.getcwd(), file_name_finalized)
+        _write_csv(full_file_name, finalized_data, AWS_COLUMNS)
 
     full_file_name = '{}/{}.csv'.format(os.getcwd(), file_name)
     _write_csv(full_file_name, data, AWS_COLUMNS)
