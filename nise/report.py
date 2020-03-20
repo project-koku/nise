@@ -567,6 +567,26 @@ def azure_create_report(options):
             _remove_files(monthly_files)
 
 
+# pylint: disable=too-many-arguments
+def write_ocp_file(file_number, cluster_id, month_name, year, report_type, data):
+    """Write OCP data to a file."""
+    if file_number != 0:
+        file_name = '{}-{}-{}-{}-{}'.format(month_name,
+                                            year,
+                                            cluster_id,
+                                            report_type,
+                                            str(file_number))
+    else:
+        file_name = '{}-{}-{}-{}'.format(month_name,
+                                        year,
+                                        cluster_id,
+                                        report_type)
+
+    full_file_name = '{}/{}.csv'.format(os.getcwd(), file_name)
+    _write_csv(full_file_name, data, OCP_REPORT_TYPE_TO_COLS[report_type])
+
+    return full_file_name
+
 # pylint: disable=R0912
 def ocp_create_report(options):  # noqa: C901
     """Create a usage report file."""
@@ -588,6 +608,12 @@ def ocp_create_report(options):  # noqa: C901
             OCP_STORAGE_USAGE: [],
             OCP_NODE_LABEL: []
         }
+        file_numbers = {
+            OCP_POD_USAGE: 0,
+            OCP_STORAGE_USAGE: 0,
+            OCP_NODE_LABEL: 0
+        }
+        monthly_files = []
         for generator in generators:
             generator_cls = generator.get('generator')
             attributes = generator.get('attributes')
@@ -606,16 +632,28 @@ def ocp_create_report(options):  # noqa: C901
             for report_type in gen.ocp_report_generation.keys():
                 for hour in gen.generate_data(report_type):
                     data[report_type] += [hour]
-
-        monthly_files = []
-        for report_type in data.keys():  # pylint: disable=C0201
-            month_output_file_name = '{}-{}-{}-{}'.format(month.get('name'),
-                                                          gen_start_date.year,
+                    if len(data[report_type]) == options.get('row_limit'):
+                        file_numbers[report_type] += 1
+                        month_output_file = write_ocp_file(file_numbers[report_type],
                                                           cluster_id,
-                                                          report_type)
-            month_output_file = '{}/{}.csv'.format(os.getcwd(), month_output_file_name)
+                                                          month.get('name'),
+                                                          gen_start_date.year,
+                                                          report_type,
+                                                          data[report_type])
+                        monthly_files.append(month_output_file)
+                        data[report_type].clear()
+        
+        for report_type in gen.ocp_report_generation.keys():
+            if file_numbers[report_type] != 0:
+                file_numbers[report_type] += 1
+            month_output_file = write_ocp_file(file_numbers[report_type],
+                                                cluster_id,
+                                                month.get('name'),
+                                                gen_start_date.year,
+                                                report_type,
+                                                data[report_type])
             monthly_files.append(month_output_file)
-            _write_csv(month_output_file, data[report_type], OCP_REPORT_TYPE_TO_COLS[report_type])
+
         if insights_upload:
             ocp_assembly_id = uuid4()
             report_datetime = gen_start_date

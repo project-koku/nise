@@ -449,7 +449,6 @@ class OCPGenerator(AbstractGenerator):
 
     def _gen_hourly_storage_usage(self, **kwargs):  # pylint: disable=R0914
         """Create hourly data for storage usage."""
-        data = []
         for hour in self.hours:
             start = hour.get('start')
             end = hour.get('end')
@@ -476,7 +475,6 @@ class OCPGenerator(AbstractGenerator):
 
     def _gen_hourly_node_label_usage(self, **kwargs):  # pylint: disable=R0914
         """Create hourly data for nodel label report."""
-        data = []
         for hour in self.hours:
             start = hour.get('start')
             end = hour.get('end')
@@ -488,7 +486,6 @@ class OCPGenerator(AbstractGenerator):
 
     def _generate_hourly_data(self, **kwargs):   # pylint: disable=too-many-locals
         """Create hourly data."""
-        data = []
         if kwargs:
             report_type = kwargs.get(REPORT_TYPE)
             method = self.ocp_report_generation.get(report_type).get('_generate_hourly_data')
