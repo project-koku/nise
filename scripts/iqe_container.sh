@@ -38,7 +38,7 @@ main() {
                            -v $KOKU_PATH/testing/local_providers/aws_local_4:/tmp/local_bucket_4${FLAGS} \
                            -v $KOKU_PATH/testing/local_providers/aws_local_5:/tmp/local_bucket_5${FLAGS} \
                            -v $KOKU_PATH/testing/local_providers/azure_local:/tmp/local_container${FLAGS} \
-                           -v $KOKU_PATH/testingpvc_dir/insights_local:/var/tmp/masu/insights_local${FLAGS} \
+                           -v $KOKU_PATH/testing/pvc_dir/insights_local:/var/tmp/masu/insights_local${FLAGS} \
                            -v $NISE_PATH:/var/nise/${FLAGS} \
                            $IMAGE \
                            bash -c "cd /var/nise/scripts/; ./entrypoint_append.sh; cd -; $COMMAND" \
