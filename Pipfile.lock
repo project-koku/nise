@@ -886,10 +886,10 @@
         },
         "tomlkit": {
             "hashes": [
-                "sha256:4e1bd6c9197d984528f9ff0cc9db667c317d8881288db50db20eeeb0f6b0380b",
-                "sha256:f044eda25647882e5ef22b43a1688fb6ab12af2fc50e8456cdfc751c873101cf"
+                "sha256:74f976908030ff164c0aa1edabe3bf83ea004b3daa5b0940b9c86a060c004e9a",
+                "sha256:e5d5f20809c2b09276a6c5d98fb0202325aee441a651db84ac12e0812ab7e569"
             ],
-            "version": "==0.5.11"
+            "version": "==0.6.0"
         },
         "tox": {
             "hashes": [
