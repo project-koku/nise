@@ -416,7 +416,6 @@ class OCPGenerator(AbstractGenerator):
 
     def _gen_hourly_pods_usage(self, **kwargs):  # pylint: disable=R0914
         """Create hourly data for pod usage."""
-        data = []
         for hour in self.hours:
             start = hour.get('start')
             end = hour.get('end')
@@ -434,7 +433,7 @@ class OCPGenerator(AbstractGenerator):
                     row.pop('cpu_usage', None)
                     row.pop('mem_usage_gig', None)
                     row.pop('pod_seconds', None)
-                    data.append(row)
+                    yield row
             else:
                 num_pods = randint(2, pod_count)
                 pod_index_list = range(pod_count)
@@ -445,12 +444,10 @@ class OCPGenerator(AbstractGenerator):
                     pod = deepcopy(self.pods[pod_name])
                     row = self._init_data_row(start, end, **kwargs)
                     row = self._update_data(row, start, end, pod=pod, **kwargs)
-                    data.append(row)
-        return data
+                    yield row
 
     def _gen_hourly_storage_usage(self, **kwargs):  # pylint: disable=R0914
         """Create hourly data for storage usage."""
-        data = []
         for hour in self.hours:
             start = hour.get('start')
             end = hour.get('end')
@@ -473,12 +470,10 @@ class OCPGenerator(AbstractGenerator):
                                             storage_class=storage_class, volume_name=volume_name,
                                             volume_request=volume_request, volume_labels=vol_labels,
                                             namespace=namespace, **kwargs)
-                    data.append(row)
-        return data
+                    yield row
 
     def _gen_hourly_node_label_usage(self, **kwargs):  # pylint: disable=R0914
         """Create hourly data for nodel label report."""
-        data = []
         for hour in self.hours:
             start = hour.get('start')
             end = hour.get('end')
@@ -486,22 +481,15 @@ class OCPGenerator(AbstractGenerator):
                 row = self._init_data_row(start, end, **kwargs)
                 row = self._update_data(row, start, end, node_labels=node.get('node_labels'),
                                         node=node.get('name'), **kwargs)
-                data.append(row)
-        return data
+                yield row
 
-    def _generate_hourly_data(self, **kwargs):   # pylint: disable=too-many-locals
+    def _generate_hourly_data(self, **kwargs):
         """Create hourly data."""
-        data = []
-        if kwargs:
-            report_type = kwargs.get(REPORT_TYPE)
-            method = self.ocp_report_generation.get(report_type).get('_generate_hourly_data')
-            data = method(**kwargs)
-        return data
+        report_type = kwargs.get(REPORT_TYPE)
+        method = self.ocp_report_generation.get(report_type).get('_generate_hourly_data')
+        return method(**kwargs)
 
-    def generate_data(self):
+    def generate_data(self, report_type=None):
         """Responsibile for generating data."""
-        data = {}
-        for report_type in self.ocp_report_generation.keys():  # pylint: disable=C0201
-            meta = {REPORT_TYPE: report_type}
-            data[report_type] = self._generate_hourly_data(**meta)
-        return data
+        meta = {REPORT_TYPE: report_type}
+        return self._generate_hourly_data(**meta)

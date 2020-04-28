@@ -40,7 +40,7 @@ class TestGenerator(AzureGenerator):
     def _generate_daily_data(self):
         return []
 
-    def generate_data(self):
+    def generate_data(self, report_type=None):
         return []
 
 

@@ -94,6 +94,7 @@ nise is a command line tool. Currently only accepting a limited number of argume
 
 - *--start-date YYYY-MM-dd* (not supplied, if using --static-report-file yaml)
 - *--end-date YYYY-MM-dd* (optional, defaults to today and current hour)
+- *--file-row-limit row_limit* (optional, default is 100,000) Note: Splits AWS and OCP report files to be no larger than row_limit.
 - (--aws | --ocp | --gcp | --azure) required provider type
 - *--aws-s3-bucket-name bucket_name*  (optional, must include --aws-s3-report-name) Note: Use local directory path to populate a "local S3 bucket".
 - *--aws-s3-report-name report_name*  (optional, must include --aws-s3-bucket-name)

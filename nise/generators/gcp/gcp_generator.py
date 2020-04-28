@@ -58,7 +58,7 @@ class GCPGenerator(AbstractGenerator):
         return in_date.strftime('%Y-%m-%dT%H:%M:%S%z')
 
     @abstractmethod
-    def generate_data(self):
+    def generate_data(self, report_type=None):
         """Responsible for generating data."""
 
     def _init_data_row(self, start, end, **kwargs):  # noqa: C901
