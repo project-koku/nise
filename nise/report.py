@@ -29,7 +29,7 @@ import string
 import tarfile
 from datetime import datetime
 from random import randint
-from tempfile import NamedTemporaryFile, gettempdir
+from tempfile import NamedTemporaryFile, TemporaryDirectory, gettempdir
 from uuid import uuid4
 
 import requests
@@ -129,6 +129,15 @@ def _tar_gzip_report(temp_dir):
         tar.add(temp_dir, arcname=os.path.sep)
 
     return t_file.name
+
+def _tar_gzip_report_files(file_list):
+    """Compress the file list to a tarfile."""
+    t_directory = TemporaryDirectory()
+    for report_file in file_list:
+        temp_path = os.path.join(t_directory.name, os.path.basename(report_file))
+        shutil.copy2(report_file, temp_path)
+
+    return _tar_gzip_report(t_directory.name)
 
 
 def _write_manifest(data):
@@ -587,6 +596,30 @@ def write_ocp_file(file_number, cluster_id, month_name, year, report_type, data)
 
     return full_file_name
 
+def create_single_payload(monthly_files, gen_start_date, cluster_id, insights_upload):
+    ocp_assembly_id = uuid4()
+    report_datetime = gen_start_date
+    temp_files = {}
+    for num_file in range(0, len(monthly_files)):   # pylint: disable=C0200
+        temp_filename = '{}_openshift_report.{}.csv'.format(ocp_assembly_id, num_file)
+        temp_usage_file = create_temporary_copy(monthly_files[num_file],
+                                                temp_filename, 'payload')
+        temp_files[temp_filename] = temp_usage_file
+    manifest_file_names = ', '.join('"{0}"'.format(w) for w in temp_files.keys())   # pylint: disable=C0201
+    manifest_values = {'ocp_cluster_id': cluster_id,
+                        'ocp_assembly_id': ocp_assembly_id,
+                        'report_datetime': report_datetime,
+                        'files': manifest_file_names[1:-1]}
+    manifest_data = ocp_generate_manifest(manifest_values)
+    temp_manifest = _write_manifest(manifest_data)
+    temp_manifest_name = create_temporary_copy(temp_manifest, 'manifest.json', 'payload')
+    temp_usage_zip = _tar_gzip_report(os.path.dirname(temp_manifest_name))
+    ocp_route_file(insights_upload, temp_usage_zip)
+    for temp_usage_file in temp_files.values():
+        os.remove(temp_usage_file)
+    os.remove(temp_manifest)
+    os.remove(temp_manifest_name)
+    os.remove(temp_usage_zip)
 
 # pylint: disable=R0912
 def ocp_create_report(options):  # noqa: C901
@@ -656,30 +689,38 @@ def ocp_create_report(options):  # noqa: C901
             monthly_files.append(month_output_file)
 
         if insights_upload:
-            ocp_assembly_id = uuid4()
-            report_datetime = gen_start_date
-            temp_files = {}
-            for num_file in range(0, len(monthly_files)):   # pylint: disable=C0200
-                temp_filename = '{}_openshift_report.{}.csv'.format(ocp_assembly_id, num_file)
-                temp_usage_file = create_temporary_copy(monthly_files[num_file],
-                                                        temp_filename, 'payload')
-                temp_files[temp_filename] = temp_usage_file
+            if os.path.isdir(insights_upload):
+                create_single_payload(monthly_files, gen_start_date, cluster_id, insights_upload)
+            else:
+                # Generate manifest for all files
+                ocp_assembly_id = uuid4()
+                report_datetime = gen_start_date
+                temp_files = {}
+                for num_file in range(0, len(monthly_files)):   # pylint: disable=C0200
+                    temp_filename = '{}_openshift_report.{}.csv'.format(ocp_assembly_id, num_file)
+                    temp_usage_file = create_temporary_copy(monthly_files[num_file],
+                                                            temp_filename, 'payload')
+                    temp_files[temp_filename] = temp_usage_file
 
-            manifest_file_names = ', '.join('"{0}"'.format(w) for w in temp_files.keys())   # pylint: disable=C0201
-            manifest_values = {'ocp_cluster_id': cluster_id,
-                               'ocp_assembly_id': ocp_assembly_id,
-                               'report_datetime': report_datetime,
-                               'files': manifest_file_names[1:-1]}
-            manifest_data = ocp_generate_manifest(manifest_values)
-            temp_manifest = _write_manifest(manifest_data)
-            temp_manifest_name = create_temporary_copy(temp_manifest, 'manifest.json', 'payload')
-            temp_usage_zip = _tar_gzip_report(os.path.dirname(temp_manifest_name))
-            ocp_route_file(insights_upload, temp_usage_zip)
-            for temp_usage_file in temp_files.values():
-                os.remove(temp_usage_file)
-            os.remove(temp_manifest)
-            os.remove(temp_manifest_name)
-            os.remove(temp_usage_zip)
+                manifest_file_names = ', '.join('"{0}"'.format(w) for w in temp_files.keys())   # pylint: disable=C0201
+                manifest_values = {'ocp_cluster_id': cluster_id,
+                                'ocp_assembly_id': ocp_assembly_id,
+                                'report_datetime': report_datetime,
+                                'files': manifest_file_names[1:-1]}
+                manifest_data = ocp_generate_manifest(manifest_values)
+                temp_manifest = _write_manifest(manifest_data)
+                temp_manifest_name = create_temporary_copy(temp_manifest, 'manifest.json', 'payload')
+
+                # Tarball and upload files individually
+                for temp_usage_file in temp_files.values():
+                    report_files = [temp_usage_file, temp_manifest_name]
+                    temp_usage_zip = _tar_gzip_report_files(report_files)
+                    ocp_route_file(insights_upload, temp_usage_zip)
+                    os.remove(temp_usage_file)
+                    os.remove(temp_usage_zip)
+
+                os.remove(temp_manifest)
+                os.remove(temp_manifest_name)
         if not write_monthly:
             _remove_files(monthly_files)
 
