@@ -421,7 +421,7 @@ class AWSReportTestCase(TestCase):
 
     def test_aws_create_report_with_local_dir_static_generation_multi_file(self):
         """Test the aws report creation method with local directory and static generation in multiple files."""
-        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0)
+        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
         one_day = datetime.timedelta(days=1)
         yesterday = now - one_day
         local_bucket_path = mkdtemp()
@@ -446,7 +446,7 @@ class AWSReportTestCase(TestCase):
                    'aws_bucket_name': local_bucket_path,
                    'aws_report_name': 'cur_report',
                    'static_report_data': static_aws_data,
-                   'row_limit': 35,
+                   'row_limit': 20,
                    'write_monthly': True}
         aws_create_report(options)
         month_output_file_name = '{}-{}-{}'.format(calendar.month_name[now.month],
