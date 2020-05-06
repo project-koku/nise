@@ -140,11 +140,14 @@ def extract_payload(base_path, payload_file):
     shutil.copy(report_meta.get('manifest_path'), manifest_destination_path)
 
     # Copy report payload
-    for report_file in report_meta.get('files'):
+    for report_file in report_meta.get("files"):
         subdirectory = os.path.dirname(full_manifest_path)
-        payload_source_path = '{}/{}'.format(subdirectory, report_file)
-        payload_destination_path = '{}/{}'.format(destination_dir, report_file)
-        shutil.copy(payload_source_path, payload_destination_path)
+        payload_source_path = f"{subdirectory}/{report_file}"
+        payload_destination_path = f"{destination_dir}/{report_file}"
+        try:
+            shutil.copy(payload_source_path, payload_destination_path)
+        except FileNotFoundError:
+            pass
 
     print('Successfully extracted OCP for {}/{}'.format(report_meta.get('cluster_id'), usage_month))
     # Remove temporary directory and files
