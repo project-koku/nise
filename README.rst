@@ -113,6 +113,7 @@ Note: If `--aws-finalize` is used the *copy* choice will create a local copy of 
       If *overwrite* is used, the regular data file generated will have invoice id populated
 
 Note: If `--insights-upload` is and pointing to a URL endpoint you must have INSIGHTS_USER and INSIGHTS_PASSWORD set in your environment.
+      Payloads for insights uploads will be split on a per-file basis.
 
 Note: If `--static-report-file` is used start_date will default to first day of current month.  `start_date: last_month` will be first day of previous month.  `start_date: today` will start at the first hour of current day.  `end_date` can support relative days from the `start_date`. i.e `end_date: 2` is two days after start date.
 
