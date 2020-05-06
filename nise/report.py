@@ -130,6 +130,7 @@ def _tar_gzip_report(temp_dir):
 
     return t_file.name
 
+
 def _tar_gzip_report_files(file_list):
     """Compress the file list to a tarfile."""
     t_directory = TemporaryDirectory()
@@ -596,6 +597,7 @@ def write_ocp_file(file_number, cluster_id, month_name, year, report_type, data)
 
     return full_file_name
 
+
 # pylint: disable=R0912
 def ocp_create_report(options):  # noqa: C901
     """Create a usage report file."""
@@ -676,9 +678,9 @@ def ocp_create_report(options):  # noqa: C901
 
             manifest_file_names = ', '.join('"{0}"'.format(w) for w in temp_files.keys())   # pylint: disable=C0201
             manifest_values = {'ocp_cluster_id': cluster_id,
-                            'ocp_assembly_id': ocp_assembly_id,
-                            'report_datetime': report_datetime,
-                            'files': manifest_file_names[1:-1]}
+                               'ocp_assembly_id': ocp_assembly_id,
+                               'report_datetime': report_datetime,
+                               'files': manifest_file_names[1:-1]}
             manifest_data = ocp_generate_manifest(manifest_values)
             temp_manifest = _write_manifest(manifest_data)
             temp_manifest_name = create_temporary_copy(temp_manifest, 'manifest.json', 'payload')
