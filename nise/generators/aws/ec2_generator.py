@@ -119,10 +119,6 @@ class EC2Generator(AWSGenerator):
 
         return row
 
-    def generate_data(self):
+    def generate_data(self, report_type=None):
         """Responsibile for generating data."""
-        data = []
-        num_instances = self.num_instances
-        for instance in range(0, num_instances):  # pylint: disable=W0612
-            data += self._generate_hourly_data()
-        return data
+        return self._generate_hourly_data()

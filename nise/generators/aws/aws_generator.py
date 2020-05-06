@@ -223,15 +223,13 @@ class AWSGenerator(AbstractGenerator):
 
     def _generate_hourly_data(self, **kwargs):
         """Create hourly data."""
-        data = []
         for hour in self.hours:
             start = hour.get('start')
             end = hour.get('end')
             row = self._init_data_row(start, end)
             row = self._update_data(row, start, end)
-            data.append(row)
-        return data
+            yield row
 
     @abstractmethod
-    def generate_data(self):
+    def generate_data(self, report_type=None):
         """Responsible for generating data."""

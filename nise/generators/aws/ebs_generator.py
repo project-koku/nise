@@ -101,7 +101,6 @@ class EBSGenerator(AWSGenerator):
 
         return row
 
-    def generate_data(self):
+    def generate_data(self, report_type=None):
         """Responsibile for generating data."""
-        data = self._generate_hourly_data()
-        return data
+        return self._generate_hourly_data()

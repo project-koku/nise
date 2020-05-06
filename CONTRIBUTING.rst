@@ -43,6 +43,14 @@ All code contributions MUST come in the form of a pull-request. Pull-requests
 will be reviewed for a variety of criteria. This section attempts to capture as
 much of that criteria as possible.
 
+Certificate of Origin
+=====================
+
+By contributing to this project you agree to the Developer Certificate of
+Origin (DCO). This document was created by the Linux Kernel community and is a
+simple statement that you, as a contributor, have the legal right to make the
+contribution. See the `DCO <DCO>` file for details.
+
 Readability and Style considerations
 ------------------------------------
 

@@ -101,5 +101,5 @@ class AbstractGenerator(ABC):
         """Create hourly data."""
 
     @abstractmethod
-    def generate_data(self):
+    def generate_data(self, report_type=None):
         """Responsible for generating data."""

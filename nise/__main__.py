@@ -66,6 +66,12 @@ def create_parser():
                         type=valid_date,
                         default=today(),
                         help='Date to end generating data (YYYY-MM-DD). Default is today.')
+    parser.add_argument('--file-row-limit',
+                        dest='row_limit',
+                        required=False,
+                        type=int,
+                        default=100000,
+                        help='Maximum number of lines per report file. Default is 100000.')
     provider_group.add_argument('--aws',
                                 dest='aws',
                                 action='store_true',

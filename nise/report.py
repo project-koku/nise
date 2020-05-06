@@ -28,7 +28,8 @@ import shutil
 import string
 import tarfile
 from datetime import datetime
-from tempfile import NamedTemporaryFile, gettempdir
+from random import randint
+from tempfile import NamedTemporaryFile, TemporaryDirectory, gettempdir
 from uuid import uuid4
 
 import requests
@@ -128,6 +129,16 @@ def _tar_gzip_report(temp_dir):
         tar.add(temp_dir, arcname=os.path.sep)
 
     return t_file.name
+
+
+def _tar_gzip_report_files(file_list):
+    """Compress the file list to a tarfile."""
+    t_directory = TemporaryDirectory()
+    for report_file in file_list:
+        temp_path = os.path.join(t_directory.name, os.path.basename(report_file))
+        shutil.copy2(report_file, temp_path)
+
+    return _tar_gzip_report(t_directory.name)
 
 
 def _write_manifest(data):
@@ -351,7 +362,31 @@ def _create_generator_dates_from_yaml(attributes, month):
     return gen_start_date, gen_end_date
 
 
-# pylint: disable=too-many-locals,too-many-statements
+# pylint: disable=too-many-arguments
+def write_aws_file(file_number, aws_report_name, month_name, year, data,
+                   aws_finalize_report, static_report_data):
+    """Write AWS data to a file."""
+    if file_number != 0:
+        file_name = '{}-{}-{}-{}'.format(month_name, year, aws_report_name, str(file_number))
+    else:
+        file_name = '{}-{}-{}'.format(month_name, year, aws_report_name)
+
+    if aws_finalize_report and aws_finalize_report == 'overwrite':
+        data = _aws_finalize_report(data, static_report_data)
+    elif aws_finalize_report and aws_finalize_report == 'copy':
+        # Currently only a local option as this does not simulate
+        finalized_data = _aws_finalize_report(data, static_report_data)
+        file_name_finalized = '{}-finalized'.format(file_name)
+        full_file_name = '{}/{}.csv'.format(os.getcwd(), file_name_finalized)
+        _write_csv(full_file_name, finalized_data, AWS_COLUMNS)
+
+    full_file_name = '{}/{}.csv'.format(os.getcwd(), file_name)
+    _write_csv(full_file_name, data, AWS_COLUMNS)
+
+    return full_file_name
+
+
+# pylint: disable=too-many-locals,too-many-statements,too-many-branches
 def aws_create_report(options):
     """Create a cost usage report file."""
     data = []
@@ -359,6 +394,7 @@ def aws_create_report(options):
     end_date = options.get('end_date')
     aws_finalize_report = options.get('aws_finalize_report')
     static_report_data = options.get('static_report_data')
+
     if static_report_data:
         generators = _get_generators(static_report_data.get('generators'))
         accounts_list = static_report_data.get('accounts')
@@ -381,6 +417,7 @@ def aws_create_report(options):
     write_monthly = options.get('write_monthly', False)
     for month in months:
         data = []
+        file_number = 0
         monthly_files = []
         fake = Faker()
         for generator in generators:
@@ -399,51 +436,60 @@ def aws_create_report(options):
 
             gen = generator_cls(gen_start_date, gen_end_date, payer_account,
                                 usage_accounts, attributes)
-            data += gen.generate_data()
+            num_instances = 1 if attributes else randint(2, 60)
+            for instance in range(0, num_instances):  # pylint: disable=W0612
+                for hour in gen.generate_data():
+                    data += [hour]
+                    if len(data) == options.get('row_limit'):
+                        file_number += 1
+                        month_output_file = write_aws_file(file_number,
+                                                           aws_report_name,
+                                                           month.get('name'),
+                                                           gen_start_date.year,
+                                                           data,
+                                                           aws_finalize_report,
+                                                           static_report_data)
+                        monthly_files.append(month_output_file)
+                        data.clear()
 
-        month_output_file_name = '{}-{}-{}'.format(month.get('name'),
-                                                   gen_start_date.year,
-                                                   aws_report_name)
-        month_output_file = '{}/{}.csv'.format(os.getcwd(), month_output_file_name)
+        if file_number != 0:
+            file_number += 1
+        month_output_file = write_aws_file(file_number,
+                                           aws_report_name,
+                                           month.get('name'),
+                                           gen_start_date.year,
+                                           data,
+                                           aws_finalize_report,
+                                           static_report_data)
         monthly_files.append(month_output_file)
-        if aws_finalize_report and aws_finalize_report == 'overwrite':
-            data = _aws_finalize_report(data, static_report_data)
-        elif aws_finalize_report and aws_finalize_report == 'copy':
-            # Currently only a local option as this does not simulate
-            finalized_data = _aws_finalize_report(data, static_report_data)
-            finalized_file_name = '{}-finalized'.format(month_output_file_name)
-            finalized_output_file = '{}/{}.csv'.format(
-                os.getcwd(),
-                finalized_file_name
-            )
-            _write_csv(finalized_output_file, finalized_data, AWS_COLUMNS)
-            monthly_files.append(finalized_output_file)
-
-        _write_csv(month_output_file, data, AWS_COLUMNS)
 
         if aws_bucket_name:
             manifest_values = {'account': payer_account}
             manifest_values.update(options)
             manifest_values['start_date'] = gen_start_date
             manifest_values['end_date'] = gen_end_date
+            manifest_values['file_names'] = monthly_files
             s3_cur_path, manifest_data = aws_generate_manifest(fake, manifest_values)
-            s3_assembly_path = os.path.dirname(s3_cur_path)
-            s3_month_path = os.path.dirname(s3_assembly_path)
+            s3_month_path = os.path.dirname(s3_cur_path)
             s3_month_manifest_path = s3_month_path + '/' + aws_report_name + '-Manifest.json'
-            s3_assembly_manifest_path = s3_assembly_path + '/' + aws_report_name + '-Manifest.json'
+            s3_assembly_manifest_path = s3_cur_path + '/' + aws_report_name + '-Manifest.json'
+
             temp_manifest = _write_manifest(manifest_data)
-            temp_cur_zip = _gzip_report(month_output_file)
             aws_route_file(aws_bucket_name,
                            s3_month_manifest_path,
                            temp_manifest)
             aws_route_file(aws_bucket_name,
                            s3_assembly_manifest_path,
                            temp_manifest)
-            aws_route_file(aws_bucket_name,
-                           s3_cur_path,
-                           temp_cur_zip)
+
+            for monthly_file in monthly_files:
+                temp_cur_zip = _gzip_report(monthly_file)
+                destination_file = '{}/{}.gz'.format(s3_cur_path, os.path.basename(monthly_file))
+                aws_route_file(aws_bucket_name,
+                               destination_file,
+                               temp_cur_zip)
+                os.remove(temp_cur_zip)
             os.remove(temp_manifest)
-            os.remove(temp_cur_zip)
         if not write_monthly:
             _remove_files(monthly_files)
 
@@ -531,6 +577,27 @@ def azure_create_report(options):
             _remove_files(monthly_files)
 
 
+# pylint: disable=too-many-arguments
+def write_ocp_file(file_number, cluster_id, month_name, year, report_type, data):
+    """Write OCP data to a file."""
+    if file_number != 0:
+        file_name = '{}-{}-{}-{}-{}'.format(month_name,
+                                            year,
+                                            cluster_id,
+                                            report_type,
+                                            str(file_number))
+    else:
+        file_name = '{}-{}-{}-{}'.format(month_name,
+                                         year,
+                                         cluster_id,
+                                         report_type)
+
+    full_file_name = '{}/{}.csv'.format(os.getcwd(), file_name)
+    _write_csv(full_file_name, data, OCP_REPORT_TYPE_TO_COLS[report_type])
+
+    return full_file_name
+
+
 # pylint: disable=R0912
 def ocp_create_report(options):  # noqa: C901
     """Create a usage report file."""
@@ -552,6 +619,12 @@ def ocp_create_report(options):  # noqa: C901
             OCP_STORAGE_USAGE: [],
             OCP_NODE_LABEL: []
         }
+        file_numbers = {
+            OCP_POD_USAGE: 0,
+            OCP_STORAGE_USAGE: 0,
+            OCP_NODE_LABEL: 0
+        }
+        monthly_files = []
         for generator in generators:
             generator_cls = generator.get('generator')
             attributes = generator.get('attributes')
@@ -567,25 +640,38 @@ def ocp_create_report(options):  # noqa: C901
                 gen_start_date, gen_end_date = _create_generator_dates_from_yaml(attributes, month)
 
             gen = generator_cls(gen_start_date, gen_end_date, attributes)
-            monthly_data = gen.generate_data()
-            for monthly_report_type, monthly_report_data in monthly_data.items():
-                data[monthly_report_type] += monthly_report_data
+            for report_type in gen.ocp_report_generation.keys():
+                for hour in gen.generate_data(report_type):
+                    data[report_type] += [hour]
+                    if len(data[report_type]) == options.get('row_limit'):
+                        file_numbers[report_type] += 1
+                        month_output_file = write_ocp_file(file_numbers[report_type],
+                                                           cluster_id,
+                                                           month.get('name'),
+                                                           gen_start_date.year,
+                                                           report_type,
+                                                           data[report_type])
+                        monthly_files.append(month_output_file)
+                        data[report_type].clear()
 
-        monthly_files = []
-        for report_type in data.keys():  # pylint: disable=C0201
-            month_output_file_name = '{}-{}-{}-{}'.format(month.get('name'),
-                                                          gen_start_date.year,
-                                                          cluster_id,
-                                                          report_type)
-            month_output_file = '{}/{}.csv'.format(os.getcwd(), month_output_file_name)
+        for report_type in gen.ocp_report_generation.keys():
+            if file_numbers[report_type] != 0:
+                file_numbers[report_type] += 1
+            month_output_file = write_ocp_file(file_numbers[report_type],
+                                               cluster_id,
+                                               month.get('name'),
+                                               gen_start_date.year,
+                                               report_type,
+                                               data[report_type])
             monthly_files.append(month_output_file)
-            _write_csv(month_output_file, data[report_type], OCP_REPORT_TYPE_TO_COLS[report_type])
+
         if insights_upload:
+            # Generate manifest for all files
             ocp_assembly_id = uuid4()
             report_datetime = gen_start_date
             temp_files = {}
             for num_file in range(0, len(monthly_files)):   # pylint: disable=C0200
-                temp_filename = '{}_openshift_usage_report.{}.csv'.format(ocp_assembly_id, num_file)
+                temp_filename = '{}_openshift_report.{}.csv'.format(ocp_assembly_id, num_file)
                 temp_usage_file = create_temporary_copy(monthly_files[num_file],
                                                         temp_filename, 'payload')
                 temp_files[temp_filename] = temp_usage_file
@@ -598,13 +684,17 @@ def ocp_create_report(options):  # noqa: C901
             manifest_data = ocp_generate_manifest(manifest_values)
             temp_manifest = _write_manifest(manifest_data)
             temp_manifest_name = create_temporary_copy(temp_manifest, 'manifest.json', 'payload')
-            temp_usage_zip = _tar_gzip_report(os.path.dirname(temp_manifest_name))
-            ocp_route_file(insights_upload, temp_usage_zip)
+
+            # Tarball and upload files individually
             for temp_usage_file in temp_files.values():
+                report_files = [temp_usage_file, temp_manifest_name]
+                temp_usage_zip = _tar_gzip_report_files(report_files)
+                ocp_route_file(insights_upload, temp_usage_zip)
                 os.remove(temp_usage_file)
+                os.remove(temp_usage_zip)
+
             os.remove(temp_manifest)
             os.remove(temp_manifest_name)
-            os.remove(temp_usage_zip)
         if not write_monthly:
             _remove_files(monthly_files)
 

@@ -94,6 +94,7 @@ nise is a command line tool. Currently only accepting a limited number of argume
 
 - *--start-date YYYY-MM-dd* (not supplied, if using --static-report-file yaml)
 - *--end-date YYYY-MM-dd* (optional, defaults to today and current hour)
+- *--file-row-limit row_limit* (optional, default is 100,000) Note: Splits AWS and OCP report files to be no larger than row_limit.
 - (--aws | --ocp | --gcp | --azure) required provider type
 - *--aws-s3-bucket-name bucket_name*  (optional, must include --aws-s3-report-name) Note: Use local directory path to populate a "local S3 bucket".
 - *--aws-s3-report-name report_name*  (optional, must include --aws-s3-bucket-name)
@@ -112,6 +113,7 @@ Note: If `--aws-finalize` is used the *copy* choice will create a local copy of 
       If *overwrite* is used, the regular data file generated will have invoice id populated
 
 Note: If `--insights-upload` is and pointing to a URL endpoint you must have INSIGHTS_USER and INSIGHTS_PASSWORD set in your environment.
+      Payloads for insights uploads will be split on a per-file basis.
 
 Note: If `--static-report-file` is used start_date will default to first day of current month.  `start_date: last_month` will be first day of previous month.  `start_date: today` will start at the first hour of current day.  `end_date` can support relative days from the `start_date`. i.e `end_date: 2` is two days after start date.
 
