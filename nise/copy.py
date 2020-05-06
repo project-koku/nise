@@ -15,7 +15,6 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """Defines the upload mechanism to local directories for simulation."""
-
 import os
 import shutil
 
@@ -32,15 +31,15 @@ def copy_to_local_dir(local_dir_home, local_path, local_file_path=None):
 
     """
     if not os.path.isdir(local_dir_home):
-        print('Path does not exist for the local directory: {}'.format(local_dir_home))
+        print(f"Path does not exist for the local directory: {local_dir_home}")
         return False
     full_bucket_path = local_dir_home
     outpath = local_path
     if local_file_path:
-        full_bucket_path = '{}/{}'.format(local_dir_home, local_file_path)
+        full_bucket_path = f"{local_dir_home}/{local_file_path}"
         outpath = local_file_path
     os.makedirs(os.path.dirname(full_bucket_path), exist_ok=True)
     shutil.copyfile(local_path, full_bucket_path)
-    msg = 'Copied {} to local directory {}.'.format(outpath, local_dir_home)
+    msg = f"Copied {outpath} to local directory {local_dir_home}."
     print(msg)
     return True

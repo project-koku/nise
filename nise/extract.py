@@ -17,7 +17,8 @@ import json
 import os
 import shutil
 import tempfile
-from tarfile import ReadError, TarFile
+from tarfile import ReadError
+from tarfile import TarFile
 
 from dateutil import parser
 from dateutil.relativedelta import relativedelta
@@ -40,9 +41,8 @@ def month_date_range(for_date_time):
     """
     start_month = for_date_time.replace(day=1, second=1, microsecond=1)
     end_month = start_month + relativedelta(months=+1)
-    timeformat = '%Y%m%d'
-    return '{}-{}'.format(start_month.strftime(timeformat),
-                          end_month.strftime(timeformat))
+    timeformat = "%Y%m%d"
+    return "{}-{}".format(start_month.strftime(timeformat), end_month.strftime(timeformat))
 
 
 def get_report_details(report_directory):
@@ -66,16 +66,16 @@ def get_report_details(report_directory):
              manifest_path: String"
 
     """
-    manifest_path = '{}/{}'.format(report_directory, 'manifest.json')
+    manifest_path = "{}/{}".format(report_directory, "manifest.json")
 
     payload_dict = {}
     try:
         with open(manifest_path) as file:
             payload_dict = json.load(file)
-            payload_dict['date'] = parser.parse(payload_dict['date'])
-            payload_dict['manifest_path'] = manifest_path
+            payload_dict["date"] = parser.parse(payload_dict["date"])
+            payload_dict["manifest_path"] = manifest_path
     except (OSError, IOError, KeyError):
-        print('Unable to extract manifest data')
+        print("Unable to extract manifest data")
 
     return payload_dict
 
@@ -117,38 +117,35 @@ def extract_payload(base_path, payload_file):
         mytar = TarFile.open(payload_file)
         mytar.extractall(path=temp_dir)
         files = mytar.getnames()
-        manifest_path = [manifest for manifest in files if 'manifest.json' in manifest]
+        manifest_path = [manifest for manifest in files if "manifest.json" in manifest]
     except ReadError as error:
-        print('Unable to untar file. Reason: {}'.format(str(error)))
+        print("Unable to untar file. Reason: {}".format(str(error)))
         shutil.rmtree(temp_dir)
         return
 
     # Open manifest.json file and build the payload dictionary.
-    full_manifest_path = '{}/{}'.format(temp_dir, manifest_path[0])
+    full_manifest_path = "{}/{}".format(temp_dir, manifest_path[0])
     report_meta = get_report_details(os.path.dirname(full_manifest_path))
 
     # Create directory tree for report.
-    usage_month = month_date_range(report_meta.get('date'))
-    destination_dir = '{}/{}/{}'.format(base_path,
-                                        report_meta.get('cluster_id'),
-                                        usage_month)
+    usage_month = month_date_range(report_meta.get("date"))
+    destination_dir = "{}/{}/{}".format(base_path, report_meta.get("cluster_id"), usage_month)
     os.makedirs(destination_dir, exist_ok=True)
 
     # Copy manifest
-    manifest_destination_path = '{}/{}'.format(destination_dir,
-                                               os.path.basename(report_meta.get('manifest_path')))
-    shutil.copy(report_meta.get('manifest_path'), manifest_destination_path)
+    manifest_destination_path = "{}/{}".format(destination_dir, os.path.basename(report_meta.get("manifest_path")))
+    shutil.copy(report_meta.get("manifest_path"), manifest_destination_path)
 
     # Copy report payload
-    for report_file in report_meta.get('files'):
+    for report_file in report_meta.get("files"):
         subdirectory = os.path.dirname(full_manifest_path)
-        payload_source_path = f'{subdirectory}/{report_file}'
-        payload_destination_path = f'{destination_dir}/{report_file}'
+        payload_source_path = f"{subdirectory}/{report_file}"
+        payload_destination_path = f"{destination_dir}/{report_file}"
         try:
             shutil.copy(payload_source_path, payload_destination_path)
         except FileNotFoundError:
             pass
 
-    print('Successfully extracted OCP for {}/{}'.format(report_meta.get('cluster_id'), usage_month))
+    print("Successfully extracted OCP for {}/{}".format(report_meta.get("cluster_id"), usage_month))
     # Remove temporary directory and files
     shutil.rmtree(temp_dir)

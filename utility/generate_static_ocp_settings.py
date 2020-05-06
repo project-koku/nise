@@ -1,5 +1,4 @@
 #! /usr/bin/env python3
-
 #
 # Copyright 2020 Red Hat, Inc.
 #
@@ -17,20 +16,20 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """Utility to generate koku-nise OCP yaml files"""
-
-from argparse import ArgumentParser, Namespace
-from calendar import monthrange
-from datetime import date
-from dateutil.parser import parse
-from dateutil.relativedelta import relativedelta
-import faker
-from jinja2 import Environment, FileSystemLoader
 import logging
 import os
 import re
 import sys
-import time
+from argparse import ArgumentParser
+from calendar import monthrange
+from datetime import date
+
+import faker
 import yaml
+from dateutil.parser import parse
+from dateutil.relativedelta import relativedelta
+from jinja2 import Environment
+from jinja2 import FileSystemLoader
 
 
 logging.basicConfig(stream=sys.stderr)
@@ -39,7 +38,7 @@ LOG = logging.getLogger(__name__)
 SEEN_NAMES = set()
 SEEN_RESOURCE_IDS = set()
 
-DBL_DASH = re.compile('-+')
+DBL_DASH = re.compile("-+")
 FAKER = faker.Faker()
 
 
@@ -50,23 +49,24 @@ class DateRangeArgsError(Exception):
 class dicta(dict):
     """
     Dict subclass that can access values via key or attribute.
-    Ex: 
+    Ex:
         x = dicta(a=1, b=2)
         print(x.a)     # 1
         print(x['b'])  # 2
     """
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
     def __getattr__(self, key):
         return super().__getitem__(key)
-    
+
     def __setattr__(self, key, val):
         super().__setitem__(key, val)
-    
+
     def __delattr__(self, key):
         super().__delitem__(key)
-    
+
     def copy(self):
         return self.__class__(self)
 
@@ -76,7 +76,7 @@ def generate_words(config):
     Generate a hyphen-separated string of words.
     The number of words is specified in the config. (config.max_name_words)
     """
-    return '-'.join(FAKER.words(config.max_name_words))
+    return "-".join(FAKER.words(config.max_name_words))
 
 
 def generate_number_str(config):
@@ -87,7 +87,7 @@ def generate_number_str(config):
     return str(FAKER.random_int(0, 10 ** config.max_resource_id_length)).zfill(config.max_resource_id_length)
 
 
-def generate_name(config, prefix='', suffix='', dynamic=True, generator=generate_words, cache=SEEN_NAMES):
+def generate_name(config, prefix="", suffix="", dynamic=True, generator=generate_words, cache=SEEN_NAMES):
     """
     Generate a random resource name using faker.
     Params:
@@ -103,19 +103,19 @@ def generate_name(config, prefix='', suffix='', dynamic=True, generator=generate
     new_name = None
     while True:
         if prefix:
-            prefix += '-'
+            prefix += "-"
         if suffix:
-            suffix = '-' + suffix
-        mid = generator(config) if dynamic else ''
-        new_name = f'{prefix}{mid}{suffix}'
+            suffix = "-" + suffix
+        mid = generator(config) if dynamic else ""
+        new_name = f"{prefix}{mid}{suffix}"
         if new_name not in cache:
             cache.add(new_name)
             break
 
-    return DBL_DASH.sub('-', new_name)
+    return DBL_DASH.sub("-", new_name)
 
 
-def generate_resource_id(config, prefix='', suffix='', dynamic=True):
+def generate_resource_id(config, prefix="", suffix="", dynamic=True):
     """
     Generate a random resource id using faker.
     Params:
@@ -128,7 +128,9 @@ def generate_resource_id(config, prefix='', suffix='', dynamic=True):
     Returns:
         str
     """
-    return generate_name(config, prefix=prefix, suffix=suffix, dynamic=dynamic, generator=generate_number_str, cache=SEEN_RESOURCE_IDS)
+    return generate_name(
+        config, prefix=prefix, suffix=suffix, dynamic=dynamic, generator=generate_number_str, cache=SEEN_RESOURCE_IDS
+    )
 
 
 def generate_labels(num_labels):
@@ -139,10 +141,10 @@ def generate_labels(num_labels):
     Returns:
         str
     """
-    return '|'.join(f'label_{e[0]}:{e[1]}' for e in zip(FAKER.words(num_labels), FAKER.words(num_labels)))
+    return "|".join(f"label_{e[0]}:{e[1]}" for e in zip(FAKER.words(num_labels), FAKER.words(num_labels)))
 
 
-def build_data(config, _random=False):
+def build_data(config, _random=False):  # noqa: C901
     """
     Build a structure to fill out a nise yaml template
     Struture has the form of:
@@ -165,7 +167,7 @@ def build_data(config, _random=False):
                        labels: str           (dynamic)
                    ],
                    volumes: [
-                       volume_name: str,   
+                       volume_name: str,
                        storage_class: str,
                        volume_request_gig: int,
                        labels: str,
@@ -184,7 +186,7 @@ def build_data(config, _random=False):
         dicta
     """
 
-    print('Data build starting', file=sys.stderr)
+    print("Data build starting", file=sys.stderr)
 
     data = dicta(start_date=str(config.start_date), end_date=str(config.end_date), nodes=[])
 
@@ -192,7 +194,7 @@ def build_data(config, _random=False):
         max_nodes = FAKER.random_int(1, config.max_nodes)
     else:
         max_nodes = config.max_nodes
-    
+
     for node_ix in range(max_nodes):
         print(f"Building node {node_ix + 1}/{max_nodes}...", file=sys.stderr)
         if _random:
@@ -202,11 +204,13 @@ def build_data(config, _random=False):
             cores = config.max_node_cpu_cores
             memory = config.max_node_memory_gig
 
-        node = dicta(name=generate_name(config), 
-                     cpu_cores=cores,
-                     memory_gig=memory,
-                     resource_id=generate_resource_id(config),
-                     namespaces=[])
+        node = dicta(
+            name=generate_name(config),
+            cpu_cores=cores,
+            memory_gig=memory,
+            resource_id=generate_resource_id(config),
+            namespaces=[],
+        )
         data.nodes.append(node)
 
         if _random:
@@ -215,18 +219,19 @@ def build_data(config, _random=False):
             max_namespaces = config.max_node_namespaces
 
         for namespace_ix in range(max_namespaces):
-            print(f"Building node {node_ix + 1}/{max_nodes}; namespace {namespace_ix + 1}/{max_namespaces}...", file=sys.stderr)
-            
-            namespace = dicta(name=generate_name(config, prefix=node.name),
-                              pods=[],
-                              volumes=[])
+            print(
+                f"Building node {node_ix + 1}/{max_nodes}; namespace {namespace_ix + 1}/{max_namespaces}...",
+                file=sys.stderr,
+            )
+
+            namespace = dicta(name=generate_name(config, prefix=node.name), pods=[], volumes=[])
             node.namespaces.append(namespace)
 
             if _random:
                 max_pods = FAKER.random_int(1, config.max_node_namespace_pods)
             else:
                 max_pods = config.max_node_namespace_pods
-            
+
             print(f"Building {max_pods} pods...", file=sys.stderr)
             for pod_ix in range(max_pods):
                 if _random:
@@ -234,30 +239,32 @@ def build_data(config, _random=False):
                     mem_req = FAKER.random_int(1, node.memory_gig)
                     cpu_lim = FAKER.random_int(1, node.cpu_cores)
                     mem_lim = FAKER.random_int(1, node.memory_gig)
-                    pod_sec = FAKER.random_int(config.min_node_namespace_pod_seconds, 
-                                               config.max_node_namespace_pod_seconds, 
-                                               step=(config.max_node_namespace_pod_seconds // 10) or 1800)
+                    pod_sec = FAKER.random_int(
+                        config.min_node_namespace_pod_seconds,
+                        config.max_node_namespace_pod_seconds,
+                        step=(config.max_node_namespace_pod_seconds // 10) or 1800,
+                    )
                 else:
                     cpu_lim = cpu_req = node.cpu_cores
                     mem_lim = mem_req = node.memory_gig
                     pod_sec = config.max_node_namespace_pod_seconds
-                
-                pod = dicta(name=generate_name(config, 
-                                               prefix=namespace.name + '-pod', 
-                                               suffix=str(pod_ix), dynamic=False),
-                            cpu_request=cpu_req,
-                            mem_request_gig=mem_req,
-                            cpu_limit=cpu_lim,
-                            mem_limit_gig=mem_lim,
-                            pod_seconds=pod_sec,
-                            labels=generate_labels(config.max_node_namespace_pod_labels))
+
+                pod = dicta(
+                    name=generate_name(config, prefix=namespace.name + "-pod", suffix=str(pod_ix), dynamic=False),
+                    cpu_request=cpu_req,
+                    mem_request_gig=mem_req,
+                    cpu_limit=cpu_lim,
+                    mem_limit_gig=mem_lim,
+                    pod_seconds=pod_sec,
+                    labels=generate_labels(config.max_node_namespace_pod_labels),
+                )
                 namespace.pods.append(pod)
-            
+
             if _random:
                 max_volumes = FAKER.random_int(1, config.max_node_namespace_volumes)
             else:
                 max_volumes = config.max_node_namespace_volumes
-            
+
             print(f"Building {max_volumes} volumes...", file=sys.stderr)
             for volume_ix in range(max_volumes):
                 if _random:
@@ -266,22 +273,21 @@ def build_data(config, _random=False):
                 else:
                     storage_cls = config.storage_classes[0]
                     vol_req = config.max_node_namespace_volume_request_gig
-                
-                volume = dicta(name=generate_name(config, 
-                                                  prefix=namespace.name + '-vol', 
-                                                  suffix=str(volume_ix), 
-                                                  dynamic=False),
-                            storage_class=storage_cls,
-                            volume_request_gig=vol_req,
-                            labels=generate_labels(config.max_node_namespace_volume_labels),
-                            volume_claims=[])
+
+                volume = dicta(
+                    name=generate_name(config, prefix=namespace.name + "-vol", suffix=str(volume_ix), dynamic=False),
+                    storage_class=storage_cls,
+                    volume_request_gig=vol_req,
+                    labels=generate_labels(config.max_node_namespace_volume_labels),
+                    volume_claims=[],
+                )
                 namespace.volumes.append(volume)
 
                 if _random:
                     max_volume_claims = FAKER.random_int(1, config.max_node_namespace_volume_volume_claims)
                 else:
                     max_volume_claims = config.max_node_namespace_volume_volume_claims
-                
+
                 for volume_claim_ix in range(max_volume_claims):
                     if _random:
                         cap = FAKER.random_int(1, config.max_node_namespace_volume_volume_claim_capacity_gig)
@@ -289,15 +295,16 @@ def build_data(config, _random=False):
                         cap = config.max_node_namespace_volume_volume_claim_capacity_gig
 
                     pod_name = namespace.pods[-1 if volume_claim_ix >= len(namespace.pods) else volume_claim_ix].name
-                    volume_claim = dicta(name=generate_name(config, 
-                                                            prefix=namespace.name + '-vol-claim', 
-                                                            suffix=str(volume_claim_ix), 
-                                                            dynamic=False),
-                                        pod_name=pod_name,
-                                        labels=generate_labels(config.max_node_namespace_volume_volume_claim_labels),
-                                        capacity_gig=cap)
+                    volume_claim = dicta(
+                        name=generate_name(
+                            config, prefix=namespace.name + "-vol-claim", suffix=str(volume_claim_ix), dynamic=False
+                        ),
+                        pod_name=pod_name,
+                        labels=generate_labels(config.max_node_namespace_volume_volume_claim_labels),
+                        capacity_gig=cap,
+                    )
                     volume.volume_claims.append(volume_claim)
-    
+
     return data
 
 
@@ -309,25 +316,27 @@ def default_config():
     """
     default_date = date.today()
     last_day_of_month = monthrange(default_date.year, default_date.month)[1]
-    return dicta(start_date=default_date.replace(day=1) - relativedelta(months=1),
-                 end_date=default_date.replace(day=last_day_of_month),
-                 storage_classes=['gp2'],
-                 max_name_words=2,
-                 max_resource_id_length=10,
-                 max_nodes=1,
-                 max_node_cpu_cores=1,
-                 max_node_memory_gig=2,
-                 max_node_namespaces=1,
-                 max_node_namespace_pods=1,
-                 min_node_namespace_pod_seconds=300,
-                 max_node_namespace_pod_seconds=3600,
-                 max_node_namespace_pod_labels=1,
-                 max_node_namespace_volumes=1,
-                 max_node_namespace_volume_request_gig=20,
-                 max_node_namespace_volume_labels=1,
-                 max_node_namespace_volume_volume_claims=1,
-                 max_node_namespace_volume_volume_claim_labels=1,
-                 max_node_namespace_volume_volume_claim_capacity_gig=20)
+    return dicta(
+        start_date=default_date.replace(day=1) - relativedelta(months=1),
+        end_date=default_date.replace(day=last_day_of_month),
+        storage_classes=["gp2"],
+        max_name_words=2,
+        max_resource_id_length=10,
+        max_nodes=1,
+        max_node_cpu_cores=1,
+        max_node_memory_gig=2,
+        max_node_namespaces=1,
+        max_node_namespace_pods=1,
+        min_node_namespace_pod_seconds=300,
+        max_node_namespace_pod_seconds=3600,
+        max_node_namespace_pod_labels=1,
+        max_node_namespace_volumes=1,
+        max_node_namespace_volume_request_gig=20,
+        max_node_namespace_volume_labels=1,
+        max_node_namespace_volume_volume_claims=1,
+        max_node_namespace_volume_volume_claim_labels=1,
+        max_node_namespace_volume_volume_claim_capacity_gig=20,
+    )
 
 
 def validate_config(config):
@@ -338,29 +347,35 @@ def validate_config(config):
     Returns:
         bool
     """
-    validator = dicta(start_date=date,
-                      end_date=date,
-                      storage_classes=list,
-                      max_name_words=int,
-                      max_resource_id_length=int,
-                      max_nodes=int,
-                      max_node_cpu_cores=int,
-                      max_node_memory_gig=int,
-                      max_node_namespaces=int,
-                      max_node_namespace_pods=int,
-                      min_node_namespace_pod_seconds=int,
-                      max_node_namespace_pod_seconds=int,
-                      max_node_namespace_pod_labels=int,
-                      max_node_namespace_volumes=int,
-                      max_node_namespace_volume_request_gig=int,
-                      max_node_namespace_volume_labels=int,
-                      max_node_namespace_volume_volume_claims=int,
-                      max_node_namespace_volume_volume_claim_labels=int,
-                      max_node_namespace_volume_volume_claim_capacity_gig=int)
-    result = [f'{k} Must be of type {validator[k].__name__}' for k in validator if k in config and not isinstance(config[k], validator[k])]
+    validator = dicta(
+        start_date=date,
+        end_date=date,
+        storage_classes=list,
+        max_name_words=int,
+        max_resource_id_length=int,
+        max_nodes=int,
+        max_node_cpu_cores=int,
+        max_node_memory_gig=int,
+        max_node_namespaces=int,
+        max_node_namespace_pods=int,
+        min_node_namespace_pod_seconds=int,
+        max_node_namespace_pod_seconds=int,
+        max_node_namespace_pod_labels=int,
+        max_node_namespace_volumes=int,
+        max_node_namespace_volume_request_gig=int,
+        max_node_namespace_volume_labels=int,
+        max_node_namespace_volume_volume_claims=int,
+        max_node_namespace_volume_volume_claim_labels=int,
+        max_node_namespace_volume_volume_claim_capacity_gig=int,
+    )
+    result = [
+        f"{k} Must be of type {validator[k].__name__}"
+        for k in validator
+        if k in config and not isinstance(config[k], validator[k])
+    ]
     if result:
         raise TypeError(os.linesep.join(result))
-    
+
     return True
 
 
@@ -371,54 +386,57 @@ def init_args():
         ArgumentParser
     """
     parser = ArgumentParser()
-    parser.add_argument('-o', 
-                        '--output', 
-                        dest='output_file_name', 
-                        type=str, required=False, 
-                        metavar='FILE', 
-                        help='Output file path.')
-    parser.add_argument('-c', 
-                        '--config', 
-                        dest='config_file_name', 
-                        type=str, 
-                        required=False, 
-                        metavar='CONF', 
-                        help='Config file path.')
-    parser.add_argument('-t', 
-                        '--template', 
-                        dest='template_file_name', 
-                        type=str, 
-                        required=True, 
-                        metavar='TMPL', 
-                        help='Template file path.')
-    parser.add_argument('-s', 
-                        '--start-date', 
-                        dest='start_date', 
-                        type=str, 
-                        required=False, 
-                        metavar='YYYY-MM-DD', 
-                        help='Start date (overrides template, default is first day of last month)')
-    parser.add_argument('-e', 
-                        '--end-date', 
-                        dest='end_date', 
-                        type=str, 
-                        required=False, 
-                        metavar='YYYY-MM-DD', 
-                        help='End date (overrides template, default is last day of current month)')
-    parser.add_argument('-n', 
-                        '--num-nodes', 
-                        dest='num_nodes', 
-                        type=int, 
-                        required=False, 
-                        metavar='INT', 
-                        help='Number of nodes to generate (overrides template, default is 1)')
-    parser.add_argument('-r', 
-                        '--random', 
-                        dest='random', 
-                        action='store_true', 
-                        required=False, 
-                        default=False, 
-                        help='Randomize the number of nodes, namespaces, pods, volumes, volume-claims (default is False)')
+    parser.add_argument(
+        "-o", "--output", dest="output_file_name", type=str, required=False, metavar="FILE", help="Output file path."
+    )
+    parser.add_argument(
+        "-c", "--config", dest="config_file_name", type=str, required=False, metavar="CONF", help="Config file path."
+    )
+    parser.add_argument(
+        "-t",
+        "--template",
+        dest="template_file_name",
+        type=str,
+        required=True,
+        metavar="TMPL",
+        help="Template file path.",
+    )
+    parser.add_argument(
+        "-s",
+        "--start-date",
+        dest="start_date",
+        type=str,
+        required=False,
+        metavar="YYYY-MM-DD",
+        help="Start date (overrides template, default is first day of last month)",
+    )
+    parser.add_argument(
+        "-e",
+        "--end-date",
+        dest="end_date",
+        type=str,
+        required=False,
+        metavar="YYYY-MM-DD",
+        help="End date (overrides template, default is last day of current month)",
+    )
+    parser.add_argument(
+        "-n",
+        "--num-nodes",
+        dest="num_nodes",
+        type=int,
+        required=False,
+        metavar="INT",
+        help="Number of nodes to generate (overrides template, default is 1)",
+    )
+    parser.add_argument(
+        "-r",
+        "--random",
+        dest="random",
+        action="store_true",
+        required=False,
+        default=False,
+        help="Randomize the number of nodes, namespaces, pods, volumes, volume-claims (default is False)",
+    )
 
     return parser
 
@@ -437,17 +455,17 @@ def handle_args(args):
 
     if int(bool(args.start_date)) + int(bool(args.end_date)) == 1:
         raise DateRangeArgsError("The full date range must be supplied or omitted.")
-    
+
     if args.start_date:
         args.start_date = parse(args.start_date).date()
     if args.end_date:
         args.end_date = parse(args.end_date).date()
-    
+
     if args.num_nodes is not None and args.num_nodes < 1:
         args.num_nodes = None
-    
+
     return args
-    
+
 
 def init_config(args):
     """
@@ -461,10 +479,10 @@ def init_config(args):
 
     # override default with settings
     if args.config_file_name:
-        with open(args.config_file_name, 'rt') as settings_file:
+        with open(args.config_file_name, "rt") as settings_file:
             config_settings = yaml.safe_load(settings_file)
         config.update(config_settings)
-    
+
     # override config with args
     if args.start_date:
         config.start_date = args.start_date
@@ -476,9 +494,9 @@ def init_config(args):
         config.end_date = parse(config.end_date)
     if args.num_nodes:
         config.max_nodes = args.num_nodes
-    
+
     validate_config(config)
-    
+
     return config
 
 
@@ -505,12 +523,12 @@ def process_template(args, config):
         sys.stdout.write(output)
         sys.stdout.flush()
     else:
-        with open(args.output_file_name, 'wt') as outf:
+        with open(args.output_file_name, "wt") as outf:
             outf.write(output)
             outf.flush()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     args = handle_args(init_args().parse_args())
     config = init_config(args)
     process_template(args, config)

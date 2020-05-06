@@ -22,25 +22,21 @@ from nise.generators.azure.azure_generator import AzureGenerator
 class VNGenerator(AzureGenerator):
     """Generator for Virtual Network data."""
 
-    SERVICE_METER = (
-        ('IP Addresses', 'IP Addresses', 'Dynamic Public IP - Free', ''),
-    )
+    SERVICE_METER = (("IP Addresses", "IP Addresses", "Dynamic Public IP - Free", ""),)
     SERVICE_INFO_2 = [None]
     EXAMPLE_RESOURCE = (
-        ('RG1', 'mysa1'),
-        ('RG1', 'costmgmtacct1234'),
-        ('RG2', 'mysa1'),
-        ('RG2', 'costmgmtacct1234'),
-        ('costmgmt', 'mysa1'),
-        ('costmgmt', 'costmgmtacct1234'),
-        ('hccm', 'mysa1'),
-        ('hccm', 'costmgmtacct1234')
+        ("RG1", "mysa1"),
+        ("RG1", "costmgmtacct1234"),
+        ("RG2", "mysa1"),
+        ("RG2", "costmgmtacct1234"),
+        ("costmgmt", "mysa1"),
+        ("costmgmt", "costmgmtacct1234"),
+        ("hccm", "mysa1"),
+        ("hccm", "costmgmtacct1234"),
     )
-    ADDITIONAL_INFO = (
-        {'ConsumptionMeter': 'f114cb19-ea64-40b5-bcd7-aee474b62853'},
-    )
+    ADDITIONAL_INFO = ({"ConsumptionMeter": "f114cb19-ea64-40b5-bcd7-aee474b62853"},)
 
     def __init__(self, start_date, end_date, payer_account, usage_accounts, attributes=None):
         """Initialize the data transfer generator."""
-        self._service_name = 'Virtual Network'
+        self._service_name = "Virtual Network"
         super().__init__(start_date, end_date, payer_account, usage_accounts, attributes)
