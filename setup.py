@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name="koku-nise",
-    version="1.0.14",
+    version="1.0.13",
     author="Project Koku",
     author_email="cost_mgmt@redhat.com",
     description="A tool for generating sample cost and usage data for testing purposes.",
