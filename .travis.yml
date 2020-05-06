@@ -26,7 +26,7 @@ jobs:
         - pipenv-setup check
         - pipenv run python3 setup.py sdist bdist_wheel
     - stage: deploy
-      if: branch = master
+      if: branch = master AND type != pull_request
       before_install:
         - pip install pipenv
         - sudo apt-get update
@@ -58,4 +58,3 @@ jobs:
             git push deploy --tags;
             pipenv run python3 -m twine upload dist/*
           fi
-
