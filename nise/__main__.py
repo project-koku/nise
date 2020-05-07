@@ -18,6 +18,7 @@
 import argparse
 import calendar
 import datetime
+import logging
 import os
 
 import yaml
@@ -27,6 +28,16 @@ from nise.report import aws_create_report
 from nise.report import azure_create_report
 from nise.report import gcp_create_report
 from nise.report import ocp_create_report
+
+LOG = logging.getLogger(__name__)
+ch = logging.StreamHandler()
+ch.setLevel(logging.INFO)
+# create formatter
+formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+# add formatter to ch
+ch.setFormatter(formatter)
+# add ch to logger
+LOG.addHandler(ch)
 
 
 class NiseError(Exception):
@@ -282,7 +293,7 @@ def _validate_aws_arguments(parser, options):
     aws_bucket_name, aws_report_name, _, _ = _get_aws_options(options)
     if aws_bucket_name and aws_report_name:
         aws_valid = True
-    elif not aws_bucket_name and not aws_report_name:
+    elif not (aws_bucket_name or aws_report_name):
         aws_valid = True
     if not aws_valid:
         msg = "Both {} and {} must be supplied, if one is provided."
@@ -322,7 +333,7 @@ def _validate_azure_arguments(parser, options):
     azure_container_name, azure_report_name, _, _ = _get_azure_options(options)
     if azure_container_name and azure_report_name:
         azure_valid = True
-    elif not azure_container_name and not azure_report_name:
+    elif not (azure_container_name or azure_report_name):
         azure_valid = True
     if not azure_valid:
         msg = "Both {} and {} must be supplied, if one is provided."
@@ -466,33 +477,34 @@ def _load_yaml_file(filename):
 
 def _load_static_report_data(options):
     """Validate/load and set start_date if static file is provided."""
-    if options.get("static_report_file"):
-        start_dates = []
-        end_dates = []
-        static_report_data = _load_yaml_file(options.get("static_report_file"))
-        for generator_dict in static_report_data.get("generators"):
-            for _, attributes in generator_dict.items():
-                if attributes.get("start_date"):
-                    generated_start_date = calculate_start_date(attributes.get("start_date"))
-                    start_dates.append(generated_start_date)
+    if not options.get("static_report_file"):
+        return
+    start_dates = []
+    end_dates = []
+    static_report_data = _load_yaml_file(options.get("static_report_file"))
+    for generator_dict in static_report_data.get("generators"):
+        for _, attributes in generator_dict.items():
+            if attributes.get("start_date"):
+                generated_start_date = calculate_start_date(attributes.get("start_date"))
+                start_dates.append(generated_start_date)
 
-                if attributes.get("end_date"):
-                    generated_end_date = calculate_end_date(generated_start_date, attributes.get("end_date"))
+            if attributes.get("end_date"):
+                generated_end_date = calculate_end_date(generated_start_date, attributes.get("end_date"))
+            else:
+                if options.get("azure"):
+                    generated_end_date = today() + datetime.timedelta(hours=24)
                 else:
-                    if options.get("azure"):
-                        generated_end_date = today() + datetime.timedelta(hours=24)
-                    else:
-                        generated_end_date = today()
-                end_dates.append(generated_end_date)
+                    generated_end_date = today()
+            end_dates.append(generated_end_date)
 
-                attributes["start_date"] = str(generated_start_date)
-                attributes["end_date"] = str(generated_end_date)
+            attributes["start_date"] = str(generated_start_date)
+            attributes["end_date"] = str(generated_end_date)
 
-            options["start_date"] = min(start_dates)
-            latest_date = max(end_dates)
-            last_day_of_month = calendar.monthrange(year=latest_date.year, month=latest_date.month)[1]
-            options["end_date"] = latest_date.replace(day=last_day_of_month, hour=0, minute=0)
-            options["static_report_data"] = static_report_data
+        options["start_date"] = min(start_dates)
+        latest_date = max(end_dates)
+        last_day_of_month = calendar.monthrange(year=latest_date.year, month=latest_date.month)[1]
+        options["end_date"] = latest_date.replace(day=last_day_of_month, hour=0, minute=0)
+        options["static_report_data"] = static_report_data
 
 
 def calculate_start_date(start_date):

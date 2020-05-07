@@ -22,6 +22,7 @@ import csv
 import gzip
 import importlib
 import json
+import logging
 import os
 import random
 import shutil
@@ -69,6 +70,8 @@ from nise.upload import upload_to_azure_container
 from nise.upload import upload_to_gcp_storage
 from nise.upload import upload_to_s3
 
+LOG = logging.getLogger(__name__)
+
 
 def create_temporary_copy(path, temp_file_name, temp_dir_name="None"):
     """Create temporary copy of a file."""
@@ -99,7 +102,7 @@ def _remove_files(file_list):
         try:
             os.remove(file_path)
         except FileNotFoundError:
-            print(f"File {file_path} was not found.")
+            LOG.error(f"File {file_path} was not found.")
             raise FileNotFoundError
 
 
@@ -184,11 +187,11 @@ def ocp_route_file(insights_upload, local_path):
     else:
         response = post_payload_to_ingest_service(insights_upload, local_path)
         if response.status_code == 202:
-            print("File uploaded successfully.")
-            print(response.text)
+            LOG.info("File uploaded successfully.")
         else:
-            print(f"{response.status_code} File upload failed.")
-            print(response.text)
+            LOG.error(f"{response.status_code} File upload failed.")
+
+        LOG.info(response.text)
 
 
 def gcp_route_file(bucket_name, bucket_file_path, local_path):
@@ -217,7 +220,7 @@ def post_payload_to_ingest_service(insights_upload, local_path):
     if os.path.isfile(local_path):
         file_info = os.stat(local_path)
         filesize = _convert_bytes(file_info.st_size)
-    print(f"Upload File: ({local_path}) filesize is {filesize}.")
+    LOG.info(f"Upload File: ({local_path}) filesize is {filesize}.")
     with open(local_path, "rb") as upload_file:
         if insights_account_id and insights_org_id:
             header = {"identity": {"account_number": insights_account_id, "internal": {"org_id": insights_org_id}}}

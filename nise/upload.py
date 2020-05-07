@@ -15,6 +15,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """Defines the upload mechanism to various clouds."""
+import logging
 import os
 import sys
 import traceback
@@ -27,6 +28,8 @@ from google.cloud.exceptions import GoogleCloudError
 from msrestazure.azure_exceptions import ClientException
 from msrestazure.azure_exceptions import CloudError
 from requests.exceptions import ConnectionError as BotoConnectionError
+
+LOG = logging.getLogger(__name__)
 
 
 def upload_to_s3(bucket_name, bucket_file_path, local_path):
@@ -45,9 +48,9 @@ def upload_to_s3(bucket_name, bucket_file_path, local_path):
         s3_client = boto3.resource("s3")
         s3_client.Bucket(bucket_name).upload_file(local_path, bucket_file_path)  # pylint: disable=maybe-no-member
         msg = f"Uploaded {bucket_file_path} to s3 bucket {bucket_name}."
-        print(msg)
+        LOG.info(msg)
     except (ClientError, BotoConnectionError, boto3.exceptions.S3UploadFailedError) as upload_err:
-        print(upload_err)
+        LOG.error(upload_err)
         uploaded = False
     return uploaded
 
@@ -71,9 +74,9 @@ def upload_to_azure_container(storage_file_name, local_path, storage_file_path):
         blob_client = blob_service_client.get_blob_client(container=storage_file_name, blob=storage_file_path)
         with open(local_path, "rb") as data:
             blob_client.upload_blob(data=data)
-        print(f"uploaded {storage_file_name} to {storage_file_path}")
+        LOG.info(f"uploaded {storage_file_name} to {storage_file_path}")
     except (CloudError, ClientException, IOError) as error:
-        print(error)
+        LOG.error(error)
         traceback.print_exc(file=sys.stderr)
         return False
     return True
@@ -95,7 +98,7 @@ def upload_to_gcp_storage(bucket_name, source_file_name, destination_blob_name):
     uploaded = True
 
     if "GOOGLE_APPLICATION_CREDENTIALS" not in os.environ:
-        print(
+        LOG.warning(
             "Please set your GOOGLE_APPLICATION_CREDENTIALS "
             "environment variable before attempting to load file into"
             "GCP Storage."
@@ -109,8 +112,8 @@ def upload_to_gcp_storage(bucket_name, source_file_name, destination_blob_name):
 
         blob.upload_from_filename(source_file_name)
 
-        print(f"File {source_file_name} uploaded to GCP Storage {destination_blob_name}.")
+        LOG.info(f"File {source_file_name} uploaded to GCP Storage {destination_blob_name}.")
     except GoogleCloudError as upload_err:
-        print(upload_err)
+        LOG.error(upload_err)
         uploaded = False
     return uploaded

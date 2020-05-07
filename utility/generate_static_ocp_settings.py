@@ -186,7 +186,7 @@ def build_data(config, _random=False):  # noqa: C901
         dicta
     """
 
-    print("Data build starting", file=sys.stderr)
+    LOG.info("Data build starting", file=sys.stderr)
 
     data = dicta(start_date=str(config.start_date), end_date=str(config.end_date), nodes=[])
 
@@ -196,7 +196,7 @@ def build_data(config, _random=False):  # noqa: C901
         max_nodes = config.max_nodes
 
     for node_ix in range(max_nodes):
-        print(f"Building node {node_ix + 1}/{max_nodes}...", file=sys.stderr)
+        LOG.info(f"Building node {node_ix + 1}/{max_nodes}...", file=sys.stderr)
         if _random:
             cores = FAKER.random_int(1, config.max_node_cpu_cores)
             memory = FAKER.random_int(1, config.max_node_memory_gig)
@@ -219,7 +219,7 @@ def build_data(config, _random=False):  # noqa: C901
             max_namespaces = config.max_node_namespaces
 
         for namespace_ix in range(max_namespaces):
-            print(
+            LOG.info(
                 f"Building node {node_ix + 1}/{max_nodes}; namespace {namespace_ix + 1}/{max_namespaces}...",
                 file=sys.stderr,
             )
@@ -232,7 +232,7 @@ def build_data(config, _random=False):  # noqa: C901
             else:
                 max_pods = config.max_node_namespace_pods
 
-            print(f"Building {max_pods} pods...", file=sys.stderr)
+            LOG.ingo(f"Building {max_pods} pods...", file=sys.stderr)
             for pod_ix in range(max_pods):
                 if _random:
                     cpu_req = FAKER.random_int(1, node.cpu_cores)
@@ -265,7 +265,7 @@ def build_data(config, _random=False):  # noqa: C901
             else:
                 max_volumes = config.max_node_namespace_volumes
 
-            print(f"Building {max_volumes} volumes...", file=sys.stderr)
+            LOG.info(f"Building {max_volumes} volumes...", file=sys.stderr)
             for volume_ix in range(max_volumes):
                 if _random:
                     storage_cls = config.storage_classes[FAKER.random_int(0, len(config.storage_classes) - 1)]

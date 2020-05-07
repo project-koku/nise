@@ -14,6 +14,7 @@
 #
 """Extracts OCP .gz payload to local directory."""
 import json
+import logging
 import os
 import shutil
 import tempfile
@@ -22,6 +23,8 @@ from tarfile import TarFile
 
 from dateutil import parser
 from dateutil.relativedelta import relativedelta
+
+LOG = logging.getLogger(__name__)
 
 
 def month_date_range(for_date_time):
@@ -75,7 +78,7 @@ def get_report_details(report_directory):
             payload_dict["date"] = parser.parse(payload_dict["date"])
             payload_dict["manifest_path"] = manifest_path
     except (OSError, IOError, KeyError):
-        print("Unable to extract manifest data")
+        LOG.error("Unable to extract manifest data")
 
     return payload_dict
 
@@ -119,7 +122,7 @@ def extract_payload(base_path, payload_file):
         files = mytar.getnames()
         manifest_path = [manifest for manifest in files if "manifest.json" in manifest]
     except ReadError as error:
-        print("Unable to untar file. Reason: {}".format(str(error)))
+        LOG.error("Unable to untar file. Reason: {}".format(str(error)))
         shutil.rmtree(temp_dir)
         return
 
@@ -146,6 +149,6 @@ def extract_payload(base_path, payload_file):
         except FileNotFoundError:
             pass
 
-    print("Successfully extracted OCP for {}/{}".format(report_meta.get("cluster_id"), usage_month))
+    LOG.info("Successfully extracted OCP for {}/{}".format(report_meta.get("cluster_id"), usage_month))
     # Remove temporary directory and files
     shutil.rmtree(temp_dir)
