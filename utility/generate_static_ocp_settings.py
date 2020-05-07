@@ -232,7 +232,7 @@ def build_data(config, _random=False):  # noqa: C901
             else:
                 max_pods = config.max_node_namespace_pods
 
-            LOG.ingo(f"Building {max_pods} pods...", file=sys.stderr)
+            LOG.info(f"Building {max_pods} pods...", file=sys.stderr)
             for pod_ix in range(max_pods):
                 if _random:
                     cpu_req = FAKER.random_int(1, node.cpu_cores)
