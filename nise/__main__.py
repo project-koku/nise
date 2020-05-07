@@ -30,14 +30,7 @@ from nise.report import gcp_create_report
 from nise.report import ocp_create_report
 
 LOG = logging.getLogger(__name__)
-ch = logging.StreamHandler()
-ch.setLevel(logging.INFO)
-# create formatter
-formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-# add formatter to ch
-ch.setFormatter(formatter)
-# add ch to logger
-LOG.addHandler(ch)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s : %(name)s : %(levelname)s : %(message)s")
 
 
 class NiseError(Exception):
