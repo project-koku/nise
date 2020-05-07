@@ -1,4 +1,4 @@
-name: Publish koku-nise to PyPI
+name: Publish
 
 on:
   push:

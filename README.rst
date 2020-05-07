@@ -278,7 +278,7 @@ Please refer to Contributing_.
 
 .. |license| image:: https://img.shields.io/github/license/project-koku/nise.svg
    :target: https://github.com/project-koku/nise/blob/master/LICENSE
-.. |Build Status| image:: https://github.com/project-koku/nise/workflows/Publish%20koku-nise%20to%20PyPI/badge.svg?branch=master
+.. |Build Status| image:: https://github.com/project-koku/nise/workflows/Publish/badge.svg?branch=master
    :target: https://github.com/project-koku/nise/actions
 .. |Unittests| image:: https://github.com/project-koku/nise/workflows/Unit%20Tests/badge.svg?branch=master
    :target: https://github.com/project-koku/nise/actions
