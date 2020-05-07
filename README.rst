@@ -1,7 +1,7 @@
 ===========
 Nise README
 ===========
-|license| |Build Status| |codecov| |Updates|
+|license| |PyPI| |Build Status| |Unittests| |codecov| |Updates|
 
 ~~~~~
 About
@@ -278,9 +278,13 @@ Please refer to Contributing_.
 
 .. |license| image:: https://img.shields.io/github/license/project-koku/nise.svg
    :target: https://github.com/project-koku/nise/blob/master/LICENSE
-.. |Build Status| image:: https://travis-ci.org/project-koku/nise.svg?branch=master
-   :target: https://travis-ci.org/project-koku/nise
+.. |Build Status| image:: https://github.com/project-koku/nise/workflows/Publish%20koku-nise%20to%20PyPI/badge.svg?branch=master
+   :target: https://github.com/project-koku/nise/actions
+.. |Unittests| image:: https://github.com/project-koku/nise/workflows/Unit%20Tests/badge.svg?branch=master
+   :target: https://github.com/project-koku/nise/actions
 .. |codecov| image:: https://codecov.io/gh/project-koku/nise/branch/master/graph/badge.svg
    :target: https://codecov.io/gh/project-koku/nise
 .. |Updates| image:: https://pyup.io/repos/github/project-koku/nise/shield.svg?t=1524249231720
    :target: https://pyup.io/repos/github/project-koku/nise/
+.. |PyPI| image:: https://badge.fury.io/py/koku-nise.svg
+   :target: https://badge.fury.io/py/koku-nise
