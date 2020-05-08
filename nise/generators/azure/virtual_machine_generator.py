@@ -22,32 +22,38 @@ from nise.generators.azure.azure_generator import AzureGenerator
 class VMGenerator(AzureGenerator):
     """Generator for Virtual Machine data."""
 
-    SERVICE_METER = (
-        ('A Series', 'A Series', 'A0', '100 Hours'),
-        ('BS Series', 'BS Series', 'B2s', ''),
-    )
-    SERVICE_INFO_2 = (
-        'Canonical',
-        ''
-    )
+    SERVICE_METER = (("A Series", "A Series", "A0", "100 Hours"), ("BS Series", "BS Series", "B2s", ""))
+    SERVICE_INFO_2 = ("Canonical", "")
     EXAMPLE_RESOURCE = (
-        ('RG1', 'mysa1'),
-        ('RG1', 'costmgmtacct1234'),
-        ('RG2', 'mysa1'),
-        ('RG2', 'costmgmtacct1234'),
-        ('costmgmt', 'mysa1'),
-        ('costmgmt', 'costmgmtacct1234'),
-        ('hccm', 'mysa1'),
-        ('hccm', 'costmgmtacct1234')
+        ("RG1", "mysa1"),
+        ("RG1", "costmgmtacct1234"),
+        ("RG2", "mysa1"),
+        ("RG2", "costmgmtacct1234"),
+        ("costmgmt", "mysa1"),
+        ("costmgmt", "costmgmtacct1234"),
+        ("hccm", "mysa1"),
+        ("hccm", "costmgmtacct1234"),
     )
     ADDITIONAL_INFO = (
-        {'ImageType': 'Canonical', 'ServiceType': 'Standard_A0', 'VMName': None,
-         'VMProperties': None, 'VCPUs': 1, 'UsageType': 'ComputeHR'},
-        {'UsageType': 'ComputeHR', 'ImageType': 'Canonical', 'ServiceType': 'Standard_B2s',
-         'VMName': None, 'VMProperties': 'Microsoft.AKS.Compute.AKS.Linux.Billing', 'VCPUs': 2}
+        {
+            "ImageType": "Canonical",
+            "ServiceType": "Standard_A0",
+            "VMName": None,
+            "VMProperties": None,
+            "VCPUs": 1,
+            "UsageType": "ComputeHR",
+        },
+        {
+            "UsageType": "ComputeHR",
+            "ImageType": "Canonical",
+            "ServiceType": "Standard_B2s",
+            "VMName": None,
+            "VMProperties": "Microsoft.AKS.Compute.AKS.Linux.Billing",
+            "VCPUs": 2,
+        },
     )
 
     def __init__(self, start_date, end_date, payer_account, usage_accounts, attributes=None):
         """Initialize the data transfer generator."""
-        self._service_name = 'Virtual Machines'
+        self._service_name = "Virtual Machines"
         super().__init__(start_date, end_date, payer_account, usage_accounts, attributes)

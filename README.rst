@@ -1,7 +1,7 @@
 ===========
 Nise README
 ===========
-|license| |Build Status| |codecov| |Updates|
+|license| |PyPI| |Build Status| |Unittests| |codecov| |Updates|
 
 ~~~~~
 About
@@ -37,6 +37,7 @@ To build the command line tool run ::
 
     python setup.py install
 
+For generating sample data for developing or testing Koku, please refer to `Ingesting Nise data with Koku <https://github.com/project-koku/nise/blob/master/docs/working_with_masu.rst>`_.
 
 Testing and Linting
 -------------------
@@ -54,6 +55,18 @@ To run unit tests specifically::
 To lint the code base ::
 
     tox -e lint
+
+Nise and IQE Tests
+------------------
+
+The iqe tests use nise to generate mock data; therefore, we need to ensure that our nise changes do not break the iqe tests. To do this you will need to copy the `.env.example` to a `.env` file.
+After the `.env` file is configured you will then need to run ::
+
+    make run-iqe
+
+The `make run-iqe` command by default will run the smoke tests. However, if you want to run a specific iqe test command you can pass it in through the `IQE_CMD` parameter ::
+
+    make run-iqe IQE_CMD='iqe tests plugin hccm -k test_api_aws_provider_create_foo_resource_name'
 
 
 Publishing
@@ -81,6 +94,7 @@ nise is a command line tool. Currently only accepting a limited number of argume
 
 - *--start-date YYYY-MM-dd* (not supplied, if using --static-report-file yaml)
 - *--end-date YYYY-MM-dd* (optional, defaults to today and current hour)
+- *--file-row-limit row_limit* (optional, default is 100,000) Note: Splits AWS and OCP report files to be no larger than row_limit.
 - (--aws | --ocp | --gcp | --azure) required provider type
 - *--aws-s3-bucket-name bucket_name*  (optional, must include --aws-s3-report-name) Note: Use local directory path to populate a "local S3 bucket".
 - *--aws-s3-report-name report_name*  (optional, must include --aws-s3-bucket-name)
@@ -99,6 +113,7 @@ Note: If `--aws-finalize` is used the *copy* choice will create a local copy of 
       If *overwrite* is used, the regular data file generated will have invoice id populated
 
 Note: If `--insights-upload` is and pointing to a URL endpoint you must have INSIGHTS_USER and INSIGHTS_PASSWORD set in your environment.
+      Payloads for insights uploads will be split on a per-file basis.
 
 Note: If `--static-report-file` is used start_date will default to first day of current month.  `start_date: last_month` will be first day of previous month.  `start_date: today` will start at the first hour of current day.  `end_date` can support relative days from the `start_date`. i.e `end_date: 2` is two days after start date.
 
@@ -242,6 +257,7 @@ Below is an example usage of ``nise`` for GCP data::
 
 Generated reports will be generated in daily .csv files with the file format <Report-Prefix>-<Year>-<Month>-<Day>.csv.
 
+
 ======
 nise
 ======
@@ -329,6 +345,16 @@ You can check that the data was successfully uploaded by sending a GET request t
     - api/cost-management/v1/reports/openshift/volumes/
     - api/cost-management/v1/reports/openshift/costs/ (this endpoint will not show any data until you add a cost model)
 
+=======
+Linting
+-------
+This repository uses `pre-commit`_ to check and enforce code style. It uses `Black`_ to reformat the Python code and `Flake8`_ to check it
+afterwards. Other formats and text files are linted as well.
+
+To run pre-commit checks::
+
+    pre-commit run --all-files
+
 
 Contributing
 =============
@@ -336,12 +362,19 @@ Contributing
 Please refer to Contributing_.
 
 .. _Contributing: https://github.com/project-koku/nise/blob/master/CONTRIBUTING.rst
+.. _pre-commit: https://pre-commit.com
+.. _Black: https://github.com/psf/black
+.. _Flake8: http://flake8.pycqa.org
 
 .. |license| image:: https://img.shields.io/github/license/project-koku/nise.svg
    :target: https://github.com/project-koku/nise/blob/master/LICENSE
-.. |Build Status| image:: https://travis-ci.org/project-koku/nise.svg?branch=master
-   :target: https://travis-ci.org/project-koku/nise
+.. |Build Status| image:: https://github.com/project-koku/nise/workflows/Publish/badge.svg?branch=master
+   :target: https://github.com/project-koku/nise/actions
+.. |Unittests| image:: https://github.com/project-koku/nise/workflows/Unit%20Tests/badge.svg?branch=master
+   :target: https://github.com/project-koku/nise/actions
 .. |codecov| image:: https://codecov.io/gh/project-koku/nise/branch/master/graph/badge.svg
    :target: https://codecov.io/gh/project-koku/nise
 .. |Updates| image:: https://pyup.io/repos/github/project-koku/nise/shield.svg?t=1524249231720
    :target: https://pyup.io/repos/github/project-koku/nise/
+.. |PyPI| image:: https://badge.fury.io/py/koku-nise.svg
+   :target: https://badge.fury.io/py/koku-nise

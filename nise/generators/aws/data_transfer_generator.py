@@ -15,7 +15,8 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """Module for ebs data generation."""
-from random import choice, uniform
+from random import choice
+from random import uniform
 
 from nise.generators.aws.aws_generator import AWSGenerator
 
@@ -25,8 +26,8 @@ class DataTransferGenerator(AWSGenerator):
     """Generator for Data Transfer data."""
 
     DATA_TRANSFER = (
-        ('{}-{}-AWS-In-Bytes', 'PublicIP-In', 'InterRegion Inbound'),
-        ('{}-{}-AWS-Out-Bytes', 'PublicIP-Out', 'InterRegion Outbound'),
+        ("{}-{}-AWS-In-Bytes", "PublicIP-In", "InterRegion Inbound"),
+        ("{}-{}-AWS-Out-Bytes", "PublicIP-Out", "InterRegion Outbound"),
     )
 
     def __init__(self, start_date, end_date, payer_account, usage_accounts, attributes=None):
@@ -36,23 +37,23 @@ class DataTransferGenerator(AWSGenerator):
         self._rate = None
         self._product_sku = None
         self._resource_id = None
-        self._product_code = 'AmazonEC2'
-        self._product_name = 'Amazon Elastic Compute Cloud'
+        self._product_code = "AmazonEC2"
+        self._product_name = "Amazon Elastic Compute Cloud"
         if attributes:
-            if attributes.get('product_code'):
-                self._product_code = attributes.get('product_code')
-            if attributes.get('product_name'):
-                self._product_name = attributes.get('product_name')
-            if attributes.get('resource_id'):
-                self._resource_id = attributes.get('resource_id')
-            if attributes.get('amount'):
-                self._amount = attributes.get('amount')
-            if attributes.get('rate'):
-                self._rate = attributes.get('rate')
-            if attributes.get('product_sku'):
-                self._product_sku = attributes.get('product_sku')
-            if attributes.get('tags'):
-                self._tags = attributes.get('tags')
+            if attributes.get("product_code"):
+                self._product_code = attributes.get("product_code")
+            if attributes.get("product_name"):
+                self._product_name = attributes.get("product_name")
+            if attributes.get("resource_id"):
+                self._resource_id = attributes.get("resource_id")
+            if attributes.get("amount"):
+                self._amount = attributes.get("amount")
+            if attributes.get("rate"):
+                self._rate = attributes.get("rate")
+            if attributes.get("product_sku"):
+                self._product_sku = attributes.get("product_sku")
+            if attributes.get("tags"):
+                self._tags = attributes.get("tags")
 
     def _get_data_transfer(self, rate):
         """Get data transfer info."""
@@ -60,7 +61,7 @@ class DataTransferGenerator(AWSGenerator):
         location2, _, _, storage_region2 = self._get_location()
         trans_desc, operation, trans_type = choice(self.DATA_TRANSFER)
         trans_desc = trans_desc.format(storage_region1, storage_region2)
-        description = '${} per GB - {} data transfer to {}'.format(rate, location1, location2)
+        description = f"${rate} per GB - {location1} data transfer to {location2}"
         return trans_desc, operation, description, location1, location2, trans_type, aws_region
 
     def _get_product_sku(self):
@@ -82,35 +83,36 @@ class DataTransferGenerator(AWSGenerator):
         rate = self._rate if self._rate else round(uniform(0.12, 0.19), 3)
         amount = self._amount if self._amount else uniform(0.000002, 0.09)
         cost = amount * rate
-        trans_desc, operation, description, location1, location2, trans_type, aws_region = \
-            self._get_data_transfer(rate)
+        trans_desc, operation, description, location1, location2, trans_type, aws_region = self._get_data_transfer(
+            rate
+        )
 
-        row['lineItem/ProductCode'] = self._product_code
-        row['lineItem/UsageType'] = trans_desc
-        row['lineItem/Operation'] = operation
-        row['lineItem/ResourceId'] = resource_id
-        row['lineItem/UsageAmount'] = str(amount)
-        row['lineItem/CurrencyCode'] = 'USD'
-        row['lineItem/UnblendedRate'] = str(rate)
-        row['lineItem/UnblendedCost'] = str(cost)
-        row['lineItem/BlendedRate'] = str(rate)
-        row['lineItem/BlendedCost'] = str(cost)
-        row['lineItem/LineItemDescription'] = description
-        row['product/ProductName'] = self._product_name
-        row['product/location'] = location1
-        row['product/locationType'] = 'AWS Region'
-        row['product/productFamily'] = 'Data Transfer'
-        row['product/region'] = aws_region
-        row['product/servicecode'] = 'AWSDataTransfer'
-        row['product/sku'] = self._get_product_sku()
-        row['product/toLocation'] = location2
-        row['product/toLocationType'] = 'AWS Region'
-        row['product/transferType'] = trans_type
-        row['product/usagetype'] = trans_desc
-        row['pricing/publicOnDemandCost'] = str(cost)
-        row['pricing/publicOnDemandRate'] = str(rate)
-        row['pricing/term'] = 'OnDemand'
-        row['pricing/unit'] = 'GB'
+        row["lineItem/ProductCode"] = self._product_code
+        row["lineItem/UsageType"] = trans_desc
+        row["lineItem/Operation"] = operation
+        row["lineItem/ResourceId"] = resource_id
+        row["lineItem/UsageAmount"] = str(amount)
+        row["lineItem/CurrencyCode"] = "USD"
+        row["lineItem/UnblendedRate"] = str(rate)
+        row["lineItem/UnblendedCost"] = str(cost)
+        row["lineItem/BlendedRate"] = str(rate)
+        row["lineItem/BlendedCost"] = str(cost)
+        row["lineItem/LineItemDescription"] = description
+        row["product/ProductName"] = self._product_name
+        row["product/location"] = location1
+        row["product/locationType"] = "AWS Region"
+        row["product/productFamily"] = "Data Transfer"
+        row["product/region"] = aws_region
+        row["product/servicecode"] = "AWSDataTransfer"
+        row["product/sku"] = self._get_product_sku()
+        row["product/toLocation"] = location2
+        row["product/toLocationType"] = "AWS Region"
+        row["product/transferType"] = trans_type
+        row["product/usagetype"] = trans_desc
+        row["pricing/publicOnDemandCost"] = str(cost)
+        row["pricing/publicOnDemandRate"] = str(rate)
+        row["pricing/term"] = "OnDemand"
+        row["pricing/unit"] = "GB"
         self._add_tag_data(row)
         return row
 
@@ -118,15 +120,14 @@ class DataTransferGenerator(AWSGenerator):
         """Create houldy data."""
         data = []
         for hour in self.hours:
-            start = hour.get('start')
-            end = hour.get('end')
+            start = hour.get("start")
+            end = hour.get("end")
             row = self._init_data_row(start, end)
             row = self._update_data(row, start, end)
             if self.fake.pybool():  # pylint: disable=no-member
                 data.append(row)
         return data
 
-    def generate_data(self):
+    def generate_data(self, report_type=None):
         """Responsibile for generating data."""
-        data = self._generate_hourly_data()
-        return data
+        return self._generate_hourly_data()

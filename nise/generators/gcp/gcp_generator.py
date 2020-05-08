@@ -6,11 +6,26 @@ from random import randint
 from nise.generators.generator import AbstractGenerator
 
 
-GCP_REPORT_COLUMNS = ('Account ID', 'Line Item', 'Start Time', 'End Time',
-                      'Project', 'Measurement1', 'Measurement1 Total Consumption',
-                      'Measurement1 Units', 'Credit1', 'Credit1 Amount',
-                      'Credit1 Currency', 'Cost', 'Currency', 'Project Number',
-                      'Project ID', 'Project Name', 'Project Labels', 'Description')
+GCP_REPORT_COLUMNS = (
+    "Account ID",
+    "Line Item",
+    "Start Time",
+    "End Time",
+    "Project",
+    "Measurement1",
+    "Measurement1 Total Consumption",
+    "Measurement1 Units",
+    "Credit1",
+    "Credit1 Amount",
+    "Credit1 Currency",
+    "Cost",
+    "Currency",
+    "Project Number",
+    "Project ID",
+    "Project Name",
+    "Project Labels",
+    "Description",
+)
 
 
 class GCPGenerator(AbstractGenerator):
@@ -41,10 +56,7 @@ class GCPGenerator(AbstractGenerator):
 
         curr_date = start_date
         while curr_date < end_date:
-            day = {
-                'start': curr_date,
-                'end': curr_date + datetime.timedelta(days=1)
-            }
+            day = {"start": curr_date, "end": curr_date + datetime.timedelta(days=1)}
             days.append(day)
             curr_date = curr_date + datetime.timedelta(days=1)
 
@@ -54,28 +66,28 @@ class GCPGenerator(AbstractGenerator):
     def timestamp(in_date):
         """Provide timestamp for a date."""
         if not in_date or not isinstance(in_date, datetime.datetime):
-            raise ValueError('in_date must be a date object.')
-        return in_date.strftime('%Y-%m-%dT%H:%M:%S%z')
+            raise ValueError("in_date must be a date object.")
+        return in_date.strftime("%Y-%m-%dT%H:%M:%S%z")
 
     @abstractmethod
-    def generate_data(self):
+    def generate_data(self, report_type=None):
         """Responsible for generating data."""
 
     def _init_data_row(self, start, end, **kwargs):  # noqa: C901
         """Create a row of data with placeholder for all headers."""
         if not start or not end:
-            raise ValueError('start and end must be date objects.')
+            raise ValueError("start and end must be date objects.")
         if not isinstance(start, datetime.datetime):
-            raise ValueError('start must be a date object.')
+            raise ValueError("start must be a date object.")
         if not isinstance(end, datetime.datetime):
-            raise ValueError('end must be a date object.')
+            raise ValueError("end must be a date object.")
 
         row = {}
         for column in GCP_REPORT_COLUMNS:
-            row[column] = ''
-            if column == 'Start Time':
+            row[column] = ""
+            if column == "Start Time":
                 row[column] = GCPGenerator.timestamp(start)
-            elif column == 'End Time':
+            elif column == "End Time":
                 row[column] = GCPGenerator.timestamp(end)
         row.update(self.project)
         return row

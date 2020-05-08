@@ -31,20 +31,20 @@ class S3Generator(AWSGenerator):
         self._rate = round(uniform(0.02, 0.06), 3)
         self._product_sku = self.fake.pystr(min_chars=12, max_chars=12).upper()  # pylint: disable=no-member
         if self.attributes:
-            if self.attributes.get('amount'):
-                self._amount = self.attributes.get('amount')
-            if self.attributes.get('rate'):
-                self._rate = self.attributes.get('rate')
-            if self.attributes.get('product_sku'):
-                self._product_sku = self.attributes.get('product_sku')
-            if self.attributes.get('tags'):
-                self._tags = self.attributes.get('tags')
+            if self.attributes.get("amount"):
+                self._amount = self.attributes.get("amount")
+            if self.attributes.get("rate"):
+                self._rate = self.attributes.get("rate")
+            if self.attributes.get("product_sku"):
+                self._product_sku = self.attributes.get("product_sku")
+            if self.attributes.get("tags"):
+                self._tags = self.attributes.get("tags")
 
     def _get_arn(self, avail_zone):
         """Create an amazon resource name."""
-        arn = 'arn:aws:ec2:{}:{}:snapshot/snap-{}'.format(avail_zone,
-                                                          self.payer_account,
-                                                          self.fake.ean8())  # pylint: disable=no-member
+        arn = "arn:aws:ec2:{}:{}:snapshot/snap-{}".format(
+            avail_zone, self.payer_account, self.fake.ean8()
+        )  # pylint: disable=no-member
         return arn
 
     def _update_data(self, row, start, end, **kwargs):
@@ -55,38 +55,37 @@ class S3Generator(AWSGenerator):
         amount = self._amount
         cost = amount * rate
         location, aws_region, avail_zone, _ = self._get_location()
-        description = '${} per GB-Month of snapshot data stored - {}'.format(rate, location)
+        description = f"${rate} per GB-Month of snapshot data stored - {location}"
         amazon_resource_name = self._get_arn(avail_zone)
 
-        row['lineItem/ProductCode'] = 'AmazonS3'
-        row['lineItem/UsageType'] = 'Requests-Tier2'
-        row['lineItem/Operation'] = 'GetObject'
-        row['lineItem/ResourceId'] = amazon_resource_name
-        row['lineItem/UsageAmount'] = str(amount)
-        row['lineItem/CurrencyCode'] = 'USD'
-        row['lineItem/UnblendedRate'] = str(rate)
-        row['lineItem/UnblendedCost'] = str(cost)
-        row['lineItem/BlendedRate'] = str(rate)
-        row['lineItem/BlendedCost'] = str(cost)
-        row['lineItem/LineItemDescription'] = description
-        row['product/ProductName'] = 'Amazon Simple Storage Service'
-        row['product/location'] = location
-        row['product/locationType'] = 'AWS Region'
-        row['product/productFamily'] = 'Storage Snapshot'
-        row['product/region'] = aws_region
-        row['product/servicecode'] = 'AmazonS3'
-        row['product/sku'] = self._product_sku
-        row['product/storageMedia'] = 'Amazon S3'
-        row['product/usagetype'] = 'Requests-Tier2'
-        row['pricing/publicOnDemandCost'] = str(cost)
-        row['pricing/publicOnDemandRate'] = str(rate)
-        row['pricing/term'] = 'OnDemand'
-        row['pricing/unit'] = 'GB-Mo'
+        row["lineItem/ProductCode"] = "AmazonS3"
+        row["lineItem/UsageType"] = "Requests-Tier2"
+        row["lineItem/Operation"] = "GetObject"
+        row["lineItem/ResourceId"] = amazon_resource_name
+        row["lineItem/UsageAmount"] = str(amount)
+        row["lineItem/CurrencyCode"] = "USD"
+        row["lineItem/UnblendedRate"] = str(rate)
+        row["lineItem/UnblendedCost"] = str(cost)
+        row["lineItem/BlendedRate"] = str(rate)
+        row["lineItem/BlendedCost"] = str(cost)
+        row["lineItem/LineItemDescription"] = description
+        row["product/ProductName"] = "Amazon Simple Storage Service"
+        row["product/location"] = location
+        row["product/locationType"] = "AWS Region"
+        row["product/productFamily"] = "Storage Snapshot"
+        row["product/region"] = aws_region
+        row["product/servicecode"] = "AmazonS3"
+        row["product/sku"] = self._product_sku
+        row["product/storageMedia"] = "Amazon S3"
+        row["product/usagetype"] = "Requests-Tier2"
+        row["pricing/publicOnDemandCost"] = str(cost)
+        row["pricing/publicOnDemandRate"] = str(rate)
+        row["pricing/term"] = "OnDemand"
+        row["pricing/unit"] = "GB-Mo"
         self._add_tag_data(row)
 
         return row
 
-    def generate_data(self):
+    def generate_data(self, report_type=None):
         """Responsibile for generating data."""
-        data = self._generate_hourly_data()
-        return data
+        return self._generate_hourly_data()

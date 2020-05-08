@@ -17,17 +17,17 @@
 import os
 from tempfile import NamedTemporaryFile
 from unittest import TestCase
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
+from unittest.mock import patch
 
 import boto3
 import faker
 from botocore.exceptions import ClientError
 from google.cloud.exceptions import GoogleCloudError
-
-from nise.upload import (BlobServiceClient,
-                         upload_to_azure_container,
-                         upload_to_gcp_storage,
-                         upload_to_s3)
+from nise.upload import BlobServiceClient
+from nise.upload import upload_to_azure_container
+from nise.upload import upload_to_gcp_storage
+from nise.upload import upload_to_s3
 
 
 fake = faker.Faker()
@@ -38,57 +38,57 @@ class UploadTestCase(TestCase):
     TestCase class for upload
     """
 
-    @patch('boto3.resource')
+    @patch("boto3.resource")
     def test_upload_to_s3_success(self, mock_boto_resource):
         """Test upload_to_s3 method with mock s3."""
-        bucket_name = 'my_bucket'
+        bucket_name = "my_bucket"
         s3_client = Mock()
         s3_client.Bucket.create.return_value = Mock()
         s3_client.Bucket.return_value.upload_file.return_value = Mock()
         mock_boto_resource.return_value = s3_client
-        s3_client = boto3.resource('s3')
+        s3_client = boto3.resource("s3")
         s3_client.Bucket(bucket_name).create()
         with NamedTemporaryFile(delete=False) as t_file:
-            success = upload_to_s3(bucket_name, '/file.txt', t_file.name)
+            success = upload_to_s3(bucket_name, "/file.txt", t_file.name)
         self.assertTrue(success)
         os.remove(t_file.name)
 
-    @patch('boto3.resource')
+    @patch("boto3.resource")
     def test_upload_to_s3_failure(self, mock_boto_resource):
         """Test upload_to_s3 method with mock s3."""
-        bucket_name = 'my_bucket'
+        bucket_name = "my_bucket"
         s3_client = Mock()
         s3_client.Bucket.create.return_value = Mock()
-        s3_client.Bucket.return_value.upload_file.side_effect = ClientError({'Error': {}}, 'Create')
+        s3_client.Bucket.return_value.upload_file.side_effect = ClientError({"Error": {}}, "Create")
         mock_boto_resource.return_value = s3_client
-        s3_client = boto3.resource('s3')
+        s3_client = boto3.resource("s3")
         s3_client.Bucket(bucket_name).create()
         with NamedTemporaryFile(delete=False) as t_file:
-            success = upload_to_s3(bucket_name, '/file.txt', t_file.name)
+            success = upload_to_s3(bucket_name, "/file.txt", t_file.name)
         self.assertFalse(success)
         os.remove(t_file.name)
 
-    @patch.object(BlobServiceClient, 'from_connection_string')
+    @patch.object(BlobServiceClient, "from_connection_string")
     def test_upload_to_azure_success(self, _):
         """Test successful upload_to_storage method with mock."""
-        container_name = 'my_container'
+        container_name = "my_container"
         with NamedTemporaryFile(delete=False) as t_file:
-            success = upload_to_azure_container(container_name, t_file.name, '/file.txt')
+            success = upload_to_azure_container(container_name, t_file.name, "/file.txt")
         self.assertTrue(success)
         os.remove(t_file.name)
 
-    @patch.object(BlobServiceClient, 'from_connection_string')
+    @patch.object(BlobServiceClient, "from_connection_string")
     def test_upload_to_azure_failure(self, mock_blob_service):
         """Test failure upload_to_storage method with mock."""
         mock_blob_service.side_effect = IOError
-        container_name = 'my_container'
+        container_name = "my_container"
         with NamedTemporaryFile(delete=False) as t_file:
-            success = upload_to_azure_container(container_name, t_file.name, '/file.txt')
+            success = upload_to_azure_container(container_name, t_file.name, "/file.txt")
         self.assertFalse(success)
         os.remove(t_file.name)
 
-    @patch.dict(os.environ, {'GOOGLE_APPLICATION_CREDENTIALS': '/path/to/creds'})
-    @patch('nise.upload.storage')
+    @patch.dict(os.environ, {"GOOGLE_APPLICATION_CREDENTIALS": "/path/to/creds"})
+    @patch("nise.upload.storage")
     def test_gcp_upload_success(self, mock_storage):
         """Test upload_to_s3 method with mock s3."""
         bucket_name = fake.slug()
@@ -107,12 +107,12 @@ class UploadTestCase(TestCase):
 
         self.assertTrue(uploaded)
 
-    @patch.dict(os.environ, {'GOOGLE_APPLICATION_CREDENTIALS': '/path/to/creds'})
-    @patch('nise.upload.storage.Client')
+    @patch.dict(os.environ, {"GOOGLE_APPLICATION_CREDENTIALS": "/path/to/creds"})
+    @patch("nise.upload.storage.Client")
     def test_gcp_upload_error(self, mock_storage):
         """Test upload_to_s3 method with mock s3."""
         gcp_client = mock_storage.return_value
-        gcp_client.get_bucket.side_effect = GoogleCloudError('GCP Error')
+        gcp_client.get_bucket.side_effect = GoogleCloudError("GCP Error")
 
         bucket_name = fake.slug()
         local_path = fake.file_path()
