@@ -16,7 +16,8 @@
 #
 import os
 import shutil
-from tempfile import (mkdtemp, NamedTemporaryFile)
+from tempfile import mkdtemp
+from tempfile import NamedTemporaryFile
 from unittest import TestCase
 
 from nise.copy import copy_to_local_dir
@@ -31,17 +32,17 @@ class CopyTestCase(TestCase):
         """Test copy_to_local_dir method."""
         source_file = NamedTemporaryFile(delete=False)
         source_file.seek(0)
-        source_file.write(b'cur report')
+        source_file.write(b"cur report")
         source_file.flush()
         source_file_name = os.path.split(source_file.name)[1]
         bucket_name = mkdtemp()
-        bucket_file_path = '/{}/{}'.format('report_name', source_file_name)
+        bucket_file_path = "/{}/{}".format("report_name", source_file_name)
 
         success = copy_to_local_dir(bucket_name, source_file.name, bucket_file_path)
         self.assertTrue(success)
 
-        expected_full_file_path = '{}{}'.format(bucket_name, bucket_file_path)
-        self.assertTrue(os.path.isfile(expected_full_file_path))        
+        expected_full_file_path = f"{bucket_name}{bucket_file_path}"
+        self.assertTrue(os.path.isfile(expected_full_file_path))
 
         shutil.rmtree(bucket_name)
         os.remove(source_file.name)
@@ -50,12 +51,12 @@ class CopyTestCase(TestCase):
         """Test copy_to_local_dir method when local directory (bucket does not exist)."""
         source_file = NamedTemporaryFile(delete=False)
         source_file.seek(0)
-        source_file.write(b'cur report')
+        source_file.write(b"cur report")
         source_file.flush()
 
         bucket_name = mkdtemp()
-        bad_bucket_name = bucket_name + 'bad'
-        bucket_file_path = '/bucket_location'
+        bad_bucket_name = bucket_name + "bad"
+        bucket_file_path = "/bucket_location"
 
         success = copy_to_local_dir(bad_bucket_name, source_file.name, bucket_file_path)
         self.assertFalse(success)

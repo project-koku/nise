@@ -23,49 +23,47 @@ class StorageGenerator(AzureGenerator):
     """Generator for Storage data."""
 
     SERVICE_METER = (
-        ('General Block Blob', 'General Block Blob', 'Write Operations', '100000000'),
-        ('General Block Blob', 'General Block Blob', 'Read Operations', '100000000'),
-        ('General Block Blob', 'General Block Blob', 'Delete Operations', '100000000'),
-        ('General Block Blob', 'General Block Blob',
-         'List and Create Container Operations', '100000000'),
-        ('General Block Blob', 'General Block Blob', 'GRS Write Operations', '100000000'),
-        ('Blob Storage', 'Tiered Block Blob', 'Hot RA-GRS Data Stored', '100 GB/Month'),
-        ('Blob Storage', 'Tiered Block Blob', 'Hot GRS Write Operations', '1000000'),
-        ('Blob Storage', 'Tiered Block Blob', 'Hot LRS Data Stored - Free', ''),
-        ('Blob Storage', 'Tiered Block Blob', 'Hot LRS Write Operations - Free', ''),
-        ('Blob Storage', 'Tiered Block Blob', 'Hot Read Operations - Free', ''),
-        ('Blob Storage', 'Tiered Block Blob', 'All Other Operations', '1000000'),
-        ('Storage - Bandwidth', 'Bandwidth', 'Geo-Replication Data transfer', '100 GB'),
-        ('Storage - Bandwidth', 'Bandwidth', 'Geo-Replication v2 Data transfer', '100 GB'),
-        ('Tables', 'Tables', 'GRS Batch Write Operations', '100000000'),
-        ('Tables', 'Tables', 'Batch Write Operations', '100000000'),
-        ('Tables', 'Tables', 'Write Operations', ''),
-        ('Tables', 'Tables', 'Read Operations', '1000000'),
-        ('Tables', 'Tables', 'LRS Data Stored', '100 GB/Month'),
-        ('Tables', 'Tables', 'RA-GRS Data Stored', '100 GB/Month'),
-        ('Standard SSD Managed Disks', 'Standard SSD Managed Disks', 'E4 Disks', '1 /Month'),
-        ('Standard SSD Managed Disks', 'Standard SSD Managed Disks',
-         'Disk Operations', '100000000'),
-        ('Premium SSD Managed Disks', 'Premium SSD Managed Disks', 'P10 Disks', ''),
-        ('Premium SSD Managed Disks', 'Premium SSD Managed Disks', 'Disk Operations', ''),
-        ('Standard Page Blob', 'Standard Page Blob', 'Disk Read Operations', '100000000'),
-        ('Standard Page Blob', 'Standard Page Blob', 'Disk Write Operations', '100000000'),
-        ('Standard Page Blob', 'Standard Page Blob', 'LRS Data Stored', '100 GB/Month')
+        ("General Block Blob", "General Block Blob", "Write Operations", "100000000"),
+        ("General Block Blob", "General Block Blob", "Read Operations", "100000000"),
+        ("General Block Blob", "General Block Blob", "Delete Operations", "100000000"),
+        ("General Block Blob", "General Block Blob", "List and Create Container Operations", "100000000"),
+        ("General Block Blob", "General Block Blob", "GRS Write Operations", "100000000"),
+        ("Blob Storage", "Tiered Block Blob", "Hot RA-GRS Data Stored", "100 GB/Month"),
+        ("Blob Storage", "Tiered Block Blob", "Hot GRS Write Operations", "1000000"),
+        ("Blob Storage", "Tiered Block Blob", "Hot LRS Data Stored - Free", ""),
+        ("Blob Storage", "Tiered Block Blob", "Hot LRS Write Operations - Free", ""),
+        ("Blob Storage", "Tiered Block Blob", "Hot Read Operations - Free", ""),
+        ("Blob Storage", "Tiered Block Blob", "All Other Operations", "1000000"),
+        ("Storage - Bandwidth", "Bandwidth", "Geo-Replication Data transfer", "100 GB"),
+        ("Storage - Bandwidth", "Bandwidth", "Geo-Replication v2 Data transfer", "100 GB"),
+        ("Tables", "Tables", "GRS Batch Write Operations", "100000000"),
+        ("Tables", "Tables", "Batch Write Operations", "100000000"),
+        ("Tables", "Tables", "Write Operations", ""),
+        ("Tables", "Tables", "Read Operations", "1000000"),
+        ("Tables", "Tables", "LRS Data Stored", "100 GB/Month"),
+        ("Tables", "Tables", "RA-GRS Data Stored", "100 GB/Month"),
+        ("Standard SSD Managed Disks", "Standard SSD Managed Disks", "E4 Disks", "1 /Month"),
+        ("Standard SSD Managed Disks", "Standard SSD Managed Disks", "Disk Operations", "100000000"),
+        ("Premium SSD Managed Disks", "Premium SSD Managed Disks", "P10 Disks", ""),
+        ("Premium SSD Managed Disks", "Premium SSD Managed Disks", "Disk Operations", ""),
+        ("Standard Page Blob", "Standard Page Blob", "Disk Read Operations", "100000000"),
+        ("Standard Page Blob", "Standard Page Blob", "Disk Write Operations", "100000000"),
+        ("Standard Page Blob", "Standard Page Blob", "LRS Data Stored", "100 GB/Month"),
     )
     SERVICE_INFO_2 = [None]
     EXAMPLE_RESOURCE = (
-        ('RG1', 'mysa1'),
-        ('RG1', 'costmgmtacct1234'),
-        ('RG2', 'mysa1'),
-        ('RG2', 'costmgmtacct1234'),
-        ('costmgmt', 'mysa1'),
-        ('costmgmt', 'costmgmtacct1234'),
-        ('hccm', 'mysa1'),
-        ('hccm', 'costmgmtacct1234')
+        ("RG1", "mysa1"),
+        ("RG1", "costmgmtacct1234"),
+        ("RG2", "mysa1"),
+        ("RG2", "costmgmtacct1234"),
+        ("costmgmt", "mysa1"),
+        ("costmgmt", "costmgmtacct1234"),
+        ("hccm", "mysa1"),
+        ("hccm", "costmgmtacct1234"),
     )
     ADDITIONAL_INFO = [None]
 
     def __init__(self, start_date, end_date, payer_account, usage_accounts, attributes=None):
         """Initialize the data transfer generator."""
-        self._service_name = 'Storage'
+        self._service_name = "Storage"
         super().__init__(start_date, end_date, payer_account, usage_accounts, attributes)

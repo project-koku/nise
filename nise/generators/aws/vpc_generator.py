@@ -25,15 +25,15 @@ class VPCGenerator(AWSGenerator):
     def __init__(self, start_date, end_date, payer_account, usage_accounts, attributes=None):
         """Initialize the VPC generator."""
         super().__init__(start_date, end_date, payer_account, usage_accounts, attributes)
-        self._resource_id = 'vpn-{}'.format(self.fake.ean8())  # pylint: disable=no-member
+        self._resource_id = "vpn-{}".format(self.fake.ean8())  # pylint: disable=no-member
         self._product_sku = self.fake.pystr(min_chars=12, max_chars=12).upper()  # pylint: disable=no-member
         if self.attributes:
-            if self.attributes.get('resource_id'):
-                self._resource_id = 'vpn-{}'.format(self.attributes.get('resource_id'))
-            if self.attributes.get('product_sku'):
-                self._product_sku = self.attributes.get('product_sku')
-            if self.attributes.get('tags'):
-                self._tags = self.attributes.get('tags')
+            if self.attributes.get("resource_id"):
+                self._resource_id = "vpn-{}".format(self.attributes.get("resource_id"))
+            if self.attributes.get("product_sku"):
+                self._product_sku = self.attributes.get("product_sku")
+            if self.attributes.get("tags"):
+                self._tags = self.attributes.get("tags")
 
     # pylint: disable=too-many-locals,too-many-statements
     def _update_data(self, row, start, end, **kwargs):
@@ -43,50 +43,50 @@ class VPCGenerator(AWSGenerator):
         location, aws_region, avail_zone, _ = self._get_location()
         row = self._add_common_usage_info(row, start, end)
         region_short_code = self._generate_region_short_code(aws_region)
-        usage_type = '{}-VPN-Usage-Hours:ipsec.1'.format(region_short_code)
+        usage_type = f"{region_short_code}-VPN-Usage-Hours:ipsec.1"
 
-        row['lineItem/ProductCode'] = 'AmazonVPC'
-        row['lineItem/UsageType'] = usage_type
-        row['lineItem/Operation'] = 'CreateVpnConnection'
-        row['lineItem/AvailabilityZone'] = avail_zone
-        row['lineItem/ResourceId'] = self._resource_id
-        row['lineItem/UsageAmount'] = '1'
-        row['lineItem/CurrencyCode'] = 'USD'
-        row['lineItem/UnblendedRate'] = rate
-        row['lineItem/UnblendedCost'] = cost
-        row['lineItem/BlendedRate'] = rate
-        row['lineItem/BlendedCost'] = cost
-        row['lineItem/LineItemDescription'] = '$0.05 per VPN Connection-Hour'
-        row['product/ProductName'] = 'Amazon Virtual Private Cloud'
-        row['product/clockSpeed'] = ''
-        row['product/currentGeneration'] = ''
-        row['product/ecu'] = ''
-        row['product/enhancedNetworkingSupported'] = ''
-        row['product/instanceFamily'] = ''
-        row['product/instanceType'] = ''
-        row['product/licenseModel'] = ''
-        row['product/location'] = location
-        row['product/locationType'] = 'AWS Region'
-        row['product/memory'] = ''
-        row['product/networkPerformance'] = ''
-        row['product/operatingSystem'] = ''
-        row['product/operation'] = 'CreateVpnConnection'
-        row['product/physicalProcessor'] = ''
-        row['product/preInstalledSw'] = ''
-        row['product/processorArchitecture'] = ''
-        row['product/processorFeatures'] = ''
-        row['product/productFamily'] = 'Cloud Connectivity'
-        row['product/region'] = aws_region
-        row['product/servicecode'] = 'AmazonVPC'
-        row['product/sku'] = self._product_sku
-        row['product/storage'] = ''
-        row['product/tenancy'] = ''
-        row['product/usagetype'] = usage_type
-        row['product/vcpu'] = ''
-        row['pricing/publicOnDemandCost'] = cost
-        row['pricing/publicOnDemandRate'] = rate
-        row['pricing/term'] = 'OnDemand'
-        row['pricing/unit'] = 'Hrs'
+        row["lineItem/ProductCode"] = "AmazonVPC"
+        row["lineItem/UsageType"] = usage_type
+        row["lineItem/Operation"] = "CreateVpnConnection"
+        row["lineItem/AvailabilityZone"] = avail_zone
+        row["lineItem/ResourceId"] = self._resource_id
+        row["lineItem/UsageAmount"] = "1"
+        row["lineItem/CurrencyCode"] = "USD"
+        row["lineItem/UnblendedRate"] = rate
+        row["lineItem/UnblendedCost"] = cost
+        row["lineItem/BlendedRate"] = rate
+        row["lineItem/BlendedCost"] = cost
+        row["lineItem/LineItemDescription"] = "$0.05 per VPN Connection-Hour"
+        row["product/ProductName"] = "Amazon Virtual Private Cloud"
+        row["product/clockSpeed"] = ""
+        row["product/currentGeneration"] = ""
+        row["product/ecu"] = ""
+        row["product/enhancedNetworkingSupported"] = ""
+        row["product/instanceFamily"] = ""
+        row["product/instanceType"] = ""
+        row["product/licenseModel"] = ""
+        row["product/location"] = location
+        row["product/locationType"] = "AWS Region"
+        row["product/memory"] = ""
+        row["product/networkPerformance"] = ""
+        row["product/operatingSystem"] = ""
+        row["product/operation"] = "CreateVpnConnection"
+        row["product/physicalProcessor"] = ""
+        row["product/preInstalledSw"] = ""
+        row["product/processorArchitecture"] = ""
+        row["product/processorFeatures"] = ""
+        row["product/productFamily"] = "Cloud Connectivity"
+        row["product/region"] = aws_region
+        row["product/servicecode"] = "AmazonVPC"
+        row["product/sku"] = self._product_sku
+        row["product/storage"] = ""
+        row["product/tenancy"] = ""
+        row["product/usagetype"] = usage_type
+        row["product/vcpu"] = ""
+        row["pricing/publicOnDemandCost"] = cost
+        row["pricing/publicOnDemandRate"] = rate
+        row["pricing/term"] = "OnDemand"
+        row["pricing/unit"] = "Hrs"
         self._add_tag_data(row)
 
         return row

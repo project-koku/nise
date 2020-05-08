@@ -50,8 +50,8 @@
           family: 'Memory Optimized'
           cost: 1.000
           rate: 0.500
-  
-  
+
+
   accounts:
     payer: 9999999999999
     user:

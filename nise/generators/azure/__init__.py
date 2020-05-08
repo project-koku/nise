@@ -15,9 +15,10 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """Module for azure data generators."""
-from nise.generators.azure.azure_generator import AZURE_COLUMNS, AzureGenerator    # noqa: F401
-from nise.generators.azure.bandwidth_generator import BandwidthGenerator           # noqa: F401
-from nise.generators.azure.sql_database_generator import SQLGenerator              # noqa: F401
-from nise.generators.azure.storage_generator import StorageGenerator               # noqa: F401
-from nise.generators.azure.virtual_machine_generator import VMGenerator            # noqa: F401
-from nise.generators.azure.virtual_network_generator import VNGenerator            # noqa: F401
+from nise.generators.azure.azure_generator import AZURE_COLUMNS  # noqa: F401
+from nise.generators.azure.azure_generator import AzureGenerator  # noqa: F401
+from nise.generators.azure.bandwidth_generator import BandwidthGenerator  # noqa: F401
+from nise.generators.azure.sql_database_generator import SQLGenerator  # noqa: F401
+from nise.generators.azure.storage_generator import StorageGenerator  # noqa: F401
+from nise.generators.azure.virtual_machine_generator import VMGenerator  # noqa: F401
+from nise.generators.azure.virtual_network_generator import VNGenerator  # noqa: F401

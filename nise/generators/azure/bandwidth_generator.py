@@ -22,31 +22,40 @@ from nise.generators.azure.azure_generator import AzureGenerator
 class BandwidthGenerator(AzureGenerator):
     """Generator for Bandwidth data."""
 
-    SERVICE_METER = (
-        ('Bandwidth', '', 'Data Transfer In', '10 GB'),
-        ('Bandwidth', '', 'Data Transfer Out - Free', '')
-    )
+    SERVICE_METER = (("Bandwidth", "", "Data Transfer In", "10 GB"), ("Bandwidth", "", "Data Transfer Out - Free", ""))
     SERVICE_INFO_2 = [None]
     EXAMPLE_RESOURCE = (
-        ('RG1', 'mysa1'),
-        ('RG1', 'costmgmtacct1234'),
-        ('RG2', 'mysa1'),
-        ('RG2', 'costmgmtacct1234'),
-        ('costmgmt', 'mysa1'),
-        ('costmgmt', 'costmgmtacct1234'),
-        ('hccm', 'mysa1'),
-        ('hccm', 'costmgmtacct1234')
+        ("RG1", "mysa1"),
+        ("RG1", "costmgmtacct1234"),
+        ("RG2", "mysa1"),
+        ("RG2", "costmgmtacct1234"),
+        ("costmgmt", "mysa1"),
+        ("costmgmt", "costmgmtacct1234"),
+        ("hccm", "mysa1"),
+        ("hccm", "costmgmtacct1234"),
     )
     ADDITIONAL_INFO = (
-        {'ConsumptionMeter': '22222222-3333-4444-5555-666666666666'},
-        {'ImageType': None, 'ServiceType': None, 'VMName': None,
-         'VMProperties': None, 'VCPUs': 0, 'UsageType': 'DataTrIn'},
-        {'ImageType': None, 'ServiceType': None, 'VMName': None,
-         'VMProperties': None, 'VCPUs': 0, 'UsageType': 'DataTrOut',
-         'ConsumptionMeter': '77777777-8888-aaaa-bbbb-cccccccccccc'}
+        {"ConsumptionMeter": "22222222-3333-4444-5555-666666666666"},
+        {
+            "ImageType": None,
+            "ServiceType": None,
+            "VMName": None,
+            "VMProperties": None,
+            "VCPUs": 0,
+            "UsageType": "DataTrIn",
+        },
+        {
+            "ImageType": None,
+            "ServiceType": None,
+            "VMName": None,
+            "VMProperties": None,
+            "VCPUs": 0,
+            "UsageType": "DataTrOut",
+            "ConsumptionMeter": "77777777-8888-aaaa-bbbb-cccccccccccc",
+        },
     )
 
     def __init__(self, start_date, end_date, payer_account, usage_accounts, attributes=None):
         """Initialize the data transfer generator."""
-        self._service_name = 'Bandwidth'
+        self._service_name = "Bandwidth"
         super().__init__(start_date, end_date, payer_account, usage_accounts, attributes)

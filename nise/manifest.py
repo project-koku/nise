@@ -23,8 +23,8 @@ import jinja2
 from dateutil.relativedelta import relativedelta
 
 TEMPLATE_DIR = os.path.dirname(__file__)
-AWS_TEMPLATE_FILE = 'aws-template-manifest.json'
-OCP_TEMPLATE_FILE = 'ocp-template-manifest.json'
+AWS_TEMPLATE_FILE = "aws-template-manifest.json"
+OCP_TEMPLATE_FILE = "ocp-template-manifest.json"
 
 
 def _manifest_datetime_str(date_time):
@@ -36,7 +36,7 @@ def _manifest_datetime_str(date_time):
         (String): Formated date time string
 
     """
-    return date_time.strftime('%Y%m%dT000000.000Z')
+    return date_time.strftime("%Y%m%dT000000.000Z")
 
 
 def _manifest_datetime_range(start, end):
@@ -49,9 +49,9 @@ def _manifest_datetime_range(start, end):
         (String): Formated date time range
 
     """
-    start_str = start.strftime('%Y%m%d')
-    end_str = end.strftime('%Y%m%d')
-    range_str = start_str + '-' + end_str
+    start_str = start.strftime("%Y%m%d")
+    end_str = end.strftime("%Y%m%d")
+    range_str = start_str + "-" + end_str
     return range_str
 
 
@@ -67,34 +67,34 @@ def aws_generate_manifest(fake, template_data):
         (String): Rendered template data
 
     """
-    start = template_data.get('start_date')
-    report_name = template_data.get('aws_report_name')
-    bp_start = start.replace(microsecond=0, second=0, minute=0,
-                             hour=0, day=1)
+    start = template_data.get("start_date")
+    report_name = template_data.get("aws_report_name")
+    bp_start = start.replace(microsecond=0, second=0, minute=0, hour=0, day=1)
     bp_end = bp_start + relativedelta(months=+1)
 
     range_str = _manifest_datetime_range(bp_start, bp_end)
     assembly_id = uuid4()
     report_id = fake.sha256(raw_output=False)
-    prefix_name = template_data.get('aws_prefix_name')
-    file_names = template_data.get('file_names')
+    prefix_name = template_data.get("aws_prefix_name")
+    file_names = template_data.get("file_names")
     report_keys = []
     for file_name in file_names:
         file_base_name = os.path.basename(file_name)
         if prefix_name:
-            report_key = (f'{prefix_name}/{report_name}/{range_str}'
-                          f'/{assembly_id}/{file_base_name}.gz')
+            report_key = f"{prefix_name}/{report_name}/{range_str}" f"/{assembly_id}/{file_base_name}.gz"
         else:
-            report_key = f'/{report_name}/{range_str}/{assembly_id}/{file_base_name}.gz'
+            report_key = f"/{report_name}/{range_str}/{assembly_id}/{file_base_name}.gz"
         report_keys.append(report_key)
 
-    render_data = {'assembly_id': assembly_id,
-                   'report_id': report_id,
-                   'billing_period_start': _manifest_datetime_str(bp_start),
-                   'billing_period_end': _manifest_datetime_str(bp_end),
-                   'report_key': json.dumps(report_keys),
-                   'compression': 'GZIP',
-                   'bucket': template_data.get('aws_bucket_name')}
+    render_data = {
+        "assembly_id": assembly_id,
+        "report_id": report_id,
+        "billing_period_start": _manifest_datetime_str(bp_start),
+        "billing_period_end": _manifest_datetime_str(bp_end),
+        "report_key": json.dumps(report_keys),
+        "compression": "GZIP",
+        "bucket": template_data.get("aws_bucket_name"),
+    }
     render_data.update(template_data)
     template_loader = jinja2.FileSystemLoader(searchpath=TEMPLATE_DIR)
     template_env = jinja2.Environment(loader=template_loader)

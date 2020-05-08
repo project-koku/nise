@@ -16,11 +16,12 @@
 #
 """Defines the abstract generator."""
 import datetime
-from abc import ABC, abstractmethod
+from abc import ABC
+from abc import abstractmethod
 
 from faker import Faker
 
-REPORT_TYPE = 'report_type'
+REPORT_TYPE = "report_type"
 
 
 # pylint: disable=too-few-public-methods
@@ -40,18 +41,18 @@ class AbstractGenerator(ABC):
         """Create a list of hours between the start and end dates for hourly aws data."""
         hours = []
         if not self.start_date or not self.end_date:
-            raise ValueError('start_date and end_date must be date objects.')
+            raise ValueError("start_date and end_date must be date objects.")
         if not isinstance(self.start_date, datetime.datetime):
-            raise ValueError('start_date must be a date object.')
+            raise ValueError("start_date must be a date object.")
         if not isinstance(self.end_date, datetime.datetime):
-            raise ValueError('end_date must be a date object.')
+            raise ValueError("end_date must be a date object.")
         if self.end_date < self.start_date:
-            raise ValueError('start_date must be a date object less than end_date.')
+            raise ValueError("start_date must be a date object less than end_date.")
 
         one_hour = datetime.timedelta(minutes=60)
         cur_date = self.start_date
         while (cur_date + one_hour) <= self.end_date:
-            cur_hours = {'start': cur_date, 'end': cur_date + one_hour}
+            cur_hours = {"start": cur_date, "end": cur_date + one_hour}
             hours.append(cur_hours)
             cur_date = cur_date + one_hour
         return hours
@@ -60,18 +61,18 @@ class AbstractGenerator(ABC):
         """Create a list of days between the start and end dates for daily azure data."""
         days = []
         if not self.start_date or not self.end_date:
-            raise ValueError('start_date and end_date must be date objects.')
+            raise ValueError("start_date and end_date must be date objects.")
         if not isinstance(self.start_date, datetime.datetime):
-            raise ValueError('start_date must be a date object.')
+            raise ValueError("start_date must be a date object.")
         if not isinstance(self.end_date, datetime.datetime):
-            raise ValueError('end_date must be a date object.')
+            raise ValueError("end_date must be a date object.")
         if self.end_date < self.start_date:
-            raise ValueError('start_date must be a date object less than end_date.')
+            raise ValueError("start_date must be a date object less than end_date.")
 
         one_day = datetime.timedelta(hours=24)
         cur_date = self.start_date
         while (cur_date + one_day) <= self.end_date:
-            cur_days = {'start': cur_date, 'end': cur_date + one_day}
+            cur_days = {"start": cur_date, "end": cur_date + one_day}
             days.append(cur_days)
             cur_date = cur_date + one_day
         return days

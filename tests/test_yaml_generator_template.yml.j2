@@ -12,11 +12,11 @@ generators:
           resource_id: {{node.resource_id}}
           namespaces:
             # start namespace loop
-            {% for namespace in node.namespaces %} 
+            {% for namespace in node.namespaces %}
             {{namespace.name}}:
               pods:
                 # start pod loop
-                {% for pod in namespace.pods %}  
+                {% for pod in namespace.pods %}
                 - pod:
                   pod_name: {{pod.name}}
                   cpu_request: {{pod.cpu_request}}
@@ -28,7 +28,7 @@ generators:
                 {% endfor %} # end pod loop
               volumes:
                 # start volume loop
-                {% for volume in namespace.volumes %}  
+                {% for volume in namespace.volumes %}
                 - volume:
                   volume_name: {{volume.name}}
                   storage_class: {{volume.storage_class}}
@@ -36,7 +36,7 @@ generators:
                   labels: {{volume.labels}}
                   volume_claims:
                   # start volume-claim loop
-                  {% for volume_claim in volume.volume_claims %}  
+                  {% for volume_claim in volume.volume_claims %}
                   - volume_claim:
                     volume_claim_name: {{volume_claim.name}}
                     pod_name: {{volume_claim.pod_name}}

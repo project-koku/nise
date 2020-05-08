@@ -1,7 +1,7 @@
 ===========
 Nise README
 ===========
-|license| |Build Status| |codecov| |Updates|
+|license| |PyPI| |Build Status| |Unittests| |codecov| |Updates|
 
 ~~~~~
 About
@@ -257,6 +257,14 @@ Below is an example usage of ``nise`` for GCP data::
 
 Generated reports will be generated in daily .csv files with the file format <Report-Prefix>-<Year>-<Month>-<Day>.csv.
 
+Linting
+-------
+This repository uses `pre-commit`_ to check and enforce code style. It uses `Black`_ to reformat the Python code and `Flake8`_ to check it
+afterwards. Other formats and text files are linted as well.
+
+To run pre-commit checks::
+
+    pre-commit run --all-files
 
 Contributing
 =============
@@ -264,12 +272,19 @@ Contributing
 Please refer to Contributing_.
 
 .. _Contributing: https://github.com/project-koku/nise/blob/master/CONTRIBUTING.rst
+.. _pre-commit: https://pre-commit.com
+.. _Black: https://github.com/psf/black
+.. _Flake8: http://flake8.pycqa.org
 
 .. |license| image:: https://img.shields.io/github/license/project-koku/nise.svg
    :target: https://github.com/project-koku/nise/blob/master/LICENSE
-.. |Build Status| image:: https://travis-ci.org/project-koku/nise.svg?branch=master
-   :target: https://travis-ci.org/project-koku/nise
+.. |Build Status| image:: https://github.com/project-koku/nise/workflows/Publish/badge.svg?branch=master
+   :target: https://github.com/project-koku/nise/actions
+.. |Unittests| image:: https://github.com/project-koku/nise/workflows/Unit%20Tests/badge.svg?branch=master
+   :target: https://github.com/project-koku/nise/actions
 .. |codecov| image:: https://codecov.io/gh/project-koku/nise/branch/master/graph/badge.svg
    :target: https://codecov.io/gh/project-koku/nise
 .. |Updates| image:: https://pyup.io/repos/github/project-koku/nise/shield.svg?t=1524249231720
    :target: https://pyup.io/repos/github/project-koku/nise/
+.. |PyPI| image:: https://badge.fury.io/py/koku-nise.svg
+   :target: https://badge.fury.io/py/koku-nise
