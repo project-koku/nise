@@ -24,6 +24,7 @@ jobs:
           python3 -m pip install setuptools wheel twine
       - name: Build and publish
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.pypi_password }}
         run: |
@@ -32,8 +33,10 @@ jobs:
             echo "Tag already exists, doing nothing";
           else
             echo "Creating tag ${VERSION}";
+            git config --local user.email "cost-mgmt@redhat.com"
+            git config --local user.name "Koku-Nise Release Action"
             git tag ${VERSION};
-            git push deploy --tags;
+            git push origin --tags;
             python3 setup.py sdist bdist_wheel
             python3 -m twine upload dist/*
           fi

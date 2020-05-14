@@ -370,7 +370,7 @@ Please refer to Contributing_.
    :target: https://github.com/project-koku/nise/blob/master/LICENSE
 .. |Build Status| image:: https://github.com/project-koku/nise/workflows/Publish/badge.svg?branch=master
    :target: https://github.com/project-koku/nise/actions
-.. |Unittests| image:: https://github.com/project-koku/nise/workflows/Unit%20Tests/badge.svg?branch=master
+.. |Unittests| image:: https://github.com/project-koku/nise/workflows/Unit%20Tests/badge.svg
    :target: https://github.com/project-koku/nise/actions
 .. |codecov| image:: https://codecov.io/gh/project-koku/nise/branch/master/graph/badge.svg
    :target: https://codecov.io/gh/project-koku/nise
