@@ -1008,10 +1008,10 @@
         },
         "vistir": {
             "hashes": [
-                "sha256:33f8e905d40a77276b3d5310c8b57c1479a4e46930042b4894fcf7ed60ad76c4",
-                "sha256:e47afdec8baf35032a8d17116765f751ecd2f2146d47e5af457c5de1fe5a334e"
+                "sha256:73f4fd1555f9d04e0eb0f3adcebce19217d2790ce46b318ec132b52799108982",
+                "sha256:e3f20f6b9ed6ccf52d48008e45d581923a687ff48cc792e1c35da64ca76c9ee6"
             ],
-            "version": "==0.5.0"
+            "version": "==0.5.1"
         },
         "webencodings": {
             "hashes": [
