@@ -1,5 +1,3 @@
-#! /usr/bin/env python3
-#
 # Copyright 2020 Red Hat, Inc.
 #
 # This program is free software: you can redistribute it and/or modify
@@ -15,7 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
-"""Utility to generate koku-nise OCP yaml files"""
+"""Utility to generate koku-nise OCP yaml files."""
 import logging
 import os
 import re
@@ -24,6 +22,7 @@ from datetime import date
 
 import faker
 from dateutil.relativedelta import relativedelta
+
 from nise.yaml_generators.generator import Generator
 from nise.yaml_generators.utils import dicta
 
@@ -40,6 +39,7 @@ FAKER = faker.Faker()
 def generate_words(config):
     """
     Generate a hyphen-separated string of words.
+
     The number of words is specified in the config. (config.max_name_words)
     """
     return "-".join(FAKER.words(config.max_name_words))
@@ -48,6 +48,7 @@ def generate_words(config):
 def generate_number_str(config):
     """
     Generate a string of digits of arbitrary length.
+
     The maximum length is specified in the config. (config.max_resource_id_length)
     """
     return str(FAKER.random_int(0, 10 ** config.max_resource_id_length)).zfill(config.max_resource_id_length)
@@ -56,6 +57,7 @@ def generate_number_str(config):
 def generate_name(config, prefix="", suffix="", dynamic=True, generator=generate_words, cache=SEEN_NAMES):
     """
     Generate a random resource name using faker.
+
     Params:
         config : dicta - config information for the generator
         prefix : str - a static prefix
@@ -63,6 +65,7 @@ def generate_name(config, prefix="", suffix="", dynamic=True, generator=generate
         dynamic : bool - flag to run the generator function
         generator : func - function that will generate the dynamic portion of the name
         cache : set - a cache for uniqueness across all calls
+
     Returns:
         str
     """
@@ -84,6 +87,7 @@ def generate_name(config, prefix="", suffix="", dynamic=True, generator=generate
 def generate_resource_id(config, prefix="", suffix="", dynamic=True):
     """
     Generate a random resource id using faker.
+
     Params:
         config : dicta - config information for the generator
         prefix : str - a static prefix
@@ -91,6 +95,7 @@ def generate_resource_id(config, prefix="", suffix="", dynamic=True):
         dynamic : bool - flag to run the generator function
         generator : func - function that will generate the dynamic portion of the resource id
         cache : set - a cache for uniqueness across all calls
+
     Returns:
         str
     """
@@ -101,9 +106,11 @@ def generate_resource_id(config, prefix="", suffix="", dynamic=True):
 
 def generate_labels(num_labels):
     """
-    Generate a string of pipe-separated label:var sets
+    Generate a string of pipe-separated label:var sets.
+
     Params:
         num_labels : int - number of label sets to generate
+
     Returns:
         str
     """
@@ -115,7 +122,8 @@ class OCPGenerator(Generator):
 
     def build_data(self, config, _random=False):  # noqa: C901
         """
-        Build a structure to fill out a nise yaml template
+        Build a structure to fill out a nise yaml template.
+
         Struture has the form of:
             {start_date: date,    (config.start_date)
             ens_date: date,      (config.end_date)
@@ -149,12 +157,13 @@ class OCPGenerator(Generator):
                     ]}
                 ]}
             ]}
+
         Parameters:
             config : dicta
+
         Returns:
             dicta
         """
-
         LOG.info("Data build starting")
 
         data = dicta(start_date=str(config.start_date), end_date=str(config.end_date), nodes=[])
@@ -282,7 +291,8 @@ class OCPGenerator(Generator):
 
     def default_config(self):
         """
-        Generate a config object with all values set to defaults
+        Generate a config object with all values set to defaults.
+
         Returns:
             dicta
         """
@@ -312,9 +322,11 @@ class OCPGenerator(Generator):
 
     def validate_config(self, config):
         """
-        Validates that all known parts of a config are the required types
+        Validate that all known parts of a config are the required types.
+
         Params:
             config : dicta - the configuration to test
+
         Returns:
             bool
         """

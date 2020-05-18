@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
-"""Utility to generate koku-nise AWS yaml files"""
+"""Utility to generate koku-nise AWS yaml files."""
 import logging
 import os
 import random
@@ -24,6 +24,7 @@ from datetime import date
 
 import faker
 from dateutil.relativedelta import relativedelta
+
 from nise.yaml_generators.aws.ec2_instance_types import INSTANCE_TYPES as EC2_INSTANCES
 from nise.yaml_generators.aws.rds_instance_types import INSTANCE_TYPES as RDS_INSTANCES
 from nise.yaml_generators.aws.regions import REGIONS
@@ -51,6 +52,7 @@ RESOURCE_TAG_COLS = {
 def generate_words(config):
     """
     Generate a hyphen-separated string of words.
+
     The number of words is specified in the config. (config.max_name_words)
     """
     return "-".join(FAKER.words(config.max_name_words))
@@ -59,6 +61,7 @@ def generate_words(config):
 def generate_number_str(config):
     """
     Generate a string of digits of arbitrary length.
+
     The maximum length is specified in the config. (config.max_resource_id_length)
     """
     return str(FAKER.random_int(0, 10 ** config.max_resource_id_length)).zfill(config.max_resource_id_length)
@@ -67,6 +70,7 @@ def generate_number_str(config):
 def generate_name(config, prefix="", suffix="", dynamic=True, generator=generate_words, cache=SEEN_NAMES):
     """
     Generate a random resource name using faker.
+
     Params:
         config : dicta - config information for the generator
         prefix : str - a static prefix
@@ -74,6 +78,7 @@ def generate_name(config, prefix="", suffix="", dynamic=True, generator=generate
         dynamic : bool - flag to run the generator function
         generator : func - function that will generate the dynamic portion of the name
         cache : set - a cache for uniqueness across all calls
+
     Returns:
         str
     """
@@ -95,6 +100,7 @@ def generate_name(config, prefix="", suffix="", dynamic=True, generator=generate
 def generate_resource_id(config, prefix="", suffix="", dynamic=True):
     """
     Generate a random resource id using faker.
+
     Params:
         config : dicta - config information for the generator
         prefix : str - a static prefix
@@ -102,6 +108,7 @@ def generate_resource_id(config, prefix="", suffix="", dynamic=True):
         dynamic : bool - flag to run the generator function
         generator : func - function that will generate the dynamic portion of the resource id
         cache : set - a cache for uniqueness across all calls
+
     Returns:
         str
     """
@@ -112,6 +119,7 @@ def generate_resource_id(config, prefix="", suffix="", dynamic=True):
 
 def generate_tags(key, config, prefix="", suffix="", dynamic=True):
     """Generate properly formatted AWS tags.
+
     Returns:
         list
     """
@@ -123,9 +131,7 @@ class AWSGenerator(Generator):
     """YAML generator for AWS."""
 
     def build_data(self, config, _random=False):  # noqa: C901
-        """
-
-        """
+        """Build the data."""
         LOG.info("Data build starting")
 
         data = dicta(
@@ -222,7 +228,8 @@ class AWSGenerator(Generator):
 
     def default_config(self):
         """
-        Generate a config object with all values set to defaults
+        Generate a config object with all values set to defaults.
+
         Returns:
             dicta
         """
@@ -242,11 +249,14 @@ class AWSGenerator(Generator):
             max_vpc_gens=1,
         )
 
+    # pylint: disable=arguments-differ
     def validate_config(self, config):
         """
-        Validates that all known parts of a config are the required types
+        Validate that all known parts of a config are the required types.
+
         Params:
             config : dicta - the configuration to test
+
         Returns:
             bool
         """

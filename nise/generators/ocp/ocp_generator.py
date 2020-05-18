@@ -24,9 +24,12 @@ from random import uniform
 from string import ascii_lowercase
 
 from dateutil import parser
+
 from nise.generators.generator import AbstractGenerator
 from nise.generators.generator import REPORT_TYPE
 
+GIGABYTE = 1024 * 1024 * 1024
+HOUR = 60 * 60
 
 OCP_POD_USAGE = "ocp_pod_usage"
 OCP_STORAGE_USAGE = "ocp_storage_usage"
@@ -84,7 +87,7 @@ OCP_REPORT_TYPE_TO_COLS = {
 }
 
 
-# pylint: disable=too-few-public-methods, too-many-instance-attributes
+# pylint: disable=too-few-public-methods, too-many-instance-attributes, no-member
 class OCPGenerator(AbstractGenerator):
     """Defines a abstract class for generators."""
 
@@ -98,33 +101,33 @@ class OCPGenerator(AbstractGenerator):
         self.apps = [
             self.fake.word(),
             self.fake.word(),
-            self.fake.word(),  # pylint: disable=no-member
             self.fake.word(),
             self.fake.word(),
             self.fake.word(),
-        ]  # pylint: disable=no-member
+            self.fake.word(),
+        ]
         self.organizations = [
             self.fake.word(),
-            self.fake.word(),  # pylint: disable=no-member
             self.fake.word(),
             self.fake.word(),
-        ]  # pylint: disable=no-member
+            self.fake.word(),
+        ]
         self.markets = [
             self.fake.word(),
             self.fake.word(),
-            self.fake.word(),  # pylint: disable=no-member
             self.fake.word(),
             self.fake.word(),
             self.fake.word(),
-        ]  # pylint: disable=no-member
+            self.fake.word(),
+        ]
         self.versions = [
             self.fake.word(),
             self.fake.word(),
-            self.fake.word(),  # pylint: disable=no-member
             self.fake.word(),
             self.fake.word(),
             self.fake.word(),
-        ]  # pylint: disable=no-member
+            self.fake.word(),
+        ]
         self.nodes = self._gen_nodes()
         self.namespaces = self._gen_namespaces(self.nodes)
         self.pods, self.namespace2pods = self._gen_pods(self.namespaces)
@@ -157,10 +160,10 @@ class OCPGenerator(AbstractGenerator):
         if self._nodes:
             for item in self._nodes:
                 memory_gig = item.get("memory_gig", randint(2, 8))
-                memory_bytes = memory_gig * 1024 * 1024 * 1024
-                resource_id = str(item.get("resource_id", self.fake.word()))  # pylint: disable=no-member
+                memory_bytes = memory_gig * GIGABYTE
+                resource_id = str(item.get("resource_id", self.fake.word()))
                 node = {
-                    "name": item.get("node_name", "node_" + self.fake.word()),  # pylint: disable=no-member
+                    "name": item.get("node_name", "node_" + self.fake.word()),
                     "cpu_cores": item.get("cpu_cores", randint(2, 16)),
                     "memory_bytes": memory_bytes,
                     "resource_id": "i-" + resource_id,
@@ -171,14 +174,14 @@ class OCPGenerator(AbstractGenerator):
         else:
             num_nodes = randint(2, 6)
             seeded_labels = {"node-role.kubernetes.io/master": [""], "node-role.kubernetes.io/infra": [""]}
-            for node_num in range(0, num_nodes):  # pylint: disable=W0612
+            for _ in range(0, num_nodes):
                 memory_gig = randint(2, 8)
-                memory_bytes = memory_gig * 1024 * 1024 * 1024
+                memory_bytes = memory_gig * GIGABYTE
                 node = {
-                    "name": "node_" + self.fake.word(),  # pylint: disable=no-member
+                    "name": "node_" + self.fake.word(),
                     "cpu_cores": randint(2, 16),
                     "memory_bytes": memory_bytes,
-                    "resource_id": "i-" + self.fake.word(),  # pylint: disable=no-member
+                    "resource_id": "i-" + self.fake.word(),
                     "node_labels": self._gen_openshift_labels(seeding=seeded_labels),
                 }
                 nodes.append(node)
@@ -194,9 +197,9 @@ class OCPGenerator(AbstractGenerator):
                     namespaces[namespace] = node
             else:
                 num_namespaces = randint(2, 12)
-                for num_namespace in range(0, num_namespaces):  # pylint: disable=W0612
+                for _ in range(0, num_namespaces):
                     namespace_suffix = choice(("ci", "qa", "prod", "proj", "dev", "staging"))
-                    namespace = self.fake.word() + "_" + namespace_suffix  # pylint: disable=no-member
+                    namespace = self.fake.word() + "_" + namespace_suffix
                     namespaces[namespace] = node
         return namespaces
 
@@ -214,18 +217,18 @@ class OCPGenerator(AbstractGenerator):
         gen_label_keys = [
             self.fake.word(),
             self.fake.word(),
-            self.fake.word(),  # pylint: disable=no-member
             self.fake.word(),
             self.fake.word(),
             self.fake.word(),
-        ]  # pylint: disable=no-member
+            self.fake.word(),
+        ]
         all_label_keys = list(seeded_labels.keys()) + gen_label_keys
         num_labels = randint(2, len(all_label_keys))
         chosen_label_keys = choices(all_label_keys, k=num_labels)
 
         labels = {}
         for label_key in chosen_label_keys:
-            label_value = self.fake.word()  # pylint: disable=no-member
+            label_value = self.fake.word()
             if label_key in seeded_labels:
                 label_value = choice(seeded_labels[label_key])
             labels[f"label_{label_key}"] = label_value
@@ -233,66 +236,82 @@ class OCPGenerator(AbstractGenerator):
         label_str = ""
         for key, value in labels.items():
             label_data = f"{key}:{value}"
-            if label_str == "":
-                label_str += label_data
-            else:
+            if label_str:
                 label_str += f"|{label_data}"
+            else:
+                label_str += label_data
         return label_str
 
     def _gen_pods(self, namespaces):  # pylint: disable=too-many-locals
         """Create pods on specific namespaces and keep relationship."""
         pods = {}
         namespace2pod = {}
-        hour = 60 * 60
         for namespace, node in namespaces.items():
             namespace2pod[namespace] = []
             if node.get("namespaces"):
                 specified_pods = node.get("namespaces").get(namespace).get("pods")
                 for specified_pod in specified_pods:
-                    pod = specified_pod.get("pod_name", self.fake.word())  # pylint: disable=no-member
+                    pod = specified_pod.get("pod_name", self.fake.word())
                     namespace2pod[namespace].append(pod)
                     cpu_cores = node.get("cpu_cores")
                     memory_bytes = node.get("memory_bytes")
-                    cpu_request = specified_pod.get("cpu_request", round(uniform(0.02, 1.0), 5))
-                    mem_request_gig = specified_pod.get("mem_request_gig", round(uniform(25.0, 80.0), 2))
+
+                    cpu_request = min(specified_pod.get("cpu_request", round(uniform(0.02, 1.0), 5)), cpu_cores)
+                    cpu_usage = specified_pod.get("cpu_usage", {})
+                    for key, value in cpu_usage.items():
+                        if value > cpu_request:
+                            cpu_usage[key] = cpu_request
+
+                    memory_gig = memory_bytes / GIGABYTE
+                    mem_request_gig = min(
+                        specified_pod.get("mem_request_gig", round(uniform(25.0, 80.0), 2)), memory_gig
+                    )
+                    memory_usage_gig = specified_pod.get("mem_usage_gig", {})
+                    for key, value in memory_usage_gig.items():
+                        if value > memory_gig:
+                            memory_usage_gig[key] = memory_gig
+
                     pods[pod] = {
                         "namespace": namespace,
                         "node": node.get("name"),
                         "resource_id": node.get("resource_id"),
                         "pod": pod,
                         "node_capacity_cpu_cores": cpu_cores,
-                        "node_capacity_cpu_core_seconds": cpu_cores * hour,
+                        "node_capacity_cpu_core_seconds": cpu_cores * HOUR,
                         "node_capacity_memory_bytes": memory_bytes,
-                        "node_capacity_memory_byte_seconds": memory_bytes * hour,
+                        "node_capacity_memory_byte_seconds": memory_bytes * HOUR,
                         "cpu_request": cpu_request,
-                        "cpu_limit": specified_pod.get("cpu_limit", round(uniform(cpu_request, 1.0), 5)),
+                        "cpu_limit": min(
+                            specified_pod.get("cpu_limit", round(uniform(cpu_request, 1.0), 5)), cpu_cores
+                        ),
                         "mem_request_gig": mem_request_gig,
                         "mem_limit_gig": specified_pod.get("mem_limit_gig", round(uniform(mem_request_gig, 80.0), 2)),
                         "pod_labels": specified_pod.get("labels", None),
-                        "cpu_usage": specified_pod.get("cpu_usage"),
-                        "mem_usage_gig": specified_pod.get("mem_usage_gig"),
+                        "cpu_usage": cpu_usage,
+                        "mem_usage_gig": memory_usage_gig,
                         "pod_seconds": specified_pod.get("pod_seconds"),
                     }
             else:
                 num_pods = randint(2, 20)
-                for num_namespace in range(0, num_pods):  # pylint: disable=W0612
+                for _ in range(0, num_pods):
                     pod_suffix = "".join(choices(ascii_lowercase, k=5))
                     pod_type = choice(("build", "deploy", pod_suffix))
-                    pod = self.fake.word() + "_" + pod_type  # pylint: disable=no-member
+                    pod = self.fake.word() + "_" + pod_type
                     namespace2pod[namespace].append(pod)
                     cpu_cores = node.get("cpu_cores")
                     memory_bytes = node.get("memory_bytes")
-                    cpu_request = round(uniform(0.02, 1.0), 5)
-                    mem_request_gig = round(uniform(25.0, 80.0), 2)
+                    memory_gig = memory_bytes / GIGABYTE
+                    cpu_request = min(round(uniform(0.02, 1.0), 5), cpu_cores)
+                    mem_request_gig = min(round(uniform(25.0, 80.0), 2), memory_gig)
                     pods[pod] = {
                         "namespace": namespace,
                         "node": node.get("name"),
                         "resource_id": node.get("resource_id"),
                         "pod": pod,
                         "node_capacity_cpu_cores": cpu_cores,
-                        "node_capacity_cpu_core_seconds": cpu_cores * hour,
+                        "node_capacity_cpu_core_seconds": cpu_cores * HOUR,
                         "node_capacity_memory_bytes": memory_bytes,
-                        "node_capacity_memory_byte_seconds": memory_bytes * hour,
+                        "node_capacity_memory_byte_seconds": memory_bytes * HOUR,
                         "cpu_request": cpu_request,
                         "cpu_limit": round(uniform(cpu_request, 1.0), 5),
                         "mem_request_gig": mem_request_gig,
@@ -309,17 +328,25 @@ class OCPGenerator(AbstractGenerator):
             if node.get("namespaces"):
                 specified_volumes = node.get("namespaces").get(namespace).get("volumes", [])
                 for specified_volume in specified_volumes:
-                    volume = specified_volume.get("volume_name", self.fake.word())  # pylint: disable=no-member
-                    volume_request = specified_volume.get("volume_request_gig") * 1024 * 1024 * 1024  # noqa: W503
+                    volume = specified_volume.get("volume_name", self.fake.word())
+                    volume_request_gig = specified_volume.get("volume_request_gig")
+                    volume_request = volume_request_gig * GIGABYTE
                     specified_vol_claims = specified_volume.get("volume_claims", [])
                     volume_claims = {}
+                    total_claims = 0
                     for specified_vc in specified_vol_claims:
-                        vol_claim = specified_vc.get(
-                            "volume_claim_name", self.fake.word()
-                        )  # pylint: disable=no-member
+                        if total_claims > volume_request_gig:
+                            break
+                        vol_claim = specified_vc.get("volume_claim_name", self.fake.word())
                         pod = specified_vc.get("pod_name")
-                        claim_capacity = specified_vc.get("capacity_gig") * 1024 * 1024 * 1024
+                        claim_capacity = (
+                            min(specified_vc.get("capacity_gig"), (volume_request_gig - total_claims)) * GIGABYTE
+                        )
                         usage_gig = specified_vc.get("volume_claim_usage_gig")
+                        if usage_gig:
+                            for key, value in usage_gig.items():
+                                if value > claim_capacity / GIGABYTE:
+                                    usage_gig[key] = claim_capacity / GIGABYTE
                         volume_claims[vol_claim] = {
                             "namespace": namespace,
                             "volume": volume,
@@ -328,6 +355,7 @@ class OCPGenerator(AbstractGenerator):
                             "pod": pod,
                             "volume_claim_usage_gig": usage_gig,
                         }
+                        total_claims += claim_capacity
                     volumes[volume] = {
                         "namespace": namespace,
                         "volume": volume,
@@ -339,16 +367,21 @@ class OCPGenerator(AbstractGenerator):
             else:
                 num_volumes = randint(1, 3)
                 num_vol_claims = randint(1, 2)
-                for num_volume in range(0, num_volumes):  # pylint: disable=W0612
+                for _ in range(0, num_volumes):
                     vol_suffix = "".join(choices(ascii_lowercase, k=10))
                     volume = "pvc" + "-" + vol_suffix
                     vol_request_gig = round(uniform(25.0, 80.0), 2)
-                    vol_request = vol_request_gig * 1024 * 1024 * 1024
+                    vol_request = vol_request_gig * GIGABYTE
                     volume_claims = {}
-                    for num_claim in range(0, num_vol_claims):  # pylint: disable=W0612
-                        vol_claim = self.fake.word()  # pylint: disable=no-member
+                    total_claims = 0
+                    for _ in range(0, num_vol_claims):
+                        if total_claims > vol_request_gig:
+                            break
+                        vol_claim = self.fake.word()
                         pod = choice(namespace2pods[namespace])
-                        claim_capacity = round(uniform(1.0, vol_request_gig), 2) * 1024 * 1024 * 1024  # noqa: W503
+                        claim_capacity = (
+                            min(round(uniform(1.0, vol_request_gig), 2), (vol_request_gig - total_claims)) * GIGABYTE
+                        )
                         volume_claims[vol_claim] = {
                             "namespace": namespace,
                             "volume": volume,
@@ -356,6 +389,7 @@ class OCPGenerator(AbstractGenerator):
                             "capacity": claim_capacity,
                             "pod": pod,
                         }
+                        total_claims += claim_capacity
                     volumes[volume] = {
                         "namespace": namespace,
                         "volume": volume,
@@ -396,45 +430,57 @@ class OCPGenerator(AbstractGenerator):
     @staticmethod
     def _get_usage_for_date(usage_dict, start):
         """Return usage for specified hour."""
-        usage_amount = None
         if usage_dict:
             for date, usage in usage_dict.items():
                 if date == "full_period":
-                    usage_amount = usage
-                elif parser.parse(date).date() == start.date():
-                    usage_amount = usage
-        return usage_amount
+                    return usage
+                if parser.parse(date).date() == start.date():
+                    return usage
+        return None
 
     def _update_pod_data(self, row, start, end, **kwargs):  # pylint: disable=R0914, W0613
         """Update data with generator specific data."""
-        cpu_usage = self._get_usage_for_date(kwargs.get("cpu_usage"), start)
-        mem_usage_gig = self._get_usage_for_date(kwargs.get("mem_usage_gig"), start)
         user_pod_seconds = kwargs.get("pod_seconds")
-        pod_seconds = user_pod_seconds if user_pod_seconds else randint(2, 60 * 60)
+        pod_seconds = user_pod_seconds if user_pod_seconds else randint(2, HOUR)
         pod = kwargs.get("pod")
+
         cpu_request = pod.pop("cpu_request")
         mem_request_gig = pod.pop("mem_request_gig")
-        cpu_limit = pod.pop("cpu_limit")
-        mem_limit_gig = pod.pop("mem_limit_gig")
-        cpu = cpu_usage if cpu_usage else round(uniform(0.02, cpu_request), 5)
-        mem = mem_usage_gig if mem_usage_gig else round(uniform(1, mem_request_gig), 2)
+
+        cpu_limit = min(pod.pop("cpu_limit"), cpu_request)
+        mem_limit_gig = min(pod.pop("mem_limit_gig"), mem_request_gig)
+
+        cpu_usage = self._get_usage_for_date(kwargs.get("cpu_usage"), start)
+        cpu = round(uniform(0.02, cpu_limit), 5)
+        if cpu_usage:
+            cpu = min(cpu_limit, cpu_request, cpu_usage)
+
+        mem_usage_gig = self._get_usage_for_date(kwargs.get("mem_usage_gig"), start)
+        mem = round(uniform(1, mem_limit_gig), 2)
+        if mem_usage_gig:
+            mem = min(mem_limit_gig, mem_request_gig, mem_usage_gig)
+
         pod["pod_usage_cpu_core_seconds"] = pod_seconds * cpu
         pod["pod_request_cpu_core_seconds"] = pod_seconds * cpu_request
         pod["pod_limit_cpu_core_seconds"] = pod_seconds * cpu_limit
-        pod["pod_usage_memory_byte_seconds"] = pod_seconds * mem * 1024 * 1024 * 1024
-        pod["pod_request_memory_byte_seconds"] = pod_seconds * mem_request_gig * 1024 * 1024 * 1024
-        pod["pod_limit_memory_byte_seconds"] = pod_seconds * mem_limit_gig * 1024 * 1024 * 1024
+        pod["pod_usage_memory_byte_seconds"] = pod_seconds * mem * GIGABYTE
+        pod["pod_request_memory_byte_seconds"] = pod_seconds * mem_request_gig * GIGABYTE
+        pod["pod_limit_memory_byte_seconds"] = pod_seconds * mem_limit_gig * GIGABYTE
         row.update(pod)
         return row
 
     def _update_storage_data(self, row, start, end, **kwargs):  # pylint: disable=R0914, W0613
         """Update data with generator specific data."""
         volume_claim_usage_gig = self._get_usage_for_date(kwargs.get("volume_claim_usage_gig"), start)
-        vc_capacity_gig = 10.0
-        if kwargs.get("vc_capacity"):
-            vc_capacity_gig = kwargs.get("vc_capacity") / 1024 / 1024 / 1024
-        vc_usage_gig = volume_claim_usage_gig if volume_claim_usage_gig else round(uniform(2.0, vc_capacity_gig), 2)
-        vc_usage = vc_usage_gig * 1024 * 1024 * 1024
+
+        volume_request = kwargs.get("volume_request")
+        vc_capacity_gig = min(kwargs.get("vc_capacity", 10.0), volume_request) / GIGABYTE
+
+        vc_usage_gig = round(uniform(2.0, vc_capacity_gig), 2)
+        if volume_claim_usage_gig:
+            vc_usage_gig = min(volume_claim_usage_gig, vc_capacity_gig)
+        vc_usage = vc_usage_gig * GIGABYTE
+
         data = {
             "namespace": kwargs.get("namespace"),
             "pod": kwargs.get("pod"),
@@ -442,11 +488,11 @@ class OCPGenerator(AbstractGenerator):
             "persistentvolume": kwargs.get("volume_name"),
             "storageclass": kwargs.get("storage_class"),
             "persistentvolumeclaim_capacity_bytes": kwargs.get("vc_capacity"),
-            "persistentvolumeclaim_capacity_byte_seconds": kwargs.get("vc_capacity") * 60 * 60,
-            "volume_request_storage_byte_seconds": kwargs.get("volume_request") * 60 * 60,
+            "persistentvolumeclaim_capacity_byte_seconds": vc_capacity_gig * GIGABYTE * HOUR,
+            "volume_request_storage_byte_seconds": volume_request * HOUR,
             "persistentvolume_labels": kwargs.get("volume_labels"),
             "persistentvolumeclaim_labels": kwargs.get("volume_claim_labels"),
-            "persistentvolumeclaim_usage_byte_seconds": vc_usage * 60 * 60,
+            "persistentvolumeclaim_usage_byte_seconds": vc_usage * HOUR,
         }
         row.update(data)
         return row
