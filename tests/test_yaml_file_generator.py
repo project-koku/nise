@@ -138,7 +138,7 @@ class OCPYamlGeneratorTestCase(TestCase):
         label_str = self.yg.generate_labels(2)
         labels = label_str.split("|")
         self.assertEqual(len(labels), 2)
-        labels = [len(l.split(":")) == 2 for l in labels]
+        labels = [len(label.split(":")) == 2 for label in labels]
         self.assertTrue(all(labels))
 
     def test_build_data(self):
