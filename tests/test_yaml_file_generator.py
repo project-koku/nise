@@ -27,7 +27,7 @@ UTILITY_DIR = os.path.join(os.path.dirname(FILE_DIR), "utility")
 CACHE_PATH = os.path.join(UTILITY_DIR, "__pycache__")
 
 
-class YamlGeneratorTestCase(TestCase):
+class OCPYamlGeneratorTestCase(TestCase):
     """
     Base TestCase class, sets up a CLI parser
     """
@@ -37,9 +37,7 @@ class YamlGeneratorTestCase(TestCase):
         if os.path.exists(CACHE_PATH):
             shutil.rmtree(CACHE_PATH)
 
-        cls.yg = SourceFileLoader(
-            "yaml_generator", os.path.join(UTILITY_DIR, "generate_static_ocp_settings.py")
-        ).load_module()
+        cls.yg = SourceFileLoader("yaml_generator", os.path.join(UTILITY_DIR, "ocp/generator.py")).load_module()
 
     @classmethod
     def tearDownClass(cls):
