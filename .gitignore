@@ -115,3 +115,6 @@ venv.bak/
 
 # Generated .json
 *.json
+
+# Mac OSX
+.DS_Store
