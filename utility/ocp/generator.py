@@ -24,9 +24,8 @@ from datetime import date
 
 import faker
 from dateutil.relativedelta import relativedelta
-
-from ..utility.gen import Generator
-from ..utility.utils import dicta
+from utility.gen import Generator
+from utility.utils import dicta
 
 
 LOG = logging.getLogger(__name__)

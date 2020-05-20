@@ -25,9 +25,9 @@ from datetime import date
 
 import faker
 from dateutil.relativedelta import relativedelta
+from utility.gen import Generator
+from utility.utils import dicta
 
-from ..utility.gen import Generator
-from ..utility.utils import dicta
 from .ec2_instance_types import INSTANCE_TYPES as EC2_INSTANCES
 from .rds_instance_types import INSTANCE_TYPES as RDS_INSTANCES
 from .regions import REGIONS
@@ -39,6 +39,15 @@ SEEN_RESOURCE_IDS = set()
 
 DBL_DASH = re.compile("-+")
 FAKER = faker.Faker()
+RESOURCE_TAG_COLS = {
+    "DTG": ["resourceTags/user:app"],
+    "EBS": ["resourceTags/user:storageclass"],
+    "EC2": ["resourceTags/user:environment", "resourceTags/user:version"],
+    "RDS": ["resourceTags/user:app"],
+    "R53": ["resourceTags/user:app"],
+    "S3": ["resourceTags/user:storageclass"],
+    "VPC": ["resourceTags/user:app"],
+}
 
 
 def generate_words(config):
@@ -103,8 +112,9 @@ def generate_resource_id(config, prefix="", suffix="", dynamic=True):
     )
 
 
-def generate_tags(config, prefix="", suffix="", dynamic=True):
-    return [generate_name(config) for _ in range(config.max_tags)]
+def generate_tags(key, config, prefix="", suffix="", dynamic=True):
+    keys = RESOURCE_TAG_COLS.get(key)
+    return [dicta(key=key, v=generate_name(config)) for key in keys]
 
 
 class AWSGenerator(Generator):
@@ -128,25 +138,25 @@ class AWSGenerator(Generator):
         max_s3_gens = FAKER.random_int(1, config.max_s3_gens) if _random else config.max_s3_gens
         max_vpc_gens = FAKER.random_int(1, config.max_vpc_gens) if _random else config.max_vpc_gens
 
-        for gen in range(max_data_transfer_gens):
-            LOG.info(f"Building data transfer generator {gen + 1}/{max_data_transfer_gens}...")
+        LOG.info(f"Building {max_data_transfer_gens} data transfer generators ...")
+        for _ in range(max_data_transfer_gens):
             data_transfer_gen = dicta(
                 start_date=str(config.start_date),
                 end_date=str(config.end_date),
                 resource_id=generate_resource_id(config),
-                tags=generate_tags(config),
+                tags=generate_tags("DTG", config),
             )
             data.data_transfer_gens.append(data_transfer_gen)
 
-        for gen in range(max_ebs_gens):
-            LOG.info(f"Building EBS generator {gen + 1}/{max_ebs_gens}...")
+        LOG.info(f"Building {max_ebs_gens} EBS generators ...")
+        for _ in range(max_ebs_gens):
             ebs_gen = dicta(
-                start_date=str(config.start_date), end_date=str(config.end_date), tags=generate_tags(config)
+                start_date=str(config.start_date), end_date=str(config.end_date), tags=generate_tags("EBS", config)
             )
             data.ebs_gens.append(ebs_gen)
 
-        for gen in range(max_ec2_gens):
-            LOG.info(f"Building EC2 generator {gen + 1}/{max_ec2_gens}...")
+        LOG.info(f"Building {max_ec2_gens} EC2 generators ...")
+        for _ in range(max_ec2_gens):
 
             instance_type = random.choice(EC2_INSTANCES)
 
@@ -157,13 +167,13 @@ class AWSGenerator(Generator):
                 resource_id=generate_resource_id(config),
                 product_sku=FAKER.pystr(min_chars=12, max_chars=12).upper(),
                 region=random.choice(REGIONS),
-                tags=generate_tags(config),
+                tags=generate_tags("EC2", config),
                 instance_type=instance_type,
             )
             data.ec2_gens.append(ec2_gen)
 
-        for gen in range(max_rds_gens):
-            LOG.info(f"Building RDS generator {gen + 1}/{max_rds_gens}...")
+        LOG.info(f"Building {max_rds_gens} RDS generators ...")
+        for _ in range(max_rds_gens):
 
             instance_type = random.choice(RDS_INSTANCES)
 
@@ -174,32 +184,32 @@ class AWSGenerator(Generator):
                 resource_id=generate_resource_id(config),
                 product_sku=FAKER.pystr(min_chars=12, max_chars=12).upper(),
                 region=random.choice(REGIONS),
-                tags=generate_tags(config),
+                tags=generate_tags("RDS", config),
                 instance_type=instance_type,
             )
 
             data.rds_gens.append(rds_gen)
 
-        for gen in range(max_route53_gens):
-            LOG.info(f"Building Route 53 generator {gen + 1}/{max_route53_gens}...")
+        LOG.info(f"Building {max_route53_gens} Route 53 generators ...")
+        for _ in range(max_route53_gens):
             route53_gen = dicta(
-                start_date=str(config.start_date), end_date=str(config.end_date), tags=generate_tags(config)
+                start_date=str(config.start_date), end_date=str(config.end_date), tags=generate_tags("R53", config)
             )
 
             data.route53_gens.append(route53_gen)
 
-        for gen in range(max_s3_gens):
-            LOG.info(f"Building S3 generator {gen + 1}/{max_s3_gens}...")
+        LOG.info(f"Building {max_s3_gens} S3 generators ...")
+        for _ in range(max_s3_gens):
             s3_gen = dicta(
-                start_date=str(config.start_date), end_date=str(config.end_date), tags=generate_tags(config)
+                start_date=str(config.start_date), end_date=str(config.end_date), tags=generate_tags("S3", config)
             )
 
             data.s3_gens.append(s3_gen)
 
-        for gen in range(max_vpc_gens):
-            LOG.info(f"Building VPC generator {gen + 1}/{max_vpc_gens}...")
+        LOG.info(f"Building {max_vpc_gens} VPC generators ...")
+        for _ in range(max_vpc_gens):
             vpc_gen = dicta(
-                start_date=str(config.start_date), end_date=str(config.end_date), tags=generate_tags(config)
+                start_date=str(config.start_date), end_date=str(config.end_date), tags=generate_tags("VPC", config)
             )
 
             data.vpc_gens.append(vpc_gen)
