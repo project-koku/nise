@@ -12,7 +12,7 @@ generators:
       instance_type:
         inst_type: m5.large
         vcpu: 2
-        memory: 800 GiB
+        memory: '8 GiB'
         storage: 'EBS Only'
         family: 'General Purpose'
         cost: 0.096
@@ -30,7 +30,7 @@ generators:
       instance_type:
         inst_type: m5.large
         vcpu: 2
-        memory: 800 GiB
+        memory: '8 GiB'
         storage: 'EBS Only'
         family: 'General Purpose'
         cost: 0.096
@@ -48,7 +48,7 @@ generators:
       instance_type:
         inst_type: m5.large
         vcpu: 2
-        memory: 800 GiB
+        memory: '8 GiB'
         storage: 'EBS Only'
         family: 'General Purpose'
         cost: 0.096
@@ -65,7 +65,7 @@ generators:
       instance_type:
         inst_type: m5.large
         vcpu: 2
-        memory: 800 GiB
+        memory: '8 GiB'
         storage: 'EBS Only'
         family: 'General Purpose'
         cost: 0.096
