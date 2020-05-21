@@ -24,8 +24,8 @@ from datetime import date
 
 import faker
 from dateutil.relativedelta import relativedelta
-from utility.gen import Generator
-from utility.utils import dicta
+from nise.yaml_generator.gen import Generator
+from nise.yaml_generator.utils import dicta
 
 
 LOG = logging.getLogger(__name__)

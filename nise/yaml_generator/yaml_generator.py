@@ -20,9 +20,9 @@ import logging
 import os
 from argparse import ArgumentParser
 
-from aws.generator import AWSGenerator
 from dateutil.parser import parse
-from ocp.generator import OCPGenerator
+from nise.yaml_generator.aws.generator import AWSGenerator
+from nise.yaml_generator.ocp.generator import OCPGenerator
 
 GENERATOR_MAP = {"AWS": AWSGenerator(), "OCP": OCPGenerator()}
 
