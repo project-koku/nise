@@ -23,7 +23,7 @@ from unittest import TestCase
 
 
 FILE_DIR = os.path.dirname(os.path.abspath(__file__))
-YAML_GEN_DIR = os.path.join(os.path.dirname(FILE_DIR), "nise/yaml_generator")
+YAML_GEN_DIR = os.path.join(os.path.dirname(FILE_DIR), "nise")
 CACHE_PATH = os.path.join(YAML_GEN_DIR, "__pycache__")
 
 
@@ -37,7 +37,7 @@ class YamlGeneratorTestCase(TestCase):
         if os.path.exists(CACHE_PATH):
             shutil.rmtree(CACHE_PATH)
 
-        cls.yg = SourceFileLoader("yaml_generator", os.path.join(YAML_GEN_DIR, "yaml_generator.py")).load_module()
+        cls.yg = SourceFileLoader("yaml_generator", os.path.join(YAML_GEN_DIR, "yaml_gen.py")).load_module()
 
     @classmethod
     def tearDownClass(cls):
@@ -158,7 +158,9 @@ class OCPGeneratorTestCase(TestCase):
         if os.path.exists(CACHE_PATH):
             shutil.rmtree(CACHE_PATH)
 
-        cls.module = SourceFileLoader("yaml_generator", os.path.join(YAML_GEN_DIR, "ocp/generator.py")).load_module()
+        cls.module = SourceFileLoader(
+            "yaml_generator", os.path.join(YAML_GEN_DIR, "yaml_generator/ocp/generator.py")
+        ).load_module()
         cls.yg = cls.module.OCPGenerator()
 
     @classmethod

@@ -24,7 +24,7 @@ from datetime import date
 
 import faker
 from dateutil.relativedelta import relativedelta
-from nise.yaml_generator.gen import Generator
+from nise.yaml_generator.generator import Generator
 from nise.yaml_generator.utils import dicta
 
 

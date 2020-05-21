@@ -28,7 +28,7 @@ from dateutil.relativedelta import relativedelta
 from nise.yaml_generator.aws.ec2_instance_types import INSTANCE_TYPES as EC2_INSTANCES
 from nise.yaml_generator.aws.rds_instance_types import INSTANCE_TYPES as RDS_INSTANCES
 from nise.yaml_generator.aws.regions import REGIONS
-from nise.yaml_generator.gen import Generator
+from nise.yaml_generator.generator import Generator
 from nise.yaml_generator.utils import dicta
 
 LOG = logging.getLogger(__name__)

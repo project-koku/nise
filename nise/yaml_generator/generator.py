@@ -16,7 +16,6 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """Utility to generate large yaml files."""
-import logging
 import os
 import sys
 
@@ -24,8 +23,6 @@ import yaml
 from dateutil.parser import parse
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
-
-LOG = logging.getLogger(__name__)
 
 
 class Generator:
