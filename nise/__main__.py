@@ -20,6 +20,7 @@ import calendar
 import datetime
 import logging
 import os
+import sys
 
 import yaml
 from dateutil import parser as date_parser
@@ -28,6 +29,8 @@ from nise.report import aws_create_report
 from nise.report import azure_create_report
 from nise.report import gcp_create_report
 from nise.report import ocp_create_report
+from nise.yaml_gen import init_args as init_yaml_args
+from nise.yaml_gen import yaml_main
 
 LOG = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format="%(asctime)s : %(name)s : %(levelname)s : %(message)s")
@@ -55,8 +58,11 @@ def today():
 def create_parser():
     """Create the parser for incoming data."""
     parser = argparse.ArgumentParser()
-    provider_group = parser.add_mutually_exclusive_group(required=True)
-    parser.add_argument(
+    subparsers = parser.add_subparsers(dest="command")
+
+    report_parser = subparsers.add_parser("report")
+    provider_group = report_parser.add_mutually_exclusive_group(required=True)
+    report_parser.add_argument(
         "--start-date",
         metavar="DATE",
         dest="start_date",
@@ -64,7 +70,7 @@ def create_parser():
         type=valid_date,
         help="Date to start generating data (YYYY-MM-DD)",
     )
-    parser.add_argument(
+    report_parser.add_argument(
         "--end-date",
         metavar="DATE",
         dest="end_date",
@@ -73,7 +79,7 @@ def create_parser():
         default=today(),
         help="Date to end generating data (YYYY-MM-DD). Default is today.",
     )
-    parser.add_argument(
+    report_parser.add_argument(
         "--file-row-limit",
         dest="row_limit",
         required=False,
@@ -91,28 +97,28 @@ def create_parser():
     provider_group.add_argument(
         "--gcp", dest="gcp", action="store_true", help="Create GCP cost and usage report data."
     )
-    parser.add_argument(
+    report_parser.add_argument(
         "--aws-s3-bucket-name",
         metavar="BUCKET_NAME",
         dest="aws_bucket_name",
         required=False,
         help="AWS S3 bucket to place the data.",
     )
-    parser.add_argument(
+    report_parser.add_argument(
         "--aws-s3-report-name",
         metavar="COST_REPORT_NAME",
         dest="aws_report_name",
         required=False,
         help="Directory path to store data in the S3 bucket.",
     )
-    parser.add_argument(
+    report_parser.add_argument(
         "--aws-s3-report-prefix",
         metavar="PREFIX_NAME",
         dest="aws_prefix_name",
         required=False,
         help="Directory path to store data in the S3 bucket.",
     )
-    parser.add_argument(
+    report_parser.add_argument(
         "--aws-finalize",
         metavar="FINALIZE_REPORT",
         dest="aws_finalize_report",
@@ -123,59 +129,59 @@ def create_parser():
                             or \'overwrite\' to finalize the normal report files.
                             """,
     )
-    parser.add_argument(
+    report_parser.add_argument(
         "--azure-container-name",
         metavar="AZURE_CONTAINER_NAME",
         dest="azure_container_name",
         required=False,
         help="Azure container to place the data.",
     )
-    parser.add_argument(
+    report_parser.add_argument(
         "--azure-report-name",
         metavar="AZURE_COST_REPORT_NAME",
         dest="azure_report_name",
         required=False,
         help="Directory path to store data in the bucket.",
     )
-    parser.add_argument(
+    report_parser.add_argument(
         "--azure-report-prefix",
         metavar="AZURE_PREFIX_NAME",
         dest="azure_prefix_name",
         required=False,
         help="Directory path to store data in the bucket.",
     )
-    parser.add_argument(
+    report_parser.add_argument(
         "--static-report-file", dest="static_report_file", required=False, help="Generate static data based on yaml."
     )
-    parser.add_argument(
+    report_parser.add_argument(
         "--ocp-cluster-id",
         metavar="OCP_CLUSTER_ID",
         dest="ocp_cluster_id",
         required=False,
         help="Cluster identifier for usage data.",
     )
-    parser.add_argument(
+    report_parser.add_argument(
         "--insights-upload",
         metavar="UPLOAD_ENDPOINT",
         dest="insights_upload",
         required=False,
         help="URL for Insights Upload Service.",
     )
-    parser.add_argument(
+    report_parser.add_argument(
         "--gcp-report-prefix",
         metavar="GCP_REPORT_PREFIX",
         dest="gcp_report_prefix",
         required=False,
         help="GCP Billing Report Prefix.",
     )
-    parser.add_argument(
+    report_parser.add_argument(
         "--gcp-bucket-name",
         metavar="GCP_BUCKET_NAME",
         dest="gcp_bucket_name",
         required=False,
         help="GCP storage account to place the data.",
     )
-    parser.add_argument(
+    report_parser.add_argument(
         "--azure-account-name",
         metavar="AZURE_ACCOUNT_NAME",
         dest="azure_account_name",
@@ -183,9 +189,10 @@ def create_parser():
         default=os.getenv("AZURE_STORAGE_ACCOUNT"),
         help="Azure container to place the data.",
     )
-    parser.add_argument(
+    report_parser.add_argument(
         "--write-monthly", dest="write_monthly", action="store_true", required=False, help="Writes the monthly files."
     )
+    init_yaml_args(subparsers)
     return parser
 
 
@@ -556,6 +563,9 @@ def main():
     """Run data generation program."""
     parser = create_parser()
     args = parser.parse_args()
+    if args.command == "yaml":
+        yaml_main(args)
+        sys.exit()
     options = vars(args)
     _, provider_type = _validate_provider_inputs(parser, options)
 

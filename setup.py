@@ -19,6 +19,9 @@ setup(
         "nise.generators.ocp",
         "nise.generators.azure",
         "nise.generators.gcp",
+        "nise.yaml_generators",
+        "nise.yaml_generators.aws",
+        "nise.yaml_generators.ocp",
     ],
     install_requires=[
         "faker>=3.0",

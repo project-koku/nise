@@ -1,11 +1,12 @@
 import logging
 import os
-from argparse import ArgumentParser
 
 from dateutil.parser import parse
-from nise.yaml_generator.aws.generator import AWSGenerator
-from nise.yaml_generator.ocp.generator import OCPGenerator
+from nise.yaml_generators.aws.generator import AWSGenerator
+from nise.yaml_generators.ocp.generator import OCPGenerator
 
+FILE_DIR = os.path.dirname(os.path.abspath(__file__))
+STATIC_DIR = os.path.join(os.path.dirname(FILE_DIR), "nise/yaml_generators/static")
 
 GENERATOR_MAP = {"AWS": AWSGenerator(), "OCP": OCPGenerator()}
 
@@ -17,29 +18,29 @@ class DateRangeArgsError(Exception):
     pass
 
 
-def init_args():
+def init_args(subparsers):
     """
     Initialize the argument parser.
     Returns:
         ArgumentParser
     """
-    parser = ArgumentParser()
-    parser.add_argument(
-        "-o", "--output", dest="output_file_name", type=str, required=False, metavar="FILE", help="Output file path."
+    yaml_parser = subparsers.add_parser("yaml")
+    yaml_parser.add_argument(
+        "-o", "--output", dest="output_file_name", type=str, required=True, metavar="FILE", help="Output file path."
     )
-    parser.add_argument(
+    yaml_parser.add_argument(
         "-c", "--config", dest="config_file_name", type=str, required=False, metavar="CONF", help="Config file path."
     )
-    parser.add_argument(
+    yaml_parser.add_argument(
         "-t",
         "--template",
         dest="template_file_name",
         type=str,
-        required=True,
+        required=False,
         metavar="TMPL",
         help="Template file path.",
     )
-    parser.add_argument(
+    yaml_parser.add_argument(
         "-s",
         "--start-date",
         dest="start_date",
@@ -48,7 +49,7 @@ def init_args():
         metavar="YYYY-MM-DD",
         help="Start date (overrides template, default is first day of last month)",
     )
-    parser.add_argument(
+    yaml_parser.add_argument(
         "-e",
         "--end-date",
         dest="end_date",
@@ -57,7 +58,7 @@ def init_args():
         metavar="YYYY-MM-DD",
         help="End date (overrides template, default is last day of current month)",
     )
-    parser.add_argument(
+    yaml_parser.add_argument(
         "-n",
         "--num-nodes",
         dest="num_nodes",
@@ -66,7 +67,7 @@ def init_args():
         metavar="INT",
         help="Number of nodes to generate (overrides template, default is 1)",
     )
-    parser.add_argument(
+    yaml_parser.add_argument(
         "-r",
         "--random",
         dest="random",
@@ -75,11 +76,11 @@ def init_args():
         default=False,
         help="Randomize the number of nodes, namespaces, pods, volumes, volume-claims (default is False)",
     )
-    parser.add_argument(
-        "-p", "--provider", dest="provider", type=str, required=True, help="The provider type (i.e AWS, Azure, or OCP)"
+    yaml_parser.add_argument(
+        "-p", "--provider", dest="provider", type=str, required=True, help="The provider type (AWS or OCP)"
     )
 
-    return parser
+    return yaml_parser
 
 
 def handle_args(args):
@@ -88,11 +89,17 @@ def handle_args(args):
     Returns:
         Namespace
     """
+    if args.config_file_name == "default":
+        args.config_file_name = os.path.join(STATIC_DIR, f"{args.provider.lower()}_generator_config.yml")
+
     if args.config_file_name and not os.path.exists(args.config_file_name):
         raise FileNotFoundError(f'Cannot find file "{args.config_file_name}"')
 
-    if not os.path.exists(args.template_file_name):
+    if args.template_file_name and not os.path.exists(args.template_file_name):
         raise FileNotFoundError(f'Cannot find file "{args.template_file_name}"')
+
+    if not args.template_file_name:
+        args.template_file_name = os.path.join(STATIC_DIR, f"{args.provider.lower()}_static_data.yml.j2")
 
     if int(bool(args.start_date)) + int(bool(args.end_date)) == 1:
         raise DateRangeArgsError("The full date range must be supplied or omitted.")
@@ -108,8 +115,8 @@ def handle_args(args):
     return args
 
 
-if __name__ == "__main__":
-    args = handle_args(init_args().parse_args())
+def yaml_main(args):
+    args = handle_args(args)
     generator = GENERATOR_MAP.get(args.provider)
     if not generator:
         print("Provider import not found.")
