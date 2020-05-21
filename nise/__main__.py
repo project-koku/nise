@@ -417,7 +417,7 @@ def _validate_provider_inputs(parser, options):
         valid_inputs = func(parser, options)
     else:
         msg = "One of {}, {}, {}, or {} must be supplied to generate a report."
-        msg = msg.format("--aws", "--azure", "--ocp", "--gcp")
+        msg = msg.format("aws", "azure", "ocp", "gcp")
         parser.error(msg)
     return (valid_inputs, provider_type)
 
@@ -528,10 +528,11 @@ def main():
         yaml_main(args)
         sys.exit()
     options = vars(args)
-    _, provider_type = _validate_provider_inputs(parser, options)
 
     if not (options.get("start_date") or options.get("static_report_file")):
         parser.error("the following arguments are required: --start-date")
+
+    _, provider_type = _validate_provider_inputs(parser, options)
 
     run(provider_type, options)
 

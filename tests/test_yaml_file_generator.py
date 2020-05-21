@@ -49,8 +49,7 @@ class YamlGeneratorTestCase(TestCase):
         Test creation of the argument parser
         """
         p = argparse.ArgumentParser()
-        sp = p.add_subparsers()
-        result = self.yg.init_args(sp)
+        result = self.yg.add_yaml_parser_args(p)
         self.assertTrue(isinstance(result, argparse.ArgumentParser))
 
     def test_handle_missing_start_date_arg(self):

@@ -116,7 +116,7 @@ def handle_args(args):
 
 def yaml_main(args):
     args = handle_args(args)
-    generator = GENERATOR_MAP.get(args.provider)
+    generator = GENERATOR_MAP.get(args.provider.upper())
     if not generator:
         print("Provider import not found.")
         exit()
