@@ -49,7 +49,7 @@ class CommandLineTestCase(TestCase):
         User passes no args, should fail with SystemExit
         """
         with self.assertRaises(SystemExit):
-            self.parser.parse_args([])
+            self.parser.parse_args(["report"])
         with self.assertRaises(SystemExit):
             options = {"aws": False, "ocp": False, "azure": False}
             _validate_provider_inputs(self.parser, options)
@@ -59,7 +59,7 @@ class CommandLineTestCase(TestCase):
         Test where user passes an invalid date format.
         """
         with self.assertRaises(SystemExit):
-            self.parser.parse_args(["--start-date", "foo"])
+            self.parser.parse_args(["report", "--start-date", "foo"])
 
     def test_valid_s3_no_input(self):
         """

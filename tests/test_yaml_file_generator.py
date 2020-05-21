@@ -48,8 +48,10 @@ class YamlGeneratorTestCase(TestCase):
         """
         Test creation of the argument parser
         """
-        p = self.yg.init_args()
-        self.assertTrue(isinstance(p, argparse.ArgumentParser))
+        p = argparse.ArgumentParser()
+        sp = p.add_subparsers()
+        result = self.yg.init_args(sp)
+        self.assertTrue(isinstance(result, argparse.ArgumentParser))
 
     def test_handle_missing_start_date_arg(self):
         """
@@ -159,7 +161,7 @@ class OCPGeneratorTestCase(TestCase):
             shutil.rmtree(CACHE_PATH)
 
         cls.module = SourceFileLoader(
-            "yaml_generator", os.path.join(YAML_GEN_DIR, "yaml_generator/ocp/generator.py")
+            "yaml_generator", os.path.join(YAML_GEN_DIR, "yaml_generators/ocp/generator.py")
         ).load_module()
         cls.yg = cls.module.OCPGenerator()
 

@@ -18,13 +18,12 @@ class DateRangeArgsError(Exception):
     pass
 
 
-def init_args(subparsers):
+def add_yaml_parser_args(yaml_parser):
     """
     Initialize the argument parser.
     Returns:
         ArgumentParser
     """
-    yaml_parser = subparsers.add_parser("yaml")
     yaml_parser.add_argument(
         "-o", "--output", dest="output_file_name", type=str, required=True, metavar="FILE", help="Output file path."
     )
