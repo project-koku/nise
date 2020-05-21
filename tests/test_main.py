@@ -24,7 +24,6 @@ from nise.__main__ import _load_yaml_file
 from nise.__main__ import _validate_provider_inputs
 from nise.__main__ import create_parser
 from nise.__main__ import main
-from nise.__main__ import today
 from nise.__main__ import valid_date
 
 
@@ -64,7 +63,7 @@ class CommandLineTestCase(TestCase):
         """
         Test where user passes no s3 argument combination.
         """
-        args = ["report", "aws", "--start-date", str(today().date())]
+        args = ["report", "aws", "--start-date", str(date.today())]
         options = vars(self.parser.parse_args(args))
         self.assertTrue(_validate_provider_inputs(self.parser, options))
 
@@ -76,7 +75,7 @@ class CommandLineTestCase(TestCase):
             "report",
             "aws",
             "--start-date",
-            str(today().date()),
+            str(date.today()),
             "--aws-s3-bucket-name",
             "mybucket",
             "--aws-s3-report-name",
@@ -89,7 +88,7 @@ class CommandLineTestCase(TestCase):
         """
         Test where user passes no s3 argument combination.
         """
-        args = ["report", "azure", "--start-date", str(today().date())]
+        args = ["report", "azure", "--start-date", str(date.today())]
         options = vars(self.parser.parse_args(args))
         self.assertTrue(_validate_provider_inputs(self.parser, options))
 
@@ -101,7 +100,7 @@ class CommandLineTestCase(TestCase):
             "report",
             "azure",
             "--start-date",
-            str(today().date()),
+            str(date.today()),
             "--azure-container-name",
             "storage",
             "--azure-report-name",
@@ -120,7 +119,7 @@ class CommandLineTestCase(TestCase):
         Test where user passes an invalid s3 argument combination.
         """
         with self.assertRaises(SystemExit):
-            args = ["report", "aws", "--start-date", str(today().date()), "--aws-s3-bucket-name", "mybucket"]
+            args = ["report", "aws", "--start-date", str(date.today()), "--aws-s3-bucket-name", "mybucket"]
             options = vars(self.parser.parse_args(args))
             _validate_provider_inputs(self.parser, options)
 
@@ -129,13 +128,13 @@ class CommandLineTestCase(TestCase):
         Test where user passes an invalid aws argument combination.
         """
         with self.assertRaises(SystemExit):
-            args = ["report", "aws", "--start-date", str(today().date()), "--ocp-cluster-id", "123"]
+            args = ["report", "aws", "--start-date", str(date.today()), "--ocp-cluster-id", "123"]
             self.parser.parse_args(args)
         with self.assertRaises(SystemExit):
-            args = ["report", "aws", "--start-date", str(today().date()), "--azure-container-name", "123"]
+            args = ["report", "aws", "--start-date", str(date.today()), "--azure-container-name", "123"]
             self.parser.parse_args(args)
         with self.assertRaises(SystemExit):
-            args = ["report", "aws", "--start-date", str(today().date()), "--gcp-report-prefix", "gcp-report"]
+            args = ["report", "aws", "--start-date", str(date.today()), "--gcp-report-prefix", "gcp-report"]
             self.parser.parse_args(args)
 
     def test_invalid_azure_inputs(self):
@@ -143,17 +142,17 @@ class CommandLineTestCase(TestCase):
         Test where user passes an invalid azure argument combination.
         """
         with self.assertRaises(SystemExit):
-            args = ["report", "azure", "--start-date", str(today().date()), "--azure-report-name", "report"]
+            args = ["report", "azure", "--start-date", str(date.today()), "--azure-report-name", "report"]
             options = vars(self.parser.parse_args(args))
             _validate_provider_inputs(self.parser, options)
         with self.assertRaises(SystemExit):
-            args = ["report", "azure", "--start-date", str(today().date()), "--aws-s3-bucket-name", "mybucket"]
+            args = ["report", "azure", "--start-date", str(date.today()), "--aws-s3-bucket-name", "mybucket"]
             self.parser.parse_args(args)
         with self.assertRaises(SystemExit):
-            args = ["report", "azure", "--start-date", str(today().date()), "--ocp-cluster-id", "123"]
+            args = ["report", "azure", "--start-date", str(date.today()), "--ocp-cluster-id", "123"]
             self.parser.parse_args(args)
         with self.assertRaises(SystemExit):
-            args = ["report", "azure", "--start-date", str(today().date()), "--gcp-report-prefix", "gcp-report"]
+            args = ["report", "azure", "--start-date", str(date.today()), "--gcp-report-prefix", "gcp-report"]
             self.parser.parse_args(args)
 
     def test_invalid_ocp_inputs(self):
@@ -161,13 +160,13 @@ class CommandLineTestCase(TestCase):
         Test where user passes an invalid ocp argument combination.
         """
         with self.assertRaises(SystemExit):
-            args = ["report", "ocp", "--start-date", str(today().date()), "--aws-s3-bucket-name", "mybucket"]
+            args = ["report", "ocp", "--start-date", str(date.today()), "--aws-s3-bucket-name", "mybucket"]
             self.parser.parse_args(args)
         with self.assertRaises(SystemExit):
-            args = ["report", "ocp", "--start-date", str(today().date()), "--azure-report-name", "report"]
+            args = ["report", "ocp", "--start-date", str(date.today()), "--azure-report-name", "report"]
             self.parser.parse_args(args)
         with self.assertRaises(SystemExit):
-            args = ["report", "ocp", "--start-date", str(today().date()), "--gcp-report-prefix", "gcp-report"]
+            args = ["report", "ocp", "--start-date", str(date.today()), "--gcp-report-prefix", "gcp-report"]
             self.parser.parse_args(args)
 
     @patch.dict(os.environ, {"INSIGHTS_ACCOUNT_ID": "12345", "INSIGHTS_ORG_ID": "54321"})
@@ -180,7 +179,7 @@ class CommandLineTestCase(TestCase):
             "report",
             "ocp",
             "--start-date",
-            str(today().date()),
+            str(date.today()),
             "--insights-upload",
             "true",
             "--ocp-cluster-id",
@@ -200,7 +199,7 @@ class CommandLineTestCase(TestCase):
             "report",
             "ocp",
             "--start-date",
-            str(today().date()),
+            str(date.today()),
             "--insights-upload",
             "true",
             "--ocp-cluster-id",
@@ -230,7 +229,7 @@ class CommandLineTestCase(TestCase):
         """
         Test where user passes ocp without insights upload.
         """
-        args = ["report", "ocp", "--start-date", str(today().date()), "--ocp-cluster-id", "132"]
+        args = ["report", "ocp", "--start-date", str(date.today()), "--ocp-cluster-id", "132"]
         options = vars(self.parser.parse_args(args))
         is_valid, _ = _validate_provider_inputs(self.parser, options)
         self.assertTrue(is_valid)
@@ -256,9 +255,8 @@ class CommandLineTestCase(TestCase):
         """
         Test to load static report data from option.
         """
-        options = {}
-        options["start_date"] = date.today()
-        options["static_report_file"] = "tests/aws_static_report.yml"
+        options = {"start_date": date.today(), "static_report_file": "tests/aws_static_report.yml"}
+
         _load_static_report_data(options)
         self.assertIsNotNone(options["static_report_data"])
         self.assertIsNotNone(options["start_date"])
@@ -272,8 +270,7 @@ class CommandLineTestCase(TestCase):
         """
         Test to load static report data from option with no start date.
         """
-        options = {}
-        options["static_report_file"] = "tests/aws_static_report.yml"
+        options = {"static_report_file": "tests/aws_static_report.yml"}
         _load_static_report_data(options)
         self.assertIsNotNone(options.get("start_date"))
         self.assertIsNotNone(options.get("end_date"))
@@ -283,13 +280,13 @@ class CommandLineTestCase(TestCase):
         Test where user args from azure, ocp, and aws when creating gcp data.
         """
         with self.assertRaises(SystemExit):
-            args = ["report", "gcp", "--start-date", str(today().date()), "--azure-account-name", "account"]
+            args = ["report", "gcp", "--start-date", str(date.today()), "--azure-account-name", "account"]
             self.parser.parse_args(args)
         with self.assertRaises(SystemExit):
-            args = ["report", "gcp", "--start-date", str(today().date()), "--aws-s3-bucket-name", "mybucket"]
+            args = ["report", "gcp", "--start-date", str(date.today()), "--aws-s3-bucket-name", "mybucket"]
             self.parser.parse_args(args)
         with self.assertRaises(SystemExit):
-            args = ["report", "gcp", "--start-date", str(today().date()), "--ocp-cluster-id", "123"]
+            args = ["report", "gcp", "--start-date", str(date.today()), "--ocp-cluster-id", "123"]
             self.parser.parse_args(args)
 
     def test_no_provider_type_fail(self):

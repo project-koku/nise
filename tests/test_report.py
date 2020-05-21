@@ -788,8 +788,8 @@ class OCPReportTestCase(TestCase):
                                 "node_name": "alpha",
                                 "cpu_cores": 2,
                                 "memory_gig": 4,
-                                "start_date": str(now),
-                                "end_date": str(now),
+                                "start_date": str(yesterday.date()),
+                                "end_date": str(now.date()),
                                 "namespaces": {
                                     "namespace_ci": {
                                         "pods": [

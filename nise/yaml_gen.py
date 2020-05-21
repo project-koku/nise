@@ -11,7 +11,6 @@ STATIC_DIR = os.path.join(os.path.dirname(FILE_DIR), "nise/yaml_generators/stati
 GENERATOR_MAP = {"AWS": AWSGenerator(), "OCP": OCPGenerator()}
 
 LOG = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO, format="%(asctime)s : %(name)s : %(levelname)s : %(message)s")
 
 
 class DateRangeArgsError(Exception):
