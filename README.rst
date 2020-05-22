@@ -108,30 +108,35 @@ To generate Cost and Usage report data, first provide the `report` positional_ar
     -h, --help           show this help message and exit
 
 Each provider type accepts common arguments:
-- *--start-date YYYY-MM-dd* (not supplied, if using --static-report-file yaml)
-- *--end-date YYYY-MM-dd* (optional, defaults to today and current hour)
-- *--file-row-limit row_limit* (optional, default is 100,000) Note: Splits AWS and OCP report files to be no larger than row_limit.
-- *--write-monthly* (optional, writes monthly files)
-- *--static-report-file file_name* (optional) Note: Static report generation based on specified yaml file.  See example_aws[ocp]_static_data.yml for examples.
+
+- ``--start-date YYYY-MM-dd`` (not supplied, if using ``--static-report-file yaml``)
+- ``--end-date YYYY-MM-dd`` (optional, defaults to today and current hour)
+- ``--file-row-limit row_limit`` (optional, default is ``100,000``) Note: Splits AWS and OCP report files to be no larger than ``row_limit``.
+- ``--write-monthly`` (optional, writes monthly files)
+- ``--static-report-file file_name`` (optional) Note: Static report generation based on specified yaml file.  See ``example_aws[ocp]_static_data.yml`` for examples.
 
 And, each provider accepts arguments unique to the provider:
-AWS
----
-- *--aws-s3-bucket-name bucket_name*  (optional, must include --aws-s3-report-name) Note: Use local directory path to populate a "local S3 bucket".
-- *--aws-s3-report-name report_name*  (optional, must include --aws-s3-bucket-name)
-- *--aws-s3-report-prefix prefix_name*  (optional)
-- *--aws-finalize finalize_choice* (optional, choices: ['copy', 'overwrite'])
-Azure
----
-- *--azure-container-name
-- *--azure-report-name
-- *--azure-report-prefix
-OCP
----
-- *--ocp-cluster-id cluster-id* (required when providing ocp type)
-- *--insights-upload UPLOAD_URL* (optional) Note: Use local directory path to populate a "local upload directory".
-GCP
----
+
+**AWS**
+
+- ``--aws-s3-bucket-name bucket_name``  (optional, must include ``--aws-s3-report-name``) Note: Use local directory path to populate a "local S3 bucket".
+- ``--aws-s3-report-name report_name``  (optional, must include ``--aws-s3-bucket-name``)
+- ``--aws-s3-report-prefix prefix_name``  (optional)
+- ``--aws-finalize finalize_choice`` (optional, choices: ['copy', 'overwrite'])
+
+**Azure**
+
+- ``--azure-container-name``
+- ``--azure-report-name``
+- ``--azure-report-prefix``
+
+**OCP**
+
+- ``--ocp-cluster-id cluster-id`` (required)
+- ``--insights-upload UPLOAD_URL`` (optional) Note: Use local directory path to populate a "local upload directory".
+
+**GCP**
+
 - *--gcp-report-prefix prefix_name*  (optional)
 - *--gcp-bucket-name bucket_name*  (optional, see example usage below)
 
