@@ -81,7 +81,7 @@ After that, make sure to increment the version in setup.py. As soon as your PR i
 Finer Publishing Details
 ________________________
 
-All of the deployment is driven entirely by Travis, so if issues ever crop up, start in ``.travis.yml``. Non-master branches will run test code and build stages, while master will run those two in addition to the deploy stage assuming the previous two stages succeed. There are three things that must happen before a deployment is successful, a successful artifact build, dependencies verified in sync between the requirements files, and setup.py, and the tag must not yet exist in git. The dependency syncing/verification is done with the `pipenv-setup <https://github.com/Madoshakalaka/pipenv-setup>`_ tool. After the artifact is deployed, it'll be available at `PyPI <https://pypi.org/project/koku-nise/#history>`_.
+All of the deployment is driven entirely by a Github Action workflow, so if issues ever crop up, start in ``publish-to-pypi.yml``. Non-master branches will run test code and build stages, while master will run those two in addition to the deploy stage assuming the previous two stages succeed. There are three things that must happen before a deployment is successful, a successful artifact build, dependencies verified in sync between the requirements files, and setup.py, and the tag must not yet exist in git. The dependency syncing/verification is done with the `pipenv-setup <https://github.com/Madoshakalaka/pipenv-setup>`_ tool. After the artifact is deployed, it'll be available at `PyPI <https://pypi.org/project/koku-nise/#history>`_.
 
 Prereqs
 ===========
@@ -92,20 +92,49 @@ Usage
 ===========
 nise is a command line tool. Currently only accepting a limited number of arguments:
 
+To generate Cost and Usage report data, first provide the `report` positional_argument followed by the provider type::
+
+    $ nise report --help
+    usage: nise report [-h] {aws,azure,gcp,ocp} ...
+
+    positional arguments:
+    {aws,azure,gcp,ocp}
+        aws                create the AWS reports
+        azure              create the Azure reports
+        gcp                create the GCP reports
+        ocp                create the OCP reports
+
+    optional arguments:
+    -h, --help           show this help message and exit
+
+Each provider type accepts common arguments:
 - *--start-date YYYY-MM-dd* (not supplied, if using --static-report-file yaml)
 - *--end-date YYYY-MM-dd* (optional, defaults to today and current hour)
 - *--file-row-limit row_limit* (optional, default is 100,000) Note: Splits AWS and OCP report files to be no larger than row_limit.
-- (--aws | --ocp | --gcp | --azure) required provider type
+- *--write-monthly* (optional, writes monthly files)
+- *--static-report-file file_name* (optional) Note: Static report generation based on specified yaml file.  See example_aws[ocp]_static_data.yml for examples.
+
+And, each provider accepts arguments unique to the provider:
+AWS
+---
 - *--aws-s3-bucket-name bucket_name*  (optional, must include --aws-s3-report-name) Note: Use local directory path to populate a "local S3 bucket".
 - *--aws-s3-report-name report_name*  (optional, must include --aws-s3-bucket-name)
 - *--aws-s3-report-prefix prefix_name*  (optional)
 - *--aws-finalize finalize_choice* (optional, choices: ['copy', 'overwrite'])
+Azure
+---
+- *--azure-container-name
+- *--azure-report-name
+- *--azure-report-prefix
+OCP
+---
 - *--ocp-cluster-id cluster-id* (required when providing ocp type)
 - *--insights-upload UPLOAD_URL* (optional) Note: Use local directory path to populate a "local upload directory".
-- *--static-report-file file_name* (optional) Note: Static report generation based on specified yaml file.  See example_aws[ocp]_static_data.yml for examples.
+GCP
+---
 - *--gcp-report-prefix prefix_name*  (optional)
 - *--gcp-bucket-name bucket_name*  (optional, see example usage below)
-- *--write-monthly* (optional, writes monthly files)
+
 
 Note: If `--aws-s3-report-name` or `--aws-s3-report-prefix` are specified they should match what is configured in the AWS cost usage report settings.
 
