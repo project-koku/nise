@@ -169,7 +169,7 @@ def create_parser():
     parent_parser = argparse.ArgumentParser()
     parent_parser.add_argument(
         "--start-date",
-        metavar="DATE",
+        metavar="YYYY-MM-DD",
         dest="start_date",
         required=False,
         type=valid_date,
@@ -177,7 +177,7 @@ def create_parser():
     )
     parent_parser.add_argument(
         "--end-date",
-        metavar="DATE",
+        metavar="YYYY-MM-DD",
         dest="end_date",
         required=False,
         type=valid_date,
