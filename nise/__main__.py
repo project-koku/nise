@@ -162,8 +162,8 @@ def create_parser():
     """Create the parser for incoming data."""
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(dest="command")
-    report_parser = subparsers.add_parser("report")
-    yaml_parser = subparsers.add_parser("yaml")
+    report_parser = subparsers.add_parser("report", help="Generate fake cost usage reports.")
+    yaml_parser = subparsers.add_parser("yaml", help="Generate a yaml for creating cost usage reports.")
 
     add_yaml_parser_args(yaml_parser)
 

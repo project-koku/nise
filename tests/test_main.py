@@ -27,6 +27,13 @@ from nise.__main__ import main
 from nise.__main__ import valid_date
 
 
+class MockNamespace:
+    """Mock namespace for tests."""
+
+    def __init__(self, command=None):
+        self.command = command
+
+
 class CommandLineTestCase(TestCase):
     """
     Base TestCase class, sets up a CLI parser
@@ -44,20 +51,21 @@ class CommandLineTestCase(TestCase):
         out_date = valid_date(date_str)
         self.assertEqual(date_obj, out_date.date())
 
-    def test_with_empty_args(self):
+    @patch("nise.__main__.argparse.ArgumentParser.parse_args")
+    def test_with_empty_args(self, mock_args):
         """
         User passes no args, should fail with SystemExit
         """
         with self.assertRaises(SystemExit):
-            options = {"provider": None}
-            _validate_provider_inputs(self.parser, options)
+            mock_args.return_value = MockNamespace()
+            main()
 
     def test_invalid_start(self):
         """
         Test where user passes an invalid date format.
         """
         with self.assertRaises(SystemExit):
-            self.parser.parse_args(["report", "--start-date", "foo"])
+            self.parser.parse_args(["report", "ocp", "--start-date", "foo"])
 
     def test_valid_s3_no_input(self):
         """
@@ -214,7 +222,17 @@ class CommandLineTestCase(TestCase):
         Test where user passes an invalid ocp argument combination.
         """
         with self.assertRaises(SystemExit):
-            options = {"ocp": True, "insights_upload": "true", "ocp_cluster_id": "123"}
+            args = [
+                "report",
+                "ocp",
+                "--start-date",
+                str(date.today()),
+                "--insights-upload",
+                "true",
+                "--ocp-cluster-id",
+                "123",
+            ]
+            options = vars(self.parser.parse_args(args))
             _validate_provider_inputs(self.parser, options)
 
     def test_ocp_no_cluster_id(self):
@@ -222,7 +240,8 @@ class CommandLineTestCase(TestCase):
         Test where user passes ocp without cluster id combination.
         """
         with self.assertRaises(SystemExit):
-            options = {"ocp": True}
+            args = ["report", "ocp", "--start-date", str(date.today())]
+            options = vars(self.parser.parse_args(args))
             _validate_provider_inputs(self.parser, options)
 
     def test_ocp_no_insights_upload(self):
