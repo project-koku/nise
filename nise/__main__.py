@@ -20,7 +20,6 @@ import calendar
 import datetime
 import logging
 import os
-import sys
 
 import yaml
 from dateutil import parser as date_parser
@@ -526,7 +525,7 @@ def main():
         parser.error('"yaml" or "report" argument must be specified')
     elif args.command == "yaml":
         yaml_main(args)
-        sys.exit()
+        return
     options = vars(args)
 
     if not (options.get("start_date") or options.get("static_report_file")):

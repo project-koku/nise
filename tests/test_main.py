@@ -15,6 +15,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 import argparse
+import builtins
 import os
 from datetime import date
 from unittest import TestCase
@@ -26,6 +27,14 @@ from nise.__main__ import _validate_provider_inputs
 from nise.__main__ import create_parser
 from nise.__main__ import main
 from nise.__main__ import valid_date
+
+
+class MockGen:
+    def init_config(self, *args, **kwargs):
+        return
+
+    def process_template(self, *args, **kwargs):
+        return
 
 
 class CommandLineTestCase(TestCase):
@@ -53,6 +62,20 @@ class CommandLineTestCase(TestCase):
         with self.assertRaises(SystemExit):
             mock_args.return_value = argparse.Namespace(command=None)
             main()
+
+    def test_main_with_report_args(self):
+        """
+        Test main returns None with valid args.
+        """
+        args = ["report", "aws", "--start-date", str(date.today())]
+        parsed_args = self.parser.parse_args(args)
+        options = vars(parsed_args)
+        with patch("nise.__main__.run"):
+            with patch.object(builtins, "vars") as mock_options:
+                with patch("nise.__main__.argparse.ArgumentParser.parse_args") as mock_args:
+                    mock_args.return_value = parsed_args
+                    mock_options.return_value = options
+                    self.assertIsNone(main())
 
     def test_invalid_start(self):
         """
@@ -309,3 +332,29 @@ class CommandLineTestCase(TestCase):
         with self.assertRaises(SystemExit):
             options = {}
             _validate_provider_inputs(self.parser, options)
+
+    def test_yml_valid(self):
+        """Test the yaml parser."""
+        args = ["yaml", "-p", "ocp", "-o", "large.yml"]
+        self.parser.parse_args(args)
+
+    def test_yml_invalid(self):
+        """Test the yaml parser."""
+        arg_options = [["-p" "ocp"], ["-o", "large.yml"]]
+        for option in arg_options:
+            with self.subTest(additional_options=option), self.assertRaises(SystemExit):
+                args = ["yaml", "-p"] + option
+                self.parser.parse_args(args)
+
+    def test_main_with_yaml_args(self):
+        """Test main returns None with valid args."""
+        args = ["yaml", "-p", "aws", "-o", "large.yml"]
+        parsed_args = self.parser.parse_args(args)
+        options = vars(parsed_args)
+        with patch("nise.yaml_gen.GENERATOR_MAP") as mock_get:
+            mock_get.return_value = MockGen()
+            with patch.object(builtins, "vars") as mock_options:
+                with patch("nise.__main__.argparse.ArgumentParser.parse_args") as mock_args:
+                    mock_args.return_value = parsed_args
+                    mock_options.return_value = options
+                    self.assertIsNone(main())

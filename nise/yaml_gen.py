@@ -118,7 +118,7 @@ def yaml_main(args):
     generator = GENERATOR_MAP.get(args.provider.upper())
     if not generator:
         LOG.warning("Provider import not found.")
-        exit()
+        return
 
     config = generator.init_config(args)
     generator.process_template(args, config)
