@@ -228,13 +228,13 @@ class AWSGenerator(Generator):
             end_date=default_date.replace(day=last_day_of_month),
             max_name_words=2,
             max_resource_id_length=10,
-            max_data_transfer_gens=10,
-            max_ebs_gens=10,
-            max_ec2_gens=10,
-            max_rds_gens=10,
-            max_route53_gens=10,
-            max_s3_gens=10,
-            max_vpc_gens=10,
+            max_data_transfer_gens=1,
+            max_ebs_gens=1,
+            max_ec2_gens=1,
+            max_rds_gens=1,
+            max_route53_gens=1,
+            max_s3_gens=1,
+            max_vpc_gens=1,
         )
 
     def validate_config(self, config):

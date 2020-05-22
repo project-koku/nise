@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
+import argparse
 import os
 from datetime import date
 from unittest import TestCase
@@ -25,13 +26,6 @@ from nise.__main__ import _validate_provider_inputs
 from nise.__main__ import create_parser
 from nise.__main__ import main
 from nise.__main__ import valid_date
-
-
-class MockNamespace:
-    """Mock namespace for tests."""
-
-    def __init__(self, command=None):
-        self.command = command
 
 
 class CommandLineTestCase(TestCase):
@@ -57,7 +51,7 @@ class CommandLineTestCase(TestCase):
         User passes no args, should fail with SystemExit
         """
         with self.assertRaises(SystemExit):
-            mock_args.return_value = MockNamespace()
+            mock_args.return_value = argparse.Namespace(command=None)
             main()
 
     def test_invalid_start(self):
