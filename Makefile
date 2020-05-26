@@ -40,3 +40,6 @@ lint:
 
 run-iqe:
 	cd scripts; ./iqe_container.sh $(IQE_CMD)
+
+run-iqe-local:
+	cd scripts; ./local_iqe_container.sh $(IQE_CMD)
