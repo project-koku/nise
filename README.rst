@@ -165,6 +165,10 @@ Note: `--static-report-file` usage dates has a special `full_period` key value w
 
 AWS
 ---
+
+``report``
+~~~~~~~~~~
+
 Generated reports will be generated in monthly .csv files with the file format <Month>-<Year>-<Report Name>.csv.
 
 To generate completely random data and save the report files in the local directory, simply supply a ``--start-date YYYY-MM-DD`` and ``--write-monthly``::
@@ -186,6 +190,23 @@ To move put the generated data into a specific local directory, supply ``--aws-s
 To generate static data, supply a ``--static-report-file YAML_NAME``. And example yaml is found in ``example_aws_static_data.yml``::
 
     nise --aws --static-report-file example_aws_static_data.yml
+
+``yaml``
+~~~~~~~~
+
+To generate a yaml file which can be used to generate cost and usage reports we must supply 2 required arguments: ``-o output`` and ``-p provider``. The output is the output file location and the provider is the provider type (currently only AWS or OCP). The following command will output a yaml in the local directory using the default parameters of 1 of each AWS generator.
+
+    nise yaml -o yaml_for_aws.yml -p AWS
+
+To use the built in large yaml generator config found in nise/yaml_generators/static, use this command::
+
+    nise yaml -o large_aws.yml -p AWS -c default
+
+To use a user defined configuration, use this command::
+
+    nise yaml -o aws.yml -p AWS -c /path/to/config
+
+The ``-r, --random`` flag can be added which will add a number of generators between 1 and the maximum defined in the configuration file. Start and end dates can be provided and they will overwrite the dates specified in the configuration. A user defined template may also be passed in using the ``-t /path/to/template`` flag. If a template is not passed in, the default found in ``nise/yaml_generators/static`` will be used.
 
 OCP
 ---
