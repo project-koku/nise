@@ -31,6 +31,8 @@ jobs:
           VERSION=$(python setup.py --version)
           if [ ! -z $(git tag -l "${VERSION}") ]; then
             echo "Tag already exists, doing nothing";
+          elif [ -z "$(pipenv-setup check)" ]; then
+            echo "setup.py out of sync with Pipfile"
           else
             echo "Creating tag ${VERSION}";
             git config --local user.email "cost-mgmt@redhat.com"
