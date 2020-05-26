@@ -193,7 +193,7 @@ To generate static data, supply a ``--static-report-file YAML_NAME``. And exampl
 AWS yamls
 ---------
 
-To generate a yaml file which can be used to generate cost and usage reports we must supply 2 required arguments: ``-o output`` and ``-p provider``. The output is the output file location and the provider is the provider type (currently only AWS or OCP). The following command will output a yaml in the local directory using the default parameters of 1 of each AWS generator.
+To generate a yaml file which can be used to generate cost and usage reports we must supply 2 required arguments: ``-o output`` and ``-p provider``. The output is the output file location and the provider is the provider type (currently only AWS or OCP). The following command will output a yaml in the local directory using the default parameters of 1 of each AWS generator::
 
     nise yaml -o yaml_for_aws.yml -p AWS
 
