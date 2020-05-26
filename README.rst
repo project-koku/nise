@@ -3,14 +3,15 @@ Nise README
 ===========
 |license| |PyPI| |Build Status| |Unittests| |codecov| |Updates|
 
-~~~~~
+-----
 About
-~~~~~
+-----
 
 A tool for generating sample cost and usage data for testing purposes.
 
+---------------
 Getting Started
-===============
+---------------
 
 This is a Python project developed using Python 3.6. Make sure you have at least this version installed.
 
@@ -84,12 +85,13 @@ ________________________
 All of the deployment is driven entirely by a Github Action workflow, so if issues ever crop up, start in ``publish-to-pypi.yml``. When a branch is merged into master, the Action will kick off. There are three things that must happen before a deployment is successful, a successful artifact build, dependencies verified in sync between the requirements files, and setup.py, and the tag must not yet exist in git. The dependency syncing/verification is done with the `pipenv-setup <https://github.com/Madoshakalaka/pipenv-setup>`_ tool. After the artifact is deployed, it'll be available at `PyPI <https://pypi.org/project/koku-nise/#history>`_.
 
 Prereqs
-===========
+=======
 
 - AWS population requires prior setup of AWS Cost and Usage Report of same name to be created, as well as associated Bucket, Policy, Role, etc.
 
+-----
 Usage
-===========
+-----
 nise is a command line tool::
 
     Usage:
@@ -167,7 +169,7 @@ AWS
 ---
 
 ``report``
-^^^^^^^^^^
+~~~~~~~~~~
 
 Generated reports will be generated in monthly .csv files with the file format <Month>-<Year>-<Report Name>.csv.
 
@@ -192,7 +194,7 @@ To generate static data, supply a ``--static-report-file YAML_NAME``. And exampl
     nise --aws --static-report-file example_aws_static_data.yml
 
 ``yaml``
-^^^^^^^^
+~~~~~~~~
 
 To generate a yaml file which can be used to generate cost and usage reports we must supply 2 required arguments: ``-o output`` and ``-p provider``. The output is the output file location and the provider is the provider type (currently only AWS or OCP). The following command will output a yaml in the local directory using the default parameters of 1 of each AWS generator.
 
