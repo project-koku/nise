@@ -81,7 +81,7 @@ After that, make sure to increment the version in setup.py. As soon as your PR i
 Finer Publishing Details
 ________________________
 
-All of the deployment is driven entirely by a Github Action workflow, so if issues ever crop up, start in ``publish-to-pypi.yml``. Non-master branches will run test code and build stages, while master will run those two in addition to the deploy stage assuming the previous two stages succeed. There are three things that must happen before a deployment is successful, a successful artifact build, dependencies verified in sync between the requirements files, and setup.py, and the tag must not yet exist in git. The dependency syncing/verification is done with the `pipenv-setup <https://github.com/Madoshakalaka/pipenv-setup>`_ tool. After the artifact is deployed, it'll be available at `PyPI <https://pypi.org/project/koku-nise/#history>`_.
+All of the deployment is driven entirely by a Github Action workflow, so if issues ever crop up, start in ``publish-to-pypi.yml``. When a branch is merged into master, the Action will kick off. There are three things that must happen before a deployment is successful, a successful artifact build, dependencies verified in sync between the requirements files, and setup.py, and the tag must not yet exist in git. The dependency syncing/verification is done with the `pipenv-setup <https://github.com/Madoshakalaka/pipenv-setup>`_ tool. After the artifact is deployed, it'll be available at `PyPI <https://pypi.org/project/koku-nise/#history>`_.
 
 Prereqs
 ===========
@@ -183,7 +183,7 @@ To move put the generated data into a specific local directory, supply ``--aws-s
 
     nise --start-date 2018-06-20 --aws --aws-finalize copy
 
-To generate static data, supply a ``--static-report-file YAML_NAME``. And example yaml is found in ``example_aws_static_data.yml``.
+To generate static data, supply a ``--static-report-file YAML_NAME``. And example yaml is found in ``example_aws_static_data.yml``::
 
     nise --aws --static-report-file example_aws_static_data.yml
 
