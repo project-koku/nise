@@ -21,7 +21,7 @@ jobs:
       - name: Install dependencies
         run: |
           python3 -m pip install --upgrade pip
-          python3 -m pip install setuptools wheel twine
+          python3 -m pip install pipenv-setup setuptools wheel twine
       - name: Build and publish
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -31,6 +31,8 @@ jobs:
           VERSION=$(python setup.py --version)
           if [ ! -z $(git tag -l "${VERSION}") ]; then
             echo "Tag already exists, doing nothing";
+          elif [ -z "$(pipenv-setup check)" ]; then
+            echo "setup.py out of sync with Pipfile"
           else
             echo "Creating tag ${VERSION}";
             git config --local user.email "cost-mgmt@redhat.com"
