@@ -1,4 +1,3 @@
-#! /usr/bin/env python3
 #
 # Copyright 2020 Red Hat, Inc.
 #
@@ -112,11 +111,17 @@ def generate_resource_id(config, prefix="", suffix="", dynamic=True):
 
 
 def generate_tags(key, config, prefix="", suffix="", dynamic=True):
+    """Generate properly formatted AWS tags.
+    Returns:
+        list
+    """
     keys = RESOURCE_TAG_COLS.get(key)
     return [dicta(key=key, v=generate_name(config)) for key in keys]
 
 
 class AWSGenerator(Generator):
+    """YAML generator for AWS."""
+
     def build_data(self, config, _random=False):  # noqa: C901
         """
 

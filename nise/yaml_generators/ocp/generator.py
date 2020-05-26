@@ -111,6 +111,8 @@ def generate_labels(num_labels):
 
 
 class OCPGenerator(Generator):
+    """YAML generator for OCP."""
+
     def build_data(self, config, _random=False):  # noqa: C901
         """
         Build a structure to fill out a nise yaml template

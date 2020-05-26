@@ -1,4 +1,3 @@
-#! /usr/bin/env python3
 #
 # Copyright 2020 Red Hat, Inc.
 #
@@ -15,6 +14,14 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
+"""Select regions.
+
+The tmp_REGIONS currently not used. Need to update
+https://github.com/project-koku/nise/blob/master/nise/generators/aws/aws_generator.py#L184
+in order to unlock the additional regions.
+
+"""
+
 REGIONS = ["us-east-1", "us-east-1", "us-west-1", "us-west-1", "us-west-2", "us-west-2"]
 
 tmp_REGIONS = [
