@@ -29,7 +29,6 @@ from nise.generators.aws import Route53Generator
 from nise.generators.aws import S3Generator
 from nise.generators.aws import VPCGenerator
 
-# from nise.generators.generator import AbstractGenerator
 
 
 class TestGenerator(AWSGenerator):
@@ -206,10 +205,6 @@ class AWSGeneratorTestCase(TestCase):
 
 class TestRDSGenerator(AWSGeneratorTestCase):
     """Tests for the RDS Generator type."""
-
-    # def setUp(self):
-    #     """Set up each test."""
-    #     super().setUp()
 
     def test_init_no_attributes(self):
         """Test the init wihout attributes."""
