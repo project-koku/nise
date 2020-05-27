@@ -1,3 +1,21 @@
+#
+# Copyright 2020 Red Hat, Inc.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+"""Create yaml CLI parser."""
+import argparse
 import logging
 import os
 
@@ -17,46 +35,19 @@ class DateRangeArgsError(Exception):
     pass
 
 
-def add_yaml_parser_args(yaml_parser):
-    """
-    Initialize the argument parser.
-    Returns:
-        ArgumentParser
-    """
-    yaml_parser.add_argument(
-        "-o", "--output", dest="output_file_name", type=str, required=True, metavar="FILE", help="Output file path."
-    )
-    yaml_parser.add_argument(
-        "-c", "--config", dest="config_file_name", type=str, required=False, metavar="CONF", help="Config file path."
-    )
-    yaml_parser.add_argument(
-        "-t",
-        "--template",
-        dest="template_file_name",
-        type=str,
-        required=False,
-        metavar="TMPL",
-        help="Template file path.",
-    )
-    yaml_parser.add_argument(
-        "-s",
-        "--start-date",
-        dest="start_date",
-        type=str,
-        required=False,
-        metavar="YYYY-MM-DD",
-        help="Start date (overrides template, default is first day of last month)",
-    )
-    yaml_parser.add_argument(
-        "-e",
-        "--end-date",
-        dest="end_date",
-        type=str,
-        required=False,
-        metavar="YYYY-MM-DD",
-        help="End date (overrides template, default is last day of current month)",
-    )
-    yaml_parser.add_argument(
+def add_aws_args(parser):
+    """Add AWS specific parser args."""
+    pass
+
+
+def add_azure_args(parser):
+    """Add Azure specific parser args."""
+    pass
+
+
+def add_ocp_args(parser):
+    """Add OCP specific parser args."""
+    parser.add_argument(
         "-n",
         "--num-nodes",
         dest="num_nodes",
@@ -65,7 +56,49 @@ def add_yaml_parser_args(yaml_parser):
         metavar="INT",
         help="Number of nodes to generate (overrides template, default is 1)",
     )
-    yaml_parser.add_argument(
+
+
+def add_yaml_parser_args(yaml_parser):
+    """
+    Initialize the argument parser.
+    Returns:
+        ArgumentParser
+    """
+    parent_parser = argparse.ArgumentParser()
+    parent_parser.add_argument(
+        "-o", "--output", dest="output_file_name", type=str, required=True, metavar="FILE", help="Output file path."
+    )
+    parent_parser.add_argument(
+        "-c", "--config", dest="config_file_name", type=str, required=False, metavar="CONF", help="Config file path."
+    )
+    parent_parser.add_argument(
+        "-t",
+        "--template",
+        dest="template_file_name",
+        type=str,
+        required=False,
+        metavar="TMPL",
+        help="Template file path.",
+    )
+    parent_parser.add_argument(
+        "-s",
+        "--start-date",
+        dest="start_date",
+        type=str,
+        required=False,
+        metavar="YYYY-MM-DD",
+        help="Start date (overrides template, default is first day of last month)",
+    )
+    parent_parser.add_argument(
+        "-e",
+        "--end-date",
+        dest="end_date",
+        type=str,
+        required=False,
+        metavar="YYYY-MM-DD",
+        help="End date (overrides template, default is last day of current month)",
+    )
+    parent_parser.add_argument(
         "-r",
         "--random",
         dest="random",
@@ -74,9 +107,20 @@ def add_yaml_parser_args(yaml_parser):
         default=False,
         help="Randomize the number of nodes, namespaces, pods, volumes, volume-claims (default is False)",
     )
-    yaml_parser.add_argument(
-        "-p", "--provider", dest="provider", type=str, required=True, help="The provider type (AWS or OCP)"
+    yaml_subparser = yaml_parser.add_subparsers(dest="provider")
+    aws_parser = yaml_subparser.add_parser(
+        "aws", parents=[parent_parser], add_help=False, description="The AWS parser", help="create the AWS yamls"
     )
+    azure_parser = yaml_subparser.add_parser(
+        "azure", parents=[parent_parser], add_help=False, description="The Azure parser", help="create the Azure yamls"
+    )
+    ocp_parser = yaml_subparser.add_parser(
+        "ocp", parents=[parent_parser], add_help=False, description="The OCP parser", help="create the OCP yamls"
+    )
+
+    add_aws_args(aws_parser)
+    add_azure_args(azure_parser)
+    add_ocp_args(ocp_parser)
 
     return yaml_parser
 
