@@ -20,6 +20,7 @@ import csv
 import datetime
 import json
 import os
+import re
 import shutil
 from tempfile import mkdtemp
 from tempfile import NamedTemporaryFile
@@ -527,8 +528,13 @@ class AWSReportTestCase(TestCase):
 
         self.assertTrue(os.path.isfile(expected_month_output_file_1))
         self.assertTrue(os.path.isfile(expected_month_output_file_2))
-        os.remove(expected_month_output_file_1)
-        os.remove(expected_month_output_file_2)
+
+        # cleanup any leftover files
+        regex = re.compile(month_output_file_name)
+        for _, _, files in os.walk("."):
+            for fname in files:
+                if regex.match(fname):
+                    os.remove(fname)
         shutil.rmtree(local_bucket_path)
 
 
@@ -848,10 +854,14 @@ class OCPReportTestCase(TestCase):
             expected_month_output_file_2 = "{}/{}.csv".format(os.getcwd(), month_output_file_pt_2)
 
             self.assertTrue(os.path.isfile(expected_month_output_file_1))
-            os.remove(expected_month_output_file_1)
-
             self.assertTrue(os.path.isfile(expected_month_output_file_2))
-            os.remove(expected_month_output_file_2)
+
+            # cleanup any leftover files
+            regex = re.compile(month_output_file_name)
+            for _, _, files in os.walk("."):
+                for fname in files:
+                    if regex.match(fname):
+                        os.remove(fname)
 
         shutil.rmtree(local_insights_upload)
 
