@@ -140,12 +140,13 @@ def _tar_gzip_report(temp_dir):
 
 def _tar_gzip_report_files(file_list):
     """Compress the file list to a tarfile."""
-    t_directory = TemporaryDirectory()
-    for report_file in file_list:
-        temp_path = os.path.join(t_directory.name, os.path.basename(report_file))
-        shutil.copy2(report_file, temp_path)
+    with TemporaryDirectory() as t_directory:
+        for report_file in file_list:
+            temp_path = os.path.join(t_directory, os.path.basename(report_file))
+            shutil.copy2(report_file, temp_path)
+        fname = _tar_gzip_report(t_directory)
 
-    return _tar_gzip_report(t_directory.name)
+    return fname
 
 
 def _write_manifest(data):

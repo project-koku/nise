@@ -18,11 +18,8 @@ import argparse
 import builtins
 import os
 from datetime import date
-<<<<<<< HEAD
-=======
 from datetime import datetime
 from datetime import timedelta
->>>>>>> add azure date specific test
 from unittest import TestCase
 from unittest.mock import patch
 
@@ -316,8 +313,6 @@ class CommandLineTestCase(TestCase):
         self.assertIsNotNone(options.get("start_date"))
         self.assertIsNotNone(options.get("end_date"))
 
-<<<<<<< HEAD
-=======
     def test_load_static_report_data_azure_dates(self):
         """Test correct dates for Azure.
 
@@ -344,7 +339,6 @@ class CommandLineTestCase(TestCase):
             str(datetime.now().replace(microsecond=0, second=0, minute=0) + timedelta(hours=24)),
         )
 
->>>>>>> add azure date specific test
     def test_invalid_gcp_inputs(self):
         """
         Test where user args from azure, ocp, and aws when creating gcp data.
