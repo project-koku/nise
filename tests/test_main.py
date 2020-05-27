@@ -363,20 +363,20 @@ class CommandLineTestCase(TestCase):
 
     def test_yml_valid(self):
         """Test the yaml parser."""
-        args = ["yaml", "-p", "ocp", "-o", "large.yml"]
+        args = ["yaml", "ocp", "-o", "large.yml"]
         self.parser.parse_args(args)
 
     def test_yml_invalid(self):
         """Test the yaml parser."""
-        arg_options = [["-p" "ocp"], ["-o", "large.yml"]]
+        arg_options = [["ocp"], ["ocp", "-o"]]
         for option in arg_options:
             with self.subTest(additional_options=option), self.assertRaises(SystemExit):
-                args = ["yaml", "-p"] + option
+                args = ["yaml"] + option
                 self.parser.parse_args(args)
 
     def test_main_with_yaml_args(self):
         """Test main returns None with valid args."""
-        args = ["yaml", "-p", "aws", "-o", "large.yml"]
+        args = ["yaml", "aws", "-o", "large.yml"]
         parsed_args = self.parser.parse_args(args)
         options = vars(parsed_args)
         with patch("nise.yaml_gen.GENERATOR_MAP") as mock_get:
