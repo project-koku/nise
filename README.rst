@@ -3,14 +3,15 @@ Nise README
 ===========
 |license| |PyPI| |Build Status| |Unittests| |codecov| |Updates|
 
-~~~~~
+-----
 About
-~~~~~
+-----
 
 A tool for generating sample cost and usage data for testing purposes.
 
+---------------
 Getting Started
-===============
+---------------
 
 This is a Python project developed using Python 3.6. Make sure you have at least this version installed.
 
@@ -81,31 +82,72 @@ After that, make sure to increment the version in setup.py. As soon as your PR i
 Finer Publishing Details
 ________________________
 
-All of the deployment is driven entirely by Travis, so if issues ever crop up, start in ``.travis.yml``. Non-master branches will run test code and build stages, while master will run those two in addition to the deploy stage assuming the previous two stages succeed. There are three things that must happen before a deployment is successful, a successful artifact build, dependencies verified in sync between the requirements files, and setup.py, and the tag must not yet exist in git. The dependency syncing/verification is done with the `pipenv-setup <https://github.com/Madoshakalaka/pipenv-setup>`_ tool. After the artifact is deployed, it'll be available at `PyPI <https://pypi.org/project/koku-nise/#history>`_.
+All of the deployment is driven entirely by a Github Action workflow, so if issues ever crop up, start in ``publish-to-pypi.yml``. When a branch is merged into master, the Action will kick off. There are three things that must happen before a deployment is successful, a successful artifact build, dependencies verified in sync between the requirements files, and setup.py, and the tag must not yet exist in git. The dependency syncing/verification is done with the `pipenv-setup <https://github.com/Madoshakalaka/pipenv-setup>`_ tool. After the artifact is deployed, it'll be available at `PyPI <https://pypi.org/project/koku-nise/#history>`_.
 
 Prereqs
-===========
+=======
 
 - AWS population requires prior setup of AWS Cost and Usage Report of same name to be created, as well as associated Bucket, Policy, Role, etc.
 
+-----
 Usage
-===========
-nise is a command line tool. Currently only accepting a limited number of arguments:
+-----
+nise is a command line tool::
 
-- *--start-date YYYY-MM-dd* (not supplied, if using --static-report-file yaml)
-- *--end-date YYYY-MM-dd* (optional, defaults to today and current hour)
-- *--file-row-limit row_limit* (optional, default is 100,000) Note: Splits AWS and OCP report files to be no larger than row_limit.
-- (--aws | --ocp | --gcp | --azure) required provider type
-- *--aws-s3-bucket-name bucket_name*  (optional, must include --aws-s3-report-name) Note: Use local directory path to populate a "local S3 bucket".
-- *--aws-s3-report-name report_name*  (optional, must include --aws-s3-bucket-name)
-- *--aws-s3-report-prefix prefix_name*  (optional)
-- *--aws-finalize finalize_choice* (optional, choices: ['copy', 'overwrite'])
-- *--ocp-cluster-id cluster-id* (required when providing ocp type)
-- *--insights-upload UPLOAD_URL* (optional) Note: Use local directory path to populate a "local upload directory".
-- *--static-report-file file_name* (optional) Note: Static report generation based on specified yaml file.  See example_aws[ocp]_static_data.yml for examples.
-- *--gcp-report-prefix prefix_name*  (optional)
-- *--gcp-bucket-name bucket_name*  (optional, see example usage below)
-- *--write-monthly* (optional, writes monthly files)
+    Usage:
+        nise ( report | yaml )
+        nise report ( AWS | Azure | GCP | OCP ) [options]
+        nise yaml [options]
+
+    Report Options:
+        --start-date YYYY-MM-DD             optional, not supplied if using --static-report-file FILE_NAME
+        --end-date YYYY-MM-DD               optional, defaults to today and current hour
+        --file-row-limit ROW_LIMIT          optional, default is 100,000. AWS and OCP only. Multiple reports
+                                            will be generated with line counts not exceeding the ROW_LIMIT.
+        --static-report-file YAML_NAME      optional, static report generation based on specified yaml file.
+                                            See example_[provider]_static_data.yml for examples.
+        --write-monthly                     optional, keep the generated report files.
+
+    AWS Report Options:
+        --aws-s3-bucket-name BUCKET_NAME            optional, must include --aws-s3-report-name.
+                                                    Use local directory path to populate a "local S3 bucket".
+        --aws-s3-report-name REPORT_NAME            optional, must include --aws-s3-bucket-name.
+        --aws-s3-report-prefix PREFIX_NAME          optional
+        --aws-finalize ( copy | overwrite )         optional, finalize choice
+
+    Azure Report Options:
+        --azure-container-name
+        --azure-report-name
+        --azure-report-prefix
+
+    GCP Report Options:
+        --gcp-report-prefix PREFIX_NAME
+        --gcp-bucket-name BUCKET_NAME
+
+    OCP Report Options:
+        --ocp-cluster-id CLUSTER_ID             REQUIRED
+        --insights-upload UPLOAD_URL            optional, Use local directory path to populate a
+                                                "local upload directory".
+
+    YAML Options:
+        -p, --provider ( aws | ocp )            REQUIRED, currently only AWS and OCP are supported.
+        -o, --output YAML_NAME                  REQUIRED, Output file path (i.e "large.yml").
+        -c, --config ( CONFIG | default )       optional, Config file path. If "default" is provided,
+                                                use internal config file
+        -s, --start-date YYYY-MM-DD             optional, must include --end-date
+                                                    Start date (overrides template, default is first
+                                                    day of last month)
+        -e, --end-date YYYY-MM-DD               optional, must include --start-date
+                                                    End date (overrides template, default is last day
+                                                    of current month)
+        -n, --num-nodes INT                     optional, Number of nodes to generate (used with OCP
+                                                only; overrides template, default is 1)
+        -r, --random                            optional, default=False
+                                                    Randomize the number of
+                                                        AWS: data generators
+                                                        OCP: nodes, namespaces, pods, volumes, volume-claims
+        -t, --template template                 optional, Template file path.
+
 
 Note: If `--aws-s3-report-name` or `--aws-s3-report-prefix` are specified they should match what is configured in the AWS cost usage report settings.
 
@@ -119,24 +161,51 @@ Note: If `--static-report-file` is used start_date will default to first day of 
 
 Note: `--static-report-file` usage dates has a special `full_period` key value which will specify a usage for the entire `start_date - end_date` range.
 
-AWS
----
 
-Below is an example usage of ``nise`` for AWS data::
+``nise`` examples
+=================
 
-    nise --start-date 2018-06-03 --aws
+AWS reports
+-----------
 
-    nise --start-date 2018-06-20 --aws --aws-s3-bucket-name testbucket --aws-s3-report-name cur
+Generated reports will be generated in monthly .csv files with the file format <Month>-<Year>-<Report Name>.csv.
 
-    nise --start-date 2018-06-20 --aws --aws-s3-bucket-name /local/path/testbucket --aws-s3-report-name cur
+To generate completely random data and save the report files in the local directory, simply supply a ``--start-date YYYY-MM-DD`` and ``--write-monthly``::
 
-    nise --start-date 2018-06-20 --aws --aws-s3-bucket-name /local/path/testbucket --aws-s3-report-name cur --aws-s3-report-prefix my-prefix
+    nise report aws --start-date 2020-05-03 --write-monthly
+
+To upload data to an AWS bucket::
+
+    nise report aws start-date 2020-05-03 --aws-s3-bucket-name testbucket --aws-s3-report-name cur
+
+To move put the generated data into a specific local directory, supply ``--aws-s3-bucket-name`` with a ``/path/to/local/dir``::
+
+    nise report aws --start-date 2020-05-03 --aws-s3-bucket-name /local/path/testbucket --aws-s3-report-name cur
+
+    nise report aws --start-date 2020-05-03 --aws-s3-bucket-name /local/path/testbucket --aws-s3-report-name cur --aws-s3-report-prefix my-prefix
 
     nise --start-date 2018-06-20 --aws --aws-finalize copy
 
-    nise --aws --static-report-file aws_static_data.yml
+To generate static data, supply a ``--static-report-file YAML_NAME``. And example yaml is found in ``example_aws_static_data.yml``::
 
-Generated reports will be generated in monthly .csv files with the file format <Month>-<Year>-<Report Name>.csv.
+    nise --aws --static-report-file example_aws_static_data.yml
+
+AWS yamls
+---------
+
+To generate a yaml file which can be used to generate cost and usage reports we must supply 2 required arguments: ``-o output`` and ``-p provider``. The output is the output file location and the provider is the provider type (currently only AWS or OCP). The following command will output a yaml in the local directory using the default parameters of 1 of each AWS generator::
+
+    nise yaml -o yaml_for_aws.yml -p AWS
+
+To use the built in large yaml generator config found in nise/yaml_generators/static, use this command::
+
+    nise yaml -o large_aws.yml -p AWS -c default
+
+To use a user defined configuration, use this command::
+
+    nise yaml -o aws.yml -p AWS -c /path/to/config
+
+The ``-r, --random`` flag can be added which will add a number of generators between 1 and the maximum defined in the configuration file. Start and end dates can be provided and they will overwrite the dates specified in the configuration. A user defined template may also be passed in using the ``-t /path/to/template`` flag. If a template is not passed in, the default found in ``nise/yaml_generators/static`` will be used.
 
 OCP
 ---

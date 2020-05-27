@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name="koku-nise",
-    version="1.0.16",
+    version="2.0.0",
     author="Project Koku",
     author_email="cost_mgmt@redhat.com",
     description="A tool for generating sample cost and usage data for testing purposes.",
@@ -19,6 +19,9 @@ setup(
         "nise.generators.ocp",
         "nise.generators.azure",
         "nise.generators.gcp",
+        "nise.yaml_generators",
+        "nise.yaml_generators.aws",
+        "nise.yaml_generators.ocp",
     ],
     install_requires=[
         "faker>=3.0",

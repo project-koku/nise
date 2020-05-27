@@ -28,6 +28,8 @@ from nise.report import aws_create_report
 from nise.report import azure_create_report
 from nise.report import gcp_create_report
 from nise.report import ocp_create_report
+from nise.yaml_gen import add_yaml_parser_args
+from nise.yaml_gen import yaml_main
 
 LOG = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format="%(asctime)s : %(name)s : %(levelname)s : %(message)s")
@@ -52,45 +54,7 @@ def today():
     return datetime.datetime.now().replace(microsecond=0, second=0, minute=0)
 
 
-def create_parser():
-    """Create the parser for incoming data."""
-    parser = argparse.ArgumentParser()
-    provider_group = parser.add_mutually_exclusive_group(required=True)
-    parser.add_argument(
-        "--start-date",
-        metavar="DATE",
-        dest="start_date",
-        required=False,
-        type=valid_date,
-        help="Date to start generating data (YYYY-MM-DD)",
-    )
-    parser.add_argument(
-        "--end-date",
-        metavar="DATE",
-        dest="end_date",
-        required=False,
-        type=valid_date,
-        default=today(),
-        help="Date to end generating data (YYYY-MM-DD). Default is today.",
-    )
-    parser.add_argument(
-        "--file-row-limit",
-        dest="row_limit",
-        required=False,
-        type=int,
-        default=100000,
-        help="Maximum number of lines per report file. Default is 100000.",
-    )
-    provider_group.add_argument(
-        "--aws", dest="aws", action="store_true", help="Create AWS cost and usage report data."
-    )
-    provider_group.add_argument(
-        "--azure", dest="azure", action="store_true", help="Create Azure cost and usage report data."
-    )
-    provider_group.add_argument("--ocp", dest="ocp", action="store_true", help="Create OCP usage report data.")
-    provider_group.add_argument(
-        "--gcp", dest="gcp", action="store_true", help="Create GCP cost and usage report data."
-    )
+def add_aws_parser_args(parser):
     parser.add_argument(
         "--aws-s3-bucket-name",
         metavar="BUCKET_NAME",
@@ -123,6 +87,10 @@ def create_parser():
                             or \'overwrite\' to finalize the normal report files.
                             """,
     )
+
+
+def add_azure_parser_args(parser):
+
     parser.add_argument(
         "--azure-container-name",
         metavar="AZURE_CONTAINER_NAME",
@@ -145,22 +113,17 @@ def create_parser():
         help="Directory path to store data in the bucket.",
     )
     parser.add_argument(
-        "--static-report-file", dest="static_report_file", required=False, help="Generate static data based on yaml."
-    )
-    parser.add_argument(
-        "--ocp-cluster-id",
-        metavar="OCP_CLUSTER_ID",
-        dest="ocp_cluster_id",
+        "--azure-account-name",
+        metavar="AZURE_ACCOUNT_NAME",
+        dest="azure_account_name",
         required=False,
-        help="Cluster identifier for usage data.",
+        default=os.getenv("AZURE_STORAGE_ACCOUNT"),
+        help="Azure container to place the data.",
     )
-    parser.add_argument(
-        "--insights-upload",
-        metavar="UPLOAD_ENDPOINT",
-        dest="insights_upload",
-        required=False,
-        help="URL for Insights Upload Service.",
-    )
+
+
+def add_gcp_parser_args(parser):
+
     parser.add_argument(
         "--gcp-report-prefix",
         metavar="GCP_REPORT_PREFIX",
@@ -175,17 +138,90 @@ def create_parser():
         required=False,
         help="GCP storage account to place the data.",
     )
+
+
+def add_ocp_parser_args(parser):
     parser.add_argument(
-        "--azure-account-name",
-        metavar="AZURE_ACCOUNT_NAME",
-        dest="azure_account_name",
+        "--ocp-cluster-id",
+        metavar="OCP_CLUSTER_ID",
+        dest="ocp_cluster_id",
         required=False,
-        default=os.getenv("AZURE_STORAGE_ACCOUNT"),
-        help="Azure container to place the data.",
+        help="Cluster identifier for usage data.",
     )
     parser.add_argument(
+        "--insights-upload",
+        metavar="UPLOAD_ENDPOINT",
+        dest="insights_upload",
+        required=False,
+        help="URL for Insights Upload Service.",
+    )
+
+
+def create_parser():
+    """Create the parser for incoming data."""
+    parser = argparse.ArgumentParser()
+    subparsers = parser.add_subparsers(dest="command")
+    report_parser = subparsers.add_parser("report", help="Generate fake cost usage reports.")
+    yaml_parser = subparsers.add_parser("yaml", help="Generate a yaml for creating cost usage reports.")
+
+    add_yaml_parser_args(yaml_parser)
+
+    parent_parser = argparse.ArgumentParser()
+    parent_parser.add_argument(
+        "--start-date",
+        metavar="YYYY-MM-DD",
+        dest="start_date",
+        required=False,
+        type=valid_date,
+        help="Date to start generating data (YYYY-MM-DD)",
+    )
+    parent_parser.add_argument(
+        "--end-date",
+        metavar="YYYY-MM-DD",
+        dest="end_date",
+        required=False,
+        type=valid_date,
+        default=today(),
+        help="Date to end generating data (YYYY-MM-DD). Default is today.",
+    )
+    parent_parser.add_argument(
+        "--file-row-limit",
+        dest="row_limit",
+        required=False,
+        type=int,
+        default=100000,
+        help="Maximum number of lines per report file. Default is 100000.",
+    )
+    parent_parser.add_argument(
+        "--static-report-file", dest="static_report_file", required=False, help="Generate static data based on yaml."
+    )
+    parent_parser.add_argument(
         "--write-monthly", dest="write_monthly", action="store_true", required=False, help="Writes the monthly files."
     )
+
+    report_subparser = report_parser.add_subparsers(dest="provider")
+    aws_parser = report_subparser.add_parser(
+        "aws", parents=[parent_parser], add_help=False, description="The AWS parser", help="create the AWS reports"
+    )
+    azure_parser = report_subparser.add_parser(
+        "azure",
+        parents=[parent_parser],
+        add_help=False,
+        description="The Azure parser",
+        help="create the Azure reports",
+    )
+    gcp_parser = report_subparser.add_parser(
+        "gcp", parents=[parent_parser], add_help=False, description="The GCP parser", help="create the GCP reports"
+    )
+    ocp_parser = report_subparser.add_parser(
+        "ocp", parents=[parent_parser], add_help=False, description="The OCP parser", help="create the OCP reports"
+    )
+
+    add_aws_parser_args(aws_parser)
+    add_azure_parser_args(azure_parser)
+    add_gcp_parser_args(gcp_parser)
+    add_ocp_parser_args(ocp_parser)
+
     return parser
 
 
@@ -266,22 +302,6 @@ def _validate_aws_arguments(parser, options):
 
     """
     aws_valid = False
-    ocp_options = _get_ocp_options(options)
-    azure_options = _get_azure_options(options)
-    gcp_options = _get_gcp_options(options)
-
-    for ocp_option in ocp_options:
-        if ocp_option is not None:
-            msg = "OCP arguments cannot be supplied when generating AWS data."
-            parser.error(msg)
-    for azure_option in azure_options:
-        if azure_option is not None:
-            msg = "Azure arguments cannot be supplied when generating AWS data."
-            parser.error(msg)
-    for gcp_option in gcp_options:
-        if gcp_option is not None:
-            msg = "GCP arguments cannot be supplied when generating AWS data."
-            parser.error(msg)
 
     aws_bucket_name, aws_report_name, _, _ = _get_aws_options(options)
     if aws_bucket_name and aws_report_name:
@@ -306,22 +326,6 @@ def _validate_azure_arguments(parser, options):
 
     """
     azure_valid = False
-    ocp_options = _get_ocp_options(options)
-    aws_options = _get_aws_options(options)
-    gcp_options = _get_gcp_options(options)
-
-    for ocp_option in ocp_options:
-        if ocp_option is not None:
-            msg = "OCP arguments cannot be supplied when generating Azure data."
-            parser.error(msg)
-    for aws_option in aws_options:
-        if aws_option is not None:
-            msg = "AWS arguments cannot be supplied when generating Azure data."
-            parser.error(msg)
-    for gcp_option in gcp_options:
-        if gcp_option is not None:
-            msg = "GCP arguments cannot be supplied when generating Azure data."
-            parser.error(msg)
 
     azure_container_name, azure_report_name, _, _ = _get_azure_options(options)
     if azure_container_name and azure_report_name:
@@ -347,22 +351,6 @@ def _validate_ocp_arguments(parser, options):
 
     """
     ocp_valid = False
-    aws_options = _get_aws_options(options)
-    azure_options = _get_azure_options(options)
-    gcp_options = _get_gcp_options(options)
-
-    for aws_option in aws_options:
-        if aws_option is not None:
-            msg = "AWS arguments cannot be supplied when generating OCP data."
-            parser.error(msg)
-    for azure_option in azure_options:
-        if azure_option is not None:
-            msg = "Azure arguments cannot be supplied when generating OCP data."
-            parser.error(msg)
-    for gcp_option in gcp_options:
-        if gcp_option is not None:
-            msg = "GCP arguments cannot be supplied when generating OCP data."
-            parser.error(msg)
 
     ocp_cluster_id, insights_upload = _get_ocp_options(options)
     if ocp_cluster_id is None:
@@ -401,22 +389,6 @@ def _validate_gcp_arguments(parser, options):
         (ParserError): If combination is invalid.
 
     """
-    ocp_options = _get_ocp_options(options)
-    aws_options = _get_aws_options(options)
-    azure_options = _get_azure_options(options)
-
-    for ocp_option in ocp_options:
-        if ocp_option is not None:
-            msg = "OCP arguments cannot be supplied when generating GCP data."
-            parser.error(msg)
-    for aws_option in aws_options:
-        if aws_option is not None:
-            msg = "AWS arguments cannot be supplied when generating GCP data."
-            parser.error(msg)
-    for azure_option in azure_options:
-        if azure_option is not None:
-            msg = "Azure arguments cannot be supplied when generating GCP data."
-            parser.error(msg)
     return True
 
 
@@ -431,27 +403,20 @@ def _validate_provider_inputs(parser, options):
 
     """
     valid_inputs = False
-    provider_type = None
-    aws = options.get("aws", False)
-    azure = options.get("azure", False)
-    ocp = options.get("ocp", False)
-    gcp = options.get("gcp", False)
+    provider_type = options.get("provider")
+    VALIDATOR_MAP = {
+        "aws": _validate_aws_arguments,
+        "azure": _validate_azure_arguments,
+        "gcp": _validate_gcp_arguments,
+        "ocp": _validate_ocp_arguments,
+    }
 
-    if aws:
-        valid_inputs = _validate_aws_arguments(parser, options)
-        provider_type = "aws"
-    elif azure:
-        valid_inputs = _validate_azure_arguments(parser, options)
-        provider_type = "azure"
-    elif ocp:
-        valid_inputs = _validate_ocp_arguments(parser, options)
-        provider_type = "ocp"
-    elif gcp:
-        valid_inputs = _validate_gcp_arguments(parser, options)
-        provider_type = "gcp"
+    if VALIDATOR_MAP.get(provider_type):
+        func = VALIDATOR_MAP.get(provider_type)
+        valid_inputs = func(parser, options)
     else:
         msg = "One of {}, {}, {}, or {} must be supplied to generate a report."
-        msg = msg.format("--aws", "--azure", "--ocp", "--gcp")
+        msg = msg.format("aws", "azure", "ocp", "gcp")
         parser.error(msg)
     return (valid_inputs, provider_type)
 
@@ -484,7 +449,7 @@ def _load_static_report_data(options):
             if attributes.get("end_date"):
                 generated_end_date = calculate_end_date(generated_start_date, attributes.get("end_date"))
             else:
-                if options.get("azure"):
+                if options.get("provider") == "azure":
                     generated_end_date = today() + datetime.timedelta(hours=24)
                 else:
                     generated_end_date = today()
@@ -556,11 +521,17 @@ def main():
     """Run data generation program."""
     parser = create_parser()
     args = parser.parse_args()
+    if not args.command:
+        parser.error('"yaml" or "report" argument must be specified')
+    elif args.command == "yaml":
+        yaml_main(args)
+        return
     options = vars(args)
-    _, provider_type = _validate_provider_inputs(parser, options)
 
     if not (options.get("start_date") or options.get("static_report_file")):
         parser.error("the following arguments are required: --start-date")
+
+    _, provider_type = _validate_provider_inputs(parser, options)
 
     run(provider_type, options)
 

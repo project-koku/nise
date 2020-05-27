@@ -20,6 +20,7 @@ import csv
 import datetime
 import json
 import os
+import re
 import shutil
 from tempfile import mkdtemp
 from tempfile import NamedTemporaryFile
@@ -527,8 +528,13 @@ class AWSReportTestCase(TestCase):
 
         self.assertTrue(os.path.isfile(expected_month_output_file_1))
         self.assertTrue(os.path.isfile(expected_month_output_file_2))
-        os.remove(expected_month_output_file_1)
-        os.remove(expected_month_output_file_2)
+
+        # cleanup any leftover files
+        regex = re.compile(month_output_file_name)
+        for _, _, files in os.walk("."):
+            for fname in files:
+                if regex.match(fname):
+                    os.remove(fname)
         shutil.rmtree(local_bucket_path)
 
 
@@ -579,7 +585,7 @@ class OCPReportTestCase(TestCase):
 
     def test_ocp_create_report_with_local_dir_static_generation(self):
         """Test the ocp report creation method with local directory and static generation."""
-        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0)
+        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
         one_day = datetime.timedelta(days=1)
         yesterday = now - one_day
         local_insights_upload = mkdtemp()
@@ -650,7 +656,7 @@ class OCPReportTestCase(TestCase):
 
     def test_ocp_create_report_with_local_dir_static_generation_with_dates(self):
         """Test the ocp report creation method with local directory and static generation with usage dates."""
-        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0)
+        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
         one_day = datetime.timedelta(days=1)
         yesterday = now - one_day
         local_insights_upload = mkdtemp()
@@ -771,7 +777,7 @@ class OCPReportTestCase(TestCase):
             self.assertFalse(os.path.isfile(expected_month_output_file))
 
     def test_ocp_create_report_with_local_dir_static_generation_multi_file(self):
-        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0)
+        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
         one_day = datetime.timedelta(days=1)
         yesterday = now - one_day
         local_insights_upload = mkdtemp()
@@ -788,8 +794,8 @@ class OCPReportTestCase(TestCase):
                                 "node_name": "alpha",
                                 "cpu_cores": 2,
                                 "memory_gig": 4,
-                                "start_date": str(now),
-                                "end_date": str(now),
+                                "start_date": str(yesterday.date()),
+                                "end_date": str(now.date()),
                                 "namespaces": {
                                     "namespace_ci": {
                                         "pods": [
@@ -848,10 +854,14 @@ class OCPReportTestCase(TestCase):
             expected_month_output_file_2 = "{}/{}.csv".format(os.getcwd(), month_output_file_pt_2)
 
             self.assertTrue(os.path.isfile(expected_month_output_file_1))
-            os.remove(expected_month_output_file_1)
-
             self.assertTrue(os.path.isfile(expected_month_output_file_2))
-            os.remove(expected_month_output_file_2)
+
+            # cleanup any leftover files
+            regex = re.compile(month_output_file_name)
+            for _, _, files in os.walk("."):
+                for fname in files:
+                    if regex.match(fname):
+                        os.remove(fname)
 
         shutil.rmtree(local_insights_upload)
 
