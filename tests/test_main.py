@@ -18,6 +18,11 @@ import argparse
 import builtins
 import os
 from datetime import date
+<<<<<<< HEAD
+=======
+from datetime import datetime
+from datetime import timedelta
+>>>>>>> add azure date specific test
 from unittest import TestCase
 from unittest.mock import patch
 
@@ -311,6 +316,35 @@ class CommandLineTestCase(TestCase):
         self.assertIsNotNone(options.get("start_date"))
         self.assertIsNotNone(options.get("end_date"))
 
+<<<<<<< HEAD
+=======
+    def test_load_static_report_data_azure_dates(self):
+        """Test correct dates for Azure.
+
+        Azure is different than AWS/OCP. End date needs to be the next day.
+        """
+        args = [
+            "report",
+            "azure",
+            "--static-report-file",
+            "tests/azure_static_report.yml",
+            "--azure-container-name",
+            "storage",
+            "--azure-report-name",
+            "report",
+        ]
+        options = vars(self.parser.parse_args(args))
+        _load_static_report_data(options)
+        gen_values = dict(*options.get("static_report_data").get("generators")[0].values())
+        self.assertEqual(
+            gen_values.get("start_date"), str(datetime.now().replace(microsecond=0, second=0, minute=0, hour=0))
+        )
+        self.assertEqual(
+            gen_values.get("end_date"),
+            str(datetime.now().replace(microsecond=0, second=0, minute=0) + timedelta(hours=24)),
+        )
+
+>>>>>>> add azure date specific test
     def test_invalid_gcp_inputs(self):
         """
         Test where user args from azure, ocp, and aws when creating gcp data.
