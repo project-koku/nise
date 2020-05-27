@@ -170,6 +170,7 @@ def create_parser():
 
     parent_parser = argparse.ArgumentParser()
     parent_parser.add_argument(
+        "-s",
         "--start-date",
         metavar="YYYY-MM-DD",
         dest="start_date",
@@ -178,6 +179,7 @@ def create_parser():
         help="Date to start generating data (YYYY-MM-DD)",
     )
     parent_parser.add_argument(
+        "-e",
         "--end-date",
         metavar="YYYY-MM-DD",
         dest="end_date",
@@ -198,7 +200,12 @@ def create_parser():
         "--static-report-file", dest="static_report_file", required=False, help="Generate static data based on yaml."
     )
     parent_parser.add_argument(
-        "--write-monthly", dest="write_monthly", action="store_true", required=False, help="Writes the monthly files."
+        "-w",
+        "--write-monthly",
+        dest="write_monthly",
+        action="store_true",
+        required=False,
+        help="Writes the monthly files.",
     )
 
     report_subparser = report_parser.add_subparsers(dest="provider")
