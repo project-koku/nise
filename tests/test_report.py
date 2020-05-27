@@ -579,7 +579,7 @@ class OCPReportTestCase(TestCase):
 
     def test_ocp_create_report_with_local_dir_static_generation(self):
         """Test the ocp report creation method with local directory and static generation."""
-        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0)
+        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
         one_day = datetime.timedelta(days=1)
         yesterday = now - one_day
         local_insights_upload = mkdtemp()
@@ -650,7 +650,7 @@ class OCPReportTestCase(TestCase):
 
     def test_ocp_create_report_with_local_dir_static_generation_with_dates(self):
         """Test the ocp report creation method with local directory and static generation with usage dates."""
-        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0)
+        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
         one_day = datetime.timedelta(days=1)
         yesterday = now - one_day
         local_insights_upload = mkdtemp()
@@ -771,7 +771,7 @@ class OCPReportTestCase(TestCase):
             self.assertFalse(os.path.isfile(expected_month_output_file))
 
     def test_ocp_create_report_with_local_dir_static_generation_multi_file(self):
-        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0)
+        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
         one_day = datetime.timedelta(days=1)
         yesterday = now - one_day
         local_insights_upload = mkdtemp()
