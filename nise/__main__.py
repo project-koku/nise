@@ -24,6 +24,7 @@ import os
 import yaml
 from dateutil import parser as date_parser
 from dateutil.relativedelta import relativedelta
+from nise import __version__
 from nise.report import aws_create_report
 from nise.report import azure_create_report
 from nise.report import gcp_create_report
@@ -160,6 +161,7 @@ def add_ocp_parser_args(parser):
 def create_parser():
     """Create the parser for incoming data."""
     parser = argparse.ArgumentParser()
+    parser.add_argument("-v", "--version", action="version", version=f"%(prog)s {__version__}")
     subparsers = parser.add_subparsers(dest="command")
     report_parser = subparsers.add_parser("report", help="Generate fake cost usage reports.")
     yaml_parser = subparsers.add_parser("yaml", help="Generate a yaml for creating cost usage reports.")
