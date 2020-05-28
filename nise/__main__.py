@@ -446,6 +446,7 @@ def _load_static_report_data(options):
     """Validate/load and set start_date if static file is provided."""
     if not options.get("static_report_file"):
         return
+    LOG.info("Loading static data...")
     start_dates = []
     end_dates = []
     static_report_data = _load_yaml_file(options.get("static_report_file"))
@@ -516,6 +517,7 @@ def run(provider_type, options):
     if not options.get("start_date"):
         raise NiseError("'start_date' is required in static files.")
 
+    LOG.info("Creating reports...")
     if provider_type == "aws":
         aws_create_report(options)
     elif provider_type == "azure":
