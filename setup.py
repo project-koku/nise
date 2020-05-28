@@ -17,6 +17,7 @@
 import codecs
 import os.path
 
+from setuptools import find_packages
 from setuptools import setup
 
 
@@ -47,17 +48,7 @@ setup(
         "License :: OSI Approved :: GNU Affero General Public License v3",
         "Operating System :: OS Independent",
     ],
-    packages=[
-        "nise",
-        "nise.generators",
-        "nise.generators.aws",
-        "nise.generators.ocp",
-        "nise.generators.azure",
-        "nise.generators.gcp",
-        "nise.yaml_generators",
-        "nise.yaml_generators.aws",
-        "nise.yaml_generators.ocp",
-    ],
+    packages=find_packages(),
     install_requires=[
         "faker>=3.0",
         "boto3>=1.11",

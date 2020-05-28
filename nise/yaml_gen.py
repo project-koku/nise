@@ -21,12 +21,13 @@ import os
 
 from dateutil.parser import parse
 from nise.yaml_generators.aws.generator import AWSGenerator
+from nise.yaml_generators.azure.generator import AzureGenerator
 from nise.yaml_generators.ocp.generator import OCPGenerator
 
 FILE_DIR = os.path.dirname(os.path.abspath(__file__))
 STATIC_DIR = os.path.join(os.path.dirname(FILE_DIR), "nise/yaml_generators/static")
 
-GENERATOR_MAP = {"AWS": AWSGenerator(), "OCP": OCPGenerator()}
+GENERATOR_MAP = {"AWS": AWSGenerator(), "OCP": OCPGenerator(), "AZURE": AzureGenerator()}
 
 LOG = logging.getLogger(__name__)
 

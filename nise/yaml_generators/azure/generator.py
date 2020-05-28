@@ -20,18 +20,26 @@ import os
 import random
 from calendar import monthrange
 from datetime import date
+from uuid import uuid4
 
 import faker
 from dateutil.relativedelta import relativedelta
 from nise.yaml_generators.generator import Generator
 from nise.yaml_generators.utils import dicta
 from nise.yaml_generators.utils import generate_name
-from nise.yaml_generators.utils import generate_resource_id
 
-# from uuid import uuid4
 
 FAKER = faker.Faker()
 LOG = logging.getLogger(__name__)
+RESOURCE_LOCATIONS = [
+    "US East",
+    "US North Central",
+    "US South Central",
+    "US West 2",
+    "US East 2",
+    "US Central",
+    "US West",
+]
 TAG_KEYS = {
     "vmachine": ["environment", "version", "app"],
     "vnetwork": ["environment", "version", "app"],
@@ -81,7 +89,8 @@ class AzureGenerator(Generator):
             bandwidth_gen = dicta(
                 start_date=str(config.start_date),
                 end_date=str(config.end_date),
-                resource_id=generate_resource_id(config),
+                meter_id=str(uuid4()),
+                resource_location=random.choice(RESOURCE_LOCATIONS),
                 tags=generate_tags("bandwidth", config),
             )
             data.bandwidth_gens.append(bandwidth_gen)
@@ -89,7 +98,11 @@ class AzureGenerator(Generator):
         LOG.info(f"Building {max_sql_gens} SQL generators ...")
         for _ in range(max_sql_gens):
             sql_gen = dicta(
-                start_date=str(config.start_date), end_date=str(config.end_date), tags=generate_tags("sql", config)
+                start_date=str(config.start_date),
+                end_date=str(config.end_date),
+                meter_id=str(uuid4()),
+                resource_location=random.choice(RESOURCE_LOCATIONS),
+                tags=generate_tags("sql", config),
             )
             data.sql_gens.append(sql_gen)
 
@@ -99,7 +112,8 @@ class AzureGenerator(Generator):
             storage_gen = dicta(
                 start_date=str(config.start_date),
                 end_date=str(config.end_date),
-                resource_id=generate_resource_id(config),
+                meter_id=str(uuid4()),
+                resource_location=random.choice(RESOURCE_LOCATIONS),
                 tags=generate_tags("storage", config),
             )
             data.storage_gens.append(storage_gen)
@@ -110,7 +124,8 @@ class AzureGenerator(Generator):
             vmachine_gen = dicta(
                 start_date=str(config.start_date),
                 end_date=str(config.end_date),
-                resource_id=generate_resource_id(config),
+                meter_id=str(uuid4()),
+                resource_location=random.choice(RESOURCE_LOCATIONS),
                 tags=generate_tags("vmachine", config),
             )
 
@@ -122,13 +137,12 @@ class AzureGenerator(Generator):
             vnetwork_gen = dicta(
                 start_date=str(config.start_date),
                 end_date=str(config.end_date),
-                resource_id=generate_resource_id(config),
+                meter_id=str(uuid4()),
+                resource_location=random.choice(RESOURCE_LOCATIONS),
                 tags=generate_tags("vnetwork", config),
             )
 
             data.vnetwork_gens.append(vnetwork_gen)
-
-        LOG.info(data)
 
         return data
 
@@ -146,7 +160,7 @@ class AzureGenerator(Generator):
             max_name_words=2,
             max_resource_id_length=10,
             max_bandwidth_gens=1,
-            max_sql_db_gens=1,
+            max_sql_gens=1,
             max_storage_gens=1,
             max_vmachine_gens=1,
             max_vnetwork_gens=1,
@@ -167,7 +181,7 @@ class AzureGenerator(Generator):
             max_name_words=int,
             max_resource_id_length=int,
             max_bandwidth_gens=int,
-            max_sql_db_gens=int,
+            max_sql_gens=int,
             max_storage_gens=int,
             max_vmachine_gens=int,
             max_vnetwork_gens=int,
