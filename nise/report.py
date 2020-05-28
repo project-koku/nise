@@ -89,7 +89,7 @@ def create_temporary_copy(path, temp_file_name, temp_dir_name="None"):
 
 def _write_csv(output_file, data, header):
     """Output csv file data."""
-    LOG.info("Writing to file...")
+    LOG.info(f"Writing to {output_file.split('/')[-1]}")
     with open(output_file, "w") as file:
         writer = csv.DictWriter(file, fieldnames=header)
         writer.writeheader()
@@ -455,7 +455,6 @@ def aws_create_report(options):  # noqa: C901
 
         if file_number != 0:
             file_number += 1
-        LOG.info("Writing to file...")
         month_output_file = write_aws_file(
             file_number,
             aws_report_name,
@@ -611,9 +610,6 @@ def ocp_create_report(options):  # noqa: C901
         data = {OCP_POD_USAGE: [], OCP_STORAGE_USAGE: [], OCP_NODE_LABEL: []}
         file_numbers = {OCP_POD_USAGE: 0, OCP_STORAGE_USAGE: 0, OCP_NODE_LABEL: 0}
         monthly_files = []
-        num_gens = len(generators)
-        LOG.info(f"Producing data for {num_gens} generators for {month.get('name')}.")
-        count = 0
         for generator in generators:
             generator_cls = generator.get("generator")
             attributes = generator.get("attributes")
@@ -630,6 +626,7 @@ def ocp_create_report(options):  # noqa: C901
 
             gen = generator_cls(gen_start_date, gen_end_date, attributes)
             for report_type in gen.ocp_report_generation.keys():
+                LOG.info(f"Generating data for {report_type} for {month.get('name')}")
                 for hour in gen.generate_data(report_type):
                     data[report_type] += [hour]
                     if len(data[report_type]) == options.get("row_limit"):
@@ -645,15 +642,10 @@ def ocp_create_report(options):  # noqa: C901
                         monthly_files.append(month_output_file)
                         data[report_type].clear()
 
-            count += 1
-            if count % 1000 == 0:
-                LOG.info(f"Done with {count} of {num_gens} generators.")
-
         for report_type in gen.ocp_report_generation.keys():
             if file_numbers[report_type] != 0:
                 file_numbers[report_type] += 1
 
-            LOG.info(f"Writing {report_type} to file...")
             month_output_file = write_ocp_file(
                 file_numbers[report_type],
                 cluster_id,
@@ -696,6 +688,7 @@ def ocp_create_report(options):  # noqa: C901
             os.remove(temp_manifest)
             os.remove(temp_manifest_name)
         if not write_monthly:
+            LOG.info("Cleaning up local directory")
             _remove_files(monthly_files)
 
 

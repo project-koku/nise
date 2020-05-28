@@ -171,7 +171,7 @@ class OCPGenerator(AbstractGenerator):
         else:
             num_nodes = randint(2, 6)
             seeded_labels = {"node-role.kubernetes.io/master": [""], "node-role.kubernetes.io/infra": [""]}
-            for node_num in range(0, num_nodes):  # pylint: disable=W0612
+            for _ in range(num_nodes):
                 memory_gig = randint(2, 8)
                 memory_bytes = memory_gig * 1024 * 1024 * 1024
                 node = {
@@ -194,7 +194,7 @@ class OCPGenerator(AbstractGenerator):
                     namespaces[namespace] = node
             else:
                 num_namespaces = randint(2, 12)
-                for num_namespace in range(0, num_namespaces):  # pylint: disable=W0612
+                for _ in range(num_namespaces):
                     namespace_suffix = choice(("ci", "qa", "prod", "proj", "dev", "staging"))
                     namespace = self.fake.word() + "_" + namespace_suffix  # pylint: disable=no-member
                     namespaces[namespace] = node
@@ -275,7 +275,7 @@ class OCPGenerator(AbstractGenerator):
                     }
             else:
                 num_pods = randint(2, 20)
-                for num_namespace in range(0, num_pods):  # pylint: disable=W0612
+                for _ in range(num_pods):  # pylint: disable=W0612
                     pod_suffix = "".join(choices(ascii_lowercase, k=5))
                     pod_type = choice(("build", "deploy", pod_suffix))
                     pod = self.fake.word() + "_" + pod_type  # pylint: disable=no-member
@@ -339,13 +339,13 @@ class OCPGenerator(AbstractGenerator):
             else:
                 num_volumes = randint(1, 3)
                 num_vol_claims = randint(1, 2)
-                for num_volume in range(0, num_volumes):  # pylint: disable=W0612
+                for _ in range(num_volumes):  # pylint: disable=W0612
                     vol_suffix = "".join(choices(ascii_lowercase, k=10))
                     volume = "pvc" + "-" + vol_suffix
                     vol_request_gig = round(uniform(25.0, 80.0), 2)
                     vol_request = vol_request_gig * 1024 * 1024 * 1024
                     volume_claims = {}
-                    for num_claim in range(0, num_vol_claims):  # pylint: disable=W0612
+                    for _ in range(num_vol_claims):  # pylint: disable=W0612
                         vol_claim = self.fake.word()  # pylint: disable=no-member
                         pod = choice(namespace2pods[namespace])
                         claim_capacity = round(uniform(1.0, vol_request_gig), 2) * 1024 * 1024 * 1024  # noqa: W503
@@ -471,7 +471,7 @@ class OCPGenerator(AbstractGenerator):
         for hour in self.hours:
             start = hour.get("start")
             end = hour.get("end")
-            pod_count = len(self.pods)
+
             if self._nodes:
                 for pod_name, _ in self.pods.items():
                     cpu_usage = self.pods[pod_name].get("cpu_usage", None)
@@ -494,6 +494,7 @@ class OCPGenerator(AbstractGenerator):
                     row.pop("pod_seconds", None)
                     yield row
             else:
+                pod_count = len(self.pods)
                 num_pods = randint(2, pod_count)
                 pod_index_list = range(pod_count)
                 pod_choices = list(set(choices(pod_index_list, k=num_pods)))
