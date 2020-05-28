@@ -67,6 +67,7 @@ class YamlGeneratorTestCase(TestCase):
         args.end_date = "9999-12-31"
         args.template_file_name = __file__
         args.config_file_name = args.num_nodes = None
+        args.provider = "ocp"
         args.random = False
         yaml_gen.handle_args(args)
         self.assertTrue(isinstance(args.start_date, date))
@@ -102,6 +103,7 @@ class YamlGeneratorTestCase(TestCase):
 
         args.template_file_name = __file__
         args.start_date = args.end_date = args.config_file_name = None
+        args.provider = "ocp"
         args.num_nodes = 0
         args = yaml_gen.handle_args(args)
         self.assertTrue(args.num_nodes is None)
@@ -115,6 +117,7 @@ class YamlGeneratorTestCase(TestCase):
         args.template_file_name = __file__
         args.num_nodes = -1
         args.start_date = args.end_date = args.config_file_name = None
+        args.provider = "ocp"
         args = yaml_gen.handle_args(args)
         self.assertTrue(args.num_nodes is None)
 
@@ -127,5 +130,6 @@ class YamlGeneratorTestCase(TestCase):
         args.template_file_name = __file__
         args.num_nodes = 10
         args.start_date = args.end_date = args.config_file_name = None
+        args.provider = "ocp"
         args = yaml_gen.handle_args(args)
         self.assertEqual(args.num_nodes, 10)
