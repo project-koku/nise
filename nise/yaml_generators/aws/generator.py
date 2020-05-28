@@ -24,7 +24,6 @@ from datetime import date
 
 import faker
 from dateutil.relativedelta import relativedelta
-
 from nise.yaml_generators.aws.ec2_instance_types import INSTANCE_TYPES as EC2_INSTANCES
 from nise.yaml_generators.aws.rds_instance_types import INSTANCE_TYPES as RDS_INSTANCES
 from nise.yaml_generators.aws.regions import REGIONS

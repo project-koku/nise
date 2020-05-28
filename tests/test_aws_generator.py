@@ -30,7 +30,6 @@ from nise.generators.aws import S3Generator
 from nise.generators.aws import VPCGenerator
 
 
-
 class TestGenerator(AWSGenerator):
     def _update_data(self, row, start, end):
         return None

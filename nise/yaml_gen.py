@@ -19,7 +19,6 @@ import logging
 import os
 
 from dateutil.parser import parse
-
 from nise.yaml_generators.aws.generator import AWSGenerator
 from nise.yaml_generators.ocp.generator import OCPGenerator
 

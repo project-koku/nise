@@ -16,9 +16,9 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """Utility functions for large yaml generator."""
-
-
 # pylint: disable=invalid-name,useless-super-delegation
+
+
 class dicta(dict):
     """
     Dict subclass that can access values via key or attribute.

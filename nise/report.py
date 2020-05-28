@@ -30,16 +30,15 @@ import string
 import tarfile
 from datetime import datetime
 from random import randint
+from tempfile import gettempdir
 from tempfile import NamedTemporaryFile
 from tempfile import TemporaryDirectory
-from tempfile import gettempdir
 from uuid import uuid4
 
 import requests
 from dateutil import parser
 from dateutil.relativedelta import relativedelta
 from faker import Faker
-
 from nise.copy import copy_to_local_dir
 from nise.extract import extract_payload
 from nise.generators.aws import AWS_COLUMNS
@@ -60,11 +59,11 @@ from nise.generators.gcp import CloudStorageGenerator
 from nise.generators.gcp import ComputeEngineGenerator
 from nise.generators.gcp import GCP_REPORT_COLUMNS
 from nise.generators.gcp import ProjectGenerator
-from nise.generators.ocp import OCPGenerator
 from nise.generators.ocp import OCP_NODE_LABEL
 from nise.generators.ocp import OCP_POD_USAGE
 from nise.generators.ocp import OCP_REPORT_TYPE_TO_COLS
 from nise.generators.ocp import OCP_STORAGE_USAGE
+from nise.generators.ocp import OCPGenerator
 from nise.manifest import aws_generate_manifest
 from nise.manifest import ocp_generate_manifest
 from nise.upload import upload_to_azure_container

@@ -24,7 +24,6 @@ from random import uniform
 from string import ascii_lowercase
 
 from dateutil import parser
-
 from nise.generators.generator import AbstractGenerator
 from nise.generators.generator import REPORT_TYPE
 
@@ -106,12 +105,7 @@ class OCPGenerator(AbstractGenerator):
             self.fake.word(),
             self.fake.word(),
         ]
-        self.organizations = [
-            self.fake.word(),
-            self.fake.word(),
-            self.fake.word(),
-            self.fake.word(),
-        ]
+        self.organizations = [self.fake.word(), self.fake.word(), self.fake.word(), self.fake.word()]
         self.markets = [
             self.fake.word(),
             self.fake.word(),
@@ -320,7 +314,7 @@ class OCPGenerator(AbstractGenerator):
                     }
         return pods, namespace2pod
 
-    def _gen_volumes(self, namespaces, namespace2pods):  # pylint: disable=R0914
+    def _gen_volumes(self, namespaces, namespace2pods):  # noqa: R0914,C901
         """Create volumes on specific namespaces and keep relationship."""
         volumes = {}
         for namespace, node in namespaces.items():
@@ -335,12 +329,12 @@ class OCPGenerator(AbstractGenerator):
                     volume_claims = {}
                     total_claims = 0
                     for specified_vc in specified_vol_claims:
-                        if total_claims > volume_request_gig:
+                        if volume_request - total_claims <= GIGABYTE:
                             break
                         vol_claim = specified_vc.get("volume_claim_name", self.fake.word())
                         pod = specified_vc.get("pod_name")
-                        claim_capacity = (
-                            min(specified_vc.get("capacity_gig"), (volume_request_gig - total_claims)) * GIGABYTE
+                        claim_capacity = min(
+                            specified_vc.get("capacity_gig") * GIGABYTE, (volume_request_gig - total_claims) * GIGABYTE
                         )
                         usage_gig = specified_vc.get("volume_claim_usage_gig")
                         if usage_gig:
@@ -375,13 +369,11 @@ class OCPGenerator(AbstractGenerator):
                     volume_claims = {}
                     total_claims = 0
                     for _ in range(0, num_vol_claims):
-                        if total_claims > vol_request_gig:
+                        if vol_request_gig - total_claims <= GIGABYTE:
                             break
                         vol_claim = self.fake.word()
                         pod = choice(namespace2pods[namespace])
-                        claim_capacity = (
-                            min(round(uniform(1.0, vol_request_gig), 2), (vol_request_gig - total_claims)) * GIGABYTE
-                        )
+                        claim_capacity = round(uniform(1.0, vol_request_gig), 2) * GIGABYTE
                         volume_claims[vol_claim] = {
                             "namespace": namespace,
                             "volume": volume,

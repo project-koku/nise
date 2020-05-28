@@ -24,7 +24,6 @@ import os
 import yaml
 from dateutil import parser as date_parser
 from dateutil.relativedelta import relativedelta
-
 from nise.report import aws_create_report
 from nise.report import azure_create_report
 from nise.report import gcp_create_report
