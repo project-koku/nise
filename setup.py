@@ -37,7 +37,7 @@ def get_version(rel_path):
 
 setup(
     name="koku-nise",
-    version=get_version("nise/__init__.py"),
+    version=get_version("nise/__init__.py"),  # set the version number in nise.__init__
     author="Project Koku",
     author_email="cost_mgmt@redhat.com",
     description="A tool for generating sample cost and usage data for testing purposes.",
