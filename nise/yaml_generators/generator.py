@@ -60,10 +60,6 @@ class Generator:
             config.end_date = args.end_date
         if isinstance(config.end_date, str):
             config.end_date = parse(config.end_date)
-        if args.num_nodes:
-            config.max_nodes = args.num_nodes
-
-        self.validate_config(config)
 
         return config
 
@@ -77,6 +73,7 @@ class Generator:
         Returns:
             None
         """
+        self.validate_config(config)
         data = self.build_data(config, args.random)
 
         template_file_name = os.path.abspath(args.template_file_name)

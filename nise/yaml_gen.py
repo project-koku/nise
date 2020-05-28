@@ -45,6 +45,11 @@ def add_azure_args(parser):
     pass
 
 
+def add_gcp_args(parser):
+    """Add GCP specific parser args."""
+    pass
+
+
 def add_ocp_args(parser):
     """Add OCP specific parser args."""
     parser.add_argument(
@@ -114,15 +119,26 @@ def add_yaml_parser_args(yaml_parser):
     azure_parser = yaml_subparser.add_parser(
         "azure", parents=[parent_parser], add_help=False, description="The Azure parser", help="create the Azure yamls"
     )
+    # gcp_parser = yaml_subparser.add_parser(
+    #     "gcp", parents=[parent_parser], add_help=False, description="The GCP parser", help="create the GCP yamls"
+    # )
     ocp_parser = yaml_subparser.add_parser(
         "ocp", parents=[parent_parser], add_help=False, description="The OCP parser", help="create the OCP yamls"
     )
 
     add_aws_args(aws_parser)
     add_azure_args(azure_parser)
+    # add_gcp_args(gcp_parser)
     add_ocp_args(ocp_parser)
 
     return yaml_parser
+
+
+def handle_ocp_args(args):
+    """Parse and validate OCP specific args."""
+    if args.num_nodes is not None and args.num_nodes < 1:
+        args.num_nodes = None
+    return args
 
 
 def handle_args(args):
@@ -151,8 +167,8 @@ def handle_args(args):
     if args.end_date:
         args.end_date = parse(args.end_date).date()
 
-    if args.num_nodes is not None and args.num_nodes < 1:
-        args.num_nodes = None
+    if args.provider == "ocp":
+        args = handle_ocp_args(args)
 
     return args
 

@@ -122,6 +122,14 @@ def generate_tags(key, config, prefix="", suffix="", dynamic=True):
 class AWSGenerator(Generator):
     """YAML generator for AWS."""
 
+    def init_config(self, args):
+        """Process provider specific args."""
+        config = super().init_config(args)
+
+        # insert specific config variables
+
+        return config
+
     def build_data(self, config, _random=False):  # noqa: C901
         """
 
