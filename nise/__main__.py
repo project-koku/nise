@@ -55,6 +55,7 @@ def today():
 
 
 def add_aws_parser_args(parser):
+    """Add AWS sub-parser args."""
     parser.add_argument(
         "--aws-s3-bucket-name",
         metavar="BUCKET_NAME",
@@ -90,7 +91,7 @@ def add_aws_parser_args(parser):
 
 
 def add_azure_parser_args(parser):
-
+    """Add Azure sub-parser args."""
     parser.add_argument(
         "--azure-container-name",
         metavar="AZURE_CONTAINER_NAME",
@@ -123,7 +124,7 @@ def add_azure_parser_args(parser):
 
 
 def add_gcp_parser_args(parser):
-
+    """Add GCP sub-parser args."""
     parser.add_argument(
         "--gcp-report-prefix",
         metavar="GCP_REPORT_PREFIX",
@@ -141,6 +142,7 @@ def add_gcp_parser_args(parser):
 
 
 def add_ocp_parser_args(parser):
+    """Add OCP sub-parser args."""
     parser.add_argument(
         "--ocp-cluster-id",
         metavar="OCP_CLUSTER_ID",
