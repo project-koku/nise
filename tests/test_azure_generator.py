@@ -209,14 +209,6 @@ class TestBandwidthGenerator(AzureGeneratorTestCase):
         self.assertEqual(generator._resource_rate, self.resource_rate)
         self.assertEqual(generator._pre_tax_cost, self.pre_tax_cost)
 
-    def test_init_with_service_name_attribute(self):
-        """Test the unique init options for Bandwidth."""
-        self.attributes["service_name"] = "whammy"
-        generator = BandwidthGenerator(
-            self.two_hours_ago, self.now, self.payer_account, self.usage_accounts, self.attributes
-        )
-        self.assertEqual(generator._service_name, "whammy")
-
     def test_update_data(self):
         """Test that row is updated."""
         generator = BandwidthGenerator(self.two_hours_ago, self.now, self.payer_account, self.usage_accounts)
