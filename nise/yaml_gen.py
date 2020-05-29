@@ -123,16 +123,12 @@ def add_yaml_parser_args(yaml_parser):
     azure_parser = yaml_subparser.add_parser(
         "azure", parents=[parent_parser], add_help=False, description="The Azure parser", help="create the Azure yamls"
     )
-    # gcp_parser = yaml_subparser.add_parser(
-    #     "gcp", parents=[parent_parser], add_help=False, description="The GCP parser", help="create the GCP yamls"
-    # )
     ocp_parser = yaml_subparser.add_parser(
         "ocp", parents=[parent_parser], add_help=False, description="The OCP parser", help="create the OCP yamls"
     )
 
     add_aws_args(aws_parser)
     add_azure_args(azure_parser)
-    # add_gcp_args(gcp_parser)
     add_ocp_args(ocp_parser)
 
     return yaml_parser
