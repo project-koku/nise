@@ -21,6 +21,7 @@ import random
 import re
 from calendar import monthrange
 from datetime import date
+from random import uniform
 
 import faker
 from dateutil.relativedelta import relativedelta
@@ -29,6 +30,8 @@ from nise.yaml_generators.aws.rds_instance_types import INSTANCE_TYPES as RDS_IN
 from nise.yaml_generators.aws.regions import REGIONS
 from nise.yaml_generators.generator import Generator
 from nise.yaml_generators.utils import dicta
+from nise.yaml_generators.utils import generate_name
+from nise.yaml_generators.utils import generate_resource_id
 
 LOG = logging.getLogger(__name__)
 
@@ -46,74 +49,11 @@ RESOURCE_TAG_COLS = {
     "S3": ["resourceTags/user:storageclass"],
     "VPC": ["resourceTags/user:app"],
 }
-
-
-def generate_words(config):
-    """
-    Generate a hyphen-separated string of words.
-
-    The number of words is specified in the config. (config.max_name_words)
-    """
-    return "-".join(FAKER.words(config.max_name_words))
-
-
-def generate_number_str(config):
-    """
-    Generate a string of digits of arbitrary length.
-
-    The maximum length is specified in the config. (config.max_resource_id_length)
-    """
-    return str(FAKER.random_int(0, 10 ** config.max_resource_id_length)).zfill(config.max_resource_id_length)
-
-
-def generate_name(config, prefix="", suffix="", dynamic=True, generator=generate_words, cache=SEEN_NAMES):
-    """
-    Generate a random resource name using faker.
-
-    Params:
-        config : dicta - config information for the generator
-        prefix : str - a static prefix
-        suffix : str - a static suffix
-        dynamic : bool - flag to run the generator function
-        generator : func - function that will generate the dynamic portion of the name
-        cache : set - a cache for uniqueness across all calls
-
-    Returns:
-        str
-    """
-    new_name = None
-    while True:
-        if prefix:
-            prefix += "-"
-        if suffix:
-            suffix = "-" + suffix
-        mid = generator(config) if dynamic else ""
-        new_name = f"{prefix}{mid}{suffix}"
-        if new_name not in cache:
-            cache.add(new_name)
-            break
-
-    return DBL_DASH.sub("-", new_name)
-
-
-def generate_resource_id(config, prefix="", suffix="", dynamic=True):
-    """
-    Generate a random resource id using faker.
-
-    Params:
-        config : dicta - config information for the generator
-        prefix : str - a static prefix
-        suffix : str - a static suffix
-        dynamic : bool - flag to run the generator function
-        generator : func - function that will generate the dynamic portion of the resource id
-        cache : set - a cache for uniqueness across all calls
-
-    Returns:
-        str
-    """
-    return generate_name(
-        config, prefix=prefix, suffix=suffix, dynamic=dynamic, generator=generate_number_str, cache=SEEN_RESOURCE_IDS
-    )
+RATE_AMT = {
+    "DTG": (round(uniform(0.12, 0.19), 3), uniform(0.000002, 0.09)),
+    "EBS": (round(uniform(0.02, 0.16), 3), uniform(0.2, 300.99)),
+    "S3": (round(uniform(0.02, 0.06), 3), uniform(0.2, 6000.99)),
+}
 
 
 def generate_tags(key, config, prefix="", suffix="", dynamic=True):
@@ -157,18 +97,27 @@ class AWSGenerator(Generator):
 
         LOG.info(f"Building {max_data_transfer_gens} data transfer generators ...")
         for _ in range(max_data_transfer_gens):
+            _rate, _amount = RATE_AMT.get("DTG")
             data_transfer_gen = dicta(
                 start_date=str(config.start_date),
                 end_date=str(config.end_date),
                 resource_id=generate_resource_id(config),
+                amount=_amount,
+                rate=_rate,
                 tags=generate_tags("DTG", config),
             )
             data.data_transfer_gens.append(data_transfer_gen)
 
         LOG.info(f"Building {max_ebs_gens} EBS generators ...")
         for _ in range(max_ebs_gens):
+            _rate, _amount = RATE_AMT.get("EBS")
             ebs_gen = dicta(
-                start_date=str(config.start_date), end_date=str(config.end_date), tags=generate_tags("EBS", config)
+                start_date=str(config.start_date),
+                end_date=str(config.end_date),
+                resource_id=generate_resource_id(config),
+                amount=_amount,
+                rate=_rate,
+                tags=generate_tags("EBS", config),
             )
             data.ebs_gens.append(ebs_gen)
 
@@ -210,15 +159,25 @@ class AWSGenerator(Generator):
         LOG.info(f"Building {max_route53_gens} Route 53 generators ...")
         for _ in range(max_route53_gens):
             route53_gen = dicta(
-                start_date=str(config.start_date), end_date=str(config.end_date), tags=generate_tags("R53", config)
+                start_date=str(config.start_date),
+                end_date=str(config.end_date),
+                product_family=random.choices(("DNS Zone", "DNS Query"), weights=[1, 10])[0],
+                resource_id=generate_resource_id(config),
+                tags=generate_tags("R53", config),
             )
 
             data.route53_gens.append(route53_gen)
 
         LOG.info(f"Building {max_s3_gens} S3 generators ...")
         for _ in range(max_s3_gens):
+            _rate, _amount = RATE_AMT.get("S3")
             s3_gen = dicta(
-                start_date=str(config.start_date), end_date=str(config.end_date), tags=generate_tags("S3", config)
+                start_date=str(config.start_date),
+                end_date=str(config.end_date),
+                resource_id=generate_resource_id(config),
+                amount=_amount,
+                rate=_rate,
+                tags=generate_tags("S3", config),
             )
 
             data.s3_gens.append(s3_gen)
@@ -226,7 +185,10 @@ class AWSGenerator(Generator):
         LOG.info(f"Building {max_vpc_gens} VPC generators ...")
         for _ in range(max_vpc_gens):
             vpc_gen = dicta(
-                start_date=str(config.start_date), end_date=str(config.end_date), tags=generate_tags("VPC", config)
+                start_date=str(config.start_date),
+                end_date=str(config.end_date),
+                resource_id=generate_resource_id(config),
+                tags=generate_tags("VPC", config),
             )
 
             data.vpc_gens.append(vpc_gen)
