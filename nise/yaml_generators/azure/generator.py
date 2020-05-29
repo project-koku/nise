@@ -31,6 +31,22 @@ from nise.yaml_generators.utils import generate_name
 
 FAKER = faker.Faker()
 LOG = logging.getLogger(__name__)
+ACCTS_STR = {
+    "sql": ("Microsoft.Sql", "servers"),
+    "storage": ("Microsoft.Storage", "storageAccounts"),
+    "vmachine": ("Microsoft.Compute", "virtualMachines"),
+    "vnetwork": ("Microsoft.Network", "publicIPAddresses"),
+}
+EXAMPLE_RESOURCE = (
+    ("RG1", "mysa1"),
+    ("RG1", "costmgmtacct1234"),
+    ("RG2", "mysa1"),
+    ("RG2", "costmgmtacct1234"),
+    ("costmgmt", "mysa1"),
+    ("costmgmt", "costmgmtacct1234"),
+    ("hccm", "mysa1"),
+    ("hccm", "costmgmtacct1234"),
+)
 RESOURCE_LOCATIONS = [
     "US East",
     "US North Central",
@@ -49,8 +65,20 @@ TAG_KEYS = {
 }
 
 
+def generate_instance_id(key, config):
+    """Generate properly formatted instance_id."""
+    resource_group, resource_name = random.choice(EXAMPLE_RESOURCE)
+    if ACCTS_STR.get(key):
+        consumed, second_part = ACCTS_STR.get(key)
+    else:
+        consumed, second_part = random.choice(list(ACCTS_STR.values()))
+    resource_type = consumed + "/" + second_part
+    accts_str = "/providers/" + resource_type + "/"
+    return f"subscriptions/{config.payer_account}/resourceGroups/{resource_group}/{accts_str[1:-2]}/{resource_name}"
+
+
 def generate_tags(key, config, prefix="", suffix="", dynamic=True, _random=False):
-    """Generate properly formatted AWS tags.
+    """Generate properly formatted Azure tags.
     Returns:
         list
     """
@@ -67,6 +95,7 @@ def generate_azure_dicta(config, key, _random):
     return dicta(
         start_date=str(config.start_date),
         end_date=str(config.end_date),
+        instance_id=generate_instance_id(key, config),
         meter_id=str(uuid4()),
         resource_location=random.choice(RESOURCE_LOCATIONS),
         usage_quantity=usage,
@@ -74,15 +103,6 @@ def generate_azure_dicta(config, key, _random):
         pre_tax_cost=usage * rate,
         tags=generate_tags(key, config, _random=_random),
     )
-
-
-# instance_id
-# meter_id
-# resource_location
-# usage_quantity
-# resource_rate
-# pre_tax_cost
-# tags
 
 
 class AzureGenerator(Generator):
@@ -102,7 +122,14 @@ class AzureGenerator(Generator):
         """
         LOG.info("Data build starting")
 
-        data = dicta(bandwidth_gens=[], sql_gens=[], storage_gens=[], vmachine_gens=[], vnetwork_gens=[])
+        data = dicta(
+            payer=config.payer_account,
+            bandwidth_gens=[],
+            sql_gens=[],
+            storage_gens=[],
+            vmachine_gens=[],
+            vnetwork_gens=[],
+        )
 
         max_bandwidth_gens = FAKER.random_int(1, config.max_bandwidth_gens) if _random else config.max_bandwidth_gens
         max_sql_gens = FAKER.random_int(1, config.max_sql_gens) if _random else config.max_sql_gens
@@ -141,6 +168,7 @@ class AzureGenerator(Generator):
         default_date = date.today()
         last_day_of_month = monthrange(default_date.year, default_date.month)[1]
         return dicta(
+            payer_account="657f539b-7f89-4b2c-8833-f73a4654a3bc",
             start_date=default_date.replace(day=1) - relativedelta(months=1),
             end_date=default_date.replace(day=last_day_of_month),
             max_name_words=2,
@@ -161,6 +189,7 @@ class AzureGenerator(Generator):
             bool
         """
         validator = dicta(
+            payer_account=str,
             start_date=date,
             end_date=date,
             storage_classes=list,
