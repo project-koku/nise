@@ -85,53 +85,6 @@ class AWSGeneratorTestCase(TestCase):
         del td.test
         self.assertEqual(len(td), 0)
 
-    def test_word_generator(self):
-        """
-        Test the raw word generator
-        """
-        dc = self.yg.default_config()
-        txt = self.module.generate_words(dc)
-        self.assertEqual(len(txt.split("-")), dc.max_name_words)
-
-    def test_number_str_generator(self):
-        """
-        Test the raw number string generator
-        """
-        dc = self.yg.default_config()
-        txt = self.module.generate_number_str(dc)
-        self.assertTrue(txt.isdigit())
-        self.assertEqual(len(txt), dc.max_resource_id_length)
-
-    def test_generate_name(self):
-        """
-        Test the name generator
-        """
-        dc = self.yg.default_config()
-        name = self.module.generate_name(dc)
-        self.assertEqual(len(name.split("-")), dc.max_name_words)
-        self.assertFalse(name.isdigit())
-        prefix = "___"
-        suffix = "^^^"
-        name = self.module.generate_name(dc, prefix=prefix)
-        self.assertTrue(name.startswith(prefix + "-"))
-        self.assertTrue(len(name) - len(prefix + "-") > 0)
-        name = self.module.generate_name(dc, prefix=prefix, suffix=suffix)
-        self.assertTrue(name.startswith(prefix + "-"))
-        self.assertTrue(name.endswith("-" + suffix))
-        self.assertTrue(len(name.replace(prefix + "-", "").replace("-" + suffix, "")) > 0)
-        name = self.module.generate_name(dc, prefix=prefix, suffix=suffix, dynamic=False)
-        self.assertTrue(name.startswith(prefix + "-"))
-        self.assertTrue(name.endswith("-" + suffix))
-        self.assertTrue("--" not in name)
-        self.assertEqual(len(name.replace(prefix + "-", "").replace(suffix, "")), 0)
-
-    def test_generate_resource_id(self):
-        """ Test resource id generation """
-        dc = self.yg.default_config()
-        res_id = self.module.generate_resource_id(dc)
-        self.assertEqual(len(res_id), dc.max_resource_id_length)
-        self.assertTrue(res_id.isdigit())
-
     def test_generate_tags(self):
         """
         Test label string generator

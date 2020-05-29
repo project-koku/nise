@@ -59,12 +59,8 @@ def generate_name(config, prefix="", suffix="", dynamic=True, generator=generate
     """
     new_name = None
     while True:
-        if prefix:
-            prefix += "-"
-        if suffix:
-            suffix = "-" + suffix
         mid = generator(config) if dynamic else ""
-        new_name = f"{prefix}{mid}{suffix}"
+        new_name = f"{prefix + '-' if prefix else prefix}{mid}{'-' + suffix if suffix else suffix}"
         if new_name not in cache:
             cache.add(new_name)
             break
@@ -99,10 +95,6 @@ class dicta(dict):
         print(x.a)     # 1
         print(x['b'])  # 2
     """
-
-    def __init__(self, *args, **kwargs):
-        """Dicta constructor."""
-        super().__init__(*args, **kwargs)
 
     def __getattr__(self, key):
         """Get attribute."""
