@@ -40,6 +40,7 @@ RESOURCE_LOCATIONS = [
     "US Central",
     "US West",
 ]
+TAG_CACHE = set()
 TAG_KEYS = {
     "vmachine": ["environment", "version", "app"],
     "vnetwork": ["environment", "version", "app"],
@@ -57,18 +58,32 @@ def generate_tags(key, config, prefix="", suffix="", dynamic=True, _random=False
     keys = TAG_KEYS.get(key)
     if _random:
         keys = random.sample(keys, k=random.randint(1, len(keys)))
-    return [dicta(key=key, v=generate_name(config)) for key in keys]
+    return [dicta(key=key, v=generate_name(config, cache=TAG_CACHE)) for key in keys]
 
 
 def generate_azure_dicta(config, key, _random):
+    rate = round(random.uniform(0.1, 0.50), 5)
+    usage = round(random.uniform(0.01, 1), 5)
 
     return dicta(
         start_date=str(config.start_date),
         end_date=str(config.end_date),
         meter_id=str(uuid4()),
         resource_location=random.choice(RESOURCE_LOCATIONS),
+        usage_quantity=usage,
+        resource_rate=rate,
+        pre_tax_cost=usage * rate,
         tags=generate_tags(key, config, _random=_random),
     )
+
+
+# instance_id
+# meter_id
+# resource_location
+# usage_quantity
+# resource_rate
+# pre_tax_cost
+# tags
 
 
 class AzureGenerator(Generator):

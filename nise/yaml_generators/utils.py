@@ -59,8 +59,12 @@ def generate_name(config, prefix="", suffix="", dynamic=True, generator=generate
     """
     new_name = None
     while True:
+        if prefix:
+            prefix += "-"
+        if suffix:
+            suffix = "-" + suffix
         mid = generator(config) if dynamic else ""
-        new_name = f"{prefix + '-' if prefix else prefix}{mid}{'-' + suffix if suffix else suffix}"
+        new_name = f"{prefix}{mid}{suffix}"
         if new_name not in cache:
             cache.add(new_name)
             break
