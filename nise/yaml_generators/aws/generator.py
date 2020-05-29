@@ -75,6 +75,16 @@ def generate_tags(key, config, prefix="", suffix="", dynamic=True):
     return [dicta(key=key, v=generate_name(config)) for key in keys]
 
 
+def initialize_dicta(key, config):
+    return dicta(
+        start_date=str(config.start_date),
+        end_date=str(config.end_date),
+        resource_id=generate_name(config, generator=resource_id_generator),
+        product_sku=generate_name(config, generator=product_sku_generator),
+        tags=generate_tags(key, config),
+    )
+
+
 class AWSGenerator(Generator):
     """YAML generator for AWS."""
 
@@ -91,7 +101,14 @@ class AWSGenerator(Generator):
         LOG.info("Data build starting")
 
         data = dicta(
-            data_transfer_gens=[], ebs_gens=[], ec2_gens=[], rds_gens=[], route53_gens=[], s3_gens=[], vpc_gens=[]
+            payer=config.account_payer,
+            data_transfer_gens=[],
+            ebs_gens=[],
+            ec2_gens=[],
+            rds_gens=[],
+            route53_gens=[],
+            s3_gens=[],
+            vpc_gens=[],
         )
 
         max_data_transfer_gens = (
@@ -107,42 +124,24 @@ class AWSGenerator(Generator):
         LOG.info(f"Building {max_data_transfer_gens} data transfer generators ...")
         for _ in range(max_data_transfer_gens):
             _rate, _amount = RATE_AMT.get("DTG")
-            data_transfer_gen = dicta(
-                start_date=str(config.start_date),
-                end_date=str(config.end_date),
-                resource_id=generate_name(config, generator=resource_id_generator),
-                product_sku=generate_name(config, generator=product_sku_generator),
-                amount=_amount,
-                rate=_rate,
-                tags=generate_tags("DTG", config),
-            )
+            data_transfer_gen = initialize_dicta("DTG", config)
+            data_transfer_gen.update(amount=_amount, rate=_rate)
             data.data_transfer_gens.append(data_transfer_gen)
 
         LOG.info(f"Building {max_ebs_gens} EBS generators ...")
         for _ in range(max_ebs_gens):
             _rate, _amount = RATE_AMT.get("EBS")
-            ebs_gen = dicta(
-                start_date=str(config.start_date),
-                end_date=str(config.end_date),
-                resource_id=generate_name(config, generator=resource_id_generator),
-                product_sku=generate_name(config, generator=product_sku_generator),
-                amount=_amount,
-                rate=_rate,
-                tags=generate_tags("EBS", config),
-            )
+            ebs_gen = initialize_dicta("EBS", config)
+            ebs_gen.update(amount=_amount, rate=_rate)
             data.ebs_gens.append(ebs_gen)
 
         LOG.info(f"Building {max_ec2_gens} EC2 generators ...")
         for _ in range(max_ec2_gens):
             instance_type = random.choice(EC2_INSTANCES)
-            ec2_gen = dicta(
-                start_date=str(config.start_date),
-                end_date=str(config.end_date),
+            ec2_gen = initialize_dicta("EC2", config)
+            ec2_gen.update(
                 processor_arch=instance_type.get("processor_arch"),
-                resource_id=generate_name(config, generator=resource_id_generator),
-                product_sku=generate_name(config, generator=product_sku_generator),
                 region=random.choice(REGIONS),
-                tags=generate_tags("EC2", config),
                 instance_type=instance_type,
             )
             data.ec2_gens.append(ec2_gen)
@@ -150,53 +149,30 @@ class AWSGenerator(Generator):
         LOG.info(f"Building {max_rds_gens} RDS generators ...")
         for _ in range(max_rds_gens):
             instance_type = random.choice(RDS_INSTANCES)
-            rds_gen = dicta(
-                start_date=str(config.start_date),
-                end_date=str(config.end_date),
+            rds_gen = initialize_dicta("RDS", config)
+            rds_gen.update(
                 processor_arch=instance_type.get("processor_arch"),
-                resource_id=generate_name(config, generator=resource_id_generator),
-                product_sku=generate_name(config, generator=product_sku_generator),
                 region=random.choice(REGIONS),
-                tags=generate_tags("RDS", config),
                 instance_type=instance_type,
             )
             data.rds_gens.append(rds_gen)
 
         LOG.info(f"Building {max_route53_gens} Route 53 generators ...")
         for _ in range(max_route53_gens):
-            route53_gen = dicta(
-                start_date=str(config.start_date),
-                end_date=str(config.end_date),
-                product_family=random.choices(("DNS Zone", "DNS Query"), weights=[1, 10])[0],
-                resource_id=generate_name(config, generator=resource_id_generator),
-                product_sku=generate_name(config, generator=product_sku_generator),
-                tags=generate_tags("R53", config),
-            )
+            route53_gen = initialize_dicta("R53", config)
+            route53_gen.update(product_family=random.choices(("DNS Zone", "DNS Query"), weights=[1, 10])[0])
             data.route53_gens.append(route53_gen)
 
         LOG.info(f"Building {max_s3_gens} S3 generators ...")
         for _ in range(max_s3_gens):
             _rate, _amount = RATE_AMT.get("S3")
-            s3_gen = dicta(
-                start_date=str(config.start_date),
-                end_date=str(config.end_date),
-                resource_id=generate_name(config, generator=resource_id_generator),
-                product_sku=generate_name(config, generator=product_sku_generator),
-                amount=_amount,
-                rate=_rate,
-                tags=generate_tags("S3", config),
-            )
+            s3_gen = initialize_dicta("S3", config)
+            s3_gen.update(amount=_amount, rate=_rate)
             data.s3_gens.append(s3_gen)
 
         LOG.info(f"Building {max_vpc_gens} VPC generators ...")
         for _ in range(max_vpc_gens):
-            vpc_gen = dicta(
-                start_date=str(config.start_date),
-                end_date=str(config.end_date),
-                resource_id=generate_name(config, generator=resource_id_generator),
-                product_sku=generate_name(config, generator=product_sku_generator),
-                tags=generate_tags("VPC", config),
-            )
+            vpc_gen = initialize_dicta("VPC", config)
             data.vpc_gens.append(vpc_gen)
 
         return data
@@ -213,6 +189,7 @@ class AWSGenerator(Generator):
         return dicta(
             start_date=default_date.replace(day=1) - relativedelta(months=1),
             end_date=default_date.replace(day=last_day_of_month),
+            payer_account=9999999999999,
             max_name_words=2,
             max_resource_id_length=10,
             max_data_transfer_gens=1,
@@ -237,7 +214,7 @@ class AWSGenerator(Generator):
         validator = dicta(
             start_date=date,
             end_date=date,
-            storage_classes=list,
+            payer_account=int,
             max_name_words=int,
             max_resource_id_length=int,
             max_data_transfer_gens=int,
