@@ -49,14 +49,26 @@ TAG_KEYS = {
 }
 
 
-def generate_tags(key, config, prefix="", suffix="", dynamic=True):
+def generate_tags(key, config, prefix="", suffix="", dynamic=True, random=False):
     """Generate properly formatted AWS tags.
     Returns:
         list
     """
-    key_list = TAG_KEYS.get(key)
-    keys = random.sample(key_list, k=random.randint(1, len(key_list)))
+    keys = TAG_KEYS.get(key)
+    if random:
+        keys = random.sample(keys, k=random.randint(1, len(keys)))
     return [dicta(key=key, v=generate_name(config)) for key in keys]
+
+
+def generate_azure_dicta(config, key, _random):
+
+    return dicta(
+        start_date=str(config.start_date),
+        end_date=str(config.end_date),
+        meter_id=str(uuid4()),
+        resource_location=random.choice(RESOURCE_LOCATIONS),
+        tags=generate_tags(key, config, random=_random),
+    )
 
 
 class AzureGenerator(Generator):
@@ -86,63 +98,23 @@ class AzureGenerator(Generator):
 
         LOG.info(f"Building {max_bandwidth_gens} Bandwidth generators ...")
         for _ in range(max_bandwidth_gens):
-            bandwidth_gen = dicta(
-                start_date=str(config.start_date),
-                end_date=str(config.end_date),
-                meter_id=str(uuid4()),
-                resource_location=random.choice(RESOURCE_LOCATIONS),
-                tags=generate_tags("bandwidth", config),
-            )
-            data.bandwidth_gens.append(bandwidth_gen)
+            data.bandwidth_gens.append(generate_azure_dicta(config, "bandwidth", _random))
 
         LOG.info(f"Building {max_sql_gens} SQL generators ...")
         for _ in range(max_sql_gens):
-            sql_gen = dicta(
-                start_date=str(config.start_date),
-                end_date=str(config.end_date),
-                meter_id=str(uuid4()),
-                resource_location=random.choice(RESOURCE_LOCATIONS),
-                tags=generate_tags("sql", config),
-            )
-            data.sql_gens.append(sql_gen)
+            data.sql_gens.append(generate_azure_dicta(config, "sql", _random))
 
         LOG.info(f"Building {max_storage_gens} Storage generators ...")
         for _ in range(max_storage_gens):
-
-            storage_gen = dicta(
-                start_date=str(config.start_date),
-                end_date=str(config.end_date),
-                meter_id=str(uuid4()),
-                resource_location=random.choice(RESOURCE_LOCATIONS),
-                tags=generate_tags("storage", config),
-            )
-            data.storage_gens.append(storage_gen)
+            data.storage_gens.append(generate_azure_dicta(config, "storage", _random))
 
         LOG.info(f"Building {max_vmachine_gens} Virtual Machine generators ...")
         for _ in range(max_vmachine_gens):
-
-            vmachine_gen = dicta(
-                start_date=str(config.start_date),
-                end_date=str(config.end_date),
-                meter_id=str(uuid4()),
-                resource_location=random.choice(RESOURCE_LOCATIONS),
-                tags=generate_tags("vmachine", config),
-            )
-
-            data.vmachine_gens.append(vmachine_gen)
+            data.vmachine_gens.append(generate_azure_dicta(config, "vmachine", _random))
 
         LOG.info(f"Building {max_vnetwork_gens} Virtual Network generators ...")
         for _ in range(max_vnetwork_gens):
-
-            vnetwork_gen = dicta(
-                start_date=str(config.start_date),
-                end_date=str(config.end_date),
-                meter_id=str(uuid4()),
-                resource_location=random.choice(RESOURCE_LOCATIONS),
-                tags=generate_tags("vnetwork", config),
-            )
-
-            data.vnetwork_gens.append(vnetwork_gen)
+            data.vnetwork_gens.append(generate_azure_dicta(config, "vnetwork", _random))
 
         return data
 

@@ -115,3 +115,31 @@ class UtilTestCase(TestCase):
         self.assertEqual(len(res_id), 3)  # 3 because double -- is replaced with a single -
         self.assertEqual(res_id.split("-")[0], prefix)
         self.assertEqual(res_id.split("-")[-1], suffix)
+
+
+class TestDicta(TestCase):
+    """Test cases for dicta."""
+
+    def test_dicta(self):
+        """
+        Test dicta class
+        """
+        td = dicta()
+        self.assertEqual(len(td), 0)
+
+        td.test = 1
+        self.assertEqual(len(td), 1)
+        self.assertEqual(td.test, td["test"])
+
+        td.test = 2
+        self.assertEqual(td.test, 2)
+
+        td2 = td.copy()
+        self.assertTrue(isinstance(td2, dicta))
+        self.assertEqual(td2, td)
+
+        with self.assertRaises(KeyError):
+            td.x
+
+        del td.test
+        self.assertEqual(len(td), 0)

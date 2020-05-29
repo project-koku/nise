@@ -61,30 +61,6 @@ class OCPGeneratorTestCase(TestCase):
             dc.start_date = ""
             self.assertFalse(self.yg.validate_config(dc))
 
-    def test_dicta(self):
-        """
-        Test dicta class
-        """
-        td = self.module.dicta()
-        self.assertEqual(len(td), 0)
-
-        td.test = 1
-        self.assertEqual(len(td), 1)
-        self.assertEqual(td.test, td["test"])
-
-        td.test = 2
-        self.assertEqual(td.test, 2)
-
-        td2 = td.copy()
-        self.assertTrue(isinstance(td2, self.module.dicta))
-        self.assertEqual(td2, td)
-
-        with self.assertRaises(KeyError):
-            td.x
-
-        del td.test
-        self.assertEqual(len(td), 0)
-
     def test_generate_labels(self):
         """
         Test label string generator
