@@ -90,13 +90,10 @@ def generate_resource_id(config, prefix="", suffix="", dynamic=True):
     )
 
 
-class DateRangeArgsError(Exception):
-    pass
-
-
 class dicta(dict):
     """
     Dict subclass that can access values via key or attribute.
+
     Ex:
         x = dicta(a=1, b=2)
         print(x.a)     # 1
@@ -104,16 +101,21 @@ class dicta(dict):
     """
 
     def __init__(self, *args, **kwargs):
+        """Dicta constructor."""
         super().__init__(*args, **kwargs)
 
     def __getattr__(self, key):
+        """Get attribute."""
         return super().__getitem__(key)
 
     def __setattr__(self, key, val):
+        """Set attribute."""
         super().__setitem__(key, val)
 
     def __delattr__(self, key):
+        """Delete attribute."""
         super().__delitem__(key)
 
     def copy(self):
+        """Get a copy."""
         return self.__class__(self)

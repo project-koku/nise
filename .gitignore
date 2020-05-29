@@ -104,7 +104,7 @@ venv.bak/
 .mypy_cache/
 
 .vscode
-.sw*
+*.sw[po]
 *.code-workspace
 
 # Generated csv files

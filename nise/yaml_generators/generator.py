@@ -18,6 +18,7 @@
 """Utility to generate large yaml files."""
 import os
 import sys
+from abc import ABC
 
 import yaml
 from dateutil.parser import parse
@@ -25,19 +26,25 @@ from jinja2 import Environment
 from jinja2 import FileSystemLoader
 
 
-class Generator:
+class Generator(ABC):
+    """YAML File Generator base class."""
+
     def default_config(self, *args, **kwargs):
+        """Defaulted config abstract method."""
         raise NotImplementedError
 
     def validate_config(self, *args, **kwargs):
+        """Validate config abstract method."""
         raise NotImplementedError
 
     def build_data(self, *args, **kwargs):
+        """Build data abstract method."""
         raise NotImplementedError
 
     def init_config(self, args):
         """
         Initialize the config object for template processing.
+
         Params:
             args : Namespace - Command line arguments
         Returns:
@@ -66,7 +73,9 @@ class Generator:
     def process_template(self, args, config):
         """
         Process the jinja2 template using supplied parameter data.
+
         Produces an output file (if specified) or writes data to stdout.
+
         Parameters:
             args : Namespace - Command line arguments
             config : dicta - Template data generation config data
