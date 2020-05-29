@@ -21,7 +21,6 @@ from random import uniform
 from nise.generators.aws.aws_generator import AWSGenerator
 
 
-# pylint: disable=too-many-arguments
 class DataTransferGenerator(AWSGenerator):
     """Generator for Data Transfer data."""
 
@@ -69,14 +68,14 @@ class DataTransferGenerator(AWSGenerator):
         if self._product_sku:
             sku = self._product_sku
         else:
-            sku = self.fake.pystr(min_chars=12, max_chars=12).upper()  # pylint: disable=no-member
+            sku = self.fake.pystr(min_chars=12, max_chars=12).upper()
         return sku
 
-    def _update_data(self, row, start, end, **kwargs):  # pylint: disable=too-many-locals
+    def _update_data(self, row, start, end, **kwargs):
         """Update data with generator specific data."""
         row = self._add_common_usage_info(row, start, end)
 
-        resource_id = self.fake.ean8()  # pylint: disable=no-member
+        resource_id = self.fake.ean8()
         if self._resource_id:
             resource_id = self._resource_id
 
@@ -124,7 +123,7 @@ class DataTransferGenerator(AWSGenerator):
             end = hour.get("end")
             row = self._init_data_row(start, end)
             row = self._update_data(row, start, end)
-            if self.fake.pybool():  # pylint: disable=no-member
+            if self.fake.pybool():
                 data.append(row)
         return data
 

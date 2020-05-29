@@ -51,11 +51,9 @@ def _manifest_datetime_range(start, end):
     """
     start_str = start.strftime("%Y%m%d")
     end_str = end.strftime("%Y%m%d")
-    range_str = start_str + "-" + end_str
-    return range_str
+    return start_str + "-" + end_str
 
 
-# pylint: disable=too-many-locals
 def aws_generate_manifest(fake, template_data):
     """Generate the manifest file.
 

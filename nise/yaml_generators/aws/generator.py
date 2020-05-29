@@ -256,7 +256,6 @@ class AWSGenerator(Generator):
             max_vpc_gens=1,
         )
 
-    # pylint: disable=arguments-differ
     def validate_config(self, config):
         """
         Validate that all known parts of a config are the required types.

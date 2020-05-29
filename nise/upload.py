@@ -46,7 +46,7 @@ def upload_to_s3(bucket_name, bucket_file_path, local_path):
     uploaded = True
     try:
         s3_client = boto3.resource("s3")
-        s3_client.Bucket(bucket_name).upload_file(local_path, bucket_file_path)  # pylint: disable=maybe-no-member
+        s3_client.Bucket(bucket_name).upload_file(local_path, bucket_file_path)
         msg = f"Uploaded {bucket_file_path} to s3 bucket {bucket_name}."
         LOG.info(msg)
     except (ClientError, BotoConnectionError, boto3.exceptions.S3UploadFailedError) as upload_err:

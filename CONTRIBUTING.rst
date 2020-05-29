@@ -65,8 +65,8 @@ to conform to additional style guidelines, e.g. `Google's Python Style
 Guide <https://google.github.io/styleguide/pyguide.html />`_.
 
 We do use automation whenever possible to ensure a basic level of
-acceptability. Pull-requests MUST pass a linter (pylint or flake8) without
-errors.
+acceptability. Pull-requests MUST pass a linter (flake8) without
+errors. Linting is performed by pre-commit.
 
 We do recognize that sometimes linters can get things wrong. They are
 useful tools, but they are not perfect tools. Pull-requests SHOULD pass a linter

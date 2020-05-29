@@ -248,12 +248,15 @@ def _create_month_list(start_date, end_date):
     months = []
     current = start_date.replace(day=1)
     while current <= end_date:
-        month = {}
-        month["name"] = calendar.month_name[current.month]
-        month["start"] = datetime(year=current.year, month=current.month, day=1)
-        month["end"] = datetime(
-            year=current.year, month=current.month, day=calendar.monthrange(year=current.year, month=current.month)[1]
-        )
+        month = {
+            "name": calendar.month_name[current.month],
+            "start": datetime(year=current.year, month=current.month, day=1),
+            "end": datetime(
+                year=current.year,
+                month=current.month,
+                day=calendar.monthrange(year=current.year, month=current.month)[1],
+            ),
+        }
         if current.month == start_date.month:
             # First month start with start_date
             month["start"] = start_date
@@ -290,14 +293,14 @@ def _generate_accounts(static_report_data=None):
         usage_accounts = tuple(static_report_data.get("user"))
     else:
         fake = Faker()
-        payer_account = fake.ean(length=13)  # pylint: disable=no-member
+        payer_account = fake.ean(length=13)
         usage_accounts = (
             payer_account,
-            fake.ean(length=13),  # pylint: disable=no-member
-            fake.ean(length=13),  # pylint: disable=no-member
-            fake.ean(length=13),  # pylint: disable=no-member
             fake.ean(length=13),
-        )  # pylint: disable=no-member
+            fake.ean(length=13),
+            fake.ean(length=13),
+            fake.ean(length=13),
+        )
     return payer_account, usage_accounts
 
 
@@ -307,8 +310,7 @@ def _get_generators(generator_list):
     if generator_list:
         for item in generator_list:
             for generator_cls, attributes in item.items():
-                generator_obj = {}
-                generator_obj["generator"] = getattr(importlib.import_module(__name__), generator_cls)
+                generator_obj = {"generator": getattr(importlib.import_module(__name__), generator_cls)}
                 if attributes.get("start_date"):
                     attributes["start_date"] = parser.parse(attributes.get("start_date"))
                 if attributes.get("end_date"):
@@ -354,7 +356,6 @@ def _create_generator_dates_from_yaml(attributes, month):
     return gen_start_date, gen_end_date
 
 
-# pylint: disable=too-many-arguments
 def write_aws_file(file_number, aws_report_name, month_name, year, data, aws_finalize_report, static_report_data):
     """Write AWS data to a file."""
     if file_number != 0:
@@ -377,7 +378,6 @@ def write_aws_file(file_number, aws_report_name, month_name, year, data, aws_fin
     return full_file_name
 
 
-# pylint: disable=too-many-locals,too-many-statements,too-many-branches
 def aws_create_report(options):  # noqa: C901
     """Create a cost usage report file."""
     data = []
@@ -432,7 +432,7 @@ def aws_create_report(options):  # noqa: C901
 
             gen = generator_cls(gen_start_date, gen_end_date, payer_account, usage_accounts, attributes)
             num_instances = 1 if attributes else randint(2, 60)
-            for _ in range(num_instances):  # pylint: disable=W0612
+            for _ in range(num_instances):
                 for hour in gen.generate_data():
                     data += [hour]
                     if len(data) == options.get("row_limit"):
@@ -491,7 +491,6 @@ def aws_create_report(options):  # noqa: C901
             _remove_files(monthly_files)
 
 
-# pylint: disable=too-many-locals,too-many-statements
 def azure_create_report(options):  # noqa: C901
     """Create a cost usage report file."""
     data = []
@@ -577,7 +576,6 @@ def azure_create_report(options):  # noqa: C901
             _remove_files(monthly_files)
 
 
-# pylint: disable=too-many-arguments
 def write_ocp_file(file_number, cluster_id, month_name, year, report_type, data):
     """Write OCP data to a file."""
     if file_number != 0:
@@ -591,7 +589,6 @@ def write_ocp_file(file_number, cluster_id, month_name, year, report_type, data)
     return full_file_name
 
 
-# pylint: disable=R0912
 def ocp_create_report(options):  # noqa: C901
     """Create a usage report file."""
     start_date = options.get("start_date")
@@ -661,12 +658,12 @@ def ocp_create_report(options):  # noqa: C901
             ocp_assembly_id = uuid4()
             report_datetime = gen_start_date
             temp_files = {}
-            for num_file in range(0, len(monthly_files)):  # pylint: disable=C0200
+            for num_file in range(len(monthly_files)):
                 temp_filename = f"{ocp_assembly_id}_openshift_report.{num_file}.csv"
                 temp_usage_file = create_temporary_copy(monthly_files[num_file], temp_filename, "payload")
                 temp_files[temp_filename] = temp_usage_file
 
-            manifest_file_names = ", ".join(f'"{w}"' for w in temp_files.keys())  # pylint: disable=C0201
+            manifest_file_names = ", ".join(f'"{w}"' for w in temp_files)
             manifest_values = {
                 "ocp_cluster_id": cluster_id,
                 "ocp_assembly_id": ocp_assembly_id,
@@ -692,12 +689,11 @@ def ocp_create_report(options):  # noqa: C901
             _remove_files(monthly_files)
 
 
-# pylint: disable=too-many-locals,too-many-statements
 def gcp_create_report(options):  # noqa: C901
     """Create a GCP cost usage report file."""
     fake = Faker()
 
-    report_prefix = options.get("gcp_report_prefix") or fake.word()  # pylint: disable=maybe-no-member
+    report_prefix = options.get("gcp_report_prefix") or fake.word()
     gcp_bucket_name = options.get("gcp_bucket_name")
 
     start_date = options.get("start_date")
@@ -713,7 +709,7 @@ def gcp_create_report(options):  # noqa: C901
             {"generator": CloudStorageGenerator, "attributes": None},
             {"generator": ComputeEngineGenerator, "attributes": None},
         ]
-        account = "{}-{}".format(fake.word(), fake.word())  # pylint: disable=maybe-no-member
+        account = "{}-{}".format(fake.word(), fake.word())
 
         project_generator = ProjectGenerator(account)
         projects = project_generator.generate_projects()

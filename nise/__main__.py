@@ -350,7 +350,6 @@ def _validate_azure_arguments(parser, options):
     return azure_valid
 
 
-#  pylint: disable=too-many-locals
 def _validate_ocp_arguments(parser, options):
     """Validate ocp argument combination.
 

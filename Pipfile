@@ -15,7 +15,6 @@ azure-storage-blob = ">=12.1"
 google-cloud-storage = ">=1.19"
 
 [dev-packages]
-pylint = ">=2.3"
 tox = ">=3.14"
 coverage = ">=5.0"
 PyYaml = ">=5.3"

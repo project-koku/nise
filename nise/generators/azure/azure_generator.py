@@ -51,7 +51,6 @@ AZURE_COLUMNS = (
 )
 
 
-# pylint: disable=too-few-public-methods, too-many-arguments, too-many-instance-attributes
 class AzureGenerator(AbstractGenerator):
     """Defines an abstract class for generators."""
 
@@ -140,7 +139,6 @@ class AzureGenerator(AbstractGenerator):
             self._meter_cache[meter_id] = choice(service_meter)
         return self._meter_cache.get(meter_id)
 
-    # pylint: disable=too-many-locals
     def _get_resource_info(self, meter_id, service_meter, ex_resource, add_info, service_info):
         """Return resource information."""
         service_tier, meter_sub, meter_name, units_of_measure = self._get_cached_meter_values(meter_id, service_meter)
@@ -189,7 +187,7 @@ class AzureGenerator(AbstractGenerator):
 
     def _init_data_row(self, start, end, **kwargs):  # noqa: C901
         """Create a row of data with placeholder for all headers."""
-        if not start or not end:
+        if not (start and end):
             raise ValueError("start and end must be date objects.")
         if not isinstance(start, datetime.datetime):
             raise ValueError("start must be a date object.")
@@ -200,7 +198,6 @@ class AzureGenerator(AbstractGenerator):
         for column in AZURE_COLUMNS:
             row[column] = ""
             if column == "SubscriptionGuid":
-                # pylint: disable=no-member
                 row[column] = self.payer_account
         return row
 
@@ -227,20 +224,15 @@ class AzureGenerator(AbstractGenerator):
             )
         row["Tags"] = json.dumps(self._tags)
 
-    def _update_data(self, row, start, end, **kwargs):  # pylint: disable=too-many-locals
+    def _update_data(self, row, start, end, **kwargs):
         """Update data with generator specific data."""
         row = self._add_common_usage_info(row, start, end)
 
-        if self._meter_id:
-            meter_id = self._meter_id
-        else:
-            meter_id = self.fake.uuid4()  # pylint: disable=no-member
-
+        meter_id = self._meter_id if self._meter_id else self.fake.uuid4()
         rate = self._resource_rate if self._resource_rate else round(uniform(0.1, 0.50), 5)
         amount = self._usage_quantity if self._usage_quantity else uniform(0.01, 1)
         cost = self._pre_tax_cost if self._pre_tax_cost else amount * rate
         azure_region, meter_region = self._get_location_info()
-        # pylint: disable=line-too-long
         (
             resource_group,
             instance_id,

@@ -83,7 +83,6 @@ def get_report_details(report_directory):
     return payload_dict
 
 
-# pylint: disable=too-many-locals
 def extract_payload(base_path, payload_file):
     """
     Extract OCP usage report payload into local directory structure.

@@ -20,7 +20,6 @@ from random import choice
 from nise.generators.aws.aws_generator import AWSGenerator
 
 
-# pylint: disable=too-few-public-methods, too-many-arguments
 class RDSGenerator(AWSGenerator):
     """Generator for RDS data."""
 
@@ -73,9 +72,9 @@ class RDSGenerator(AWSGenerator):
         """Initialize the RDS generator."""
         super().__init__(start_date, end_date, payer_account, usage_accounts, attributes)
         self._processor_arch = choice(self.ARCHS)
-        self._product_sku = self.fake.pystr(min_chars=12, max_chars=12).upper()  # pylint: disable=no-member
+        self._product_sku = self.fake.pystr(min_chars=12, max_chars=12).upper()
         self._instance_type = choice(self.INSTANCE_TYPES)
-        self._resource_id = "i-{}".format(self.fake.ean8())  # pylint: disable=no-member
+        self._resource_id = "i-{}".format(self.fake.ean8())
         if self.attributes:
             if self.attributes.get("product_sku"):
                 self._product_sku = self.attributes.get("product_sku")
@@ -98,12 +97,8 @@ class RDSGenerator(AWSGenerator):
 
     def _get_arn(self, avail_zone):
         """Create an amazon resource name."""
-        arn = "arn:aws:rds:{}:{}:db:{}".format(
-            avail_zone, self.payer_account, self._resource_id
-        )  # pylint: disable=no-member
-        return arn
+        return f"arn:aws:rds:{avail_zone}:{self.payer_account}:db:{self._resource_id}"
 
-    # pylint: disable=too-many-locals,too-many-statements
     def _update_data(self, row, start, end, **kwargs):
         """Update data with generator specific data."""
         inst_type, vcpu, memory, storage, family, cost, rate, description = self._instance_type

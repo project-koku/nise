@@ -177,7 +177,6 @@ AWS_COLUMNS = (
 )
 
 
-# pylint: disable=too-few-public-methods, too-many-arguments
 class AWSGenerator(AbstractGenerator):
     """Defines a abstract class for generators."""
 
@@ -202,7 +201,7 @@ class AWSGenerator(AbstractGenerator):
     @staticmethod
     def timestamp(in_date):
         """Provide timestamp for a date."""
-        if not in_date or not isinstance(in_date, datetime.datetime):
+        if not (in_date and isinstance(in_date, datetime.datetime)):
             raise ValueError("in_date must be a date object.")
         return in_date.strftime("%Y-%m-%dT%H:%M:%SZ")
 
@@ -211,8 +210,7 @@ class AWSGenerator(AbstractGenerator):
         """Create a time interval string from input dates."""
         start_str = AWSGenerator.timestamp(start)
         end_str = AWSGenerator.timestamp(end)
-        time_interval = str(start_str) + "/" + str(end_str)
-        return time_interval
+        return str(start_str) + "/" + str(end_str)
 
     def _pick_tag(self, tag_key, options):
         """Generate tag from options."""
@@ -226,7 +224,7 @@ class AWSGenerator(AbstractGenerator):
 
     def _init_data_row(self, start, end, **kwargs):  # noqa: C901
         """Create a row of data with placeholder for all headers."""
-        if not start or not end:
+        if not (start and end):
             raise ValueError("start and end must be date objects.")
         if not isinstance(start, datetime.datetime):
             raise ValueError("start must be a date object.")
@@ -239,7 +237,6 @@ class AWSGenerator(AbstractGenerator):
         for column in AWS_COLUMNS:
             row[column] = ""
             if column == "identity/LineItemId":
-                # pylint: disable=no-member
                 row[column] = self.fake.sha1(raw_output=False)
             elif column == "identity/TimeInterval":
                 row[column] = AWSGenerator.time_interval(start, end)
@@ -283,7 +280,6 @@ class AWSGenerator(AbstractGenerator):
             )
             row["resourceTags/user:version"] = self._pick_tag("resourceTags/user:version", ("alpha", "beta"))
 
-    # pylint: disable=no-self-use
     def _generate_region_short_code(self, region):
         """Generate the AWS short code for a region."""
         split_region = region.split("-")

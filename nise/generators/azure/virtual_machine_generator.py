@@ -18,7 +18,6 @@
 from nise.generators.azure.azure_generator import AzureGenerator
 
 
-# pylint: disable=too-many-arguments, too-many-instance-attributes
 class VMGenerator(AzureGenerator):
     """Generator for Virtual Machine data."""
 

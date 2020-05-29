@@ -15,7 +15,7 @@ class TestGCPGenerator(TestCase):
 
     def setUp(self):
         """shared attributes."""
-        self.account = "{}-{}".format(fake.word(), fake.word())  # pylint: disable=maybe-no-member
+        self.account = "{}-{}".format(fake.word(), fake.word())
         project_generator = ProjectGenerator(self.account)
         self.project = project_generator.generate_projects(num_projects=1)[0]
         self.attributes = {

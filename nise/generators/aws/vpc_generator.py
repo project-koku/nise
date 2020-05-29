@@ -18,15 +18,14 @@
 from nise.generators.aws.aws_generator import AWSGenerator
 
 
-# pylint: disable=too-few-public-methods, too-many-arguments
 class VPCGenerator(AWSGenerator):
     """Generator for VPC data."""
 
     def __init__(self, start_date, end_date, payer_account, usage_accounts, attributes=None):
         """Initialize the VPC generator."""
         super().__init__(start_date, end_date, payer_account, usage_accounts, attributes)
-        self._resource_id = "vpn-{}".format(self.fake.ean8())  # pylint: disable=no-member
-        self._product_sku = self.fake.pystr(min_chars=12, max_chars=12).upper()  # pylint: disable=no-member
+        self._resource_id = "vpn-{}".format(self.fake.ean8())
+        self._product_sku = self.fake.pystr(min_chars=12, max_chars=12).upper()
         if self.attributes:
             if self.attributes.get("resource_id"):
                 self._resource_id = "vpn-{}".format(self.attributes.get("resource_id"))
@@ -35,7 +34,6 @@ class VPCGenerator(AWSGenerator):
             if self.attributes.get("tags"):
                 self._tags = self.attributes.get("tags")
 
-    # pylint: disable=too-many-locals,too-many-statements
     def _update_data(self, row, start, end, **kwargs):
         """Update data with generator specific data."""
         cost = 0.05
