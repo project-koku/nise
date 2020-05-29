@@ -96,8 +96,8 @@ nise is a command line tool::
 
     Usage:
         nise ( report | yaml )
-        nise report ( AWS | Azure | GCP | OCP ) [options]
-        nise yaml [options]
+        nise report ( aws | azure | gcp | ocp ) [options]
+        nise yaml ( aws | azure | ocp ) [options]
 
     Report Options:
         --start-date YYYY-MM-DD             optional, not supplied if using --static-report-file FILE_NAME
@@ -130,7 +130,6 @@ nise is a command line tool::
                                                 "local upload directory".
 
     YAML Options:
-        -p, --provider ( aws | ocp )            REQUIRED, currently only AWS and OCP are supported.
         -o, --output YAML_NAME                  REQUIRED, Output file path (i.e "large.yml").
         -c, --config ( CONFIG | default )       optional, Config file path. If "default" is provided,
                                                 use internal config file
@@ -145,6 +144,7 @@ nise is a command line tool::
         -r, --random                            optional, default=False
                                                     Randomize the number of
                                                         AWS: data generators
+                                                        Azure: data generators
                                                         OCP: nodes, namespaces, pods, volumes, volume-claims
         -t, --template template                 optional, Template file path.
 
@@ -184,26 +184,26 @@ To move put the generated data into a specific local directory, supply ``--aws-s
 
     nise report aws --start-date 2020-05-03 --aws-s3-bucket-name /local/path/testbucket --aws-s3-report-name cur --aws-s3-report-prefix my-prefix
 
-    nise --start-date 2018-06-20 --aws --aws-finalize copy
+    nise report aws --start-date 2018-06-20 --aws-finalize copy
 
 To generate static data, supply a ``--static-report-file YAML_NAME``. And example yaml is found in ``example_aws_static_data.yml``::
 
-    nise --aws --static-report-file example_aws_static_data.yml
+    nise report aws --static-report-file example_aws_static_data.yml
 
 AWS yamls
 ---------
 
 To generate a yaml file which can be used to generate cost and usage reports we must supply 2 required arguments: ``-o output`` and ``-p provider``. The output is the output file location and the provider is the provider type (currently only AWS or OCP). The following command will output a yaml in the local directory using the default parameters of 1 of each AWS generator::
 
-    nise yaml -o yaml_for_aws.yml -p AWS
+    nise yaml aws -o yaml_for_aws.yml
 
 To use the built in large yaml generator config found in nise/yaml_generators/static, use this command::
 
-    nise yaml -o large_aws.yml -p AWS -c default
+    nise yaml aws -o large_aws.yml -c default
 
 To use a user defined configuration, use this command::
 
-    nise yaml -o aws.yml -p AWS -c /path/to/config
+    nise yaml aws -o aws.yml -c /path/to/config
 
 The ``-r, --random`` flag can be added which will add a number of generators between 1 and the maximum defined in the configuration file. Start and end dates can be provided and they will overwrite the dates specified in the configuration. A user defined template may also be passed in using the ``-t /path/to/template`` flag. If a template is not passed in, the default found in ``nise/yaml_generators/static`` will be used.
 
@@ -212,13 +212,13 @@ OCP
 
 Below is an example usage of ``nise`` for OCP data::
 
-    nise --start-date 2018-06-03 --ocp --ocp-cluster-id test-001
+    nise report ocp --start-date 2018-06-03 --ocp-cluster-id test-001
 
-    nise --start-date 2018-06-03 --ocp --ocp-cluster-id test-001 --insights-upload  https://cloud.redhat.com/api/ingress/v1/upload
+    nise report ocp --start-date 2018-06-03 --ocp-cluster-id test-001 --insights-upload  https://cloud.redhat.com/api/ingress/v1/upload
 
-    nise --start-date 2018-06-03 --ocp --write-monthly --ocp-cluster-id test-001 --insights-upload  /local/path/upload_dir
+    nise reprot ocp --start-date 2018-06-03 --write-monthly --ocp-cluster-id test-001 --insights-upload  /local/path/upload_dir
 
-    nise --ocp --ocp-cluster-id my-cluster-id --static-report-file ocp_static_data.yml
+    nise report ocp --ocp-cluster-id my-cluster-id --static-report-file ocp_static_data.yml
 
 Generated reports will be generated in monthly .csv files with the file format <Month>-<Year>-<Cluster-ID>.csv.
 
@@ -226,9 +226,9 @@ Below is an example usage of ``nise`` for OCP running on AWS data::
 
     # First ensure that the resource_id and dates in both AWS and OCP static report files match
 
-    nise --aws --static-report-file examples/ocp_on_aws/aws_static_data.yml
+    nise report aws --static-report-file examples/ocp_on_aws/aws_static_data.yml
 
-    nise --ocp --ocp-cluster-id my-cluster-id --static-report-file examples/ocp_on_aws/ocp_static_data.yml
+    nise report ocp --ocp-cluster-id my-cluster-id --static-report-file examples/ocp_on_aws/ocp_static_data.yml
 
 Generated AWS reports will be generated in monthly .csv files with the file format <Month>-<Year>-<Report Name>.csv.
 
@@ -241,17 +241,17 @@ Note: To upload to AZURE, you must have AZURE_STORAGE_ACCOUNT and AZURE_STORAGE_
 
 Below is an example usage of ``nise`` for AZURE data::
 
-    nise --start-date 2019-08-01 --azure
+    nise report azure --start-date 2019-08-01
 
-    nise --start-date 2019-08-01 --azure --azure-container-name container --azure-report-name cur
+    nise report azure --start-date 2019-08-01 --azure-container-name container --azure-report-name cur
 
-    nise --start-date 2019-08-01 --azure --azure-container-name /local/path/container --azure-report-name cur
+    nise report azure --start-date 2019-08-01 --azure-container-name /local/path/container --azure-report-name cur
 
-    nise --start-date 2019-08-01 --azure --azure-container-name /local/path/container --azure-report-name cur --azure-report-prefix my-prefix
+    nise report azure --start-date 2019-08-01 --azure-container-name /local/path/container --azure-report-name cur --azure-report-prefix my-prefix
 
-    nise --start-date 2019-08-01 --azure --azure-container-name /local/path/container --azure-report-name cur --azure-report-prefix my-prefix --static-report-file example_azure_static_data.yml
+    nise report azure --start-date 2019-08-01 --azure-container-name /local/path/container --azure-report-name cur --azure-report-prefix my-prefix --static-report-file example_azure_static_data.yml
 
-    nise --azure --static-report-file azure_static_data.yml
+    nise report azure --static-report-file azure_static_data.yml
 
 Below is an example usage of ``nise`` for OCP running on AZURE data::
 
@@ -259,9 +259,9 @@ Below is an example usage of ``nise`` for OCP running on AZURE data::
         e.g. instance_id: '/subscriptions/99999999-9999-9999-9999-999999999999/resourceGroups/koku-99hqd-rg/providers/Microsoft.Compute/virtualMachines/master'
              node_name: master
 
-    nise --azure --static-report-file examples/ocp_on_azure/azure_static_data.yml
+    nise report azure --static-report-file examples/ocp_on_azure/azure_static_data.yml
 
-    nise --ocp --ocp-cluster-id my-cluster-id --static-report-file examples/ocp_on_azure/ocp_static_data.yml
+    nise report ocp --ocp-cluster-id my-cluster-id --static-report-file examples/ocp_on_azure/ocp_static_data.yml
 
 Example upload to AZURE::
 
@@ -315,13 +315,13 @@ For more information about ``GOOGLE_APPLICATION_CREDENTIALS`` see `the Google Au
 
 Below is an example usage of ``nise`` for GCP data::
 
-    nise --gcp --start-date 2018-06-03 --end-date 2018-06-08
+    nise report gcp --start-date 2018-06-03 --end-date 2018-06-08
 
-    nise --gcp --start-date 2018-06-03 --end-date 2018-06-08 --gcp-report-prefix my-gcp-data
+    nise report gcp --start-date 2018-06-03 --end-date 2018-06-08 --gcp-report-prefix my-gcp-data
 
-    nise --gcp --start-date 2018-06-03 --end-date 2018-06-08 --gcp-report-prefix my-gcp-data --gcp-bucket-name my-gcp-bucket
+    nise report gcp --start-date 2018-06-03 --end-date 2018-06-08 --gcp-report-prefix my-gcp-data --gcp-bucket-name my-gcp-bucket
 
-    nise --gcp --static-report-file gcp_static_data.yml
+    nise report gcp --static-report-file gcp_static_data.yml
 
 
 Generated reports will be generated in daily .csv files with the file format <Report-Prefix>-<Year>-<Month>-<Day>.csv.
