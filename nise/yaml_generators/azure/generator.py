@@ -49,13 +49,13 @@ TAG_KEYS = {
 }
 
 
-def generate_tags(key, config, prefix="", suffix="", dynamic=True, random=False):
+def generate_tags(key, config, prefix="", suffix="", dynamic=True, _random=False):
     """Generate properly formatted AWS tags.
     Returns:
         list
     """
     keys = TAG_KEYS.get(key)
-    if random:
+    if _random:
         keys = random.sample(keys, k=random.randint(1, len(keys)))
     return [dicta(key=key, v=generate_name(config)) for key in keys]
 
@@ -67,7 +67,7 @@ def generate_azure_dicta(config, key, _random):
         end_date=str(config.end_date),
         meter_id=str(uuid4()),
         resource_location=random.choice(RESOURCE_LOCATIONS),
-        tags=generate_tags(key, config, random=_random),
+        tags=generate_tags(key, config, _random=_random),
     )
 
 

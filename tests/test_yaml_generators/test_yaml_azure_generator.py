@@ -70,3 +70,35 @@ class AWSGeneratorTestCase(TestCase):
                 self.assertEqual(len(tags), len(self.module.TAG_KEYS[key]))
                 for tag in tags:
                     self.assertTrue(tag.get("key") in self.module.TAG_KEYS[key])
+
+    def test_build_data(self):  # noqa: C901
+        """
+        Test create data static and random
+        """
+
+        def check_exact(val, config_val, **kwargs):
+            return val == config_val
+
+        def check_range(val, config_val, v_min=1):
+            return v_min <= val <= config_val
+
+        def validate_data(data, config, check_func):
+            keys = sorted(["start_date", "end_date", "meter_id", "resource_location", "tags"])
+            gens = ["bandwidth_gens", "sql_gens", "storage_gens", "vmachine_gens", "vnetwork_gens"]
+
+            self.assertTrue(isinstance(data, self.module.dicta))
+
+            for gen in gens:
+                self.assertTrue(check_func(len(data.get(gen)), config.get(f"max_{gen}")))
+
+                for gen in data.get(gen):
+                    self.assertEqual(sorted(gen.keys()), keys)
+                    self.assertTrue(isinstance(gen.start_date, str) and isinstance(gen.end_date, str))
+
+        dc = self.yg.default_config()
+
+        data = self.yg.build_data(dc, False)
+        validate_data(data, dc, check_exact)
+
+        data = self.yg.build_data(dc, True)
+        validate_data(data, dc, check_range)
