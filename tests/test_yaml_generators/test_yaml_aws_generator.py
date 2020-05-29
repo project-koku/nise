@@ -31,7 +31,7 @@ CACHE_PATH = os.path.join(os.path.dirname(GEN_FILE_DIR), "__pycache__")
 
 class AWSGeneratorTestCase(TestCase):
     """
-    Base TestCase class, sets up a CLI parser
+    Base TestCase class, for AWS yaml gen.
     """
 
     @classmethod
