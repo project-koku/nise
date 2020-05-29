@@ -31,7 +31,6 @@ from nise.yaml_generators.aws.regions import REGIONS
 from nise.yaml_generators.generator import Generator
 from nise.yaml_generators.utils import dicta
 from nise.yaml_generators.utils import generate_name
-from nise.yaml_generators.utils import generate_resource_id
 
 LOG = logging.getLogger(__name__)
 
@@ -54,6 +53,16 @@ RATE_AMT = {
     "EBS": (round(uniform(0.02, 0.16), 3), uniform(0.2, 300.99)),
     "S3": (round(uniform(0.02, 0.06), 3), uniform(0.2, 6000.99)),
 }
+
+
+def product_sku_generator(*args):
+    """Generate random 12 character alpha string."""
+    return FAKER.pystr(min_chars=12, max_chars=12).upper()
+
+
+def resource_id_generator(*args):
+    """Generate fake.ean8() number."""
+    return FAKER.ean8()
 
 
 def generate_tags(key, config, prefix="", suffix="", dynamic=True):
@@ -101,7 +110,8 @@ class AWSGenerator(Generator):
             data_transfer_gen = dicta(
                 start_date=str(config.start_date),
                 end_date=str(config.end_date),
-                resource_id=generate_resource_id(config),
+                resource_id=generate_name(config, generator=resource_id_generator),
+                product_sku=generate_name(config, generator=product_sku_generator),
                 amount=_amount,
                 rate=_rate,
                 tags=generate_tags("DTG", config),
@@ -114,7 +124,8 @@ class AWSGenerator(Generator):
             ebs_gen = dicta(
                 start_date=str(config.start_date),
                 end_date=str(config.end_date),
-                resource_id=generate_resource_id(config),
+                resource_id=generate_name(config, generator=resource_id_generator),
+                product_sku=generate_name(config, generator=product_sku_generator),
                 amount=_amount,
                 rate=_rate,
                 tags=generate_tags("EBS", config),
@@ -123,15 +134,13 @@ class AWSGenerator(Generator):
 
         LOG.info(f"Building {max_ec2_gens} EC2 generators ...")
         for _ in range(max_ec2_gens):
-
             instance_type = random.choice(EC2_INSTANCES)
-
             ec2_gen = dicta(
                 start_date=str(config.start_date),
                 end_date=str(config.end_date),
                 processor_arch=instance_type.get("processor_arch"),
-                resource_id=generate_resource_id(config),
-                product_sku=FAKER.pystr(min_chars=12, max_chars=12).upper(),
+                resource_id=generate_name(config, generator=resource_id_generator),
+                product_sku=generate_name(config, generator=product_sku_generator),
                 region=random.choice(REGIONS),
                 tags=generate_tags("EC2", config),
                 instance_type=instance_type,
@@ -140,20 +149,17 @@ class AWSGenerator(Generator):
 
         LOG.info(f"Building {max_rds_gens} RDS generators ...")
         for _ in range(max_rds_gens):
-
             instance_type = random.choice(RDS_INSTANCES)
-
             rds_gen = dicta(
                 start_date=str(config.start_date),
                 end_date=str(config.end_date),
                 processor_arch=instance_type.get("processor_arch"),
-                resource_id=generate_resource_id(config),
-                product_sku=FAKER.pystr(min_chars=12, max_chars=12).upper(),
+                resource_id=generate_name(config, generator=resource_id_generator),
+                product_sku=generate_name(config, generator=product_sku_generator),
                 region=random.choice(REGIONS),
                 tags=generate_tags("RDS", config),
                 instance_type=instance_type,
             )
-
             data.rds_gens.append(rds_gen)
 
         LOG.info(f"Building {max_route53_gens} Route 53 generators ...")
@@ -162,10 +168,10 @@ class AWSGenerator(Generator):
                 start_date=str(config.start_date),
                 end_date=str(config.end_date),
                 product_family=random.choices(("DNS Zone", "DNS Query"), weights=[1, 10])[0],
-                resource_id=generate_resource_id(config),
+                resource_id=generate_name(config, generator=resource_id_generator),
+                product_sku=generate_name(config, generator=product_sku_generator),
                 tags=generate_tags("R53", config),
             )
-
             data.route53_gens.append(route53_gen)
 
         LOG.info(f"Building {max_s3_gens} S3 generators ...")
@@ -174,12 +180,12 @@ class AWSGenerator(Generator):
             s3_gen = dicta(
                 start_date=str(config.start_date),
                 end_date=str(config.end_date),
-                resource_id=generate_resource_id(config),
+                resource_id=generate_name(config, generator=resource_id_generator),
+                product_sku=generate_name(config, generator=product_sku_generator),
                 amount=_amount,
                 rate=_rate,
                 tags=generate_tags("S3", config),
             )
-
             data.s3_gens.append(s3_gen)
 
         LOG.info(f"Building {max_vpc_gens} VPC generators ...")
@@ -187,10 +193,10 @@ class AWSGenerator(Generator):
             vpc_gen = dicta(
                 start_date=str(config.start_date),
                 end_date=str(config.end_date),
-                resource_id=generate_resource_id(config),
+                resource_id=generate_name(config, generator=resource_id_generator),
+                product_sku=generate_name(config, generator=product_sku_generator),
                 tags=generate_tags("VPC", config),
             )
-
             data.vpc_gens.append(vpc_gen)
 
         return data

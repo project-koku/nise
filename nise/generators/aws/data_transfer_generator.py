@@ -75,10 +75,7 @@ class DataTransferGenerator(AWSGenerator):
         """Update data with generator specific data."""
         row = self._add_common_usage_info(row, start, end)
 
-        resource_id = self.fake.ean8()
-        if self._resource_id:
-            resource_id = self._resource_id
-
+        resource_id = self._resource_id if self._resource_id else self.fake.ean8()
         rate = self._rate if self._rate else round(uniform(0.12, 0.19), 3)
         amount = self._amount if self._amount else uniform(0.000002, 0.09)
         cost = amount * rate
