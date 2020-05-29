@@ -2,7 +2,6 @@
 from faker import Faker
 
 
-# pylint: disable=too-few-public-methods
 class ProjectGenerator:
     """Generator for GCP Compute Engine data."""
 
@@ -15,16 +14,9 @@ class ProjectGenerator:
         """Generate GCP project information."""
         projects = []
         for _ in range(num_projects):
-            project_number = self.fake.ean13()  # pylint: disable=maybe-no-member
-            project_id = "{}-{}-{}".format(
-                self.fake.word(),  # pylint: disable=maybe-no-member
-                self.fake.word(),  # pylint: disable=maybe-no-member
-                self.fake.ean8(),
-            )  # pylint: disable=maybe-no-member
-            labels = {
-                self.fake.word(): self.fake.word(),  # pylint: disable=maybe-no-member
-                self.fake.word(): self.fake.word(),  # pylint: disable=maybe-no-member
-            }
+            project_number = self.fake.ean13()
+            project_id = "{}-{}-{}".format(self.fake.word(), self.fake.word(), self.fake.ean8())
+            labels = {self.fake.word(): self.fake.word(), self.fake.word(): self.fake.word()}
             formatted_labels = ";".join(f"{k}:{v}" for k, v in labels.items())
             project = {
                 "Account ID": self.account,

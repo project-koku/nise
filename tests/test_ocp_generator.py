@@ -34,7 +34,6 @@ from nise.generators.ocp.ocp_generator import OCP_STORAGE_USAGE
 from nise.generators.ocp.ocp_generator import OCPGenerator
 
 
-# pylint: disable=protected-access,too-many-public-methods
 class OCPGeneratorTestCase(TestCase):
     """TestCase class for OCP Generator."""
 

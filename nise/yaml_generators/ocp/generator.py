@@ -16,7 +16,6 @@
 """Utility to generate koku-nise OCP yaml files."""
 import logging
 import os
-import re
 from calendar import monthrange
 from datetime import date
 
@@ -24,83 +23,12 @@ import faker
 from dateutil.relativedelta import relativedelta
 from nise.yaml_generators.generator import Generator
 from nise.yaml_generators.utils import dicta
+from nise.yaml_generators.utils import generate_name
+from nise.yaml_generators.utils import generate_resource_id
 
 
-LOG = logging.getLogger(__name__)
-
-SEEN_NAMES = set()
-SEEN_RESOURCE_IDS = set()
-
-DBL_DASH = re.compile("-+")
 FAKER = faker.Faker()
-
-
-def generate_words(config):
-    """
-    Generate a hyphen-separated string of words.
-
-    The number of words is specified in the config. (config.max_name_words)
-    """
-    return "-".join(FAKER.words(config.max_name_words))
-
-
-def generate_number_str(config):
-    """
-    Generate a string of digits of arbitrary length.
-
-    The maximum length is specified in the config. (config.max_resource_id_length)
-    """
-    return str(FAKER.random_int(0, 10 ** config.max_resource_id_length)).zfill(config.max_resource_id_length)
-
-
-def generate_name(config, prefix="", suffix="", dynamic=True, generator=generate_words, cache=SEEN_NAMES):
-    """
-    Generate a random resource name using faker.
-
-    Params:
-        config : dicta - config information for the generator
-        prefix : str - a static prefix
-        suffix : str - a static suffix
-        dynamic : bool - flag to run the generator function
-        generator : func - function that will generate the dynamic portion of the name
-        cache : set - a cache for uniqueness across all calls
-
-    Returns:
-        str
-    """
-    new_name = None
-    while True:
-        if prefix:
-            prefix += "-"
-        if suffix:
-            suffix = "-" + suffix
-        mid = generator(config) if dynamic else ""
-        new_name = f"{prefix}{mid}{suffix}"
-        if new_name not in cache:
-            cache.add(new_name)
-            break
-
-    return DBL_DASH.sub("-", new_name)
-
-
-def generate_resource_id(config, prefix="", suffix="", dynamic=True):
-    """
-    Generate a random resource id using faker.
-
-    Params:
-        config : dicta - config information for the generator
-        prefix : str - a static prefix
-        suffix : str - a static suffix
-        dynamic : bool - flag to run the generator function
-        generator : func - function that will generate the dynamic portion of the resource id
-        cache : set - a cache for uniqueness across all calls
-
-    Returns:
-        str
-    """
-    return generate_name(
-        config, prefix=prefix, suffix=suffix, dynamic=dynamic, generator=generate_number_str, cache=SEEN_RESOURCE_IDS
-    )
+LOG = logging.getLogger(__name__)
 
 
 def generate_labels(num_labels):
@@ -118,6 +46,15 @@ def generate_labels(num_labels):
 
 class OCPGenerator(Generator):
     """YAML generator for OCP."""
+
+    def init_config(self, args):
+        """Process OCP specific args."""
+        config = super().init_config(args)
+
+        if args.num_nodes:
+            config.max_nodes = args.num_nodes
+
+        return config
 
     def build_data(self, config, _random=False):  # noqa: C901
         """

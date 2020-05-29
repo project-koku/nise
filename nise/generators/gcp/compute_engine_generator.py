@@ -51,7 +51,7 @@ class ComputeEngineGenerator(GCPGenerator):
         ),
     )
 
-    def _update_data(self, row):  # pylint: disable=arguments-differ
+    def _update_data(self, row):
         """Update a data row with compute values."""
         if self.attributes:
             row["Line Item"] = self.attributes["Line Item"]
@@ -69,9 +69,9 @@ class ComputeEngineGenerator(GCPGenerator):
             compute = choice(self.COMPUTE)
             row["Line Item"] = compute[0]
             row["Measurement1"] = compute[0]
-            row["Measurement1 Total Consumption"] = self.fake.pyint()  # pylint: disable=maybe-no-member
+            row["Measurement1 Total Consumption"] = self.fake.pyint()
             row["Measurement1 Units"] = compute[1]
-            row["Cost"] = self.fake.pyint()  # pylint: disable=maybe-no-member
+            row["Cost"] = self.fake.pyint()
             row["Currency"] = "USD"
             row["Description"] = compute[2]
         return row
@@ -82,7 +82,7 @@ class ComputeEngineGenerator(GCPGenerator):
         data = {}
         for day in days:
             rows = []
-            for _ in range(0, self.num_instances):
+            for _ in range(self.num_instances):
                 row = self._init_data_row(day["start"], day["end"])
                 row = self._update_data(row)
                 rows.append(row)

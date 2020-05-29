@@ -86,7 +86,6 @@ OCP_REPORT_TYPE_TO_COLS = {
 }
 
 
-# pylint: disable=too-few-public-methods, too-many-instance-attributes, no-member
 class OCPGenerator(AbstractGenerator):
     """Defines a abstract class for generators."""
 
@@ -168,7 +167,7 @@ class OCPGenerator(AbstractGenerator):
         else:
             num_nodes = randint(2, 6)
             seeded_labels = {"node-role.kubernetes.io/master": [""], "node-role.kubernetes.io/infra": [""]}
-            for _ in range(0, num_nodes):
+            for _ in range(num_nodes):
                 memory_gig = randint(2, 8)
                 memory_bytes = memory_gig * GIGABYTE
                 node = {
@@ -191,7 +190,7 @@ class OCPGenerator(AbstractGenerator):
                     namespaces[namespace] = node
             else:
                 num_namespaces = randint(2, 12)
-                for _ in range(0, num_namespaces):
+                for _ in range(num_namespaces):
                     namespace_suffix = choice(("ci", "qa", "prod", "proj", "dev", "staging"))
                     namespace = self.fake.word() + "_" + namespace_suffix
                     namespaces[namespace] = node
@@ -236,7 +235,7 @@ class OCPGenerator(AbstractGenerator):
                 label_str += label_data
         return label_str
 
-    def _gen_pods(self, namespaces):  # pylint: disable=too-many-locals
+    def _gen_pods(self, namespaces):
         """Create pods on specific namespaces and keep relationship."""
         pods = {}
         namespace2pod = {}
@@ -287,7 +286,7 @@ class OCPGenerator(AbstractGenerator):
                     }
             else:
                 num_pods = randint(2, 20)
-                for _ in range(0, num_pods):
+                for _ in range(num_pods):
                     pod_suffix = "".join(choices(ascii_lowercase, k=5))
                     pod_type = choice(("build", "deploy", pod_suffix))
                     pod = self.fake.word() + "_" + pod_type
@@ -361,14 +360,14 @@ class OCPGenerator(AbstractGenerator):
             else:
                 num_volumes = randint(1, 3)
                 num_vol_claims = randint(1, 2)
-                for _ in range(0, num_volumes):
+                for _ in range(num_volumes):
                     vol_suffix = "".join(choices(ascii_lowercase, k=10))
                     volume = "pvc" + "-" + vol_suffix
                     vol_request_gig = round(uniform(25.0, 80.0), 2)
                     vol_request = vol_request_gig * GIGABYTE
                     volume_claims = {}
                     total_claims = 0
-                    for _ in range(0, num_vol_claims):
+                    for _ in range(num_vol_claims):
                         if vol_request_gig - total_claims <= GIGABYTE:
                             break
                         vol_claim = self.fake.word()
@@ -430,7 +429,7 @@ class OCPGenerator(AbstractGenerator):
                     return usage
         return None
 
-    def _update_pod_data(self, row, start, end, **kwargs):  # pylint: disable=R0914, W0613
+    def _update_pod_data(self, row, start, end, **kwargs):
         """Update data with generator specific data."""
         user_pod_seconds = kwargs.get("pod_seconds")
         pod_seconds = user_pod_seconds if user_pod_seconds else randint(2, HOUR)
@@ -461,7 +460,7 @@ class OCPGenerator(AbstractGenerator):
         row.update(pod)
         return row
 
-    def _update_storage_data(self, row, start, end, **kwargs):  # pylint: disable=R0914, W0613
+    def _update_storage_data(self, row, start, end, **kwargs):
         """Update data with generator specific data."""
         volume_claim_usage_gig = self._get_usage_for_date(kwargs.get("volume_claim_usage_gig"), start)
 
@@ -489,13 +488,13 @@ class OCPGenerator(AbstractGenerator):
         row.update(data)
         return row
 
-    def _update_node_label_data(self, row, start, end, **kwargs):  # pylint: disable=R0914, W0613, R0201
+    def _update_node_label_data(self, row, start, end, **kwargs):
         """Update data with generator specific data."""
         data = {"node": kwargs.get("node"), "node_labels": kwargs.get("node_labels")}
         row.update(data)
         return row
 
-    def _update_data(self, row, start, end, **kwargs):  # pylint: disable=R0914
+    def _update_data(self, row, start, end, **kwargs):
         """Update data with generator specific data."""
         row = self._add_common_usage_info(row, start, end)
         if kwargs.get(REPORT_TYPE):
@@ -504,12 +503,12 @@ class OCPGenerator(AbstractGenerator):
             row = method(row, start, end, **kwargs)
         return row
 
-    def _gen_hourly_pods_usage(self, **kwargs):  # pylint: disable=R0914
+    def _gen_hourly_pods_usage(self, **kwargs):
         """Create hourly data for pod usage."""
         for hour in self.hours:
             start = hour.get("start")
             end = hour.get("end")
-            pod_count = len(self.pods)
+
             if self._nodes:
                 for pod_name, _ in self.pods.items():
                     cpu_usage = self.pods[pod_name].get("cpu_usage", None)
@@ -532,6 +531,7 @@ class OCPGenerator(AbstractGenerator):
                     row.pop("pod_seconds", None)
                     yield row
             else:
+                pod_count = len(self.pods)
                 num_pods = randint(2, pod_count)
                 pod_index_list = range(pod_count)
                 pod_choices = list(set(choices(pod_index_list, k=num_pods)))
@@ -543,7 +543,7 @@ class OCPGenerator(AbstractGenerator):
                     row = self._update_data(row, start, end, pod=pod, **kwargs)
                     yield row
 
-    def _gen_hourly_storage_usage(self, **kwargs):  # pylint: disable=R0914
+    def _gen_hourly_storage_usage(self, **kwargs):
         """Create hourly data for storage usage."""
         for hour in self.hours:
             start = hour.get("start")
@@ -578,7 +578,7 @@ class OCPGenerator(AbstractGenerator):
                     )
                     yield row
 
-    def _gen_hourly_node_label_usage(self, **kwargs):  # pylint: disable=R0914
+    def _gen_hourly_node_label_usage(self, **kwargs):
         """Create hourly data for nodel label report."""
         for hour in self.hours:
             start = hour.get("start")

@@ -24,7 +24,6 @@ from faker import Faker
 REPORT_TYPE = "report_type"
 
 
-# pylint: disable=too-few-public-methods
 class AbstractGenerator(ABC):
     """Defines a abstract class for generators."""
 

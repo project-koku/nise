@@ -31,7 +31,7 @@ CACHE_PATH = os.path.join(os.path.dirname(GEN_FILE_DIR), "__pycache__")
 
 class AWSGeneratorTestCase(TestCase):
     """
-    Base TestCase class, sets up a CLI parser
+    Base TestCase class, for AWS yaml gen.
     """
 
     @classmethod
@@ -60,77 +60,6 @@ class AWSGeneratorTestCase(TestCase):
         with self.assertRaises(TypeError):
             dc.start_date = ""
             self.assertFalse(self.yg.validate_config(dc))
-
-    def test_dicta(self):
-        """
-        Test dicta class
-        """
-        td = self.module.dicta()
-        self.assertEqual(len(td), 0)
-
-        td.test = 1
-        self.assertEqual(len(td), 1)
-        self.assertEqual(td.test, td["test"])
-
-        td.test = 2
-        self.assertEqual(td.test, 2)
-
-        td2 = td.copy()
-        self.assertTrue(isinstance(td2, self.module.dicta))
-        self.assertEqual(td2, td)
-
-        with self.assertRaises(KeyError):
-            td.x
-
-        del td.test
-        self.assertEqual(len(td), 0)
-
-    def test_word_generator(self):
-        """
-        Test the raw word generator
-        """
-        dc = self.yg.default_config()
-        txt = self.module.generate_words(dc)
-        self.assertEqual(len(txt.split("-")), dc.max_name_words)
-
-    def test_number_str_generator(self):
-        """
-        Test the raw number string generator
-        """
-        dc = self.yg.default_config()
-        txt = self.module.generate_number_str(dc)
-        self.assertTrue(txt.isdigit())
-        self.assertEqual(len(txt), dc.max_resource_id_length)
-
-    def test_generate_name(self):
-        """
-        Test the name generator
-        """
-        dc = self.yg.default_config()
-        name = self.module.generate_name(dc)
-        self.assertEqual(len(name.split("-")), dc.max_name_words)
-        self.assertFalse(name.isdigit())
-        prefix = "___"
-        suffix = "^^^"
-        name = self.module.generate_name(dc, prefix=prefix)
-        self.assertTrue(name.startswith(prefix + "-"))
-        self.assertTrue(len(name) - len(prefix + "-") > 0)
-        name = self.module.generate_name(dc, prefix=prefix, suffix=suffix)
-        self.assertTrue(name.startswith(prefix + "-"))
-        self.assertTrue(name.endswith("-" + suffix))
-        self.assertTrue(len(name.replace(prefix + "-", "").replace("-" + suffix, "")) > 0)
-        name = self.module.generate_name(dc, prefix=prefix, suffix=suffix, dynamic=False)
-        self.assertTrue(name.startswith(prefix + "-"))
-        self.assertTrue(name.endswith("-" + suffix))
-        self.assertTrue("--" not in name)
-        self.assertEqual(len(name.replace(prefix + "-", "").replace(suffix, "")), 0)
-
-    def test_generate_resource_id(self):
-        """ Test resource id generation """
-        dc = self.yg.default_config()
-        res_id = self.module.generate_resource_id(dc)
-        self.assertEqual(len(res_id), dc.max_resource_id_length)
-        self.assertTrue(res_id.isdigit())
 
     def test_generate_tags(self):
         """

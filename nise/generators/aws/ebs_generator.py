@@ -21,7 +21,6 @@ from random import uniform
 from nise.generators.aws.aws_generator import AWSGenerator
 
 
-# pylint: disable=too-many-arguments
 class EBSGenerator(AWSGenerator):
     """Generator for EBS data."""
 
@@ -33,10 +32,10 @@ class EBSGenerator(AWSGenerator):
     def __init__(self, start_date, end_date, payer_account, usage_accounts, attributes=None):
         """Initialize the EBS generator."""
         super().__init__(start_date, end_date, payer_account, usage_accounts, attributes)
-        self._resource_id = "vol-{}".format(self.fake.ean8())  # pylint: disable=no-member
+        self._resource_id = "vol-{}".format(self.fake.ean8())
         self._amount = uniform(0.2, 300.99)
         self._rate = round(uniform(0.02, 0.16), 3)
-        self._product_sku = self.fake.pystr(min_chars=12, max_chars=12).upper()  # pylint: disable=no-member
+        self._product_sku = self.fake.pystr(min_chars=12, max_chars=12).upper()
 
         if self.attributes:
             if self.attributes.get("resource_id"):
@@ -54,7 +53,6 @@ class EBSGenerator(AWSGenerator):
         """Get storage data."""
         return choice(self.STORAGE)
 
-    # pylint: disable=too-many-locals
     def _update_data(self, row, start, end, **kwargs):
         """Update data with generator specific data."""
         row = self._add_common_usage_info(row, start, end)

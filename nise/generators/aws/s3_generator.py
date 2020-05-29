@@ -20,7 +20,6 @@ from random import uniform
 from nise.generators.aws.aws_generator import AWSGenerator
 
 
-# pylint: disable=too-many-arguments
 class S3Generator(AWSGenerator):
     """Generator for S3 data."""
 
@@ -29,7 +28,7 @@ class S3Generator(AWSGenerator):
         super().__init__(start_date, end_date, payer_account, usage_accounts, attributes)
         self._amount = uniform(0.2, 6000.99)
         self._rate = round(uniform(0.02, 0.06), 3)
-        self._product_sku = self.fake.pystr(min_chars=12, max_chars=12).upper()  # pylint: disable=no-member
+        self._product_sku = self.fake.pystr(min_chars=12, max_chars=12).upper()
         if self.attributes:
             if self.attributes.get("amount"):
                 self._amount = self.attributes.get("amount")
@@ -42,10 +41,7 @@ class S3Generator(AWSGenerator):
 
     def _get_arn(self, avail_zone):
         """Create an amazon resource name."""
-        arn = "arn:aws:ec2:{}:{}:snapshot/snap-{}".format(
-            avail_zone, self.payer_account, self.fake.ean8()
-        )  # pylint: disable=no-member
-        return arn
+        return "arn:aws:ec2:{}:{}:snapshot/snap-{}".format(avail_zone, self.payer_account, self.fake.ean8())
 
     def _update_data(self, row, start, end, **kwargs):
         """Update data with generator specific data."""

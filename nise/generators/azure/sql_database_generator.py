@@ -18,7 +18,6 @@
 from nise.generators.azure.azure_generator import AzureGenerator
 
 
-# pylint: disable=too-many-arguments, too-many-instance-attributes
 class SQLGenerator(AzureGenerator):
     """Generator for SQL Database data."""
 

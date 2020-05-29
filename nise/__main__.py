@@ -24,6 +24,7 @@ import os
 import yaml
 from dateutil import parser as date_parser
 from dateutil.relativedelta import relativedelta
+from nise import __version__
 from nise.report import aws_create_report
 from nise.report import azure_create_report
 from nise.report import gcp_create_report
@@ -162,6 +163,7 @@ def add_ocp_parser_args(parser):
 def create_parser():
     """Create the parser for incoming data."""
     parser = argparse.ArgumentParser()
+    parser.add_argument("-v", "--version", action="version", version=f"%(prog)s {__version__}")
     subparsers = parser.add_subparsers(dest="command")
     report_parser = subparsers.add_parser("report", help="Generate fake cost usage reports.")
     yaml_parser = subparsers.add_parser("yaml", help="Generate a yaml for creating cost usage reports.")
@@ -170,6 +172,7 @@ def create_parser():
 
     parent_parser = argparse.ArgumentParser()
     parent_parser.add_argument(
+        "-s",
         "--start-date",
         metavar="YYYY-MM-DD",
         dest="start_date",
@@ -178,6 +181,7 @@ def create_parser():
         help="Date to start generating data (YYYY-MM-DD)",
     )
     parent_parser.add_argument(
+        "-e",
         "--end-date",
         metavar="YYYY-MM-DD",
         dest="end_date",
@@ -198,7 +202,12 @@ def create_parser():
         "--static-report-file", dest="static_report_file", required=False, help="Generate static data based on yaml."
     )
     parent_parser.add_argument(
-        "--write-monthly", dest="write_monthly", action="store_true", required=False, help="Writes the monthly files."
+        "-w",
+        "--write-monthly",
+        dest="write_monthly",
+        action="store_true",
+        required=False,
+        help="Writes the monthly files.",
     )
 
     report_subparser = report_parser.add_subparsers(dest="provider")
@@ -341,7 +350,6 @@ def _validate_azure_arguments(parser, options):
     return azure_valid
 
 
-#  pylint: disable=too-many-locals
 def _validate_ocp_arguments(parser, options):
     """Validate ocp argument combination.
 
@@ -439,6 +447,7 @@ def _load_static_report_data(options):
     """Validate/load and set start_date if static file is provided."""
     if not options.get("static_report_file"):
         return
+    LOG.info("Loading static data...")
     start_dates = []
     end_dates = []
     static_report_data = _load_yaml_file(options.get("static_report_file"))
@@ -509,6 +518,7 @@ def run(provider_type, options):
     if not options.get("start_date"):
         raise NiseError("'start_date' is required in static files.")
 
+    LOG.info("Creating reports...")
     if provider_type == "aws":
         aws_create_report(options)
     elif provider_type == "azure":

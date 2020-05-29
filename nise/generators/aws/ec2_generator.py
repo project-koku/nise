@@ -20,7 +20,6 @@ from random import choice
 from nise.generators.aws.aws_generator import AWSGenerator
 
 
-# pylint: disable=too-few-public-methods, too-many-arguments
 class EC2Generator(AWSGenerator):
     """Generator for EC2 data."""
 
@@ -73,8 +72,8 @@ class EC2Generator(AWSGenerator):
         """Initialize the EC2 generator."""
         super().__init__(start_date, end_date, payer_account, usage_accounts, attributes)
         self._processor_arch = choice(self.ARCHS)
-        self._resource_id = "i-{}".format(self.fake.ean8())  # pylint: disable=no-member
-        self._product_sku = self.fake.pystr(min_chars=12, max_chars=12).upper()  # pylint: disable=no-member
+        self._resource_id = "i-{}".format(self.fake.ean8())
+        self._product_sku = self.fake.pystr(min_chars=12, max_chars=12).upper()
         self._instance_type = choice(self.INSTANCE_TYPES)
         if self.attributes:
             if self.attributes.get("processor_arch"):
@@ -98,7 +97,6 @@ class EC2Generator(AWSGenerator):
                     "${} per On Demand Linux {} Instance Hour",
                 )
 
-    # pylint: disable=too-many-locals,too-many-statements
     def _update_data(self, row, start, end, **kwargs):
         """Update data with generator specific data."""
         inst_type, vcpu, memory, storage, family, cost, rate, description = self._instance_type

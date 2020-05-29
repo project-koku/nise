@@ -13,8 +13,12 @@ help:
 	@echo "  install             to install the client egg"
 	@echo "  clean               to remove client egg"
 	@echo "  test                to run unit tests"
-	@echo "  run-iqe             ro runs iqe tests with local changes. (Defaults to smoke tests.)"
-	@echo "                          @param IQE_CMD - The iqe command you want to run defaults to: ($(IQE_CMD))"
+	@echo "  run-iqe             runs iqe tests with local changes. (Defaults to smoke tests.)"
+	@echo "                          @param IQE_CMD - The iqe command you want to run defaults to:"
+	@echo "                          ($(IQE_CMD))"
+	@echo "  run-iqe-local       runs a locally modified hccm-plugin with local nise changes."
+	@echo "                          @param IQE_CMD - The iqe command you want to run defaults to:"
+	@echo "                          ($(IQE_CMD))"
 
 install: clean
 	$(PYTHON) setup.py build -f

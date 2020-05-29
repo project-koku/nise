@@ -26,14 +26,13 @@ ROUTE_53_PRODUCTS_DICT = {
 ROUTE_53_PRODUCTS = list(ROUTE_53_PRODUCTS_DICT.values())
 
 
-# pylint: disable=too-few-public-methods, too-many-arguments
 class Route53Generator(AWSGenerator):
     """Generator for Route53 data."""
 
     def __init__(self, start_date, end_date, payer_account, usage_accounts, attributes=None):
         """Initialize the Route53 generator."""
         super().__init__(start_date, end_date, payer_account, usage_accounts, attributes)
-        self._product_sku = self.fake.pystr(min_chars=12, max_chars=12).upper()  # pylint: disable=no-member
+        self._product_sku = self.fake.pystr(min_chars=12, max_chars=12).upper()
         self._product_family = None
         if self.attributes:
             if self.attributes.get("product_family"):
@@ -45,16 +44,15 @@ class Route53Generator(AWSGenerator):
 
     def _get_arn(self):
         """Create an amazon resource name."""
-        return "arn:aws:Route53:::hostedzone:{}".format(self.fake.ean8())  # pylint: disable=no-member
+        return "arn:aws:Route53:::hostedzone:{}".format(self.fake.ean8())
 
-    # pylint: disable=too-many-locals,too-many-statements
     def _update_data(self, row, start, end, **kwargs):
         """Update data with generator specific data."""
         if self._product_family:
             product_family, usage_type, rate, cost = ROUTE_53_PRODUCTS_DICT.get(self._product_family)
         else:
             product_family, usage_type, rate, cost = choices(ROUTE_53_PRODUCTS, weights=[1, 10])[0]
-        operation = self.fake.pystr(min_chars=1, max_chars=6).upper()  # pylint: disable=no-member
+        operation = self.fake.pystr(min_chars=1, max_chars=6).upper()
         if usage_type == "HostedZone":
             operation = usage_type
         row = self._add_common_usage_info(row, start, end)
