@@ -101,7 +101,7 @@ class AWSGenerator(Generator):
         LOG.info("Data build starting")
 
         data = dicta(
-            payer=config.account_payer,
+            payer=config.payer_account,
             data_transfer_gens=[],
             ebs_gens=[],
             ec2_gens=[],
