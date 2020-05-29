@@ -29,10 +29,6 @@ from nise.yaml_generators.utils import generate_resource_id
 
 FAKER = faker.Faker()
 LOG = logging.getLogger(__name__)
-NODE_CACHE = set()
-NAMESPACE_CACHE = set()
-POD_CACHE = set()
-VC_CACHE = set()
 
 
 def generate_labels(num_labels):
@@ -123,7 +119,7 @@ class OCPGenerator(Generator):
                 memory = config.max_node_memory_gig
 
             node = dicta(
-                name=generate_name(config, cache=NODE_CACHE),
+                name=generate_name(config),
                 cpu_cores=cores,
                 memory_gig=memory,
                 resource_id=generate_resource_id(config),
@@ -139,9 +135,7 @@ class OCPGenerator(Generator):
             for namespace_ix in range(max_namespaces):
                 LOG.info(f"Building node {node_ix + 1}/{max_nodes}; namespace {namespace_ix + 1}/{max_namespaces}...")
 
-                namespace = dicta(
-                    name=generate_name(config, prefix=node.name, cache=NAMESPACE_CACHE), pods=[], volumes=[]
-                )
+                namespace = dicta(name=generate_name(config, prefix=node.name), pods=[], volumes=[])
                 node.namespaces.append(namespace)
 
                 if _random:
@@ -167,9 +161,7 @@ class OCPGenerator(Generator):
                         pod_sec = config.max_node_namespace_pod_seconds
 
                     pod = dicta(
-                        name=generate_name(
-                            config, prefix=namespace.name + "-pod", suffix=str(pod_ix), dynamic=False, cache=POD_CACHE
-                        ),
+                        name=generate_name(config, prefix=namespace.name + "-pod", suffix=str(pod_ix), dynamic=False),
                         cpu_request=cpu_req,
                         mem_request_gig=mem_req,
                         cpu_limit=cpu_lim,
@@ -224,7 +216,6 @@ class OCPGenerator(Generator):
                                 prefix=namespace.name + "-vol-claim",
                                 suffix=str(volume_claim_ix),
                                 dynamic=False,
-                                cache=VC_CACHE,
                             ),
                             pod_name=pod_name,
                             labels=generate_labels(config.max_node_namespace_volume_volume_claim_labels),

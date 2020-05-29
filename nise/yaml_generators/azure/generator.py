@@ -40,7 +40,6 @@ RESOURCE_LOCATIONS = [
     "US Central",
     "US West",
 ]
-TAG_CACHE = set()
 TAG_KEYS = {
     "vmachine": ["environment", "version", "app"],
     "vnetwork": ["environment", "version", "app"],
@@ -58,7 +57,7 @@ def generate_tags(key, config, prefix="", suffix="", dynamic=True, _random=False
     keys = TAG_KEYS.get(key)
     if _random:
         keys = random.sample(keys, k=random.randint(1, len(keys)))
-    return [dicta(key=key, v=generate_name(config, cache=TAG_CACHE)) for key in keys]
+    return [dicta(key=key, v=generate_name(config)) for key in keys]
 
 
 def generate_azure_dicta(config, key, _random):
