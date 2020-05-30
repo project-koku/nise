@@ -33,7 +33,7 @@ from nise.yaml_gen import add_yaml_parser_args
 from nise.yaml_gen import yaml_main
 
 LOG = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO, format="%(asctime)s : %(name)s : %(levelname)s : %(message)s")
+logging.basicConfig(level=logging.INFO, format="%(asctime)s : %(name)s.%(lineno)d : %(levelname)s : %(message)s")
 
 
 class NiseError(Exception):
@@ -434,8 +434,7 @@ def _validate_provider_inputs(parser, options):
 def _load_yaml_file(filename):
     """Local data from yaml file."""
     if not os.path.exists(filename):
-        LOG.error(f"No such file or directory: {filename}")
-        exit(1)
+        raise FileNotFoundError(f'Cannot find file "{filename}"')
     yamlfile = None
     if filename:
         try:
