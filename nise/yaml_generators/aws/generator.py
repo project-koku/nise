@@ -48,10 +48,18 @@ RESOURCE_TAG_COLS = {
     "S3": ["resourceTags/user:storageclass"],
     "VPC": ["resourceTags/user:app"],
 }
+
+
+def uniform_yield(a, b):
+    """Yield from random.uniform."""
+    while True:
+        yield uniform(a, b)
+
+
 RATE_AMT = {
-    "DTG": (round(uniform(0.12, 0.19), 3), uniform(0.000002, 0.09)),
-    "EBS": (round(uniform(0.02, 0.16), 3), uniform(0.2, 300.99)),
-    "S3": (round(uniform(0.02, 0.06), 3), uniform(0.2, 6000.99)),
+    "DTG": (uniform_yield(0.12, 0.19), uniform_yield(0.000002, 0.09)),
+    "EBS": (uniform_yield(0.02, 0.16), uniform_yield(0.2, 300.99)),
+    "S3": (uniform_yield(0.02, 0.06), uniform_yield(0.2, 6000.99)),
 }
 
 
@@ -76,6 +84,7 @@ def generate_tags(key, config, prefix="", suffix="", dynamic=True):
 
 
 def initialize_dicta(key, config):
+    """Return dicta with common attributes."""
     return dicta(
         start_date=str(config.start_date),
         end_date=str(config.end_date),
@@ -125,14 +134,14 @@ class AWSGenerator(Generator):
         for _ in range(max_data_transfer_gens):
             _rate, _amount = RATE_AMT.get("DTG")
             data_transfer_gen = initialize_dicta("DTG", config)
-            data_transfer_gen.update(amount=_amount, rate=_rate)
+            data_transfer_gen.update(amount=round(next(_amount), 5), rate=round(next(_rate), 5))
             data.data_transfer_gens.append(data_transfer_gen)
 
         LOG.info(f"Building {max_ebs_gens} EBS generators ...")
         for _ in range(max_ebs_gens):
             _rate, _amount = RATE_AMT.get("EBS")
             ebs_gen = initialize_dicta("EBS", config)
-            ebs_gen.update(amount=_amount, rate=_rate)
+            ebs_gen.update(amount=round(next(_amount), 5), rate=round(next(_rate), 5))
             data.ebs_gens.append(ebs_gen)
 
         LOG.info(f"Building {max_ec2_gens} EC2 generators ...")
@@ -167,7 +176,7 @@ class AWSGenerator(Generator):
         for _ in range(max_s3_gens):
             _rate, _amount = RATE_AMT.get("S3")
             s3_gen = initialize_dicta("S3", config)
-            s3_gen.update(amount=_amount, rate=_rate)
+            s3_gen.update(amount=round(next(_amount), 5), rate=round(next(_rate), 5))
             data.s3_gens.append(s3_gen)
 
         LOG.info(f"Building {max_vpc_gens} VPC generators ...")

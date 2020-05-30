@@ -32,13 +32,13 @@ class S3Generator(AWSGenerator):
         self._resource_id = self.fake.ean8()
         if self.attributes:
             if self.attributes.get("amount"):
-                self._amount = self.attributes.get("amount")
+                self._amount = float(self.attributes.get("amount"))
             if self.attributes.get("rate"):
-                self._rate = self.attributes.get("rate")
+                self._rate = float(self.attributes.get("rate"))
             if self.attributes.get("product_sku"):
                 self._product_sku = self.attributes.get("product_sku")
             if self.attributes.get("resource_id"):
-                self._amount = self.attributes.get("resource_id")
+                self._resource_id = self.attributes.get("resource_id")
             if self.attributes.get("tags"):
                 self._tags = self.attributes.get("tags")
 

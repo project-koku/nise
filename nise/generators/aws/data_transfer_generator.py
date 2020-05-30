@@ -46,9 +46,9 @@ class DataTransferGenerator(AWSGenerator):
             if attributes.get("resource_id"):
                 self._resource_id = attributes.get("resource_id")
             if attributes.get("amount"):
-                self._amount = attributes.get("amount")
+                self._amount = float(attributes.get("amount"))
             if attributes.get("rate"):
-                self._rate = attributes.get("rate")
+                self._rate = float(attributes.get("rate"))
             if attributes.get("product_sku"):
                 self._product_sku = attributes.get("product_sku")
             if attributes.get("tags"):

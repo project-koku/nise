@@ -433,6 +433,9 @@ def _validate_provider_inputs(parser, options):
 
 def _load_yaml_file(filename):
     """Local data from yaml file."""
+    if not os.path.exists(filename):
+        LOG.error(f"No such file or directory: {filename}")
+        exit(1)
     yamlfile = None
     if filename:
         try:
