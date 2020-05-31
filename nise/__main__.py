@@ -214,6 +214,15 @@ def create_parser():
     aws_parser = report_subparser.add_parser(
         "aws", parents=[parent_parser], add_help=False, description="The AWS parser", help="create the AWS reports"
     )
+    aws_parser.add_argument(
+        "--aws-custom-tags",
+        dest="aws_custom_tags",
+        action="append",
+        required=False,
+        default=[],
+        help="Add custom tags",
+    )
+
     azure_parser = report_subparser.add_parser(
         "azure",
         parents=[parent_parser],

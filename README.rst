@@ -114,6 +114,8 @@ nise is a command line tool::
         --aws-s3-report-name REPORT_NAME            optional, must include --aws-s3-bucket-name.
         --aws-s3-report-prefix PREFIX_NAME          optional
         --aws-finalize ( copy | overwrite )         optional, finalize choice
+        --aws-custom-tags AWS_CUSTOM_TAGS           optional
+                                                    Add custom tags
 
     Azure Report Options:
         --azure-container-name
@@ -189,6 +191,10 @@ To move put the generated data into a specific local directory, supply ``--aws-s
 To generate static data, supply a ``--static-report-file YAML_NAME``. And example yaml is found in ``example_aws_static_data.yml``::
 
     nise report aws --static-report-file example_aws_static_data.yml
+
+To use custom tags in the static data, supply ``--aws-custom-tags``::
+
+    nise report aws --aws-custom-tags resourceTags/user:id --aws-custome-tags resourceTags/user:ocp-function --static-report-file example_aws_static_data.yml
 
 AWS yamls
 ---------
