@@ -416,8 +416,7 @@ def aws_create_report(options):  # noqa: C901
         num_gens = len(generators)
         ten_percent = int(num_gens * 0.1) if num_gens > 50 else 5
         LOG.info(f"Producing data for {num_gens} generators for {month.get('start').strftime('%Y-%m')}.")
-        count = 0
-        for generator in generators:
+        for count, generator in enumerate(generators):
             generator_cls = generator.get("generator")
             attributes = generator.get("attributes")
             gen_start_date = month.get("start")
@@ -450,7 +449,6 @@ def aws_create_report(options):  # noqa: C901
                         monthly_files.append(month_output_file)
                         data.clear()
 
-            count += 1
             if count % ten_percent == 0:
                 LOG.info(f"Done with {count} of {num_gens} generators.")
 
@@ -529,8 +527,7 @@ def azure_create_report(options):  # noqa: C901
         num_gens = len(generators)
         ten_percent = int(num_gens * 0.1) if num_gens > 50 else 5
         LOG.info(f"Producing data for {num_gens} generators for {month.get('start').strftime('%Y-%m')}.")
-        count = 0
-        for generator in generators:
+        for count, generator in enumerate(generators):
             generator_cls = generator.get("generator")
             attributes = generator.get("attributes", {})
             gen_start_date = month.get("start")
@@ -549,7 +546,6 @@ def azure_create_report(options):  # noqa: C901
             data += gen.generate_data()
             meter_cache = gen.get_meter_cache()
 
-            count += 1
             if count % ten_percent == 0:
                 LOG.info(f"Done with {count} of {num_gens} generators.")
 
@@ -721,8 +717,7 @@ def gcp_create_report(options):  # noqa: C901
         num_gens = len(generators)
         ten_percent = int(num_gens * 0.1) if num_gens > 50 else 5
         LOG.info(f"Producing data for {num_gens} generators for {'INSERT SOMETHING FOR GCP'}.")
-        count = 0
-        for generator in generators:
+        for count, generator in enumerate(generators):
             attributes = generator.get("attributes", {})
             if attributes:
                 start_date = attributes.get("start_date")
