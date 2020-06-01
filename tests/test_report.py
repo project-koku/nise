@@ -50,20 +50,6 @@ from nise.report import post_payload_to_ingest_service
 fake = faker.Faker()
 
 
-class ReportTestCase(TestCase):
-    def setUp(self):
-        self.expected_month_output_file = None
-
-    def tearDown(self):
-        if self.expected_month_output_file:
-            # cleanup any leftover files
-            regex = re.compile(self.month_output_file_name)
-            for _, _, files in os.walk("."):
-                for fname in files:
-                    if regex.match(fname):
-                        os.remove(fname)
-
-
 class MiscReportTestCase(TestCase):
     """
     TestCase class for report functions
@@ -212,7 +198,7 @@ class MiscReportTestCase(TestCase):
         self.assertNotIn("headers", mock_post.call_args[1])
 
 
-class AWSReportTestCase(ReportTestCase):
+class AWSReportTestCase(TestCase):
     """
     TestCase class for AWS report functions.
     """
@@ -552,7 +538,7 @@ class AWSReportTestCase(ReportTestCase):
         shutil.rmtree(local_bucket_path)
 
 
-class OCPReportTestCase(ReportTestCase):
+class OCPReportTestCase(TestCase):
     """
     TestCase class for OCP report functions.
     """
@@ -884,7 +870,7 @@ class OCPReportTestCase(ReportTestCase):
         shutil.rmtree(local_insights_upload)
 
 
-class AzureReportTestCase(ReportTestCase):
+class AzureReportTestCase(TestCase):
     """
     TestCase class for Azure report functions.
     """
@@ -1028,7 +1014,7 @@ class AzureReportTestCase(ReportTestCase):
         self.assertFalse(os.path.isfile(local_path))
 
 
-class GCPReportTestCase(ReportTestCase):
+class GCPReportTestCase(TestCase):
     """
     Tests for GCP report generation.
     """
