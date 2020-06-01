@@ -471,6 +471,8 @@ def _load_static_report_data(options):
             end_dates.append(generated_end_date)
 
             attributes["start_date"] = str(generated_start_date)
+            if generated_end_date == generated_start_date:
+                generated_end_date += relativedelta(hours=23, minutes=59)
             attributes["end_date"] = str(generated_end_date)
 
         options["start_date"] = min(start_dates)
@@ -518,15 +520,8 @@ def calculate_end_date(start_date, end_date):
 
 
 def fix_dates(options, provider_type):
-    if options.get("start_date"):
-        options["start_date"] = calculate_start_date(options.get("start_date"))
-    if options.get("end_date"):
-        options["end_date"] = calculate_end_date(options.get("start_date"), options.get("end_date"))
-    if provider_type == "azure":
-        # if options.get("start_date").day == last_day_of_month(options.get("start_date")):
-        #     options["start_date"] -= relativedelta(days=1)
-        if options.get("end_date").day == 1:
-            options["end_date"] += relativedelta(days=1)
+    if provider_type == "azure" and options.get("end_date").day == 1:
+        options["end_date"] += relativedelta(days=1)
 
 
 def run(provider_type, options):
