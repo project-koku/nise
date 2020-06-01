@@ -68,11 +68,6 @@ def product_sku_generator(*args):
     return FAKER.pystr(min_chars=12, max_chars=12).upper()
 
 
-def resource_id_generator(*args):
-    """Generate fake.ean8() number."""
-    return FAKER.ean8()
-
-
 def generate_tags(key, config, prefix="", suffix="", dynamic=True):
     """Generate properly formatted AWS tags.
 
@@ -88,7 +83,7 @@ def initialize_dicta(key, config):
     return dicta(
         start_date=str(config.start_date),
         end_date=str(config.end_date),
-        resource_id=generate_name(config, generator=resource_id_generator),
+        resource_id=FAKER.ean8(),
         product_sku=generate_name(config, generator=product_sku_generator),
         tags=generate_tags(key, config),
     )
