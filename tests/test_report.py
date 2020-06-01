@@ -50,6 +50,20 @@ from nise.report import post_payload_to_ingest_service
 fake = faker.Faker()
 
 
+class ReportTestCase(TestCase):
+    def setUp(self):
+        self.expected_month_output_file = None
+
+    def tearDown(self):
+        if self.expected_month_output_file:
+            # cleanup any leftover files
+            regex = re.compile(self.month_output_file_name)
+            for _, _, files in os.walk("."):
+                for fname in files:
+                    if regex.match(fname):
+                        os.remove(fname)
+
+
 class MiscReportTestCase(TestCase):
     """
     TestCase class for report functions
@@ -106,7 +120,7 @@ class MiscReportTestCase(TestCase):
                     {
                         "name": "January",
                         "start": datetime.datetime(year=2018, month=1, day=15),
-                        "end": datetime.datetime(year=2018, month=1, day=30),
+                        "end": datetime.datetime(year=2018, month=1, day=30, hour=23, minute=59),
                     }
                 ],
             },
@@ -117,17 +131,17 @@ class MiscReportTestCase(TestCase):
                     {
                         "name": "November",
                         "start": datetime.datetime(year=2018, month=11, day=15),
-                        "end": datetime.datetime(year=2018, month=11, day=30),
+                        "end": datetime.datetime(year=2018, month=11, day=30, hour=23, minute=59),
                     },
                     {
                         "name": "December",
                         "start": datetime.datetime(year=2018, month=12, day=1),
-                        "end": datetime.datetime(year=2018, month=12, day=31),
+                        "end": datetime.datetime(year=2018, month=12, day=31, hour=23, minute=59),
                     },
                     {
                         "name": "January",
                         "start": datetime.datetime(year=2019, month=1, day=1),
-                        "end": datetime.datetime(year=2019, month=1, day=5),
+                        "end": datetime.datetime(year=2019, month=1, day=5, hour=23, minute=59),
                     },
                 ],
             },
@@ -198,7 +212,7 @@ class MiscReportTestCase(TestCase):
         self.assertNotIn("headers", mock_post.call_args[1])
 
 
-class AWSReportTestCase(TestCase):
+class AWSReportTestCase(ReportTestCase):
     """
     TestCase class for AWS report functions.
     """
@@ -522,23 +536,17 @@ class AWSReportTestCase(TestCase):
             "write_monthly": True,
         }
         aws_create_report(options)
-        month_output_file_name = "{}-{}-{}".format(calendar.month_name[now.month], now.year, "cur_report")
-        expected_month_output_file_1 = "{}/{}-1.csv".format(os.getcwd(), month_output_file_name)
-        expected_month_output_file_2 = "{}/{}-2.csv".format(os.getcwd(), month_output_file_name)
+        self.month_output_file_name = "{}-{}-{}".format(calendar.month_name[now.month], now.year, "cur_report")
+        expected_month_output_file_1 = "{}/{}-1.csv".format(os.getcwd(), self.month_output_file_name)
+        expected_month_output_file_2 = "{}/{}-2.csv".format(os.getcwd(), self.month_output_file_name)
 
         self.assertTrue(os.path.isfile(expected_month_output_file_1))
         self.assertTrue(os.path.isfile(expected_month_output_file_2))
 
-        # cleanup any leftover files
-        regex = re.compile(month_output_file_name)
-        for _, _, files in os.walk("."):
-            for fname in files:
-                if regex.match(fname):
-                    os.remove(fname)
         shutil.rmtree(local_bucket_path)
 
 
-class OCPReportTestCase(TestCase):
+class OCPReportTestCase(ReportTestCase):
     """
     TestCase class for OCP report functions.
     """
@@ -845,11 +853,11 @@ class OCPReportTestCase(TestCase):
 
         for report_type in OCP_REPORT_TYPE_TO_COLS.keys():
             with self.subTest(report=report_type):
-                month_output_file_name = "{}-{}-{}-{}".format(
+                self.month_output_file_name = "{}-{}-{}-{}".format(
                     calendar.month_name[now.month], now.year, cluster_id, report_type
                 )
-                month_output_file_pt_1 = f"{month_output_file_name}-1"
-                month_output_file_pt_2 = f"{month_output_file_name}-2"
+                month_output_file_pt_1 = f"{self.month_output_file_name}-1"
+                month_output_file_pt_2 = f"{self.month_output_file_name}-2"
 
                 expected_month_output_file_1 = "{}/{}.csv".format(os.getcwd(), month_output_file_pt_1)
                 expected_month_output_file_2 = "{}/{}.csv".format(os.getcwd(), month_output_file_pt_2)
@@ -860,17 +868,10 @@ class OCPReportTestCase(TestCase):
                 self.assertTrue(os.path.isfile(expected_month_output_file_1))
                 self.assertTrue(os.path.isfile(expected_month_output_file_2))
 
-                # cleanup any leftover files
-                regex = re.compile(month_output_file_name)
-                for _, _, files in os.walk("."):
-                    for fname in files:
-                        if regex.match(fname):
-                            os.remove(fname)
-
         shutil.rmtree(local_insights_upload)
 
 
-class AzureReportTestCase(TestCase):
+class AzureReportTestCase(ReportTestCase):
     """
     TestCase class for Azure report functions.
     """
@@ -1014,7 +1015,7 @@ class AzureReportTestCase(TestCase):
         self.assertFalse(os.path.isfile(local_path))
 
 
-class GCPReportTestCase(TestCase):
+class GCPReportTestCase(ReportTestCase):
     """
     Tests for GCP report generation.
     """

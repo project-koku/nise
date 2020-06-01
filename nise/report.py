@@ -264,7 +264,7 @@ def _create_month_list(start_date, end_date):
             month["start"] = start_date
         if current.month == end_date.month:
             # Last month ends with end_date
-            month["end"] = end_date
+            month["end"] = end_date.replace(hour=23, minute=59)
 
         months.append(month)
         current += relativedelta(months=+1)
