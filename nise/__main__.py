@@ -55,6 +55,10 @@ def today():
     return datetime.datetime.now().replace(microsecond=0, second=0, minute=0)
 
 
+def last_day_of_month(date):
+    return calendar.monthrange(date.year, date.month)[1]
+
+
 def add_aws_parser_args(parser):
     """Add AWS sub-parser args."""
     parser.add_argument(
@@ -474,6 +478,7 @@ def _load_static_report_data(options):
         last_day_of_month = calendar.monthrange(year=latest_date.year, month=latest_date.month)[1]
         options["end_date"] = latest_date.replace(day=last_day_of_month, hour=0, minute=0)
         options["static_report_data"] = static_report_data
+    return True
 
 
 def calculate_start_date(start_date):
@@ -512,11 +517,25 @@ def calculate_end_date(start_date, end_date):
     return generated_end_date
 
 
+def fix_dates(options, provider_type):
+    if options.get("start_date"):
+        options["start_date"] = calculate_start_date(options.get("start_date"))
+    if options.get("end_date"):
+        options["end_date"] = calculate_end_date(options.get("start_date"), options.get("end_date"))
+    if provider_type == "azure":
+        # if options.get("start_date").day == last_day_of_month(options.get("start_date")):
+        #     options["start_date"] -= relativedelta(days=1)
+        if options.get("end_date").day == 1:
+            options["end_date"] += relativedelta(days=1)
+
+
 def run(provider_type, options):
     """Run nise."""
-    _load_static_report_data(options)
+    static_data_bool = _load_static_report_data(options)
     if not options.get("start_date"):
         raise NiseError("'start_date' is required in static files.")
+    if not static_data_bool:
+        fix_dates(options, provider_type)
 
     LOG.info("Creating reports...")
     if provider_type == "aws":
@@ -541,7 +560,7 @@ def main():
     options = vars(args)
 
     if not (options.get("start_date") or options.get("static_report_file")):
-        parser.error("the following arguments are required: --start-date")
+        parser.error("the following arguments are required: -s, --start-date")
 
     _, provider_type = _validate_provider_inputs(parser, options)
 

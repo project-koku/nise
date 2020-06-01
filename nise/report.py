@@ -428,8 +428,7 @@ def aws_create_report(options):  # noqa: C901
                 if attributes.get("start_date") > month.get("end"):
                     continue
 
-                gen_start_date, gen_end_date = _create_generator_dates_from_yaml(attributes, month)
-
+            gen_start_date, gen_end_date = _create_generator_dates_from_yaml(attributes, month)
             gen = generator_cls(gen_start_date, gen_end_date, payer_account, usage_accounts, attributes)
             num_instances = 1 if attributes else randint(2, 60)
             for _ in range(num_instances):
@@ -539,6 +538,8 @@ def azure_create_report(options):  # noqa: C901
                     continue
                 if attributes.get("start_date") > month.get("end"):
                     continue
+            else:
+                attributes = {"end_date": end_date, "start_date": start_date}
 
                 gen_start_date, gen_end_date = _create_generator_dates_from_yaml(attributes, month)
 
