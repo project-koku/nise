@@ -390,11 +390,12 @@ class CommandLineTestCase(TestCase):
 
     def test_run_for_azure_dates(self):
         """That that fix_dates corrects the azure end_date."""
-        args = ["report", "azure", "-s", str(date.today().replace(day=1))]
+        start = date.today().replace(day=1)
+        args = ["report", "azure", "-s", str(start)]
         parsed_args = self.parser.parse_args(args)
         options = vars(parsed_args)
         _, provider_type = _validate_provider_inputs(self.parser, options)
         self.assertEqual(provider_type, "azure")
         with patch("nise.__main__.azure_create_report"):
             run(provider_type, options)
-            self.assertEqual(options.get("end_date").date(), date.today().replace(day=1) + timedelta(days=1))
+            self.assertEqual(options.get("end_date").date(), start + timedelta(days=1))
