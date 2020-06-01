@@ -101,20 +101,19 @@ class AzureGenerator(AbstractGenerator):
         self._instance_id = None
         self._meter_id = None
         self._meter_name = None
+        self._resource_location = None
         self._service_tier = None
         self._consumed = None
         self._resource_type = None
         self._meter_cache = {}
 
         if attributes:
-            if attributes.get("service_name"):
-                self._service_name = attributes.get("service_name")
-            if attributes.get("service_tier"):
-                self._service_tier = attributes.get("service_tier")
             if attributes.get("instance_id"):
                 self._instance_id = attributes.get("instance_id")
             if attributes.get("meter_id"):
                 self._meter_id = attributes.get("meter_id")
+            if attributes.get("resource_location"):
+                self._resource_location = attributes.get("resource_location")
             if attributes.get("usage_quantity"):
                 self._usage_quantity = attributes.get("usage_quantity")
             if attributes.get("resource_rate"):
@@ -203,9 +202,8 @@ class AzureGenerator(AbstractGenerator):
 
     def _get_location(self):
         """Pick resource location."""
-        if self.attributes and self.attributes.get("resource_location"):
-            region = self.attributes.get("resource_location")
-            location = [option for option in self.RESOURCE_LOCATION if region in option].pop()
+        if self._resource_location:
+            location = choice([option for option in self.RESOURCE_LOCATION if self._resource_location in option])
         else:
             location = choice(self.RESOURCE_LOCATION)
         return location
@@ -293,8 +291,7 @@ class AzureGenerator(AbstractGenerator):
 
     def generate_data(self, report_type=None):
         """Responsible for generating data."""
-        data = self._generate_daily_data()
-        return data
+        return self._generate_daily_data()
 
     def get_meter_cache(self):
         """Return the meter cache for cross month generation."""
