@@ -522,15 +522,15 @@ class AWSReportTestCase(TestCase):
             "write_monthly": True,
         }
         aws_create_report(options)
-        self.month_output_file_name = "{}-{}-{}".format(calendar.month_name[now.month], now.year, "cur_report")
-        expected_month_output_file_1 = "{}/{}-1.csv".format(os.getcwd(), self.month_output_file_name)
-        expected_month_output_file_2 = "{}/{}-2.csv".format(os.getcwd(), self.month_output_file_name)
+        month_output_file_name = "{}-{}-{}".format(calendar.month_name[now.month], now.year, "cur_report")
+        expected_month_output_file_1 = "{}/{}-1.csv".format(os.getcwd(), month_output_file_name)
+        expected_month_output_file_2 = "{}/{}-2.csv".format(os.getcwd(), month_output_file_name)
 
         self.assertTrue(os.path.isfile(expected_month_output_file_1))
         self.assertTrue(os.path.isfile(expected_month_output_file_2))
 
         # cleanup any leftover files
-        regex = re.compile(self.month_output_file_name)
+        regex = re.compile(month_output_file_name)
         for _, _, files in os.walk("."):
             for fname in files:
                 if regex.match(fname):
@@ -845,11 +845,11 @@ class OCPReportTestCase(TestCase):
 
         for report_type in OCP_REPORT_TYPE_TO_COLS.keys():
             with self.subTest(report=report_type):
-                self.month_output_file_name = "{}-{}-{}-{}".format(
+                month_output_file_name = "{}-{}-{}-{}".format(
                     calendar.month_name[now.month], now.year, cluster_id, report_type
                 )
-                month_output_file_pt_1 = f"{self.month_output_file_name}-1"
-                month_output_file_pt_2 = f"{self.month_output_file_name}-2"
+                month_output_file_pt_1 = f"{month_output_file_name}-1"
+                month_output_file_pt_2 = f"{month_output_file_name}-2"
 
                 expected_month_output_file_1 = "{}/{}.csv".format(os.getcwd(), month_output_file_pt_1)
                 expected_month_output_file_2 = "{}/{}.csv".format(os.getcwd(), month_output_file_pt_2)
@@ -861,7 +861,7 @@ class OCPReportTestCase(TestCase):
                 self.assertTrue(os.path.isfile(expected_month_output_file_2))
 
                 # cleanup any leftover files
-                regex = re.compile(self.month_output_file_name)
+                regex = re.compile(month_output_file_name)
                 for _, _, files in os.walk("."):
                     for fname in files:
                         if regex.match(fname):
