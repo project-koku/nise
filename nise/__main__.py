@@ -461,11 +461,9 @@ def _load_static_report_data(options):
 
             if attributes.get("end_date"):
                 generated_end_date = calculate_end_date(generated_start_date, attributes.get("end_date"))
-                if (
-                    options.get("provider") == "azure"
-                    and generated_end_date.day == 1  # noqa: W503
-                    or generated_end_date == generated_start_date  # noqa: W503
-                ):
+                if options.get("provider") == "azure" and (
+                    generated_end_date.day == 1 or generated_end_date == generated_start_date  # noqa: W503
+                ):  # noqa: W503
                     generated_end_date += datetime.timedelta(hours=24)
             else:
                 if options.get("provider") == "azure":
