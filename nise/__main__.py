@@ -459,6 +459,12 @@ def _load_static_report_data(options):
 
             if attributes.get("end_date"):
                 generated_end_date = calculate_end_date(generated_start_date, attributes.get("end_date"))
+                if (
+                    options.get("provider") == "azure"
+                    and generated_end_date.day == 1  # noqa: W503
+                    or generated_end_date == generated_start_date  # noqa: W503
+                ):
+                    generated_end_date += datetime.timedelta(hours=24)
             else:
                 if options.get("provider") == "azure":
                     generated_end_date = today() + datetime.timedelta(hours=24)
@@ -467,6 +473,8 @@ def _load_static_report_data(options):
             end_dates.append(generated_end_date)
 
             attributes["start_date"] = str(generated_start_date)
+            if options.get("provider") != "azure":
+                generated_end_date.replace(hour=23, minute=59)
             attributes["end_date"] = str(generated_end_date)
 
         options["start_date"] = min(start_dates)
@@ -474,6 +482,7 @@ def _load_static_report_data(options):
         last_day_of_month = calendar.monthrange(year=latest_date.year, month=latest_date.month)[1]
         options["end_date"] = latest_date.replace(day=last_day_of_month, hour=0, minute=0)
         options["static_report_data"] = static_report_data
+    return True
 
 
 def calculate_start_date(start_date):
@@ -512,11 +521,18 @@ def calculate_end_date(start_date, end_date):
     return generated_end_date
 
 
+def fix_dates(options, provider_type):
+    if provider_type == "azure" and options.get("end_date").day == 1:
+        options["end_date"] += relativedelta(days=1)
+
+
 def run(provider_type, options):
     """Run nise."""
-    _load_static_report_data(options)
+    static_data_bool = _load_static_report_data(options)
     if not options.get("start_date"):
         raise NiseError("'start_date' is required in static files.")
+    if not static_data_bool:
+        fix_dates(options, provider_type)
 
     LOG.info("Creating reports...")
     if provider_type == "aws":
@@ -541,7 +557,7 @@ def main():
     options = vars(args)
 
     if not (options.get("start_date") or options.get("static_report_file")):
-        parser.error("the following arguments are required: --start-date")
+        parser.error("the following arguments are required: -s, --start-date")
 
     _, provider_type = _validate_provider_inputs(parser, options)
 
