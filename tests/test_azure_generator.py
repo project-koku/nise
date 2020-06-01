@@ -170,14 +170,12 @@ class AzureGeneratorTestCase(TestCase):
         self.tags = {"key": "value"}
         self.service_name = "Storage"
         self.tags = {"key": "value"}
-        self.service_tier = "General Block Blob"
         self.instance_id = "subscriptions/38f1d748-3ac7-4b7f-a5ae-8b5ff16db82c/resourceGroups/hccm/providers/Microsoft.Storage/storageAccount/mysa1"  # noqa: E501
         self.meter_id = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
         self.usage_quantity = 1
         self.resource_rate = 0.1
         self.pre_tax_cost = 20
         self.attributes = {
-            "service_tier": self.service_tier,
             "tags": self.tags,
             "instance_id": self.instance_id,
             "meter_id": self.meter_id,
@@ -205,20 +203,11 @@ class TestBandwidthGenerator(AzureGeneratorTestCase):
             self.two_hours_ago, self.now, self.payer_account, self.usage_accounts, self.attributes
         )
         self.assertEqual(generator._service_name, "Bandwidth")
-        self.assertEqual(generator._service_tier, self.service_tier)
         self.assertEqual(generator._meter_id, self.meter_id)
         self.assertEqual(generator._tags, self.tags)
         self.assertEqual(generator._usage_quantity, self.usage_quantity)
         self.assertEqual(generator._resource_rate, self.resource_rate)
         self.assertEqual(generator._pre_tax_cost, self.pre_tax_cost)
-
-    def test_init_with_service_name_attribute(self):
-        """Test the unique init options for Bandwidth."""
-        self.attributes["service_name"] = "whammy"
-        generator = BandwidthGenerator(
-            self.two_hours_ago, self.now, self.payer_account, self.usage_accounts, self.attributes
-        )
-        self.assertEqual(generator._service_name, "whammy")
 
     def test_update_data(self):
         """Test that row is updated."""
@@ -245,7 +234,6 @@ class TestStorageGenerator(AzureGeneratorTestCase):
             self.two_hours_ago, self.now, self.payer_account, self.usage_accounts, self.attributes
         )
         self.assertEqual(generator._service_name, "Storage")
-        self.assertEqual(generator._service_tier, self.service_tier)
         self.assertEqual(generator._meter_id, self.meter_id)
         self.assertEqual(generator._tags, self.tags)
         self.assertEqual(generator._usage_quantity, self.usage_quantity)
@@ -278,7 +266,6 @@ class TestSQLGenerator(AzureGeneratorTestCase):
             self.two_hours_ago, self.now, self.payer_account, self.usage_accounts, self.attributes
         )
         self.assertEqual(generator._service_name, "SQL Database")
-        self.assertEqual(generator._service_tier, self.service_tier)
         self.assertEqual(generator._meter_id, self.meter_id)
         self.assertEqual(generator._tags, self.tags)
         self.assertEqual(generator._usage_quantity, self.usage_quantity)
@@ -309,7 +296,6 @@ class TestVMGenerator(AzureGeneratorTestCase):
         """Test the unique init options for VM."""
         generator = VMGenerator(self.two_hours_ago, self.now, self.payer_account, self.usage_accounts, self.attributes)
         self.assertEqual(generator._service_name, "Virtual Machines")
-        self.assertEqual(generator._service_tier, self.service_tier)
         self.assertEqual(generator._meter_id, self.meter_id)
         self.assertEqual(generator._tags, self.tags)
         self.assertEqual(generator._usage_quantity, self.usage_quantity)
@@ -340,7 +326,6 @@ class TestVNGenerator(AzureGeneratorTestCase):
         """Test the unique init options for VM."""
         generator = VNGenerator(self.two_hours_ago, self.now, self.payer_account, self.usage_accounts, self.attributes)
         self.assertEqual(generator._service_name, "Virtual Network")
-        self.assertEqual(generator._service_tier, self.service_tier)
         self.assertEqual(generator._meter_id, self.meter_id)
         self.assertEqual(generator._tags, self.tags)
         self.assertEqual(generator._usage_quantity, self.usage_quantity)

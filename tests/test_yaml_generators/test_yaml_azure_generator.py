@@ -83,7 +83,19 @@ class AzureGeneratorTestCase(TestCase):
             return v_min <= val <= config_val
 
         def validate_data(data, config, check_func):
-            keys = sorted(["start_date", "end_date", "meter_id", "resource_location", "tags"])
+            keys = sorted(
+                [
+                    "end_date",
+                    "instance_id",
+                    "meter_id",
+                    "pre_tax_cost",
+                    "resource_location",
+                    "resource_rate",
+                    "start_date",
+                    "tags",
+                    "usage_quantity",
+                ]
+            )
             gens = ["bandwidth_gens", "sql_gens", "storage_gens", "vmachine_gens", "vnetwork_gens"]
 
             self.assertTrue(isinstance(data, self.module.dicta))
