@@ -28,6 +28,7 @@ from nise.__main__ import _load_yaml_file
 from nise.__main__ import _validate_provider_inputs
 from nise.__main__ import create_parser
 from nise.__main__ import main
+from nise.__main__ import run
 from nise.__main__ import valid_date
 
 
@@ -386,3 +387,15 @@ class CommandLineTestCase(TestCase):
                     mock_args.return_value = parsed_args
                     mock_options.return_value = options
                     self.assertIsNone(main())
+
+    def test_run_for_azure_dates(self):
+        """That that fix_dates corrects the azure end_date."""
+        start = date.today().replace(day=1)
+        args = ["report", "azure", "-s", str(start)]
+        parsed_args = self.parser.parse_args(args)
+        options = vars(parsed_args)
+        _, provider_type = _validate_provider_inputs(self.parser, options)
+        self.assertEqual(provider_type, "azure")
+        with patch("nise.__main__.azure_create_report"):
+            run(provider_type, options)
+            self.assertEqual(options.get("end_date").date(), start + timedelta(days=1))

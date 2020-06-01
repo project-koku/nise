@@ -255,6 +255,8 @@ def _create_month_list(start_date, end_date):
                 year=current.year,
                 month=current.month,
                 day=calendar.monthrange(year=current.year, month=current.month)[1],
+                hour=23,
+                minute=59,
             ),
         }
         if current.month == start_date.month:
@@ -262,7 +264,7 @@ def _create_month_list(start_date, end_date):
             month["start"] = start_date
         if current.month == end_date.month:
             # Last month ends with end_date
-            month["end"] = end_date
+            month["end"] = end_date.replace(hour=23, minute=59)
 
         months.append(month)
         current += relativedelta(months=+1)
@@ -337,14 +339,14 @@ def _create_generator_dates_from_yaml(attributes, month):
         hour=23, minute=59, second=59
     ):
         gen_start_date = month.get("start")
-        gen_end_date = attributes.get("end_date")
+        gen_end_date = attributes.get("end_date").replace(hour=23, minute=59)
 
     # Generator is within month
     if attributes.get("start_date") >= month.get("start") and attributes.get("end_date") <= month.get("end").replace(
         hour=23, minute=59, second=59
     ):
         gen_start_date = attributes.get("start_date")
-        gen_end_date = attributes.get("end_date")
+        gen_end_date = attributes.get("end_date").replace(hour=23, minute=59)
 
     # Generator starts within month and ends in next month
     if attributes.get("start_date") >= month.get("start") and attributes.get("end_date") > month.get("end").replace(
@@ -538,8 +540,10 @@ def azure_create_report(options):  # noqa: C901
                     continue
                 if attributes.get("start_date") > month.get("end"):
                     continue
+            else:
+                attributes = {"end_date": end_date, "start_date": start_date}
 
-                gen_start_date, gen_end_date = _create_generator_dates_from_yaml(attributes, month)
+            gen_start_date, gen_end_date = _create_generator_dates_from_yaml(attributes, month)
 
             attributes["meter_cache"] = meter_cache
             gen = generator_cls(gen_start_date, gen_end_date, payer_account, usage_accounts, attributes)
