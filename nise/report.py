@@ -414,7 +414,7 @@ def aws_create_report(options):  # noqa: C901
         monthly_files = []
         fake = Faker()
         num_gens = len(generators)
-        ten_percent = int(num_gens * 0.1)
+        ten_percent = int(num_gens * 0.1) if num_gens > 50 else 5
         LOG.info(f"Producing data for {num_gens} generators for {month.get('start').strftime('%Y-%m')}.")
         count = 0
         for generator in generators:
@@ -527,7 +527,7 @@ def azure_create_report(options):  # noqa: C901
         data = []
         monthly_files = []
         num_gens = len(generators)
-        ten_percent = int(num_gens * 0.1)
+        ten_percent = int(num_gens * 0.1) if num_gens > 50 else 5
         LOG.info(f"Producing data for {num_gens} generators for {month.get('start').strftime('%Y-%m')}.")
         count = 0
         for generator in generators:
@@ -719,7 +719,7 @@ def gcp_create_report(options):  # noqa: C901
     data = {}
     for project in projects:
         num_gens = len(generators)
-        ten_percent = int(num_gens * 0.1)
+        ten_percent = int(num_gens * 0.1) if num_gens > 50 else 5
         LOG.info(f"Producing data for {num_gens} generators for {'INSERT SOMETHING FOR GCP'}.")
         count = 0
         for generator in generators:
