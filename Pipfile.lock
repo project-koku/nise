@@ -848,10 +848,10 @@
         },
         "requirementslib": {
             "hashes": [
-                "sha256:3281c01d3f9fa4094abea4c74ee3ccbf5be5a31fbad27c990b61508fb5d1bd76",
-                "sha256:75ab3aca99480c7c6a27889b6461b5faa9dc27892f0e0a1a93b5b26507e34ad0"
+                "sha256:2716edafd712809942d78a0234ba680e4eac785209bb9e7cac79e924fcaa66ae",
+                "sha256:aaf3de171cb17fa6214ec290b0cd0be14a16b3116e01990258e794680ddc8264"
             ],
-            "version": "==1.5.9"
+            "version": "==1.5.10"
         },
         "secretstorage": {
             "hashes": [
