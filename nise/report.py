@@ -339,14 +339,14 @@ def _create_generator_dates_from_yaml(attributes, month):
         hour=23, minute=59, second=59
     ):
         gen_start_date = month.get("start")
-        gen_end_date = attributes.get("end_date")
+        gen_end_date = attributes.get("end_date").replace(hour=23, minute=59)
 
     # Generator is within month
     if attributes.get("start_date") >= month.get("start") and attributes.get("end_date") <= month.get("end").replace(
         hour=23, minute=59, second=59
     ):
         gen_start_date = attributes.get("start_date")
-        gen_end_date = attributes.get("end_date")
+        gen_end_date = attributes.get("end_date").replace(hour=23, minute=59)
 
     # Generator starts within month and ends in next month
     if attributes.get("start_date") >= month.get("start") and attributes.get("end_date") > month.get("end").replace(

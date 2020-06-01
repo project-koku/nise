@@ -543,6 +543,12 @@ class AWSReportTestCase(ReportTestCase):
         self.assertTrue(os.path.isfile(expected_month_output_file_1))
         self.assertTrue(os.path.isfile(expected_month_output_file_2))
 
+        # cleanup any leftover files
+        regex = re.compile(self.month_output_file_name)
+        for _, _, files in os.walk("."):
+            for fname in files:
+                if regex.match(fname):
+                    os.remove(fname)
         shutil.rmtree(local_bucket_path)
 
 
@@ -867,6 +873,13 @@ class OCPReportTestCase(ReportTestCase):
 
                 self.assertTrue(os.path.isfile(expected_month_output_file_1))
                 self.assertTrue(os.path.isfile(expected_month_output_file_2))
+
+                # cleanup any leftover files
+                regex = re.compile(self.month_output_file_name)
+                for _, _, files in os.walk("."):
+                    for fname in files:
+                        if regex.match(fname):
+                            os.remove(fname)
 
         shutil.rmtree(local_insights_upload)
 
