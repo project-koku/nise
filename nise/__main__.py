@@ -55,10 +55,6 @@ def today():
     return datetime.datetime.now().replace(microsecond=0, second=0, minute=0)
 
 
-def last_day_of_month(date):
-    return calendar.monthrange(date.year, date.month)[1]
-
-
 def add_aws_parser_args(parser):
     """Add AWS sub-parser args."""
     parser.add_argument(
