@@ -388,10 +388,23 @@ class CommandLineTestCase(TestCase):
                     mock_options.return_value = options
                     self.assertIsNone(main())
 
-    def test_run_for_azure_dates(self):
+    def test_run_for_azure_startdates(self):
         """That that fix_dates corrects the azure end_date."""
         start = date.today().replace(day=1)
         args = ["report", "azure", "-s", str(start)]
+        parsed_args = self.parser.parse_args(args)
+        options = vars(parsed_args)
+        _, provider_type = _validate_provider_inputs(self.parser, options)
+        self.assertEqual(provider_type, "azure")
+        with patch("nise.__main__.azure_create_report"):
+            run(provider_type, options)
+            self.assertEqual(options.get("end_date").date(), start + timedelta(days=1))
+
+    def test_run_for_azure_enddates(self):
+        """That that fix_dates corrects the azure end_date."""
+        start = date.today().replace(day=1)
+        end = date.today().replace(day=1)
+        args = ["report", "azure", "-s", str(start), "-e", str(end)]
         parsed_args = self.parser.parse_args(args)
         options = vars(parsed_args)
         _, provider_type = _validate_provider_inputs(self.parser, options)
@@ -409,6 +422,12 @@ class MainDateTest(TestCase):
         """Test that select static-data-file dates return correct dates."""
         aws_gens = [
             {"aws_gen_first": {"start_date": datetime(2020, 6, 1).date(), "end_date": datetime(2020, 6, 1).date()}},
+            {
+                "aws_gen_first_second": {
+                    "start_date": datetime(2020, 6, 1).date(),
+                    "end_date": datetime(2020, 6, 2).date(),
+                }
+            },
             {"aws_gen_first_start": {"start_date": datetime(2020, 6, 1).date()}},
             {"aws_gen_last": {"start_date": datetime(2020, 5, 31).date(), "end_date": datetime(2020, 5, 31).date()}},
             {
@@ -421,6 +440,10 @@ class MainDateTest(TestCase):
         static_report_data = {"generators": aws_gens}
         expected = {
             "aws_gen_first": {"start_date": datetime(2020, 6, 1, 0, 0), "end_date": datetime(2020, 6, 1, 23, 59)},
+            "aws_gen_first_second": {
+                "start_date": datetime(2020, 6, 1, 0, 0),
+                "end_date": datetime(2020, 6, 2, 23, 59),
+            },
             "aws_gen_first_start": {
                 "start_date": datetime(2020, 6, 1, 0, 0),
                 "end_date": datetime.now().replace(hour=23, minute=59, second=0, microsecond=0),
@@ -445,6 +468,12 @@ class MainDateTest(TestCase):
         """Test that select static-data-file dates return correct dates."""
         ocp_gens = [
             {"ocp_gen_first": {"start_date": datetime(2020, 6, 1).date(), "end_date": datetime(2020, 6, 1).date()}},
+            {
+                "ocp_gen_first_second": {
+                    "start_date": datetime(2020, 6, 1).date(),
+                    "end_date": datetime(2020, 6, 2).date(),
+                }
+            },
             {"ocp_gen_first_start": {"start_date": datetime(2020, 6, 1).date()}},
             {"ocp_gen_last": {"start_date": datetime(2020, 5, 31).date(), "end_date": datetime(2020, 5, 31).date()}},
             {
@@ -457,6 +486,10 @@ class MainDateTest(TestCase):
         static_report_data = {"generators": ocp_gens}
         expected = {
             "ocp_gen_first": {"start_date": datetime(2020, 6, 1, 0, 0), "end_date": datetime(2020, 6, 1, 23, 59)},
+            "ocp_gen_first_second": {
+                "start_date": datetime(2020, 6, 1, 0, 0),
+                "end_date": datetime(2020, 6, 2, 23, 59),
+            },
             "ocp_gen_first_start": {
                 "start_date": datetime(2020, 6, 1, 0, 0),
                 "end_date": datetime.now().replace(hour=23, minute=59, second=0, microsecond=0),
@@ -481,6 +514,12 @@ class MainDateTest(TestCase):
         """Test that select static-data-file dates return correct dates."""
         azure_gens = [
             {"azure_gen_first": {"start_date": datetime(2020, 6, 1).date(), "end_date": datetime(2020, 6, 1).date()}},
+            {
+                "azure_gen_first_second": {
+                    "start_date": datetime(2020, 6, 1).date(),
+                    "end_date": datetime(2020, 6, 2).date(),
+                }
+            },
             {"azure_gen_first_start": {"start_date": datetime(2020, 6, 1).date()}},
             {"azure_gen_last": {"start_date": datetime(2020, 5, 31).date(), "end_date": datetime(2020, 5, 31).date()}},
             {
@@ -493,6 +532,10 @@ class MainDateTest(TestCase):
         static_report_data = {"generators": azure_gens}
         expected = {
             "azure_gen_first": {"start_date": datetime(2020, 6, 1, 0, 0), "end_date": datetime(2020, 6, 2, 0, 0)},
+            "azure_gen_first_second": {
+                "start_date": datetime(2020, 6, 1, 0, 0),
+                "end_date": datetime(2020, 6, 3, 0, 0),
+            },
             "azure_gen_first_start": {
                 "start_date": datetime(2020, 6, 1, 0, 0),
                 "end_date": datetime.now().replace(microsecond=0, second=0, minute=0) + timedelta(hours=24),

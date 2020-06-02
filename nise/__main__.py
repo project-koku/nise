@@ -517,7 +517,9 @@ def calculate_end_date(start_date, end_date):
 
 
 def fix_dates(options, provider_type):
-    if provider_type == "azure" and options.get("end_date").day == 1:
+    """Correct any unique dates."""
+    # Azure end_date is always the following day
+    if provider_type == "azure":
         options["end_date"] += relativedelta(days=1)
 
 
