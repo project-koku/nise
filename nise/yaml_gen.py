@@ -179,8 +179,7 @@ def yaml_main(args):
     args = handle_args(args)
     generator = GENERATOR_MAP.get(args.provider.upper())
     if not generator:
-        LOG.warning("Provider import not found.")
-        return
+        raise NotImplementedError(f"Invalid provider type: {args.provider.upper()} not implemented")
 
     config = generator.init_config(args)
     generator.process_template(args, config)

@@ -287,8 +287,8 @@ class CommandLineTestCase(TestCase):
         data = _load_yaml_file("tests/aws_static_report.yml")
         self.assertIsNotNone(data)
 
-        data_missing = _load_yaml_file(None)
-        self.assertIsNone(data_missing)
+        with self.assertRaises(FileNotFoundError):
+            _load_yaml_file("None")
 
     def test_load_static_report_data(self):
         """

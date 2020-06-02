@@ -85,35 +85,14 @@ class AWSGeneratorTestCase(TestCase):
             return v_min <= val <= config_val
 
         def validate_data(data, config, check_func):
-            data_transfer_gens_keys = sorted(["start_date", "end_date", "resource_id", "tags"])
-            ebs_gens_keys = sorted(["start_date", "end_date", "tags"])
-            ec2_gens_keys = sorted(
-                [
-                    "start_date",
-                    "end_date",
-                    "resource_id",
-                    "tags",
-                    "processor_arch",
-                    "product_sku",
-                    "region",
-                    "instance_type",
-                ]
-            )
-            rds_gens_keys = sorted(
-                [
-                    "start_date",
-                    "end_date",
-                    "resource_id",
-                    "tags",
-                    "processor_arch",
-                    "product_sku",
-                    "region",
-                    "instance_type",
-                ]
-            )
-            route53_gens_keys = sorted(["start_date", "end_date", "tags"])
-            s3_gens_keys = sorted(["start_date", "end_date", "tags"])
-            vpc_gens_keys = sorted(["start_date", "end_date", "tags"])
+            common_keys = ["start_date", "end_date", "resource_id", "product_sku", "tags"]
+            data_transfer_gens_keys = sorted(common_keys + ["rate", "amount"])
+            ebs_gens_keys = sorted(common_keys + ["rate", "amount"])
+            ec2_gens_keys = sorted(common_keys + ["processor_arch", "region", "instance_type"])
+            rds_gens_keys = sorted(common_keys + ["processor_arch", "region", "instance_type"])
+            route53_gens_keys = sorted(common_keys + ["product_family"])
+            s3_gens_keys = sorted(common_keys + ["rate", "amount"])
+            vpc_gens_keys = sorted(common_keys)
 
             self.assertTrue(isinstance(data, self.module.dicta))
 
@@ -132,6 +111,7 @@ class AWSGeneratorTestCase(TestCase):
             for gen in data.ebs_gens:
                 self.assertEqual(sorted(gen.keys()), ebs_gens_keys)
                 self.assertTrue(isinstance(gen.start_date, str) and isinstance(gen.end_date, str))
+                self.assertTrue(gen.resource_id is not None)
 
             list_inst_types = [d.get("inst_type") for d in EC2_INSTANCE_TYPES]
             for gen in data.ec2_gens:
@@ -150,14 +130,17 @@ class AWSGeneratorTestCase(TestCase):
             for gen in data.route53_gens:
                 self.assertEqual(sorted(gen.keys()), route53_gens_keys)
                 self.assertTrue(isinstance(gen.start_date, str) and isinstance(gen.end_date, str))
+                self.assertTrue(gen.resource_id is not None)
 
             for gen in data.s3_gens:
                 self.assertEqual(sorted(gen.keys()), s3_gens_keys)
                 self.assertTrue(isinstance(gen.start_date, str) and isinstance(gen.end_date, str))
+                self.assertTrue(gen.resource_id is not None)
 
             for gen in data.vpc_gens:
                 self.assertEqual(sorted(gen.keys()), vpc_gens_keys)
                 self.assertTrue(isinstance(gen.start_date, str) and isinstance(gen.end_date, str))
+                self.assertTrue(gen.resource_id is not None)
 
         dc = self.yg.default_config()
 

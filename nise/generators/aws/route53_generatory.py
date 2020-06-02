@@ -34,17 +34,20 @@ class Route53Generator(AWSGenerator):
         super().__init__(start_date, end_date, payer_account, usage_accounts, attributes)
         self._product_sku = self.fake.pystr(min_chars=12, max_chars=12).upper()
         self._product_family = None
+        self._resource_id = self.fake.ean8()
         if self.attributes:
             if self.attributes.get("product_family"):
                 self._product_family = self.attributes.get("product_family")
             if self.attributes.get("product_sku"):
                 self._product_sku = self.attributes.get("product_sku")
+            if self.attributes.get("resource_id"):
+                self._resource_id = self.attributes.get("resource_id")
             if self.attributes.get("tags"):
                 self._tags = self.attributes.get("tags")
 
     def _get_arn(self):
         """Create an amazon resource name."""
-        return "arn:aws:Route53:::hostedzone:{}".format(self.fake.ean8())
+        return f"arn:aws:Route53:::hostedzone:{self._resource_id}"
 
     def _update_data(self, row, start, end, **kwargs):
         """Update data with generator specific data."""

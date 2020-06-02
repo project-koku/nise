@@ -29,19 +29,22 @@ class S3Generator(AWSGenerator):
         self._amount = uniform(0.2, 6000.99)
         self._rate = round(uniform(0.02, 0.06), 3)
         self._product_sku = self.fake.pystr(min_chars=12, max_chars=12).upper()
+        self._resource_id = self.fake.ean8()
         if self.attributes:
             if self.attributes.get("amount"):
-                self._amount = self.attributes.get("amount")
+                self._amount = float(self.attributes.get("amount"))
             if self.attributes.get("rate"):
-                self._rate = self.attributes.get("rate")
+                self._rate = float(self.attributes.get("rate"))
             if self.attributes.get("product_sku"):
                 self._product_sku = self.attributes.get("product_sku")
+            if self.attributes.get("resource_id"):
+                self._resource_id = self.attributes.get("resource_id")
             if self.attributes.get("tags"):
                 self._tags = self.attributes.get("tags")
 
     def _get_arn(self, avail_zone):
         """Create an amazon resource name."""
-        return "arn:aws:ec2:{}:{}:snapshot/snap-{}".format(avail_zone, self.payer_account, self.fake.ean8())
+        return f"arn:aws:ec2:{avail_zone}:{self.payer_account}:snapshot/snap-{self._resource_id}"
 
     def _update_data(self, row, start, end, **kwargs):
         """Update data with generator specific data."""

@@ -21,6 +21,7 @@ import random
 import re
 from calendar import monthrange
 from datetime import date
+from random import uniform
 
 import faker
 from dateutil.relativedelta import relativedelta
@@ -29,6 +30,7 @@ from nise.yaml_generators.aws.rds_instance_types import INSTANCE_TYPES as RDS_IN
 from nise.yaml_generators.aws.regions import REGIONS
 from nise.yaml_generators.generator import Generator
 from nise.yaml_generators.utils import dicta
+from nise.yaml_generators.utils import generate_name
 
 LOG = logging.getLogger(__name__)
 
@@ -48,72 +50,17 @@ RESOURCE_TAG_COLS = {
 }
 
 
-def generate_words(config):
-    """
-    Generate a hyphen-separated string of words.
-
-    The number of words is specified in the config. (config.max_name_words)
-    """
-    return "-".join(FAKER.words(config.max_name_words))
-
-
-def generate_number_str(config):
-    """
-    Generate a string of digits of arbitrary length.
-
-    The maximum length is specified in the config. (config.max_resource_id_length)
-    """
-    return str(FAKER.random_int(0, 10 ** config.max_resource_id_length)).zfill(config.max_resource_id_length)
-
-
-def generate_name(config, prefix="", suffix="", dynamic=True, generator=generate_words, cache=SEEN_NAMES):
-    """
-    Generate a random resource name using faker.
-
-    Params:
-        config : dicta - config information for the generator
-        prefix : str - a static prefix
-        suffix : str - a static suffix
-        dynamic : bool - flag to run the generator function
-        generator : func - function that will generate the dynamic portion of the name
-        cache : set - a cache for uniqueness across all calls
-
-    Returns:
-        str
-    """
-    new_name = None
+def uniform_yield(a, b):
+    """Yield from random.uniform."""
     while True:
-        if prefix:
-            prefix += "-"
-        if suffix:
-            suffix = "-" + suffix
-        mid = generator(config) if dynamic else ""
-        new_name = f"{prefix}{mid}{suffix}"
-        if new_name not in cache:
-            cache.add(new_name)
-            break
-
-    return DBL_DASH.sub("-", new_name)
+        yield uniform(a, b)
 
 
-def generate_resource_id(config, prefix="", suffix="", dynamic=True):
-    """
-    Generate a random resource id using faker.
-
-    Params:
-        config : dicta - config information for the generator
-        prefix : str - a static prefix
-        suffix : str - a static suffix
-        dynamic : bool - flag to run the generator function
-        generator : func - function that will generate the dynamic portion of the resource id
-        cache : set - a cache for uniqueness across all calls
-
-    Returns:
-        str
-    """
-    return generate_name(
-        config, prefix=prefix, suffix=suffix, dynamic=dynamic, generator=generate_number_str, cache=SEEN_RESOURCE_IDS
-    )
+RATE_AMT = {
+    "DTG": (uniform_yield(0.12, 0.19), uniform_yield(0.000002, 0.09)),
+    "EBS": (uniform_yield(0.02, 0.16), uniform_yield(0.2, 300.99)),
+    "S3": (uniform_yield(0.02, 0.06), uniform_yield(0.2, 6000.99)),
+}
 
 
 def generate_tags(key, config, prefix="", suffix="", dynamic=True):
@@ -124,6 +71,17 @@ def generate_tags(key, config, prefix="", suffix="", dynamic=True):
     """
     keys = RESOURCE_TAG_COLS.get(key)
     return [dicta(key=key, v=generate_name(config)) for key in keys]
+
+
+def initialize_dicta(key, config):
+    """Return dicta with common attributes."""
+    return dicta(
+        start_date=str(config.start_date),
+        end_date=str(config.end_date),
+        resource_id=FAKER.ean8(),
+        product_sku=FAKER.pystr(min_chars=12, max_chars=12).upper(),
+        tags=generate_tags(key, config),
+    )
 
 
 class AWSGenerator(Generator):
@@ -142,7 +100,14 @@ class AWSGenerator(Generator):
         LOG.info("Data build starting")
 
         data = dicta(
-            data_transfer_gens=[], ebs_gens=[], ec2_gens=[], rds_gens=[], route53_gens=[], s3_gens=[], vpc_gens=[]
+            payer=config.payer_account,
+            data_transfer_gens=[],
+            ebs_gens=[],
+            ec2_gens=[],
+            rds_gens=[],
+            route53_gens=[],
+            s3_gens=[],
+            vpc_gens=[],
         )
 
         max_data_transfer_gens = (
@@ -157,78 +122,56 @@ class AWSGenerator(Generator):
 
         LOG.info(f"Building {max_data_transfer_gens} data transfer generators ...")
         for _ in range(max_data_transfer_gens):
-            data_transfer_gen = dicta(
-                start_date=str(config.start_date),
-                end_date=str(config.end_date),
-                resource_id=generate_resource_id(config),
-                tags=generate_tags("DTG", config),
-            )
+            _rate, _amount = RATE_AMT.get("DTG")
+            data_transfer_gen = initialize_dicta("DTG", config)
+            data_transfer_gen.update(amount=round(next(_amount), 5), rate=round(next(_rate), 5))
             data.data_transfer_gens.append(data_transfer_gen)
 
         LOG.info(f"Building {max_ebs_gens} EBS generators ...")
         for _ in range(max_ebs_gens):
-            ebs_gen = dicta(
-                start_date=str(config.start_date), end_date=str(config.end_date), tags=generate_tags("EBS", config)
-            )
+            _rate, _amount = RATE_AMT.get("EBS")
+            ebs_gen = initialize_dicta("EBS", config)
+            ebs_gen.update(amount=round(next(_amount), 5), rate=round(next(_rate), 5))
             data.ebs_gens.append(ebs_gen)
 
         LOG.info(f"Building {max_ec2_gens} EC2 generators ...")
         for _ in range(max_ec2_gens):
-
             instance_type = random.choice(EC2_INSTANCES)
-
-            ec2_gen = dicta(
-                start_date=str(config.start_date),
-                end_date=str(config.end_date),
+            ec2_gen = initialize_dicta("EC2", config)
+            ec2_gen.update(
                 processor_arch=instance_type.get("processor_arch"),
-                resource_id=generate_resource_id(config),
-                product_sku=FAKER.pystr(min_chars=12, max_chars=12).upper(),
                 region=random.choice(REGIONS),
-                tags=generate_tags("EC2", config),
                 instance_type=instance_type,
             )
             data.ec2_gens.append(ec2_gen)
 
         LOG.info(f"Building {max_rds_gens} RDS generators ...")
         for _ in range(max_rds_gens):
-
             instance_type = random.choice(RDS_INSTANCES)
-
-            rds_gen = dicta(
-                start_date=str(config.start_date),
-                end_date=str(config.end_date),
+            rds_gen = initialize_dicta("RDS", config)
+            rds_gen.update(
                 processor_arch=instance_type.get("processor_arch"),
-                resource_id=generate_resource_id(config),
-                product_sku=FAKER.pystr(min_chars=12, max_chars=12).upper(),
                 region=random.choice(REGIONS),
-                tags=generate_tags("RDS", config),
                 instance_type=instance_type,
             )
-
             data.rds_gens.append(rds_gen)
 
         LOG.info(f"Building {max_route53_gens} Route 53 generators ...")
         for _ in range(max_route53_gens):
-            route53_gen = dicta(
-                start_date=str(config.start_date), end_date=str(config.end_date), tags=generate_tags("R53", config)
-            )
-
+            route53_gen = initialize_dicta("R53", config)
+            route53_gen.update(product_family=random.choices(("DNS Zone", "DNS Query"), weights=[1, 10])[0])
             data.route53_gens.append(route53_gen)
 
         LOG.info(f"Building {max_s3_gens} S3 generators ...")
         for _ in range(max_s3_gens):
-            s3_gen = dicta(
-                start_date=str(config.start_date), end_date=str(config.end_date), tags=generate_tags("S3", config)
-            )
-
+            _rate, _amount = RATE_AMT.get("S3")
+            s3_gen = initialize_dicta("S3", config)
+            s3_gen.update(amount=round(next(_amount), 5), rate=round(next(_rate), 5))
             data.s3_gens.append(s3_gen)
 
         LOG.info(f"Building {max_vpc_gens} VPC generators ...")
         for _ in range(max_vpc_gens):
-            vpc_gen = dicta(
-                start_date=str(config.start_date), end_date=str(config.end_date), tags=generate_tags("VPC", config)
-            )
-
+            vpc_gen = initialize_dicta("VPC", config)
             data.vpc_gens.append(vpc_gen)
 
         return data
@@ -245,6 +188,7 @@ class AWSGenerator(Generator):
         return dicta(
             start_date=default_date.replace(day=1) - relativedelta(months=1),
             end_date=default_date.replace(day=last_day_of_month),
+            payer_account=9999999999999,
             max_name_words=2,
             max_resource_id_length=10,
             max_data_transfer_gens=1,
@@ -269,7 +213,7 @@ class AWSGenerator(Generator):
         validator = dicta(
             start_date=date,
             end_date=date,
-            storage_classes=list,
+            payer_account=int,
             max_name_words=int,
             max_resource_id_length=int,
             max_data_transfer_gens=int,

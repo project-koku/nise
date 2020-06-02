@@ -46,9 +46,9 @@ class DataTransferGenerator(AWSGenerator):
             if attributes.get("resource_id"):
                 self._resource_id = attributes.get("resource_id")
             if attributes.get("amount"):
-                self._amount = attributes.get("amount")
+                self._amount = float(attributes.get("amount"))
             if attributes.get("rate"):
-                self._rate = attributes.get("rate")
+                self._rate = float(attributes.get("rate"))
             if attributes.get("product_sku"):
                 self._product_sku = attributes.get("product_sku")
             if attributes.get("tags"):
@@ -75,10 +75,7 @@ class DataTransferGenerator(AWSGenerator):
         """Update data with generator specific data."""
         row = self._add_common_usage_info(row, start, end)
 
-        resource_id = self.fake.ean8()
-        if self._resource_id:
-            resource_id = self._resource_id
-
+        resource_id = self._resource_id if self._resource_id else self.fake.ean8()
         rate = self._rate if self._rate else round(uniform(0.12, 0.19), 3)
         amount = self._amount if self._amount else uniform(0.000002, 0.09)
         cost = amount * rate
