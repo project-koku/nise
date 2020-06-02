@@ -472,7 +472,7 @@ def _load_static_report_data(options):
 
             attributes["start_date"] = str(generated_start_date)
             if options.get("provider") != "azure":
-                generated_end_date.replace(hour=23, minute=59)
+                generated_end_date = generated_end_date.replace(hour=23, minute=59)
             attributes["end_date"] = str(generated_end_date)
 
         options["start_date"] = min(start_dates)
