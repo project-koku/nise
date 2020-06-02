@@ -288,7 +288,7 @@ class CommandLineTestCase(TestCase):
         self.assertIsNotNone(data)
 
         with self.assertRaises(FileNotFoundError):
-            _load_yaml_file(None)
+            _load_yaml_file("None")
 
     def test_load_static_report_data(self):
         """
