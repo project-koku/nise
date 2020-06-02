@@ -398,7 +398,7 @@ class CommandLineTestCase(TestCase):
         self.assertEqual(provider_type, "azure")
         with patch("nise.__main__.azure_create_report"):
             run(provider_type, options)
-            self.assertEqual(options.get("end_date").date(), start + timedelta(days=1))
+            self.assertEqual(options.get("end_date").date(), date.today() + timedelta(days=1))
 
     def test_run_for_azure_enddates(self):
         """That that fix_dates corrects the azure end_date."""
@@ -411,7 +411,7 @@ class CommandLineTestCase(TestCase):
         self.assertEqual(provider_type, "azure")
         with patch("nise.__main__.azure_create_report"):
             run(provider_type, options)
-            self.assertEqual(options.get("end_date").date(), start + timedelta(days=1))
+            self.assertEqual(options.get("end_date").date(), end + timedelta(days=1))
 
 
 class MainDateTest(TestCase):
