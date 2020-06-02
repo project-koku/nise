@@ -63,11 +63,6 @@ RATE_AMT = {
 }
 
 
-def product_sku_generator(*args):
-    """Generate random 12 character alpha string."""
-    return FAKER.pystr(min_chars=12, max_chars=12).upper()
-
-
 def generate_tags(key, config, prefix="", suffix="", dynamic=True):
     """Generate properly formatted AWS tags.
 
@@ -84,7 +79,7 @@ def initialize_dicta(key, config):
         start_date=str(config.start_date),
         end_date=str(config.end_date),
         resource_id=FAKER.ean8(),
-        product_sku=generate_name(config, generator=product_sku_generator),
+        product_sku=FAKER.pystr(min_chars=12, max_chars=12).upper(),
         tags=generate_tags(key, config),
     )
 
