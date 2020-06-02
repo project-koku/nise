@@ -399,3 +399,115 @@ class CommandLineTestCase(TestCase):
         with patch("nise.__main__.azure_create_report"):
             run(provider_type, options)
             self.assertEqual(options.get("end_date").date(), start + timedelta(days=1))
+
+
+class MainDateTest(TestCase):
+    """Functional data testing class."""
+
+    @patch("nise.__main__._load_yaml_file")
+    def test_aws_dates(self, mock_load):
+        """Test that select static-data-file dates return correct dates."""
+        aws_gens = [
+            {"aws_gen_first": {"start_date": datetime(2020, 6, 1).date(), "end_date": datetime(2020, 6, 1).date()}},
+            {"aws_gen_first_start": {"start_date": datetime(2020, 6, 1).date()}},
+            {"aws_gen_last": {"start_date": datetime(2020, 5, 31).date(), "end_date": datetime(2020, 5, 31).date()}},
+            {
+                "aws_gen_last_first": {
+                    "start_date": datetime(2020, 5, 31).date(),
+                    "end_date": datetime(2020, 6, 1).date(),
+                }
+            },
+        ]
+        static_report_data = {"generators": aws_gens}
+        expected = {
+            "aws_gen_first": {"start_date": datetime(2020, 6, 1, 0, 0), "end_date": datetime(2020, 6, 1, 23, 59)},
+            "aws_gen_first_start": {
+                "start_date": datetime(2020, 6, 1, 0, 0),
+                "end_date": datetime.now().replace(hour=23, minute=59, second=0, microsecond=0),
+            },
+            "aws_gen_last": {"start_date": datetime(2020, 5, 31, 0, 0), "end_date": datetime(2020, 5, 31, 23, 59)},
+            "aws_gen_last_first": {
+                "start_date": datetime(2020, 5, 31, 0, 0),
+                "end_date": datetime(2020, 6, 1, 23, 59),
+            },
+        }
+        options = {"provider": "aws", "static_report_file": "fake-file"}
+        mock_load.return_value = static_report_data
+        _load_static_report_data(options)
+        for generator_dict in options.get("static_report_data").get("generators"):
+            for key, attributes in generator_dict.items():
+                with self.subTest(key=key):
+                    self.assertEqual(attributes.get("start_date"), str(expected.get(key).get("start_date")))
+                    self.assertEqual(attributes.get("end_date"), str(expected.get(key).get("end_date")))
+
+    @patch("nise.__main__._load_yaml_file")
+    def test_ocp_dates(self, mock_load):
+        """Test that select static-data-file dates return correct dates."""
+        ocp_gens = [
+            {"ocp_gen_first": {"start_date": datetime(2020, 6, 1).date(), "end_date": datetime(2020, 6, 1).date()}},
+            {"ocp_gen_first_start": {"start_date": datetime(2020, 6, 1).date()}},
+            {"ocp_gen_last": {"start_date": datetime(2020, 5, 31).date(), "end_date": datetime(2020, 5, 31).date()}},
+            {
+                "ocp_gen_last_first": {
+                    "start_date": datetime(2020, 5, 31).date(),
+                    "end_date": datetime(2020, 6, 1).date(),
+                }
+            },
+        ]
+        static_report_data = {"generators": ocp_gens}
+        expected = {
+            "ocp_gen_first": {"start_date": datetime(2020, 6, 1, 0, 0), "end_date": datetime(2020, 6, 1, 23, 59)},
+            "ocp_gen_first_start": {
+                "start_date": datetime(2020, 6, 1, 0, 0),
+                "end_date": datetime.now().replace(hour=23, minute=59, second=0, microsecond=0),
+            },
+            "ocp_gen_last": {"start_date": datetime(2020, 5, 31, 0, 0), "end_date": datetime(2020, 5, 31, 23, 59)},
+            "ocp_gen_last_first": {
+                "start_date": datetime(2020, 5, 31, 0, 0),
+                "end_date": datetime(2020, 6, 1, 23, 59),
+            },
+        }
+        options = {"provider": "ocp", "static_report_file": "fake-file"}
+        mock_load.return_value = static_report_data
+        _load_static_report_data(options)
+        for generator_dict in options.get("static_report_data").get("generators"):
+            for key, attributes in generator_dict.items():
+                with self.subTest(key=key):
+                    self.assertEqual(attributes.get("start_date"), str(expected.get(key).get("start_date")))
+                    self.assertEqual(attributes.get("end_date"), str(expected.get(key).get("end_date")))
+
+    @patch("nise.__main__._load_yaml_file")
+    def test_azure_dates(self, mock_load):
+        """Test that select static-data-file dates return correct dates."""
+        azure_gens = [
+            {"azure_gen_first": {"start_date": datetime(2020, 6, 1).date(), "end_date": datetime(2020, 6, 1).date()}},
+            {"azure_gen_first_start": {"start_date": datetime(2020, 6, 1).date()}},
+            {"azure_gen_last": {"start_date": datetime(2020, 5, 31).date(), "end_date": datetime(2020, 5, 31).date()}},
+            {
+                "azure_gen_last_first": {
+                    "start_date": datetime(2020, 5, 31).date(),
+                    "end_date": datetime(2020, 6, 1).date(),
+                }
+            },
+        ]
+        static_report_data = {"generators": azure_gens}
+        expected = {
+            "azure_gen_first": {"start_date": datetime(2020, 6, 1, 0, 0), "end_date": datetime(2020, 6, 2, 0, 0)},
+            "azure_gen_first_start": {
+                "start_date": datetime(2020, 6, 1, 0, 0),
+                "end_date": datetime.now().replace(microsecond=0, second=0, minute=0) + timedelta(hours=24),
+            },
+            "azure_gen_last": {"start_date": datetime(2020, 5, 31, 0, 0), "end_date": datetime(2020, 6, 1, 0, 0)},
+            "azure_gen_last_first": {
+                "start_date": datetime(2020, 5, 31, 0, 0),
+                "end_date": datetime(2020, 6, 2, 0, 0),
+            },
+        }
+        options = {"provider": "azure", "static_report_file": "fake-file"}
+        mock_load.return_value = static_report_data
+        _load_static_report_data(options)
+        for generator_dict in options.get("static_report_data").get("generators"):
+            for key, attributes in generator_dict.items():
+                with self.subTest(key=key):
+                    self.assertEqual(attributes.get("start_date"), str(expected.get(key).get("start_date")))
+                    self.assertEqual(attributes.get("end_date"), str(expected.get(key).get("end_date")))
