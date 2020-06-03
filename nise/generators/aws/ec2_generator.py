@@ -68,9 +68,9 @@ class EC2Generator(AWSGenerator):
 
     ARCHS = ("32-bit", "64-bit")
 
-    def __init__(self, start_date, end_date, payer_account, usage_accounts, attributes=None):
+    def __init__(self, start_date, end_date, payer_account, usage_accounts, attributes=None, tag_cols=None):
         """Initialize the EC2 generator."""
-        super().__init__(start_date, end_date, payer_account, usage_accounts, attributes)
+        super().__init__(start_date, end_date, payer_account, usage_accounts, attributes, tag_cols)
         self._processor_arch = choice(self.ARCHS)
         self._resource_id = "i-{}".format(self.fake.ean8())
         self._product_sku = self.fake.pystr(min_chars=12, max_chars=12).upper()
