@@ -200,6 +200,15 @@ class AWSGeneratorTestCase(TestCase):
         }
         self.two_hours_ago = (self.now - self.one_hour) - self.one_hour
 
+    def test_tag_cols(self):
+        """Test new tag gets assigned to AWS_COLUMNS."""
+        key = "resourceTags/user:new-key"
+        tag_cols = {key}
+        two_hours_ago = (self.now - self.one_hour) - self.one_hour
+        generator = TestGenerator(two_hours_ago, self.now, self.payer_account, self.usage_accounts, tag_cols=tag_cols)
+        self.assertIn(key, generator.AWS_COLUMNS)
+        self.assertNotIn("key-that-has-not-been-added", generator.AWS_COLUMNS)
+
 
 class TestRDSGenerator(AWSGeneratorTestCase):
     """Tests for the RDS Generator type."""
