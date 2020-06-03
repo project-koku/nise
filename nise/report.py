@@ -41,7 +41,6 @@ from dateutil.relativedelta import relativedelta
 from faker import Faker
 from nise.copy import copy_to_local_dir
 from nise.extract import extract_payload
-from nise.generators.aws import AWS_COLUMNS
 from nise.generators.aws import DataTransferGenerator
 from nise.generators.aws import EBSGenerator
 from nise.generators.aws import EC2Generator
@@ -358,8 +357,11 @@ def _create_generator_dates_from_yaml(attributes, month):
     return gen_start_date, gen_end_date
 
 
-def write_aws_file(file_number, aws_report_name, month_name, year, data, aws_finalize_report, static_report_data):
+def write_aws_file(
+    file_number, aws_report_name, month_name, year, data, aws_finalize_report, static_report_data, headers
+):
     """Write AWS data to a file."""
+    headers = sorted(list(headers))
     if file_number != 0:
         file_name = "{}-{}-{}-{}".format(month_name, year, aws_report_name, str(file_number))
     else:
@@ -372,10 +374,10 @@ def write_aws_file(file_number, aws_report_name, month_name, year, data, aws_fin
         finalized_data = _aws_finalize_report(data, static_report_data)
         file_name_finalized = f"{file_name}-finalized"
         full_file_name = "{}/{}.csv".format(os.getcwd(), file_name_finalized)
-        _write_csv(full_file_name, finalized_data, AWS_COLUMNS)
+        _write_csv(full_file_name, finalized_data, headers)
 
     full_file_name = "{}/{}.csv".format(os.getcwd(), file_name)
-    _write_csv(full_file_name, data, AWS_COLUMNS)
+    _write_csv(full_file_name, data, headers)
 
     return full_file_name
 
@@ -432,7 +434,9 @@ def aws_create_report(options):  # noqa: C901
 
                 gen_start_date, gen_end_date = _create_generator_dates_from_yaml(attributes, month)
 
-            gen = generator_cls(gen_start_date, gen_end_date, payer_account, usage_accounts, attributes)
+            gen = generator_cls(
+                gen_start_date, gen_end_date, payer_account, usage_accounts, attributes, options.get("aws_tags")
+            )
             num_instances = 1 if attributes else randint(2, 60)
             for _ in range(num_instances):
                 for hour in gen.generate_data():
@@ -447,6 +451,7 @@ def aws_create_report(options):  # noqa: C901
                             data,
                             aws_finalize_report,
                             static_report_data,
+                            gen.AWS_COLUMNS,
                         )
                         monthly_files.append(month_output_file)
                         data.clear()
@@ -464,6 +469,7 @@ def aws_create_report(options):  # noqa: C901
             data,
             aws_finalize_report,
             static_report_data,
+            gen.AWS_COLUMNS,
         )
         monthly_files.append(month_output_file)
 

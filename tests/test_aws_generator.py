@@ -19,7 +19,6 @@ from datetime import timedelta
 from unittest import TestCase
 
 from faker import Faker
-from nise.generators.aws import AWS_COLUMNS
 from nise.generators.aws import AWSGenerator
 from nise.generators.aws import DataTransferGenerator
 from nise.generators.aws import EBSGenerator
@@ -108,7 +107,7 @@ class AbstractGeneratorTestCase(TestCase):
         generator = TestGenerator(two_hours_ago, self.now, self.payer_account, self.usage_accounts)
         a_row = generator._init_data_row(two_hours_ago, self.now)
         self.assertIsInstance(a_row, dict)
-        for col in AWS_COLUMNS:
+        for col in generator.AWS_COLUMNS:
             self.assertIsNotNone(a_row.get(col))
 
     def test_init_data_row_start_none(self):

@@ -172,14 +172,14 @@ RESOURCE_TAG_COLS = (
     "resourceTags/user:openshift_project",
     "resourceTags/user:openshift_node",
 )
-AWS_COLUMNS = (
-    IDENTITY_COLS + BILL_COLS + LINE_ITEM_COLS + PRODUCT_COLS + PRICING_COLS + RESERVE_COLS + RESOURCE_TAG_COLS
-)
 
 
 class AWSGenerator(AbstractGenerator):
     """Defines a abstract class for generators."""
 
+    AWS_COLUMNS = set(
+        IDENTITY_COLS + BILL_COLS + LINE_ITEM_COLS + PRODUCT_COLS + PRICING_COLS + RESERVE_COLS + RESOURCE_TAG_COLS
+    )
     REGIONS = (
         ("US East (N. Virginia)", "us-east-1", "us-east-1a", "USE1-EBS"),
         ("US East (N. Virginia)", "us-east-1", "us-east-1b", "USE1-EBS"),
@@ -189,13 +189,15 @@ class AWSGenerator(AbstractGenerator):
         ("US West (Oregon)", "us-west-2", "us-west-2b", "USW2-EBS"),
     )
 
-    def __init__(self, start_date, end_date, payer_account, usage_accounts, attributes=None):
+    def __init__(self, start_date, end_date, payer_account, usage_accounts, attributes=None, tag_cols=None):
         """Initialize the generator."""
         self.payer_account = payer_account
         self.usage_accounts = usage_accounts
         self.attributes = attributes
         self._tags = None
         self.num_instances = 1 if attributes else randint(2, 60)
+        if tag_cols:
+            self.AWS_COLUMNS.update(tag_cols)
         super().__init__(start_date, end_date)
 
     @staticmethod
@@ -234,22 +236,20 @@ class AWSGenerator(AbstractGenerator):
         bill_begin = start.replace(microsecond=0, second=0, minute=0, hour=0, day=1)
         bill_end = AbstractGenerator.next_month(bill_begin)
         row = {}
-        for column in AWS_COLUMNS:
+        COL_MAP = {
+            "identity/LineItemId": self.fake.sha1(raw_output=False),
+            "identity/TimeInterval": AWSGenerator.time_interval(start, end),
+            "bill/BillingEntity": "AWS",
+            "bill/BillType": "Anniversary",
+            "bill/PayerAccountId": self.payer_account,
+            "bill/BillingPeriodStartDate": AWSGenerator.timestamp(bill_begin),
+            "bill/BillingPeriodEndDate": AWSGenerator.timestamp(bill_end),
+        }
+        for column in self.AWS_COLUMNS:
             row[column] = ""
-            if column == "identity/LineItemId":
-                row[column] = self.fake.sha1(raw_output=False)
-            elif column == "identity/TimeInterval":
-                row[column] = AWSGenerator.time_interval(start, end)
-            elif column == "bill/BillingEntity":
-                row[column] = "AWS"
-            elif column == "bill/BillType":
-                row[column] = "Anniversary"
-            elif column == "bill/PayerAccountId":
-                row[column] = self.payer_account
-            elif column == "bill/BillingPeriodStartDate":
-                row[column] = AWSGenerator.timestamp(bill_begin)
-            elif column == "bill/BillingPeriodEndDate":
-                row[column] = AWSGenerator.timestamp(bill_end)
+            if COL_MAP.get(column):
+                row[column] = COL_MAP.get(column)
+
         return row
 
     def _get_location(self):
