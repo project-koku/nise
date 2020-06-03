@@ -66,6 +66,11 @@ def add_ocp_args(parser):
     )
 
 
+def add_ocp_on_x_args(parser):
+    """Add OCP-on-X specific parser args."""
+    add_ocp_args(parser)
+
+
 def add_yaml_parser_args(yaml_parser):
     """
     Initialize the argument parser.
@@ -126,10 +131,18 @@ def add_yaml_parser_args(yaml_parser):
     ocp_parser = yaml_subparser.add_parser(
         "ocp", parents=[parent_parser], add_help=False, description="The OCP parser", help="create the OCP yamls"
     )
+    ocp_on_x_parser = yaml_subparser.add_parser(
+        "ocp-on-x",
+        parents=[parent_parser],
+        add_help=False,
+        description="The OCP-on-X parser",
+        help="create the OCP-on-X yamls",
+    )
 
     add_aws_args(aws_parser)
     add_azure_args(azure_parser)
     add_ocp_args(ocp_parser)
+    add_ocp_on_x_args(ocp_on_x_parser)
 
     return yaml_parser
 
