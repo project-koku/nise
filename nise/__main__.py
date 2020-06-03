@@ -461,20 +461,15 @@ def _load_static_report_data(options):
 
             if attributes.get("end_date"):
                 generated_end_date = calculate_end_date(generated_start_date, attributes.get("end_date"))
-                if options.get("provider") == "azure" and (
-                    generated_end_date.day == 1 or generated_end_date == generated_start_date
-                ):
-                    generated_end_date += datetime.timedelta(hours=24)
             else:
-                if options.get("provider") == "azure":
-                    generated_end_date = today() + datetime.timedelta(hours=24)
-                else:
-                    generated_end_date = today()
+                generated_end_date = today()
+            if options.get("provider") == "azure":
+                generated_end_date += datetime.timedelta(hours=24)
+            else:
+                generated_end_date = generated_end_date.replace(hour=23, minute=59)
             end_dates.append(generated_end_date)
 
             attributes["start_date"] = str(generated_start_date)
-            if options.get("provider") != "azure":
-                generated_end_date = generated_end_date.replace(hour=23, minute=59)
             attributes["end_date"] = str(generated_end_date)
 
         options["start_date"] = min(start_dates)
@@ -522,7 +517,9 @@ def calculate_end_date(start_date, end_date):
 
 
 def fix_dates(options, provider_type):
-    if provider_type == "azure" and options.get("end_date").day == 1:
+    """Correct any unique dates."""
+    # Azure end_date is always the following day
+    if provider_type == "azure":
         options["end_date"] += relativedelta(days=1)
 
 
