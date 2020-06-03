@@ -19,7 +19,6 @@ from datetime import timedelta
 from unittest import TestCase
 
 from faker import Faker
-from nise.generators.aws import AWS_COLUMNS
 from nise.generators.aws import AWSGenerator
 from nise.generators.aws import DataTransferGenerator
 from nise.generators.aws import EBSGenerator
@@ -108,7 +107,7 @@ class AbstractGeneratorTestCase(TestCase):
         generator = TestGenerator(two_hours_ago, self.now, self.payer_account, self.usage_accounts)
         a_row = generator._init_data_row(two_hours_ago, self.now)
         self.assertIsInstance(a_row, dict)
-        for col in AWS_COLUMNS:
+        for col in generator.AWS_COLUMNS:
             self.assertIsNotNone(a_row.get(col))
 
     def test_init_data_row_start_none(self):
@@ -200,6 +199,15 @@ class AWSGeneratorTestCase(TestCase):
             "product_family": self.product_family,
         }
         self.two_hours_ago = (self.now - self.one_hour) - self.one_hour
+
+    def test_tag_cols(self):
+        """Test new tag gets assigned to AWS_COLUMNS."""
+        key = "resourceTags/user:new-key"
+        tag_cols = {key}
+        two_hours_ago = (self.now - self.one_hour) - self.one_hour
+        generator = TestGenerator(two_hours_ago, self.now, self.payer_account, self.usage_accounts, tag_cols=tag_cols)
+        self.assertIn(key, generator.AWS_COLUMNS)
+        self.assertNotIn("key-that-has-not-been-added", generator.AWS_COLUMNS)
 
 
 class TestRDSGenerator(AWSGeneratorTestCase):

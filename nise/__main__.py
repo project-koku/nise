@@ -450,6 +450,7 @@ def _load_static_report_data(options):
     if not options.get("static_report_file"):
         return
     LOG.info("Loading static data...")
+    aws_tags = set()
     start_dates = []
     end_dates = []
     static_report_data = _load_yaml_file(options.get("static_report_file"))
@@ -472,11 +473,18 @@ def _load_static_report_data(options):
             attributes["start_date"] = str(generated_start_date)
             attributes["end_date"] = str(generated_end_date)
 
-        options["start_date"] = min(start_dates)
-        latest_date = max(end_dates)
-        last_day_of_month = calendar.monthrange(year=latest_date.year, month=latest_date.month)[1]
-        options["end_date"] = latest_date.replace(day=last_day_of_month, hour=0, minute=0)
-        options["static_report_data"] = static_report_data
+            if options.get("provider") == "aws":
+                aws_tags.update(attributes.get("tags", {}).keys())
+
+    options["start_date"] = min(start_dates)
+    latest_date = max(end_dates)
+    last_day_of_month = calendar.monthrange(year=latest_date.year, month=latest_date.month)[1]
+    options["end_date"] = latest_date.replace(day=last_day_of_month, hour=0, minute=0)
+    options["static_report_data"] = static_report_data
+
+    if options.get("provider") == "aws" and aws_tags:
+        options["aws_tags"] = aws_tags
+
     return True
 
 
