@@ -446,6 +446,7 @@ def _load_yaml_file(filename):
 
 
 def get_aws_tags(options):
+    """Parse all tag keys from AWS generators."""
     tags = set()
     for generator_dict in options.get("static_report_data").get("generators"):
         for _, attributes in generator_dict.items():
