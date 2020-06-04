@@ -72,7 +72,7 @@ def generate_tags(key, config, prefix="", suffix="", dynamic=True):
     Returns:
         list
     """
-    if not config.id_labels:
+    if not config.get("id_labels"):
         keys = TAG_KEYS.get(key)
         tags = [dicta(key=key, v=generate_name(config)) for key in keys]
     else:

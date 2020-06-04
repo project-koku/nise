@@ -74,7 +74,7 @@ def generate_tags(key, config, prefix="", suffix="", dynamic=True):
 
 
 def generate_resource_id_and_tag(config, key):
-    if not config.id_labels:
+    if not config.get("id_labels"):
         resource_id = FAKER.ean8()
         tags = generate_tags(key, config)
     else:
