@@ -74,6 +74,9 @@ def add_ocp_args(parser):
 
 def add_ocp_on_x_args(parser):
     """Add OCP-on-X specific parser args."""
+    for i, action in enumerate(parser._actions):
+        if action.dest == "output_file_name":
+            parser._actions.pop(i)
     add_ocp_args(parser)
 
 
@@ -168,7 +171,10 @@ def handle_args(args):
         Namespace
     """
     if args.config_file_name == "default":
-        args.config_file_name = os.path.join(STATIC_DIR, f"{args.provider.lower()}_generator_config.yml")
+        if args.provider != "ocp-on-x":
+            args.config_file_name = os.path.join(STATIC_DIR, f"{args.provider.lower()}_generator_config.yml")
+        else:
+            args.config_file_name = os.path.join(STATIC_DIR, "ocp_on_cloud_options.yml")
 
     if args.config_file_name and not os.path.exists(args.config_file_name):
         raise FileNotFoundError(f'Cannot find file "{args.config_file_name}"')

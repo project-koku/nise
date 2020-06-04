@@ -1,8 +1,39 @@
+#
+# Copyright 2020 Red Hat, Inc.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
 import os
 
+import yaml
 from nise.yaml_generators.aws.generator import AWSGenerator
 from nise.yaml_generators.azure.generator import AzureGenerator
 from nise.yaml_generators.ocp.generator import OCPGenerator
+
+
+def _load_yaml_file(filename):
+    """Local data from yaml file."""
+    if not os.path.exists(filename):
+        raise FileNotFoundError(f'Cannot find file "{filename}"')
+    yamlfile = None
+    if filename:
+        try:
+            with open(filename, "r+") as yaml_file:
+                yamlfile = yaml.safe_load(yaml_file)
+        except TypeError:
+            yamlfile = yaml.safe_load(filename)
+    return yamlfile
 
 
 def ocp_label_splitter(label):
@@ -22,6 +53,21 @@ def get_validated_config(gen, args):
     return config
 
 
+def replace_args(args, yaml, provider, ocp_on_x, default=False):
+    if not yaml:
+        raise KeyError(f"{provider} is not defined under {ocp_on_x}")
+    args.provider = provider
+    args.output_file_name = yaml.get(f"{provider}-output-filename")
+    if default:
+        from nise.yaml_gen import STATIC_DIR
+
+        args.template_file_name = os.path.join(STATIC_DIR, yaml.get(f"{provider}-template"))
+        args.config_file_name = os.path.join(STATIC_DIR, yaml.get(f"{provider}-gen-config"))
+    else:
+        args.template_file_name = yaml.get(f"{provider}-template")
+        args.config_file_name = yaml.get(f"{provider}-gen-config")
+
+
 def run_generator(gen, args, config=None):
     if not config:
         config = gen.init_config(args)
@@ -38,40 +84,33 @@ class OCPonXGenerator:
         return
 
     def process_template(self, args, config):
-        from nise.yaml_gen import STATIC_DIR
+        yaml_file = _load_yaml_file(args.config_file_name)
+        if yaml_file.get("ocp-on-aws"):
+            replace_args(args, yaml_file.get("ocp-on-aws").get("ocp"), "ocp", "ocp-on-aws", yaml_file.get("default"))
+            # First OCP:
+            config = get_validated_config(self.ocp, args)
+            data = run_generator(self.ocp, args, config)
+            id_labels = get_resourceid_and_tags(data)
 
-        # First OCP:
-        args.provider = "ocp"
-        args.template_file_name = os.path.join(STATIC_DIR, "ocp_static_data.yml.j2")
-        args.config_file_name = os.path.join(STATIC_DIR, "ocp_generator_config.yml")
-        args.output_file_name = "ocp_aws_ocp.yml"
-        config = get_validated_config(self.ocp, args)
-        data = run_generator(self.ocp, args, config)
-        id_labels = get_resourceid_and_tags(data)
+            # AWS:
+            replace_args(args, yaml_file.get("ocp-on-aws").get("aws"), "aws", "ocp-on-aws", yaml_file.get("default"))
+            self.aws = self.aws(id_labels)
+            config = get_validated_config(self.aws, args)
+            run_generator(self.aws, args, config)
 
-        # AWS:
-        args.provider = "aws"
-        args.output_file_name = "ocp_aws_aws.yml"
-        args.template_file_name = os.path.join(STATIC_DIR, "aws_static_data.yml.j2")
-        args.config_file_name = os.path.join(STATIC_DIR, "aws_generator_config.yml")
-        self.aws = self.aws(id_labels)
-        config = get_validated_config(self.aws, args)
-        run_generator(self.aws, args, config)
+        if yaml_file.get("ocp-on-azure"):
+            replace_args(
+                args, yaml_file.get("ocp-on-azure").get("ocp"), "ocp", "ocp-on-azure", yaml_file.get("default")
+            )
+            # Second OCP:
+            config = get_validated_config(self.ocp, args)
+            data = run_generator(self.ocp, args, config)
+            id_labels = get_resourceid_and_tags(data)
 
-        # Second OCP:
-        args.provider = "ocp"
-        args.output_file_name = "ocp_azure_ocp.yml"
-        args.template_file_name = os.path.join(STATIC_DIR, "ocp_static_data.yml.j2")
-        args.config_file_name = os.path.join(STATIC_DIR, "ocp_generator_config.yml")
-        config = get_validated_config(self.ocp, args)
-        data = run_generator(self.ocp, args, config)
-        id_labels = get_resourceid_and_tags(data)
-
-        # Azure
-        args.provider = "azure"
-        args.output_file_name = "ocp_azure_azure.yml"
-        args.template_file_name = os.path.join(STATIC_DIR, "azure_static_data.yml.j2")
-        args.config_file_name = os.path.join(STATIC_DIR, "azure_generator_config.yml")
-        self.azure = self.azure(id_labels)
-        config = get_validated_config(self.azure, args)
-        run_generator(self.azure, args, config)
+            # Azure
+            replace_args(
+                args, yaml_file.get("ocp-on-azure").get("azure"), "azure", "ocp-on-azure", yaml_file.get("default")
+            )
+            self.azure = self.azure(id_labels)
+            config = get_validated_config(self.azure, args)
+            run_generator(self.azure, args, config)
