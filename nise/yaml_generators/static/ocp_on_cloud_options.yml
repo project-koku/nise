@@ -1,5 +1,3 @@
-default: True
-
 ocp-on-aws:
   ocp:
     ocp-template: ocp_static_data.yml.j2

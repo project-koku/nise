@@ -192,6 +192,7 @@ def handle_args(args):
             args.config_file_name = os.path.join(STATIC_DIR, f"{args.provider.lower()}_generator_config.yml")
         else:
             args.config_file_name = os.path.join(STATIC_DIR, "ocp_on_cloud_options.yml")
+            args.default = True
 
     if args.config_file_name and not os.path.exists(args.config_file_name):
         raise FileNotFoundError(f'Cannot find file "{args.config_file_name}"')

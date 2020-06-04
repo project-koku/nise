@@ -53,12 +53,12 @@ def get_validated_config(gen, args):
     return config
 
 
-def replace_args(args, yaml, provider, ocp_on_x, default=False):
+def replace_args(args, yaml, provider, ocp_on_x):
     if not yaml:
         raise KeyError(f"{provider} is not defined under {ocp_on_x}")
     args.provider = provider
     args.output_file_name = yaml.get(f"{provider}-output-filename")
-    if default:
+    if args.default:
         from nise.yaml_gen import STATIC_DIR
 
         args.template_file_name = os.path.join(STATIC_DIR, yaml.get(f"{provider}-template"))
@@ -86,31 +86,27 @@ class OCPonXGenerator:
     def process_template(self, args, config):
         yaml_file = _load_yaml_file(args.config_file_name)
         if yaml_file.get("ocp-on-aws"):
-            replace_args(args, yaml_file.get("ocp-on-aws").get("ocp"), "ocp", "ocp-on-aws", yaml_file.get("default"))
+            replace_args(args, yaml_file.get("ocp-on-aws").get("ocp"), "ocp", "ocp-on-aws")
             # First OCP:
             config = get_validated_config(self.ocp, args)
             data = run_generator(self.ocp, args, config)
             id_labels = get_resourceid_and_tags(data)
 
             # AWS:
-            replace_args(args, yaml_file.get("ocp-on-aws").get("aws"), "aws", "ocp-on-aws", yaml_file.get("default"))
+            replace_args(args, yaml_file.get("ocp-on-aws").get("aws"), "aws", "ocp-on-aws")
             self.aws = self.aws(id_labels)
             config = get_validated_config(self.aws, args)
             run_generator(self.aws, args, config)
 
         if yaml_file.get("ocp-on-azure"):
-            replace_args(
-                args, yaml_file.get("ocp-on-azure").get("ocp"), "ocp", "ocp-on-azure", yaml_file.get("default")
-            )
+            replace_args(args, yaml_file.get("ocp-on-azure").get("ocp"), "ocp", "ocp-on-azure")
             # Second OCP:
             config = get_validated_config(self.ocp, args)
             data = run_generator(self.ocp, args, config)
             id_labels = get_resourceid_and_tags(data)
 
             # Azure
-            replace_args(
-                args, yaml_file.get("ocp-on-azure").get("azure"), "azure", "ocp-on-azure", yaml_file.get("default")
-            )
+            replace_args(args, yaml_file.get("ocp-on-azure").get("azure"), "azure", "ocp-on-azure")
             self.azure = self.azure(id_labels)
             config = get_validated_config(self.azure, args)
             run_generator(self.azure, args, config)
