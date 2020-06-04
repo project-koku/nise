@@ -52,12 +52,6 @@ class Generator(ABC):
         """
         config = self.default_config()
 
-        # override default with settings
-        if args.config_file_name:
-            with open(args.config_file_name, "rt") as settings_file:
-                config_settings = yaml.safe_load(settings_file)
-            config.update(config_settings)
-
         # override config with args
         if args.start_date:
             config.start_date = args.start_date
@@ -67,6 +61,12 @@ class Generator(ABC):
             config.end_date = args.end_date
         if isinstance(config.end_date, str):
             config.end_date = parse(config.end_date)
+
+        # override default with settings
+        if args.config_file_name:
+            with open(args.config_file_name, "rt") as settings_file:
+                config_settings = yaml.safe_load(settings_file)
+            config.update(config_settings)
 
         return config
 
