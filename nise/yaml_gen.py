@@ -77,6 +77,9 @@ def add_ocp_on_x_args(parser):
     for i, action in enumerate(parser._actions):
         if action.dest == "output_file_name":
             parser._actions.pop(i)
+    parser.add_argument(
+        "-c", "--config", dest="config_file_name", type=str, required=True, metavar="CONF", help="Config file path."
+    )
     add_ocp_args(parser)
 
 
@@ -146,6 +149,7 @@ def add_yaml_parser_args(yaml_parser):
         add_help=False,
         description="The OCP-on-X parser",
         help="create the OCP-on-X yamls",
+        conflict_handler="resolve",
     )
 
     add_aws_args(aws_parser)
