@@ -86,5 +86,5 @@ generators:
 
 accounts:
   payer: {{ generator.payer }}
-  user:
-    - {{ generator.payer }}
+  user:{% for user in generator.users %}
+    - {{ user }}{% endfor %}

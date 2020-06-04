@@ -22,6 +22,7 @@ import faker
 
 
 SEEN_NAMES = set()
+SEEN_ACCOUNT_IDS = set()
 SEEN_RESOURCE_IDS = set()
 
 DBL_DASH = re.compile("-+")
@@ -36,12 +37,12 @@ def generate_words(config):
     return "-".join(FAKER.words(config.max_name_words))
 
 
-def generate_number_str(config):
+def generate_number_str(max_len):
     """
     Generate a string of digits of arbitrary length.
-    The maximum length is specified in the config. (config.max_resource_id_length)
+    The maximum length is specified in the config. (max_len)
     """
-    return str(FAKER.random_int(0, 10 ** config.max_resource_id_length)).zfill(config.max_resource_id_length)
+    return str(FAKER.random_int(10 ** (max_len - 1), 10 ** max_len)).zfill(max_len)
 
 
 def generate_name(config, prefix="", suffix="", dynamic=True, generator=generate_words, cache=SEEN_NAMES):
@@ -86,7 +87,35 @@ def generate_resource_id(config, prefix="", suffix="", dynamic=True):
         str
     """
     return generate_name(
-        config, prefix=prefix, suffix=suffix, dynamic=dynamic, generator=generate_number_str, cache=SEEN_RESOURCE_IDS
+        config.max_resource_id_length,
+        prefix=prefix,
+        suffix=suffix,
+        dynamic=dynamic,
+        generator=generate_number_str,
+        cache=SEEN_RESOURCE_IDS,
+    )
+
+
+def generate_account_id(config, prefix="", suffix="", dynamic=True):
+    """
+    Generate a random account id using faker.
+    Params:
+        config : dicta - config information for the generator
+        prefix : str - a static prefix
+        suffix : str - a static suffix
+        dynamic : bool - flag to run the generator function
+        generator : func - function that will generate the dynamic portion of the resource id
+        cache : set - a cache for uniqueness across all calls
+    Returns:
+        str
+    """
+    return generate_name(
+        config.max_account_id_length,
+        prefix=prefix,
+        suffix=suffix,
+        dynamic=dynamic,
+        generator=generate_number_str,
+        cache=SEEN_ACCOUNT_IDS,
     )
 
 
