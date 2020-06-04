@@ -103,6 +103,7 @@ class AWSGeneratorTestCase(TestCase):
             self.assertTrue(check_func(len(data.route53_gens), config.max_route53_gens))
             self.assertTrue(check_func(len(data.s3_gens), config.max_s3_gens))
             self.assertTrue(check_func(len(data.vpc_gens), config.max_vpc_gens))
+            self.assertTrue(check_func(len(data.users), config.max_users))
 
             for gen in data.data_transfer_gens:
                 self.assertEqual(sorted(gen.keys()), data_transfer_gens_keys)
