@@ -99,3 +99,5 @@ class Generator(ABC):
             with open(args.output_file_name, "wt") as outf:
                 outf.write(output)
                 outf.flush()
+
+        return data

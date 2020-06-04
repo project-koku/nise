@@ -82,10 +82,21 @@ def generate_tags(key, config, prefix="", suffix="", dynamic=True, _random=False
     Returns:
         list
     """
-    keys = TAG_KEYS.get(key)
-    if _random:
-        keys = random.sample(keys, k=random.randint(1, len(keys)))
-    return [dicta(key=key, v=generate_name(config)) for key in keys]
+    if not config.id_labels:
+        keys = TAG_KEYS.get(key)
+        if _random:
+            keys = random.sample(keys, k=random.randint(1, len(keys)))
+        return [dicta(key=key, v=generate_name(config)) for key in keys]
+    else:
+        resource_id = random.choice(list(config.id_labels.keys()))
+        tag_key_list = random.choice(config.id_labels.get(resource_id))
+        SEEN_KEYS = set()
+        tags = []
+        for key, value in tag_key_list:
+            if key not in SEEN_KEYS:
+                tags.append(dicta(key=key, v=value))
+                SEEN_KEYS.update([key])
+        return tags
 
 
 def generate_azure_dicta(config, key, _random):
@@ -108,11 +119,16 @@ def generate_azure_dicta(config, key, _random):
 class AzureGenerator(Generator):
     """YAML generator for Azure."""
 
+    def __init__(self, id_labels=None):
+        self.id_labels = id_labels
+
     def init_config(self, args):
         """Process provider specific args."""
         config = super().init_config(args)
 
         # insert specific config variables
+
+        config.id_labels = self.id_labels if self.id_labels else None
 
         return config
 

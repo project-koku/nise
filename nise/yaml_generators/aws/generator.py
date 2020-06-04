@@ -73,25 +73,48 @@ def generate_tags(key, config, prefix="", suffix="", dynamic=True):
     return [dicta(key=key, v=generate_name(config)) for key in keys]
 
 
+def generate_resource_id_and_tag(config, key):
+    if not config.id_labels:
+        resource_id = FAKER.ean8()
+        tags = generate_tags(key, config)
+    else:
+        resource_id = random.choice(list(config.id_labels.keys()))
+        tag_key_list = random.choice(config.id_labels.get(resource_id))
+        SEEN_KEYS = set()
+        tags = []
+        for key, value in tag_key_list:
+            if key not in SEEN_KEYS:
+                tags.append(dicta(key=f"resourceTags/user:{key}", v=value))
+                SEEN_KEYS.update([key])
+
+    return resource_id, tags
+
+
 def initialize_dicta(key, config):
     """Return dicta with common attributes."""
+    resource_id, tags = generate_resource_id_and_tag(config, key)
     return dicta(
         start_date=str(config.start_date),
         end_date=str(config.end_date),
-        resource_id=FAKER.ean8(),
+        resource_id=resource_id,
         product_sku=FAKER.pystr(min_chars=12, max_chars=12).upper(),
-        tags=generate_tags(key, config),
+        tags=tags,
     )
 
 
 class AWSGenerator(Generator):
     """YAML generator for AWS."""
 
+    def __init__(self, id_labels=None):
+        self.id_labels = id_labels
+
     def init_config(self, args):
         """Process provider specific args."""
         config = super().init_config(args)
 
         # insert specific config variables
+
+        config.id_labels = self.id_labels if self.id_labels else None
 
         return config
 
