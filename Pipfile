@@ -13,11 +13,11 @@ azure-mgmt-resource = ">=7.0"
 azure-mgmt-storage = ">=7.1"
 azure-storage-blob = ">=12.1"
 google-cloud-storage = ">=1.19"
+pyyaml = ">=5.3"
 
 [dev-packages]
 tox = ">=3.14"
 coverage = ">=5.0"
-PyYaml = ">=5.3"
 pipenv-setup = "*"
 setuptools = ">=44.0"
 twine = ">=3.1"
