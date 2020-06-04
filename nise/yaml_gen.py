@@ -18,8 +18,10 @@
 import argparse
 import logging
 import os
+from datetime import datetime
 
 from dateutil.parser import parse
+from dateutil.relativedelta import relativedelta
 from nise.yaml_generators.aws.generator import AWSGenerator
 from nise.yaml_generators.azure.generator import AzureGenerator
 from nise.yaml_generators.ocp.generator import OCPGenerator
@@ -42,6 +44,15 @@ class DateRangeArgsError(Exception):
     """Date range args exception."""
 
     pass
+
+
+def get_today_date():
+    return datetime.today().date()
+
+
+def get_last_month_start_date():
+    today = get_today_date()
+    return today.replace(day=1) - relativedelta(months=1)
 
 
 def add_aws_args(parser):
@@ -109,6 +120,7 @@ def add_yaml_parser_args(yaml_parser):
     parent_parser.add_argument(
         "-s",
         "--start-date",
+        default=str(get_last_month_start_date()),
         dest="start_date",
         type=str,
         required=False,
@@ -118,6 +130,7 @@ def add_yaml_parser_args(yaml_parser):
     parent_parser.add_argument(
         "-e",
         "--end-date",
+        default=str(get_today_date()),
         dest="end_date",
         type=str,
         required=False,
