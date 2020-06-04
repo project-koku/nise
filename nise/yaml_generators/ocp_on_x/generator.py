@@ -6,7 +6,7 @@ from nise.yaml_generators.ocp.generator import OCPGenerator
 
 
 def ocp_label_splitter(label):
-    return [kv.split(":") for kv in [l.split("_")[1] for l in label.split("|")]]
+    return [kv.split(":") for kv in [lab.split("_")[1] for lab in label.split("|")]]
 
 
 def get_resourceid_and_tags(data):
