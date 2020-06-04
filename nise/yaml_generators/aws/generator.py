@@ -86,7 +86,6 @@ def generate_resource_id_and_tag(config, key):
             if key not in SEEN_KEYS:
                 tags.append(dicta(key=f"resourceTags/user:{key}", v=value))
                 SEEN_KEYS.update([key])
-
     return resource_id, tags
 
 

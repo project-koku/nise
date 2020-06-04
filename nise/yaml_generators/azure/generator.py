@@ -37,16 +37,6 @@ ACCTS_STR = {
     "vmachine": ("Microsoft.Compute", "virtualMachines"),
     "vnetwork": ("Microsoft.Network", "publicIPAddresses"),
 }
-EXAMPLE_RESOURCE = (
-    ("RG1", "mysa1"),
-    ("RG1", "costmgmtacct1234"),
-    ("RG2", "mysa1"),
-    ("RG2", "costmgmtacct1234"),
-    ("costmgmt", "mysa1"),
-    ("costmgmt", "costmgmtacct1234"),
-    ("hccm", "mysa1"),
-    ("hccm", "costmgmtacct1234"),
-)
 RESOURCE_LOCATIONS = [
     "US East",
     "US North Central",
@@ -57,17 +47,17 @@ RESOURCE_LOCATIONS = [
     "US West",
 ]
 TAG_KEYS = {
+    "bandwidth": ["environment", "version", "app"],
+    "sql": ["environment", "version", "app"],
+    "storage": ["environment", "version", "app", "storageclass"],
     "vmachine": ["environment", "version", "app"],
     "vnetwork": ["environment", "version", "app"],
-    "storage": ["environment", "version", "app", "storageclass"],
-    "sql": ["environment", "version", "app"],
-    "bandwidth": ["environment", "version", "app"],
 }
 
 
 def generate_instance_id(key, config):
     """Generate properly formatted instance_id."""
-    resource_group, resource_name = random.choice(EXAMPLE_RESOURCE)
+    resource_group, resource_name = FAKER.words(2)
     if ACCTS_STR.get(key):
         consumed, second_part = ACCTS_STR.get(key)
     else:
@@ -77,16 +67,14 @@ def generate_instance_id(key, config):
     return f"subscriptions/{config.payer_account}/resourceGroups/{resource_group}/{accts_str[1:-2]}/{resource_name}"
 
 
-def generate_tags(key, config, prefix="", suffix="", dynamic=True, _random=False):
+def generate_tags(key, config, prefix="", suffix="", dynamic=True):
     """Generate properly formatted Azure tags.
     Returns:
         list
     """
     if not config.id_labels:
         keys = TAG_KEYS.get(key)
-        if _random:
-            keys = random.sample(keys, k=random.randint(1, len(keys)))
-        return [dicta(key=key, v=generate_name(config)) for key in keys]
+        tags = [dicta(key=key, v=generate_name(config)) for key in keys]
     else:
         resource_id = random.choice(list(config.id_labels.keys()))
         tag_key_list = random.choice(config.id_labels.get(resource_id))
@@ -96,10 +84,10 @@ def generate_tags(key, config, prefix="", suffix="", dynamic=True, _random=False
             if key not in SEEN_KEYS:
                 tags.append(dicta(key=key, v=value))
                 SEEN_KEYS.update([key])
-        return tags
+    return tags
 
 
-def generate_azure_dicta(config, key, _random):
+def generate_azure_dicta(config, key):
     rate = round(random.uniform(0.1, 0.50), 5)
     usage = round(random.uniform(0.01, 1), 5)
 
@@ -112,7 +100,7 @@ def generate_azure_dicta(config, key, _random):
         usage_quantity=usage,
         resource_rate=rate,
         pre_tax_cost=usage * rate,
-        tags=generate_tags(key, config, _random=_random),
+        tags=generate_tags(key, config),
     )
 
 
@@ -155,23 +143,23 @@ class AzureGenerator(Generator):
 
         LOG.info(f"Building {max_bandwidth_gens} Bandwidth generators ...")
         for _ in range(max_bandwidth_gens):
-            data.bandwidth_gens.append(generate_azure_dicta(config, "bandwidth", _random))
+            data.bandwidth_gens.append(generate_azure_dicta(config, "bandwidth"))
 
         LOG.info(f"Building {max_sql_gens} SQL generators ...")
         for _ in range(max_sql_gens):
-            data.sql_gens.append(generate_azure_dicta(config, "sql", _random))
+            data.sql_gens.append(generate_azure_dicta(config, "sql"))
 
         LOG.info(f"Building {max_storage_gens} Storage generators ...")
         for _ in range(max_storage_gens):
-            data.storage_gens.append(generate_azure_dicta(config, "storage", _random))
+            data.storage_gens.append(generate_azure_dicta(config, "storage"))
 
         LOG.info(f"Building {max_vmachine_gens} Virtual Machine generators ...")
         for _ in range(max_vmachine_gens):
-            data.vmachine_gens.append(generate_azure_dicta(config, "vmachine", _random))
+            data.vmachine_gens.append(generate_azure_dicta(config, "vmachine"))
 
         LOG.info(f"Building {max_vnetwork_gens} Virtual Network generators ...")
         for _ in range(max_vnetwork_gens):
-            data.vnetwork_gens.append(generate_azure_dicta(config, "vnetwork", _random))
+            data.vnetwork_gens.append(generate_azure_dicta(config, "vnetwork"))
 
         return data
 
