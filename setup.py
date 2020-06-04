@@ -59,6 +59,7 @@ setup(
         "azure-mgmt-storage>=7.1",
         "azure-storage-blob>=12.1",
         "google-cloud-storage>=1.19",
+        "pyyaml>=5.3",
     ],
     dependency_links=[],
     entry_points={"console_scripts": ["nise = nise.__main__:main"]},
