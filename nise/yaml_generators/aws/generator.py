@@ -30,6 +30,7 @@ from nise.yaml_generators.aws.rds_instance_types import INSTANCE_TYPES as RDS_IN
 from nise.yaml_generators.aws.regions import REGIONS
 from nise.yaml_generators.generator import Generator
 from nise.yaml_generators.utils import dicta
+from nise.yaml_generators.utils import generate_account_id
 from nise.yaml_generators.utils import generate_name
 
 LOG = logging.getLogger(__name__)
@@ -130,6 +131,7 @@ class AWSGenerator(Generator):
             route53_gens=[],
             s3_gens=[],
             vpc_gens=[],
+            users=[],
         )
 
         max_data_transfer_gens = (
@@ -141,6 +143,7 @@ class AWSGenerator(Generator):
         max_route53_gens = FAKER.random_int(1, config.max_route53_gens) if _random else config.max_route53_gens
         max_s3_gens = FAKER.random_int(1, config.max_s3_gens) if _random else config.max_s3_gens
         max_vpc_gens = FAKER.random_int(1, config.max_vpc_gens) if _random else config.max_vpc_gens
+        max_users = FAKER.random_int(1, config.max_users) if _random else config.max_users
 
         LOG.info(f"Building {max_data_transfer_gens} data transfer generators ...")
         for _ in range(max_data_transfer_gens):
@@ -196,6 +199,10 @@ class AWSGenerator(Generator):
             vpc_gen = initialize_dicta("VPC", config)
             data.vpc_gens.append(vpc_gen)
 
+        LOG.info(f"Adding {max_users} users.")
+        for _ in range(max_users):
+            data.users.append(generate_account_id(config))
+
         return data
 
     def default_config(self):
@@ -211,6 +218,8 @@ class AWSGenerator(Generator):
             start_date=default_date.replace(day=1) - relativedelta(months=1),
             end_date=default_date.replace(day=last_day_of_month),
             payer_account=9999999999999,
+            max_account_id_length=13,
+            max_users=1,
             max_name_words=2,
             max_resource_id_length=10,
             max_data_transfer_gens=1,
@@ -236,6 +245,8 @@ class AWSGenerator(Generator):
             start_date=date,
             end_date=date,
             payer_account=int,
+            max_account_id_length=int,
+            max_users=int,
             max_name_words=int,
             max_resource_id_length=int,
             max_data_transfer_gens=int,

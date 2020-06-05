@@ -37,7 +37,7 @@ class UtilTestCase(TestCase):
 
     def test_generate_number_str(self):
         "Test length of generated number is equal to maximum defined in config."
-        num_str = generate_number_str(self.dc)
+        num_str = generate_number_str(self.dc.max_resource_id_length)
         self.assertEqual(len(num_str), self.dc.max_resource_id_length)
 
     def test_generate_name(self):
