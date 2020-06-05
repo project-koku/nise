@@ -109,8 +109,7 @@ class AzureGeneratorTestCase(TestCase):
 
         dc = self.yg.default_config()
 
-        data = self.yg.build_data(dc, False)
-        validate_data(data, dc, check_exact)
-
-        data = self.yg.build_data(dc, True)
-        validate_data(data, dc, check_range)
+        for boo in (True, False):
+            with self.subTest(random=boo):
+                data = self.yg.build_data(dc, boo)
+                validate_data(data, dc, check_exact)

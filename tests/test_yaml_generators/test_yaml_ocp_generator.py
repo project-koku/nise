@@ -161,11 +161,10 @@ class OCPGeneratorTestCase(TestCase):
         dc.num_node_namespace_pods = 2
         dc.num_node_namespace_volumes = 2
 
-        data = self.yg.build_data(dc, False)
-        validate_data(data, dc, check_exact)
-
-        data = self.yg.build_data(dc, True)
-        validate_data(data, dc, check_range)
+        for boo in (True, False):
+            with self.subTest(random=boo):
+                data = self.yg.build_data(dc, boo)
+                validate_data(data, dc, check_exact)
 
     def test_init_config(self):
         """
