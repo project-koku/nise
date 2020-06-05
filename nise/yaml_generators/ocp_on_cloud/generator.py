@@ -118,7 +118,7 @@ class OCPonCloudGenerator:
         """
         return
 
-    def process_template(self, args, config):
+    def process_template(self, args, config=None):
         """Process specific provider configs to produce yamls."""
         yaml_file = _load_yaml_file(args.config_file_name)
         if yaml_file.get("ocp-on-aws"):
