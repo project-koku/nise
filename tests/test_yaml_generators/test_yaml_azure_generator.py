@@ -79,7 +79,7 @@ class AzureGeneratorTestCase(TestCase):
         def check_exact(val, config_val, **kwargs):
             return val == config_val
 
-        def check_range(val, config_val, v_min=1):
+        def check_range(val, config_val, v_min=0):
             return v_min <= val <= config_val
 
         def validate_data(data, config, check_func):
@@ -110,6 +110,7 @@ class AzureGeneratorTestCase(TestCase):
         dc = self.yg.default_config()
 
         for boo in (True, False):
+            check_func = check_range if boo else check_exact
             with self.subTest(random=boo):
                 data = self.yg.build_data(dc, boo)
-                validate_data(data, dc, check_exact)
+                validate_data(data, dc, check_func)
