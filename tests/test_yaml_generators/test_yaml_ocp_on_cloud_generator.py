@@ -65,7 +65,7 @@ class OCPGeneratorTestCase(TestCase):
         self.azure = AzureGenerator
 
     def test_cache(self):
-        """Test that labels and resource_ids are unique between ocp-on-aws and ocp-on-azure."""
+        """Test that labels and resource_ids are unique between ocp-on-aws and ocp-on-azure - LONG TEST."""
         yaml_file = {
             "ocp-on-aws": {
                 "ocp": {
