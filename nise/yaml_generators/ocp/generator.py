@@ -29,6 +29,7 @@ from nise.yaml_generators.utils import generate_resource_id
 
 FAKER = faker.Faker()
 LOG = logging.getLogger(__name__)
+SEEN_LABELS = set()
 
 
 def generate_labels(num_labels):
@@ -41,7 +42,13 @@ def generate_labels(num_labels):
     Returns:
         str
     """
-    return "|".join(f"label_{e[0]}:{e[1]}" for e in zip(FAKER.words(num_labels), FAKER.words(num_labels)))
+    lis = []
+    while len(lis) < num_labels:
+        e = tuple(FAKER.words(2))
+        if e not in SEEN_LABELS:
+            lis.append(f"label_{e[0]}:{e[1]}")
+            SEEN_LABELS.add(e)
+    return "|".join(lis)
 
 
 class OCPGenerator(Generator):

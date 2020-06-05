@@ -77,6 +77,7 @@ def replace_args(args, yaml, provider, ocp_on_cloud):
         args.output_file_name = f"{ocp_on_cloud}_{provider}.yml"
 
     if args.default:
+        template_file_name = os.path.join(STATIC_DIR, yaml.get(f"{provider}-template"))
         config_file_name = os.path.join(STATIC_DIR, yaml.get(f"{provider}-gen-config"))
     else:
         template_file_name = yaml.get(f"{provider}-template")
