@@ -321,7 +321,7 @@ class AWSGenerator(AbstractGenerator):
             num_tags = self.fake.random_int(0, 5)
             for _ in range(num_tags):
                 seen_tags = set()
-                tag_key = choice(self.RESOURCE_TAG_COLS)
+                tag_key = choice(list(self.RESOURCE_TAG_COLS))
                 if tag_key not in seen_tags:
                     row[tag_key] = self.fake.word()
                     seen_tags.update([tag_key])
