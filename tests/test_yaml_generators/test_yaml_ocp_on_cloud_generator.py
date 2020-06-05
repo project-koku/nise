@@ -101,6 +101,46 @@ class OCPGeneratorTestCase(TestCase):
             },
         }
 
+    def test_replace_args_no_output_file(self):
+        """Test replace args."""
+        from nise.yaml_gen import STATIC_DIR
+
+        self.yaml_file["ocp-on-aws"]["ocp"].pop("ocp-output-filename")
+        replace_args(self.args, self.yaml_file.get("ocp-on-aws").get("ocp"), "ocp", "ocp-on-aws")
+        self.assertEqual(self.args.output_file_name, "ocp-on-aws_ocp.yml")
+        self.assertEqual(self.args.template_file_name, os.path.join(STATIC_DIR, "ocp_static_data.yml.j2"))
+
+    def test_replace_args_not_default(self):
+        """Test replace args."""
+        self.args.default = False
+        replace_args(self.args, self.yaml_file.get("ocp-on-aws").get("ocp"), "ocp", "ocp-on-aws")
+        self.assertEqual(self.args.output_file_name, self.yaml_file["ocp-on-aws"]["ocp"].get("ocp-output-filename"))
+        self.assertEqual(self.args.template_file_name, "ocp_static_data.yml.j2")
+
+    def test_replace_args_not_default_no_template(self):
+        """Test replace args."""
+        from nise.yaml_gen import STATIC_DIR
+
+        self.args.default = False
+        self.yaml_file["ocp-on-aws"]["ocp"].pop("ocp-template")
+        replace_args(self.args, self.yaml_file.get("ocp-on-aws").get("ocp"), "ocp", "ocp-on-aws")
+        self.assertEqual(self.args.output_file_name, self.yaml_file["ocp-on-aws"]["ocp"].get("ocp-output-filename"))
+        self.assertEqual(self.args.template_file_name, os.path.join(STATIC_DIR, "ocp_static_data.yml.j2"))
+
+    def test_replace_args_not_default_no_config(self):
+        """Test replace args."""
+        self.args.default = False
+        self.yaml_file["ocp-on-aws"]["ocp"].pop("ocp-gen-config")
+        replace_args(self.args, self.yaml_file.get("ocp-on-aws").get("ocp"), "ocp", "ocp-on-aws")
+        self.assertEqual(self.args.output_file_name, self.yaml_file["ocp-on-aws"]["ocp"].get("ocp-output-filename"))
+        self.assertIsNone(self.args.config_file_name)
+
+    def test_replace_args_no_yaml(self):
+        """Test replace args."""
+        self.yaml_file["ocp-on-aws"].pop("ocp")
+        with self.assertRaises(KeyError):
+            replace_args(self.args, self.yaml_file.get("ocp-on-aws").get("ocp"), "ocp", "ocp-on-aws")
+
     def test_cache(self):
         """Test that labels and resource_ids are unique between ocp-on-aws and ocp-on-azure - LONG TEST."""
         try:
