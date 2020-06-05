@@ -86,7 +86,7 @@ def replace_args(args, yaml, provider, ocp_on_cloud):
         args.template_file_name = template_file_name
     else:
         LOG.info(f"Template not defined for {provider} under {ocp_on_cloud}. Using default template.")
-        args.template_file_name = os.path.join(STATIC_DIR, yaml.get(f"{provider}-template"))
+        args.template_file_name = os.path.join(STATIC_DIR, f"{provider}_static_data.yml.j2")
     if config_file_name:
         args.config_file_name = config_file_name
     else:

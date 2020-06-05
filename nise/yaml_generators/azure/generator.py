@@ -135,11 +135,11 @@ class AzureGenerator(Generator):
             vnetwork_gens=[],
         )
 
-        max_bandwidth_gens = FAKER.random_int(1, config.max_bandwidth_gens) if _random else config.max_bandwidth_gens
-        max_sql_gens = FAKER.random_int(1, config.max_sql_gens) if _random else config.max_sql_gens
-        max_storage_gens = FAKER.random_int(1, config.max_storage_gens) if _random else config.max_storage_gens
-        max_vmachine_gens = FAKER.random_int(1, config.max_vmachine_gens) if _random else config.max_vmachine_gens
-        max_vnetwork_gens = FAKER.random_int(1, config.max_vnetwork_gens) if _random else config.max_vnetwork_gens
+        max_bandwidth_gens = FAKER.random_int(0, config.max_bandwidth_gens) if _random else config.max_bandwidth_gens
+        max_sql_gens = FAKER.random_int(0, config.max_sql_gens) if _random else config.max_sql_gens
+        max_storage_gens = FAKER.random_int(0, config.max_storage_gens) if _random else config.max_storage_gens
+        max_vmachine_gens = FAKER.random_int(0, config.max_vmachine_gens) if _random else config.max_vmachine_gens
+        max_vnetwork_gens = FAKER.random_int(0, config.max_vnetwork_gens) if _random else config.max_vnetwork_gens
 
         LOG.info(f"Building {max_bandwidth_gens} Bandwidth generators ...")
         for _ in range(max_bandwidth_gens):

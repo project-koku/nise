@@ -135,15 +135,15 @@ class AWSGenerator(Generator):
         )
 
         max_data_transfer_gens = (
-            FAKER.random_int(1, config.max_data_transfer_gens) if _random else config.max_data_transfer_gens
+            FAKER.random_int(0, config.max_data_transfer_gens) if _random else config.max_data_transfer_gens
         )
-        max_ebs_gens = FAKER.random_int(1, config.max_ebs_gens) if _random else config.max_ebs_gens
-        max_ec2_gens = FAKER.random_int(1, config.max_ec2_gens) if _random else config.max_ec2_gens
-        max_rds_gens = FAKER.random_int(1, config.max_rds_gens) if _random else config.max_rds_gens
-        max_route53_gens = FAKER.random_int(1, config.max_route53_gens) if _random else config.max_route53_gens
-        max_s3_gens = FAKER.random_int(1, config.max_s3_gens) if _random else config.max_s3_gens
-        max_vpc_gens = FAKER.random_int(1, config.max_vpc_gens) if _random else config.max_vpc_gens
-        max_users = FAKER.random_int(1, config.max_users) if _random else config.max_users
+        max_ebs_gens = FAKER.random_int(0, config.max_ebs_gens) if _random else config.max_ebs_gens
+        max_ec2_gens = FAKER.random_int(0, config.max_ec2_gens) if _random else config.max_ec2_gens
+        max_rds_gens = FAKER.random_int(0, config.max_rds_gens) if _random else config.max_rds_gens
+        max_route53_gens = FAKER.random_int(0, config.max_route53_gens) if _random else config.max_route53_gens
+        max_s3_gens = FAKER.random_int(0, config.max_s3_gens) if _random else config.max_s3_gens
+        max_vpc_gens = FAKER.random_int(0, config.max_vpc_gens) if _random else config.max_vpc_gens
+        max_users = FAKER.random_int(0, config.max_users) if _random else config.max_users
 
         LOG.info(f"Building {max_data_transfer_gens} data transfer generators ...")
         for _ in range(max_data_transfer_gens):
