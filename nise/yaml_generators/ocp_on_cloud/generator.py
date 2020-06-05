@@ -53,9 +53,9 @@ def get_validated_config(gen, args):
     return config
 
 
-def replace_args(args, yaml, provider, ocp_on_x):
+def replace_args(args, yaml, provider, ocp_on_cloud):
     if not yaml:
-        raise KeyError(f"{provider} is not defined under {ocp_on_x}")
+        raise KeyError(f"{provider} is not defined under {ocp_on_cloud}")
     args.provider = provider
     args.output_file_name = yaml.get(f"{provider}-output-filename")
     if args.default:
@@ -74,7 +74,7 @@ def run_generator(gen, args, config=None):
     return gen.process_template(args, config)
 
 
-class OCPonXGenerator:
+class OCPonCloudGenerator:
     def __init__(self):
         self.aws = AWSGenerator
         self.azure = AzureGenerator

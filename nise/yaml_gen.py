@@ -25,7 +25,7 @@ from dateutil.relativedelta import relativedelta
 from nise.yaml_generators.aws.generator import AWSGenerator
 from nise.yaml_generators.azure.generator import AzureGenerator
 from nise.yaml_generators.ocp.generator import OCPGenerator
-from nise.yaml_generators.ocp_on_x.generator import OCPonXGenerator
+from nise.yaml_generators.ocp_on_cloud.generator import OCPonCloudGenerator
 
 FILE_DIR = os.path.dirname(os.path.abspath(__file__))
 STATIC_DIR = os.path.join(os.path.dirname(FILE_DIR), "nise/yaml_generators/static")
@@ -34,7 +34,7 @@ GENERATOR_MAP = {
     "AWS": AWSGenerator(),
     "OCP": OCPGenerator(),
     "AZURE": AzureGenerator(),
-    "OCP-ON-X": OCPonXGenerator(),
+    "OCP-ON-CLOUD": OCPonCloudGenerator(),
 }
 
 LOG = logging.getLogger(__name__)
@@ -83,8 +83,8 @@ def add_ocp_args(parser):
     )
 
 
-def add_ocp_on_x_args(parser):
-    """Add OCP-on-X specific parser args."""
+def add_ocp_on_cloud_args(parser):
+    """Add OCP-on-Cloud specific parser args."""
     for i, action in enumerate(parser._actions):
         if action.dest == "output_file_name":
             parser._actions.pop(i)
@@ -156,19 +156,19 @@ def add_yaml_parser_args(yaml_parser):
     ocp_parser = yaml_subparser.add_parser(
         "ocp", parents=[parent_parser], add_help=False, description="The OCP parser", help="create the OCP yamls"
     )
-    ocp_on_x_parser = yaml_subparser.add_parser(
-        "ocp-on-x",
+    ocp_on_cloud_parser = yaml_subparser.add_parser(
+        "ocp-on-cloud",
         parents=[parent_parser],
         add_help=False,
-        description="The OCP-on-X parser",
-        help="create the OCP-on-X yamls",
+        description="The OCP-on-Cloud parser",
+        help="create the OCP-on-Cloud yamls",
         conflict_handler="resolve",
     )
 
     add_aws_args(aws_parser)
     add_azure_args(azure_parser)
     add_ocp_args(ocp_parser)
-    add_ocp_on_x_args(ocp_on_x_parser)
+    add_ocp_on_cloud_args(ocp_on_cloud_parser)
 
     return yaml_parser
 
@@ -188,7 +188,7 @@ def handle_args(args):
         Namespace
     """
     if args.config_file_name == "default":
-        if args.provider != "ocp-on-x":
+        if args.provider != "ocp-on-cloud":
             args.config_file_name = os.path.join(STATIC_DIR, f"{args.provider.lower()}_generator_config.yml")
         else:
             args.config_file_name = os.path.join(STATIC_DIR, "ocp_on_cloud_options.yml")
