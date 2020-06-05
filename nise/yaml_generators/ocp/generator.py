@@ -147,7 +147,7 @@ class OCPGenerator(Generator):
                 node.namespaces.append(namespace)
 
                 if _random:
-                    max_pods = FAKER.random_int(0, config.max_node_namespace_pods)
+                    max_pods = FAKER.random_int(1, config.max_node_namespace_pods)
                 else:
                     max_pods = config.max_node_namespace_pods
 
@@ -182,7 +182,7 @@ class OCPGenerator(Generator):
                     namespace.pods.append(pod)
 
                 if _random:
-                    max_volumes = FAKER.random_int(0, config.max_node_namespace_volumes)
+                    max_volumes = FAKER.random_int(1, config.max_node_namespace_volumes)
                 else:
                     max_volumes = config.max_node_namespace_volumes
 
@@ -209,7 +209,7 @@ class OCPGenerator(Generator):
                     namespace.volumes.append(volume)
 
                     if _random:
-                        max_volume_claims = FAKER.random_int(0, config.max_node_namespace_volume_volume_claims)
+                        max_volume_claims = FAKER.random_int(1, config.max_node_namespace_volume_volume_claims)
                     else:
                         max_volume_claims = config.max_node_namespace_volume_volume_claims
 
