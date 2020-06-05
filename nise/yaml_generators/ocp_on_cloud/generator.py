@@ -14,12 +14,16 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
+import logging
 import os
 
 import yaml
 from nise.yaml_generators.aws.generator import AWSGenerator
 from nise.yaml_generators.azure.generator import AzureGenerator
 from nise.yaml_generators.ocp.generator import OCPGenerator
+
+
+LOG = logging.getLogger(__name__)
 
 
 def _load_yaml_file(filename):
@@ -59,11 +63,19 @@ def get_validated_config(gen, args):
 def replace_args(args, yaml, provider, ocp_on_cloud):
     """Replace appropriate file paths in args."""
     if not yaml:
-        raise KeyError(f"{provider} is not defined under {ocp_on_cloud}")
+        raise KeyError(f"Options YAML error: {provider} is not defined under {ocp_on_cloud}")
     from nise.yaml_gen import STATIC_DIR
 
     args.provider = provider
-    args.output_file_name = yaml.get(f"{provider}-output-filename")
+
+    if yaml.get(f"{provider}-output-filename"):
+        args.output_file_name = yaml.get(f"{provider}-output-filename")
+    else:
+        LOG.info(
+            f"Output file not defined for {provider} under {ocp_on_cloud}. Writing to '{ocp_on_cloud}_{provider}.yml'."
+        )
+        args.output_file_name = f"{ocp_on_cloud}_{provider}.yml"
+
     if args.default:
         config_file_name = os.path.join(STATIC_DIR, yaml.get(f"{provider}-gen-config"))
     else:
@@ -73,9 +85,13 @@ def replace_args(args, yaml, provider, ocp_on_cloud):
     if template_file_name:
         args.template_file_name = template_file_name
     else:
-        template_file_name = os.path.join(STATIC_DIR, yaml.get(f"{provider}-template"))
-
-    args.config_file_name = config_file_name if config_file_name else None
+        LOG.info(f"Template not defined for {provider} under {ocp_on_cloud}. Using default template.")
+        args.template_file_name = os.path.join(STATIC_DIR, yaml.get(f"{provider}-template"))
+    if config_file_name:
+        args.config_file_name = config_file_name
+    else:
+        LOG.info(f"Configuration not defined for {provider} under {ocp_on_cloud}. Using default configuration.")
+        args.config_file_name = None
 
 
 def run_generator(gen, args, config=None):
