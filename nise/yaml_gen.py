@@ -188,11 +188,13 @@ def handle_args(args):
         Namespace
     """
     if args.config_file_name == "default":
+        args.default = True
         if args.provider != "ocp-on-cloud":
             args.config_file_name = os.path.join(STATIC_DIR, f"{args.provider.lower()}_generator_config.yml")
         else:
             args.config_file_name = os.path.join(STATIC_DIR, "ocp_on_cloud_options.yml")
-            args.default = True
+    else:
+        args.default = False
 
     if args.config_file_name and not os.path.exists(args.config_file_name):
         raise FileNotFoundError(f'Cannot find file "{args.config_file_name}"')

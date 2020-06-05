@@ -37,10 +37,12 @@ def _load_yaml_file(filename):
 
 
 def ocp_label_splitter(label):
+    """Split the OCP lables into key, value pairs."""
     return [kv.split(":") for kv in [lab.split("_")[1] for lab in label.split("|")]]
 
 
 def get_resourceid_and_tags(data):
+    """Convert the OCP resource ids and lables into usable list."""
     id_labels = {}
     for resource_id, tags in data.resourceid_labels.items():
         id_labels[resource_id] = [ocp_label_splitter(label) for label in tags]
@@ -48,42 +50,59 @@ def get_resourceid_and_tags(data):
 
 
 def get_validated_config(gen, args):
+    """Get the validated configuration for the specified generator."""
     config = gen.init_config(args)
     gen.validate_config(config)
     return config
 
 
 def replace_args(args, yaml, provider, ocp_on_cloud):
+    """Replace appropriate file paths in args."""
     if not yaml:
         raise KeyError(f"{provider} is not defined under {ocp_on_cloud}")
+    from nise.yaml_gen import STATIC_DIR
+
     args.provider = provider
     args.output_file_name = yaml.get(f"{provider}-output-filename")
     if args.default:
-        from nise.yaml_gen import STATIC_DIR
-
-        args.template_file_name = os.path.join(STATIC_DIR, yaml.get(f"{provider}-template"))
-        args.config_file_name = os.path.join(STATIC_DIR, yaml.get(f"{provider}-gen-config"))
+        config_file_name = os.path.join(STATIC_DIR, yaml.get(f"{provider}-gen-config"))
     else:
-        args.template_file_name = yaml.get(f"{provider}-template")
-        args.config_file_name = yaml.get(f"{provider}-gen-config")
+        template_file_name = yaml.get(f"{provider}-template")
+        config_file_name = yaml.get(f"{provider}-gen-config")
+
+    if template_file_name:
+        args.template_file_name = template_file_name
+    else:
+        template_file_name = os.path.join(STATIC_DIR, yaml.get(f"{provider}-template"))
+
+    args.config_file_name = config_file_name if config_file_name else None
 
 
 def run_generator(gen, args, config=None):
+    """Generate the yaml files for the specified generator."""
     if not config:
         config = gen.init_config(args)
     return gen.process_template(args, config)
 
 
 class OCPonCloudGenerator:
+    """Class used to create unique OCP-on-Cloud yaml files."""
+
     def __init__(self):
         self.aws = AWSGenerator
         self.azure = AzureGenerator
         self.ocp = OCPGenerator()
 
     def init_config(self, args):
+        """Skip init-config for ocp-on-cloud.
+
+        Init config is called for each provider using its dedicated generator.
+
+        """
         return
 
     def process_template(self, args, config):
+        """Process specific provider configs to produce yamls."""
         yaml_file = _load_yaml_file(args.config_file_name)
         if yaml_file.get("ocp-on-aws"):
             replace_args(args, yaml_file.get("ocp-on-aws").get("ocp"), "ocp", "ocp-on-aws")
