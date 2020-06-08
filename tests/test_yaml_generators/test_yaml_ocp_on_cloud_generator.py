@@ -141,8 +141,13 @@ class OCPGeneratorTestCase(TestCase):
         with self.assertRaises(KeyError):
             replace_args(self.args, self.yaml_file.get("ocp-on-aws").get("ocp"), "ocp", "ocp-on-aws")
 
-    def test_cache(self):
+    def test_cache(self):  # noqa: C901
         """Test that labels and resource_ids are unique between ocp-on-aws and ocp-on-azure - LONG TEST."""
+
+        def listify(keys, index):
+            """Convert tuple index to list."""
+            return [key[index] for key in keys]
+
         try:
             replace_args(self.args, self.yaml_file.get("ocp-on-aws").get("ocp"), "ocp", "ocp-on-aws")
             self.args.config_file_name = None
@@ -163,8 +168,15 @@ class OCPGeneratorTestCase(TestCase):
         finally:
             os.remove(self.yaml_file["ocp-on-azure"]["ocp"]["ocp-output-filename"])
 
-        for key in id_labels_1.keys():
-            self.assertNotIn(key, id_labels_2.keys())
+        id_labels_1_resource_ids = listify(id_labels_1.keys(), 0)
+        id_labels_2_resource_ids = listify(id_labels_2.keys(), 0)
+        for res_id in id_labels_1_resource_ids:
+            self.assertNotIn(res_id, id_labels_2_resource_ids)
+
+        id_labels_1_node_names = listify(id_labels_1.keys(), 1)
+        id_labels_2_node_names = listify(id_labels_2.keys(), 1)
+        for node in id_labels_1_node_names:
+            self.assertNotIn(node, id_labels_2_node_names)
 
         for namespace_values in id_labels_1.values():
             for values in namespace_values:
