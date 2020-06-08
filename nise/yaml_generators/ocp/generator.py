@@ -129,10 +129,10 @@ class OCPGenerator(Generator):
                 memory = config.max_node_memory_gig
 
             resource_id = generate_resource_id(config)
-            resourceid_labels[resource_id] = []
-            node = dicta(
-                name=generate_name(config), cpu_cores=cores, memory_gig=memory, resource_id=resource_id, namespaces=[]
-            )
+            node_name = generate_name(config)
+            id_label_key = (resource_id, node_name)
+            resourceid_labels[id_label_key] = []
+            node = dicta(name=node_name, cpu_cores=cores, memory_gig=memory, resource_id=resource_id, namespaces=[])
             data.nodes.append(node)
 
             if _random:
@@ -169,7 +169,7 @@ class OCPGenerator(Generator):
                         pod_sec = config.max_node_namespace_pod_seconds
 
                     pod_labels = generate_labels(config.max_node_namespace_pod_labels)
-                    resourceid_labels[resource_id].append(pod_labels)
+                    resourceid_labels[id_label_key].append(pod_labels)
                     pod = dicta(
                         name=generate_name(config, prefix=namespace.name + "-pod", suffix=str(pod_ix), dynamic=False),
                         cpu_request=cpu_req,
@@ -196,7 +196,7 @@ class OCPGenerator(Generator):
                         vol_req = config.max_node_namespace_volume_request_gig
 
                     volume_labels = generate_labels(config.max_node_namespace_volume_labels)
-                    resourceid_labels[resource_id].append(volume_labels)
+                    resourceid_labels[id_label_key].append(volume_labels)
                     volume = dicta(
                         name=generate_name(
                             config, prefix=namespace.name + "-vol", suffix=str(volume_ix), dynamic=False
@@ -223,7 +223,7 @@ class OCPGenerator(Generator):
                             -1 if volume_claim_ix >= len(namespace.pods) else volume_claim_ix
                         ].name
                         volume_claim_labels = generate_labels(config.max_node_namespace_volume_volume_claim_labels)
-                        resourceid_labels[resource_id].append(volume_claim_labels)
+                        resourceid_labels[id_label_key].append(volume_claim_labels)
                         volume_claim = dicta(
                             name=generate_name(
                                 config,

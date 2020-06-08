@@ -79,14 +79,15 @@ def generate_resource_id_and_tag(config, key):
         resource_id = FAKER.ean8()
         tags = generate_tags(key, config)
     else:
-        resource_id = random.choice(list(config.id_labels.keys()))
-        tag_key_list = random.choice(config.id_labels.get(resource_id))
+        id_label_key = random.choice(list(config.id_labels.keys()))
+        tag_key_list = random.choice(config.id_labels.get(id_label_key))
         SEEN_KEYS = set()
         tags = []
         for key, value in tag_key_list:
             if key not in SEEN_KEYS:
                 tags.append(dicta(key=f"resourceTags/user:{key}", v=value))
                 SEEN_KEYS.update([key])
+        resource_id, _ = id_label_key
     return resource_id, tags
 
 

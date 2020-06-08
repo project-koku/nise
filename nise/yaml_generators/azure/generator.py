@@ -55,9 +55,11 @@ TAG_KEYS = {
 }
 
 
-def generate_instance_id(key, config):
+def generate_instance_id(key, config, node_name=None):
     """Generate properly formatted instance_id."""
     resource_group, resource_name = FAKER.words(2)
+    if node_name:
+        resource_name = node_name
     if ACCTS_STR.get(key):
         consumed, second_part = ACCTS_STR.get(key)
     else:
@@ -67,7 +69,7 @@ def generate_instance_id(key, config):
     return f"subscriptions/{config.payer_account}/resourceGroups/{resource_group}/{accts_str[1:-2]}/{resource_name}"
 
 
-def generate_tags(key, config, prefix="", suffix="", dynamic=True):
+def generate_tags_and_instance_id(key, config, prefix="", suffix="", dynamic=True):
     """Generate properly formatted Azure tags.
     Returns:
         list
@@ -75,32 +77,37 @@ def generate_tags(key, config, prefix="", suffix="", dynamic=True):
     if not config.get("id_labels"):
         keys = TAG_KEYS.get(key)
         tags = [dicta(key=key, v=generate_name(config)) for key in keys]
+        instance_id = generate_instance_id(key, config)
     else:
-        resource_id = random.choice(list(config.id_labels.keys()))
-        tag_key_list = random.choice(config.id_labels.get(resource_id))
+        id_label_key = random.choice(list(config.id_labels.keys()))
+        tag_key_list = random.choice(config.id_labels.get(id_label_key))
         SEEN_KEYS = set()
         tags = []
         for key, value in tag_key_list:
             if key not in SEEN_KEYS:
                 tags.append(dicta(key=key, v=value))
                 SEEN_KEYS.update([key])
-    return tags
+        _, node_name = id_label_key
+        instance_id = generate_instance_id(key, config, node_name)
+    return tags, instance_id
 
 
 def generate_azure_dicta(config, key):
+    """Return dicta with common attributes."""
+    tags, instance_id = generate_tags_and_instance_id(key, config)
     rate = round(random.uniform(0.1, 0.50), 5)
     usage = round(random.uniform(0.01, 1), 5)
 
     return dicta(
         start_date=str(config.start_date),
         end_date=str(config.end_date),
-        instance_id=generate_instance_id(key, config),
+        instance_id=instance_id,
         meter_id=str(uuid4()),
         resource_location=random.choice(RESOURCE_LOCATIONS),
         usage_quantity=usage,
         resource_rate=rate,
         pre_tax_cost=usage * rate,
-        tags=generate_tags(key, config),
+        tags=tags,
     )
 
 
