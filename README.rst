@@ -40,8 +40,8 @@ To build the command line tool run ::
 
 For generating sample data for developing or testing Koku, please refer to `Ingesting Nise data with Koku <https://github.com/project-koku/nise/blob/master/docs/working_with_masu.rst>`_.
 
-Testing and Linting
--------------------
+Testing
+-------
 
 Nise uses tox to standardize the environment used when running tests. Essentially, tox manages its own virtual environment and a copy of required dependencies to run tests. To ensure a clean tox environment run ::
 
@@ -53,9 +53,15 @@ To run unit tests specifically::
 
     tox -e py36
 
-To lint the code base ::
+Linting
+-------
+This repository uses `pre-commit`_ to check and enforce code style. It uses `Black`_ to reformat the Python code and `Flake8`_ to check it
+afterwards. Other formats and text files are linted as well.
 
-    tox -e lint
+To run pre-commit checks::
+
+    pre-commit run --all-files
+
 
 Nise and IQE Tests
 ------------------
@@ -162,18 +168,9 @@ Note: If ``--static-report-file`` is used start_date will default to first day o
 Note: ``--static-report-file`` usage dates has a special ``full_period`` key value which will specify a usage for the entire ``start_date - end_date`` range.
 
 
-
-Linting
--------
-This repository uses `pre-commit`_ to check and enforce code style. It uses `Black`_ to reformat the Python code and `Flake8`_ to check it
-afterwards. Other formats and text files are linted as well.
-
-To run pre-commit checks::
-
-    pre-commit run --all-files
-
+------------
 Contributing
-=============
+------------
 
 Please refer to Contributing_.
 
