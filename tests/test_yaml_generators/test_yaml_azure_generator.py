@@ -66,7 +66,7 @@ class AzureGeneratorTestCase(TestCase):
         dc = self.yg.default_config()
         for key in self.module.TAG_KEYS.keys():
             with self.subTest(key=key):
-                tags = self.module.generate_tags(key, dc)
+                tags, _ = self.module.generate_tags_and_instance_id(key, dc)
                 self.assertEqual(len(tags), len(self.module.TAG_KEYS[key]))
                 for tag in tags:
                     self.assertTrue(tag.get("key") in self.module.TAG_KEYS[key])
