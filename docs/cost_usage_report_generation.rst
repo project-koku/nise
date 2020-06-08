@@ -11,51 +11,25 @@ To generate completely random data and save the report files in the local direct
 
     nise report aws --start-date 2020-05-03 --write-monthly
 
+To generate a finalized report, the following will make a copy of the monthly report and append ``-finalized`` to the file name.
+
+    nise report aws -s 2020-05-03 --aws-finalize copy
+
 To upload data to an AWS bucket::
 
-    nise report aws start-date 2020-05-03 --aws-s3-bucket-name testbucket --aws-s3-report-name cur
+    nise report aws -s 2020-05-03 --aws-s3-bucket-name testbucket --aws-s3-report-name cur
 
-To move put the generated data into a specific local directory, supply ``--aws-s3-bucket-name`` with a ``/path/to/local/dir``::
+To move the generated data into a specific local directory, supply ``--aws-s3-bucket-name`` with a ``/path/to/local/dir``::
 
-    nise report aws --start-date 2020-05-03 --aws-s3-bucket-name /local/path/testbucket --aws-s3-report-name cur
+    nise report aws -s 2020-05-03 --aws-s3-bucket-name /local/path/testbucket --aws-s3-report-name cur
 
-    nise report aws --start-date 2020-05-03 --aws-s3-bucket-name /local/path/testbucket --aws-s3-report-name cur --aws-s3-report-prefix my-prefix
-
-    nise report aws --start-date 2018-06-20 --aws-finalize copy
-
-To generate static data, supply a ``--static-report-file YAML_NAME``. And example yaml is found in ``example_aws_static_data.yml``::
+To generate less randomized data, supply a ``--static-report-file YAML_NAME``. `Example aws yaml.`_::
 
     nise report aws --static-report-file example_aws_static_data.yml
 
-OCP
----
 
-Below is an example usage of ``nise`` for OCP data::
-
-    nise report ocp --start-date 2018-06-03 --ocp-cluster-id test-001
-
-    nise report ocp --start-date 2018-06-03 --ocp-cluster-id test-001 --insights-upload  https://cloud.redhat.com/api/ingress/v1/upload
-
-    nise reprot ocp --start-date 2018-06-03 --write-monthly --ocp-cluster-id test-001 --insights-upload  /local/path/upload_dir
-
-    nise report ocp --ocp-cluster-id my-cluster-id --static-report-file ocp_static_data.yml
-
-Generated reports will be generated in monthly .csv files with the file format <Month>-<Year>-<Cluster-ID>.csv.
-
-Below is an example usage of ``nise`` for OCP running on AWS data::
-
-    # First ensure that the resource_id and dates in both AWS and OCP static report files match
-
-    nise report aws --static-report-file examples/ocp_on_aws/aws_static_data.yml
-
-    nise report ocp --ocp-cluster-id my-cluster-id --static-report-file examples/ocp_on_aws/ocp_static_data.yml
-
-Generated AWS reports will be generated in monthly .csv files with the file format <Month>-<Year>-<Report Name>.csv.
-
-Generated OCP reports will be generated in monthly .csv files with the file format <Month>-<Year>-<Cluster-ID>.csv.
-
-AZURE
------
+AZURE reports
+-------------
 
 Note: To upload to AZURE, you must have AZURE_STORAGE_ACCOUNT and AZURE_STORAGE_CONNECTION_STRING set in your environment.
 
@@ -73,9 +47,39 @@ Below is an example usage of ``nise`` for AZURE data::
 
     nise report azure --static-report-file azure_static_data.yml
 
+
+
+OCP reports
+-----------
+
+Generated reports will be poduced in monthly .csv files with the file format <Month>-<Year>-<Cluster-ID>-<Report-type>.csv. Three report types are generated for each month: ``ocp_node_label``, ``ocp_pod_usage``, and ``ocp_storage_usage``.
+
+Below is an example usage of ``nise`` for OCP data::
+
+To generate completely random data and save the report files in the local directory::
+
+    nise report ocp -s 2020-06-03 -w --ocp-cluster-id test-001
+
+To upload report files to ingress service::
+
+    nise report ocp -s 2020-06-03 --ocp-cluster-id test-001 --insights-upload  <url to ingress>
+
+To move the generated data into a specific local directory::
+
+    nise reprot ocp  -s 2020-06-03 --ocp-cluster-id test-001 --insights-upload  /local/path/dir
+
+To use a static yaml to generate data::
+
+    nise report ocp --ocp-cluster-id my-cluster-id --static-report-file ocp_static_data.yml
+
+
+
+
+
+
 Below is an example usage of ``nise`` for OCP running on AZURE data::
 
-    # First ensure that the dates in both AWS and OCP static report files match. Then specifcy an instance_id for Azure VMs in the Azure format where the string after the final '/' matches the OpenShift node_name.
+    # First ensure that the dates in both AWS and OCP static report files match. Then specify an instance_id for Azure VMs in the Azure format where the string after the final '/' matches the OpenShift node_name.
         e.g. instance_id: '/subscriptions/99999999-9999-9999-9999-999999999999/resourceGroups/koku-99hqd-rg/providers/Microsoft.Compute/virtualMachines/master'
              node_name: master
 
@@ -145,3 +149,24 @@ Below is an example usage of ``nise`` for GCP data::
 
 
 Generated reports will be generated in daily .csv files with the file format <Report-Prefix>-<Year>-<Month>-<Day>.csv.
+
+
+
+
+Generating OCP-on-AWS (or Azure) can use any of the
+
+Below is an example usage of ``nise`` for OCP running on AWS data. `Example ocp-on-aws yamls`_::
+
+    # First ensure that the resource_id and dates in both AWS and OCP static report files match
+
+    nise report aws -w --static-report-file examples/ocp_on_aws/aws_static_data.yml
+
+    nise report ocp -w --ocp-cluster-id my-cluster-id --static-report-file examples/ocp_on_aws/ocp_static_data.yml
+
+
+
+
+
+.. _`Example aws yaml.`: example_aws_static_data.yml
+
+.. _`Example ocp-on-aws yamls`: examples/ocp_on_aws

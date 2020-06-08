@@ -140,7 +140,7 @@ nise is a command line tool::
         --insights-upload UPLOAD_URL            optional, Use local directory path to populate a
                                                 "local upload directory".
 
-    Common YAML Options (for aws/azure/ocp):
+    Common YAML Options:
         -o, --output YAML_NAME                  REQUIRED, Output file path (i.e "large.yml").
         -c, --config ( CONFIG | default )       optional, Config file path. If "default" is provided,
                                                 use internal config file
