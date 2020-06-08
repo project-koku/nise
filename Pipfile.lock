@@ -47,11 +47,10 @@
         },
         "azure-mgmt-resource": {
             "hashes": [
-                "sha256:055e85a4053a987bf427653e75f537c750ecc27c0e7c74623a67cb859689b5a6",
-                "sha256:dc12f7998e2c1fd4088a8da5f02936c2985ceb7acbe994571c8b3778f26a7501"
+                "sha256:bd9a3938f5423741329436d2da09693845c2fad96c35fadbd7c5ae5213208345",
+                "sha256:c1e2d834dee84953a4e25bef119008854a861d6d3fbe79b436589dc042e5a7c5"
             ],
-            "index": "pypi",
-            "version": "==9.0.0"
+            "version": "==10.0.0"
         },
         "azure-mgmt-storage": {
             "hashes": [
