@@ -287,10 +287,10 @@
         },
         "msrest": {
             "hashes": [
-                "sha256:f52f880a2145c075f436083ee9a274ddc54c62181e4c41c9ac11520fbae547e5",
-                "sha256:f54a60084969656faa2755bfa5f614951b07a870e97dfc8f0b0b8ea94a63b5b5"
+                "sha256:30092bfd4945323072497e9d281484e6b68100a63256783df42db9cf94518c57",
+                "sha256:7cc9e565b8e8829062c4b93687b64318bfed64bc138597203af50649accf7146"
             ],
-            "version": "==0.6.14"
+            "version": "==0.6.15"
         },
         "msrestazure": {
             "hashes": [
