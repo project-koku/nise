@@ -70,9 +70,12 @@ def generate_instance_id(key, config, node_name=None):
 
 
 def generate_tags_and_instance_id(key, config, prefix="", suffix="", dynamic=True):
-    """Generate properly formatted Azure tags.
+    """Generate properly formatted Azure tags and instance_id.
+
+    Args:
+        config.id_labels = {(resource_id, node_name): tags} or None
     Returns:
-        list
+        tags (list), instance_id (str)
     """
     if not config.get("id_labels"):
         keys = TAG_KEYS.get(key)

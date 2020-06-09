@@ -75,6 +75,13 @@ def generate_tags(key, config, prefix="", suffix="", dynamic=True):
 
 
 def generate_resource_id_and_tag(config, key):
+    """Generate properly formatted AWS tags and resource_id.
+
+    Args:
+        config.id_labels = {(resource_id, node_name): tags} or None
+    Returns:
+        resource_id (str), tags (list)
+    """
     if not config.get("id_labels"):
         resource_id = FAKER.ean8()
         tags = generate_tags(key, config)
