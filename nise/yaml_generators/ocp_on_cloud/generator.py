@@ -17,7 +17,6 @@
 import logging
 import os
 
-from nise.__main__ import load_yaml_file
 from nise.yaml_generators.aws.generator import AWSGenerator
 from nise.yaml_generators.azure.generator import AzureGenerator
 from nise.yaml_generators.ocp.generator import OCPGenerator
@@ -106,6 +105,8 @@ class OCPonCloudGenerator:
 
     def process_template(self, args, config=None):
         """Process specific provider configs to produce yamls."""
+        from nise.__main__ import load_yaml_file
+
         yaml_file = load_yaml_file(args.config_file_name)
         if yaml_file.get("ocp-on-aws"):
             replace_args(args, yaml_file.get("ocp-on-aws").get("ocp"), "ocp", "ocp-on-aws")
