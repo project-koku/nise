@@ -51,4 +51,4 @@ To use a user defined configuration, use this command::
 The ``-r, --random`` flag can be added which will add a number of generators between 1 and the maximum defined in the configuration file. Start and end dates can be provided and they will overwrite the dates specified in the configuration. A user defined template may also be passed in using the ``-t /path/to/template`` flag. If a template is not passed in, the default found in ``nise/yaml_generators/static`` will be used.
 
 
-.. _`internal configuration found in nise/yaml_generators/static`: nise/yaml_generators/static
+.. _`internal configuration found in nise/yaml_generators/static`: ../nise/yaml_generators/static
