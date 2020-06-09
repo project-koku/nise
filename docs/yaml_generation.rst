@@ -76,7 +76,7 @@ The most straightforward way to generate the necessary yamls for ocp-on-cloud re
 
     nise yaml ocp-on-cloud -c default
 
-The above command uses the `ocp_on_cloud_options.yml`_ file. To generate only OCP-on-AWS or OCP-on-Azure, a custom configuration can be supplied which only contains the necessary configuration (e.g. for OCP-on-AWS, the file should only contain the ocp-on-aws fields and exclude all the ocp-on-azure fields.)
+The above command uses the `ocp_on_cloud_options.yml`_ file. To generate only OCP-on-AWS or OCP-on-Azure, a custom configuration must be supplied which only contains the necessary configuration (e.g. for OCP-on-AWS, the file should only contain the ocp-on-aws fields and exclude all the ocp-on-azure fields.)
 
 .. _`internal configuration found in nise/yaml_generators/static`: ../nise/yaml_generators/static
 
@@ -85,3 +85,5 @@ The above command uses the `ocp_on_cloud_options.yml`_ file. To generate only OC
 .. _`found in nise/yaml_generators/static/aws_generator_config.yml`: ../nise/yaml_generators/static/aws_generator_config.yml
 
 .. _`default found in nise/yaml_generators/static/aws_static_data.yml.j2 will be used`: ../nise/yaml_generators/static/aws_static_data.yml.j2
+
+.. _`ocp_on_cloud_options.yml`: ../nise/yaml_generators/static/ocp_on_cloud_options.yml
