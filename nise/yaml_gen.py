@@ -18,16 +18,24 @@
 import argparse
 import logging
 import os
+from datetime import datetime
 
 from dateutil.parser import parse
+from dateutil.relativedelta import relativedelta
 from nise.yaml_generators.aws.generator import AWSGenerator
 from nise.yaml_generators.azure.generator import AzureGenerator
 from nise.yaml_generators.ocp.generator import OCPGenerator
+from nise.yaml_generators.ocp_on_cloud.generator import OCPonCloudGenerator
 
 FILE_DIR = os.path.dirname(os.path.abspath(__file__))
 STATIC_DIR = os.path.join(os.path.dirname(FILE_DIR), "nise/yaml_generators/static")
 
-GENERATOR_MAP = {"AWS": AWSGenerator(), "OCP": OCPGenerator(), "AZURE": AzureGenerator()}
+GENERATOR_MAP = {
+    "AWS": AWSGenerator(),
+    "OCP": OCPGenerator(),
+    "AZURE": AzureGenerator(),
+    "OCP-ON-CLOUD": OCPonCloudGenerator(),
+}
 
 LOG = logging.getLogger(__name__)
 
@@ -36,6 +44,15 @@ class DateRangeArgsError(Exception):
     """Date range args exception."""
 
     pass
+
+
+def get_today_date():
+    return datetime.today().date()
+
+
+def get_last_month_start_date():
+    today = get_today_date()
+    return today.replace(day=1) - relativedelta(months=1)
 
 
 def add_aws_args(parser):
@@ -66,6 +83,17 @@ def add_ocp_args(parser):
     )
 
 
+def add_ocp_on_cloud_args(parser):
+    """Add OCP-on-Cloud specific parser args."""
+    for i, action in enumerate(parser._actions):
+        if action.dest == "output_file_name":
+            parser._actions.pop(i)
+    parser.add_argument(
+        "-c", "--config", dest="config_file_name", type=str, required=True, metavar="CONF", help="Config file path."
+    )
+    add_ocp_args(parser)
+
+
 def add_yaml_parser_args(yaml_parser):
     """
     Initialize the argument parser.
@@ -92,6 +120,7 @@ def add_yaml_parser_args(yaml_parser):
     parent_parser.add_argument(
         "-s",
         "--start-date",
+        default=str(get_last_month_start_date()),
         dest="start_date",
         type=str,
         required=False,
@@ -101,6 +130,7 @@ def add_yaml_parser_args(yaml_parser):
     parent_parser.add_argument(
         "-e",
         "--end-date",
+        default=str(get_today_date()),
         dest="end_date",
         type=str,
         required=False,
@@ -126,10 +156,19 @@ def add_yaml_parser_args(yaml_parser):
     ocp_parser = yaml_subparser.add_parser(
         "ocp", parents=[parent_parser], add_help=False, description="The OCP parser", help="create the OCP yamls"
     )
+    ocp_on_cloud_parser = yaml_subparser.add_parser(
+        "ocp-on-cloud",
+        parents=[parent_parser],
+        add_help=False,
+        description="The OCP-on-Cloud parser",
+        help="create the OCP-on-Cloud yamls",
+        conflict_handler="resolve",
+    )
 
     add_aws_args(aws_parser)
     add_azure_args(azure_parser)
     add_ocp_args(ocp_parser)
+    add_ocp_on_cloud_args(ocp_on_cloud_parser)
 
     return yaml_parser
 
@@ -149,7 +188,13 @@ def handle_args(args):
         Namespace
     """
     if args.config_file_name == "default":
-        args.config_file_name = os.path.join(STATIC_DIR, f"{args.provider.lower()}_generator_config.yml")
+        args.default = True
+        if args.provider != "ocp-on-cloud":
+            args.config_file_name = os.path.join(STATIC_DIR, f"{args.provider.lower()}_generator_config.yml")
+        else:
+            args.config_file_name = os.path.join(STATIC_DIR, "ocp_on_cloud_options.yml")
+    else:
+        args.default = False
 
     if args.config_file_name and not os.path.exists(args.config_file_name):
         raise FileNotFoundError(f'Cannot find file "{args.config_file_name}"')

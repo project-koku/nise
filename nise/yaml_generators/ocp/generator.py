@@ -29,6 +29,7 @@ from nise.yaml_generators.utils import generate_resource_id
 
 FAKER = faker.Faker()
 LOG = logging.getLogger(__name__)
+SEEN_LABELS = set()
 
 
 def generate_labels(num_labels):
@@ -41,7 +42,13 @@ def generate_labels(num_labels):
     Returns:
         str
     """
-    return "|".join(f"label_{e[0]}:{e[1]}" for e in zip(FAKER.words(num_labels), FAKER.words(num_labels)))
+    lis = []
+    while len(lis) < num_labels:
+        e = tuple(FAKER.words(2))
+        if e not in SEEN_LABELS:
+            lis.append(f"label_{e[0]}:{e[1]}")
+            SEEN_LABELS.add(e)
+    return "|".join(lis)
 
 
 class OCPGenerator(Generator):
@@ -102,7 +109,10 @@ class OCPGenerator(Generator):
         """
         LOG.info("Data build starting")
 
-        data = dicta(start_date=str(config.start_date), end_date=str(config.end_date), nodes=[])
+        data = dicta(
+            start_date=str(config.start_date), end_date=str(config.end_date), nodes=[], resourceid_labels=None
+        )
+        resourceid_labels = {}
 
         if _random:
             max_nodes = FAKER.random_int(1, config.max_nodes)
@@ -118,13 +128,11 @@ class OCPGenerator(Generator):
                 cores = config.max_node_cpu_cores
                 memory = config.max_node_memory_gig
 
-            node = dicta(
-                name=generate_name(config),
-                cpu_cores=cores,
-                memory_gig=memory,
-                resource_id=generate_resource_id(config),
-                namespaces=[],
-            )
+            resource_id = generate_resource_id(config)
+            node_name = generate_name(config)
+            id_label_key = (resource_id, node_name)
+            resourceid_labels[id_label_key] = []
+            node = dicta(name=node_name, cpu_cores=cores, memory_gig=memory, resource_id=resource_id, namespaces=[])
             data.nodes.append(node)
 
             if _random:
@@ -160,6 +168,8 @@ class OCPGenerator(Generator):
                         mem_lim = mem_req = node.memory_gig
                         pod_sec = config.max_node_namespace_pod_seconds
 
+                    pod_labels = generate_labels(config.max_node_namespace_pod_labels)
+                    resourceid_labels[id_label_key].append(pod_labels)
                     pod = dicta(
                         name=generate_name(config, prefix=namespace.name + "-pod", suffix=str(pod_ix), dynamic=False),
                         cpu_request=cpu_req,
@@ -167,7 +177,7 @@ class OCPGenerator(Generator):
                         cpu_limit=cpu_lim,
                         mem_limit_gig=mem_lim,
                         pod_seconds=pod_sec,
-                        labels=generate_labels(config.max_node_namespace_pod_labels),
+                        labels=pod_labels,
                     )
                     namespace.pods.append(pod)
 
@@ -185,13 +195,15 @@ class OCPGenerator(Generator):
                         storage_cls = config.storage_classes[0]
                         vol_req = config.max_node_namespace_volume_request_gig
 
+                    volume_labels = generate_labels(config.max_node_namespace_volume_labels)
+                    resourceid_labels[id_label_key].append(volume_labels)
                     volume = dicta(
                         name=generate_name(
                             config, prefix=namespace.name + "-vol", suffix=str(volume_ix), dynamic=False
                         ),
                         storage_class=storage_cls,
                         volume_request_gig=vol_req,
-                        labels=generate_labels(config.max_node_namespace_volume_labels),
+                        labels=volume_labels,
                         volume_claims=[],
                     )
                     namespace.volumes.append(volume)
@@ -210,6 +222,8 @@ class OCPGenerator(Generator):
                         pod_name = namespace.pods[
                             -1 if volume_claim_ix >= len(namespace.pods) else volume_claim_ix
                         ].name
+                        volume_claim_labels = generate_labels(config.max_node_namespace_volume_volume_claim_labels)
+                        resourceid_labels[id_label_key].append(volume_claim_labels)
                         volume_claim = dicta(
                             name=generate_name(
                                 config,
@@ -218,11 +232,11 @@ class OCPGenerator(Generator):
                                 dynamic=False,
                             ),
                             pod_name=pod_name,
-                            labels=generate_labels(config.max_node_namespace_volume_volume_claim_labels),
+                            labels=volume_claim_labels,
                             capacity_gig=cap,
                         )
                         volume.volume_claims.append(volume_claim)
-
+        data.resourceid_labels = resourceid_labels
         return data
 
     def default_config(self):

@@ -66,7 +66,7 @@ class AzureGeneratorTestCase(TestCase):
         dc = self.yg.default_config()
         for key in self.module.TAG_KEYS.keys():
             with self.subTest(key=key):
-                tags = self.module.generate_tags(key, dc)
+                tags, _ = self.module.generate_tags_and_instance_id(key, dc)
                 self.assertEqual(len(tags), len(self.module.TAG_KEYS[key]))
                 for tag in tags:
                     self.assertTrue(tag.get("key") in self.module.TAG_KEYS[key])
@@ -79,7 +79,7 @@ class AzureGeneratorTestCase(TestCase):
         def check_exact(val, config_val, **kwargs):
             return val == config_val
 
-        def check_range(val, config_val, v_min=1):
+        def check_range(val, config_val, v_min=0):
             return v_min <= val <= config_val
 
         def validate_data(data, config, check_func):
@@ -109,8 +109,8 @@ class AzureGeneratorTestCase(TestCase):
 
         dc = self.yg.default_config()
 
-        data = self.yg.build_data(dc, False)
-        validate_data(data, dc, check_exact)
-
-        data = self.yg.build_data(dc, True)
-        validate_data(data, dc, check_range)
+        for boo in (True, False):
+            check_func = check_range if boo else check_exact
+            with self.subTest(random=boo):
+                data = self.yg.build_data(dc, boo)
+                validate_data(data, dc, check_func)

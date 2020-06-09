@@ -161,11 +161,11 @@ class OCPGeneratorTestCase(TestCase):
         dc.num_node_namespace_pods = 2
         dc.num_node_namespace_volumes = 2
 
-        data = self.yg.build_data(dc, False)
-        validate_data(data, dc, check_exact)
-
-        data = self.yg.build_data(dc, True)
-        validate_data(data, dc, check_range)
+        for boo in (True, False):
+            check_func = check_range if boo else check_exact
+            with self.subTest(random=boo):
+                data = self.yg.build_data(dc, boo)
+                validate_data(data, dc, check_func)
 
     def test_init_config(self):
         """
@@ -177,6 +177,34 @@ class OCPGeneratorTestCase(TestCase):
         test_config_file_name = os.path.join(FILE_DIR, "test_yaml_generator_config.yml")
         with open(test_config_file_name, "rt") as settings_file:
             config_file_data = yaml.safe_load(settings_file)
+
+        args = argparse.Namespace()
+        args.template_file_name = test_template_file_name
+        args.config_file_name = test_config_file_name
+        args.start_date = date.today()
+        args.end_date = date.today()
+        args.num_nodes = None
+        args.random = False
+
+        config = self.yg.init_config(args)
+
+        for k in config_file_data.keys():
+            self.assertEqual(config[k], config_file_data[k])
+
+        self.assertNotEqual(config["start_date"], str(args.start_date))
+
+    def test_init_config_no_dates(self):
+        """
+        Test configuration initialization
+        """
+        import yaml
+
+        test_template_file_name = os.path.join(FILE_DIR, "test_yaml_generator_template.yml.j2")
+        test_config_file_name = os.path.join(FILE_DIR, "test_yaml_generator_config.yml")
+        with open(test_config_file_name, "rt") as settings_file:
+            config_file_data = yaml.safe_load(settings_file)
+        config_file_data.pop("start_date")
+        config_file_data.pop("end_date")
 
         args = argparse.Namespace()
         args.template_file_name = test_template_file_name
