@@ -58,6 +58,26 @@ To use a user defined configuration, use this command::
 The ``-r, --random`` flag can be added which will add a number of generators between 0 and the maximum defined in the configuration file. A user defined template may also be passed in using the ``-t /path/to/template`` flag. If a template is not passed in, the `default found in nise/yaml_generators/static/aws_static_data.yml.j2 will be used`_.
 
 
+Azure yamls
+-----------
+
+The examples listed above for AWS also apply for Azure. Simply switch out ``aws`` for ``azure``.
+
+OCP yamls
+---------
+
+In addition to the examples above, OCP takes an additional optional argument: ``-n, --num-nodes``. This value specifies the maximum number of nodes to generate and over-writes the max value given in the configuration file.
+
+
+OCP-on-Cloud yamls
+------------------
+
+The most straightforward way to generate the necessary yamls for ocp-on-cloud reports is to use the default configuration::
+
+    nise yaml ocp-on-cloud -c default
+
+The above command uses the `ocp_on_cloud_options.yml`_ file. To generate only OCP-on-AWS or OCP-on-Azure, a custom configuration can be supplied which only contains the necessary configuration (e.g. for OCP-on-AWS, the file should only contain the ocp-on-aws fields and exclude all the ocp-on-azure fields.)
+
 .. _`internal configuration found in nise/yaml_generators/static`: ../nise/yaml_generators/static
 
 .. _`a built-in configuration is included in Nise and be found here.`: ../nise/yaml_generators/static/ocp_on_cloud_options.yml

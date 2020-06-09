@@ -51,7 +51,7 @@ To generate completely random data and save the report files in the local direct
 
     nise report aws --start-date 2020-05-03 --write-monthly
 
-To generate a finalized report, the following will make a copy of the monthly report and append ``-finalized`` to the file name.
+To generate a finalized report, the following will make a copy of the monthly report and append ``-finalized`` to the file name::
 
     nise report aws -s 2020-05-03 --aws-finalize copy
 
