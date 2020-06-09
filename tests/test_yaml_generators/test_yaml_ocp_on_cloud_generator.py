@@ -187,7 +187,7 @@ class OCPGeneratorTestCase(TestCase):
 
     def test_process_template(self):
         """Test that process template produces 4 files."""
-        with patch("nise.yaml_generators.ocp_on_cloud.generator._load_yaml_file", return_value=self.yaml_file):
+        with patch("nise.yaml_generators.ocp_on_cloud.generator.load_yaml_file", return_value=self.yaml_file):
             with patch("nise.yaml_generators.ocp_on_cloud.generator.replace_args", side_effect=mock_replace_args):
                 self.yg.process_template(self.args)
         self.assertTrue(os.path.exists(self.yaml_file["ocp-on-azure"]["ocp"]["ocp-output-filename"]))

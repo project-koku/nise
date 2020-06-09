@@ -17,27 +17,13 @@
 import logging
 import os
 
-import yaml
+from nise.__main__ import load_yaml_file
 from nise.yaml_generators.aws.generator import AWSGenerator
 from nise.yaml_generators.azure.generator import AzureGenerator
 from nise.yaml_generators.ocp.generator import OCPGenerator
 
 
 LOG = logging.getLogger(__name__)
-
-
-def _load_yaml_file(filename):
-    """Local data from yaml file."""
-    if not os.path.exists(filename):
-        raise FileNotFoundError(f'Cannot find file "{filename}"')
-    yamlfile = None
-    if filename:
-        try:
-            with open(filename, "r+") as yaml_file:
-                yamlfile = yaml.safe_load(yaml_file)
-        except TypeError:
-            yamlfile = yaml.safe_load(filename)
-    return yamlfile
 
 
 def ocp_label_splitter(label):
@@ -120,7 +106,7 @@ class OCPonCloudGenerator:
 
     def process_template(self, args, config=None):
         """Process specific provider configs to produce yamls."""
-        yaml_file = _load_yaml_file(args.config_file_name)
+        yaml_file = load_yaml_file(args.config_file_name)
         if yaml_file.get("ocp-on-aws"):
             replace_args(args, yaml_file.get("ocp-on-aws").get("ocp"), "ocp", "ocp-on-aws")
             # First OCP:

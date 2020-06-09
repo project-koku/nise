@@ -431,7 +431,7 @@ def _validate_provider_inputs(parser, options):
     return (valid_inputs, provider_type)
 
 
-def _load_yaml_file(filename):
+def load_yaml_file(filename):
     """Local data from yaml file."""
     if not os.path.exists(filename):
         raise FileNotFoundError(f'Cannot find file "{filename}"')
@@ -453,7 +453,7 @@ def _load_static_report_data(options):
     aws_tags = set()
     start_dates = []
     end_dates = []
-    static_report_data = _load_yaml_file(options.get("static_report_file"))
+    static_report_data = load_yaml_file(options.get("static_report_file"))
     for generator_dict in static_report_data.get("generators"):
         for _, attributes in generator_dict.items():
             if attributes.get("start_date"):
