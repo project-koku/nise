@@ -456,9 +456,8 @@ def _load_static_report_data(options):
     static_report_data = load_yaml_file(options.get("static_report_file"))
     for generator_dict in static_report_data.get("generators"):
         for _, attributes in generator_dict.items():
-            if attributes.get("start_date"):
-                generated_start_date = calculate_start_date(attributes.get("start_date"))
-                start_dates.append(generated_start_date)
+            generated_start_date = calculate_start_date(attributes.get("start_date"))
+            start_dates.append(generated_start_date)
 
             if attributes.get("end_date"):
                 generated_end_date = calculate_end_date(generated_start_date, attributes.get("end_date"))
