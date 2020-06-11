@@ -520,6 +520,8 @@ def calculate_end_date(start_date, end_date):
             generated_end_date = offset_date
         else:
             generated_end_date = min(start_date + relativedelta(days=offset), today())
+    if generated_end_date < start_date:
+        raise ValueError("Static yaml error: End date must be after start date.")
     return generated_end_date
 
 
