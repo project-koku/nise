@@ -9,6 +9,8 @@ About
 
 A tool for generating sample cost and usage data for testing purposes.
 
+To submit an issue please visit https://issues.redhat.com/projects/COST/
+
 ---------------
 Getting Started
 ---------------
