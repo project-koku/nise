@@ -143,7 +143,7 @@ class OCPGenerator(AbstractGenerator):
     @staticmethod
     def timestamp(in_date):
         """Provide timestamp for a date."""
-        if not in_date or not isinstance(in_date, datetime.datetime):
+        if not (in_date and isinstance(in_date, datetime.datetime)):
             raise ValueError("in_date must be a date object.")
         return in_date.strftime("%Y-%m-%d %H:%M:%S +0000 UTC")
 
@@ -229,10 +229,7 @@ class OCPGenerator(AbstractGenerator):
         label_str = ""
         for key, value in labels.items():
             label_data = f"{key}:{value}"
-            if label_str:
-                label_str += f"|{label_data}"
-            else:
-                label_str += label_data
+            label_str += f"|{label_data}" if label_str else label_data
         return label_str
 
     def _gen_pods(self, namespaces):
@@ -333,7 +330,7 @@ class OCPGenerator(AbstractGenerator):
                         vol_claim = specified_vc.get("volume_claim_name", self.fake.word())
                         pod = specified_vc.get("pod_name")
                         claim_capacity = min(
-                            specified_vc.get("capacity_gig") * GIGABYTE, (volume_request_gig - total_claims) * GIGABYTE
+                            specified_vc.get("capacity_gig") * GIGABYTE, (volume_request_gig * GIGABYTE - total_claims)
                         )
                         usage_gig = specified_vc.get("volume_claim_usage_gig")
                         if usage_gig:
@@ -393,7 +390,7 @@ class OCPGenerator(AbstractGenerator):
 
     def _init_data_row(self, start, end, **kwargs):  # noqa: C901
         """Create a row of data with placeholder for all headers."""
-        if not start or not end:
+        if not (start and end):
             raise ValueError("start and end must be date objects.")
         if not isinstance(start, datetime.datetime):
             raise ValueError("start must be a date object.")
@@ -406,10 +403,10 @@ class OCPGenerator(AbstractGenerator):
         report_type = kwargs.get(REPORT_TYPE)
         for column in OCP_REPORT_TYPE_TO_COLS[report_type]:
             row[column] = ""
-            if column == "report_period_start":
-                row[column] = OCPGenerator.timestamp(bill_begin)
-            elif column == "report_period_end":
+            if column == "report_period_end":
                 row[column] = OCPGenerator.timestamp(bill_end)
+            elif column == "report_period_start":
+                row[column] = OCPGenerator.timestamp(bill_begin)
         return row
 
     def _add_common_usage_info(self, row, start, end, **kwargs):
