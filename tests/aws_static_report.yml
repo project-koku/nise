@@ -34,12 +34,6 @@ generators:
       amount: 10
       rate: 3
       resource_id: 12345678
-  - DataTransferGenerator:
-      start_date: '8'
-      end_date: '08-01-2018'
-      product_sku: VEAJHRNCCCCC
-      amount: 10
-      rate: 3
 
 finalized_report:
   invoice_id: 123456789
