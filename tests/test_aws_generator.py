@@ -209,6 +209,16 @@ class AWSGeneratorTestCase(TestCase):
         self.assertIn(key, generator.AWS_COLUMNS)
         self.assertNotIn("key-that-has-not-been-added", generator.AWS_COLUMNS)
 
+    def test_unknown_location(self):
+        """Test that an unknown location doesn't result in stack trace."""
+        self.attributes["region"] = "Bad result"
+        key = "resourceTags/user:new-key"
+        tag_cols = {key}
+        two_hours_ago = (self.now - self.one_hour) - self.one_hour
+        generator = TestGenerator(two_hours_ago, self.now, self.payer_account, self.usage_accounts, tag_cols=tag_cols)
+        self.assertIn(key, generator.AWS_COLUMNS)
+        self.assertNotIn("key-that-has-not-been-added", generator.AWS_COLUMNS)
+
 
 class TestRDSGenerator(AWSGeneratorTestCase):
     """Tests for the RDS Generator type."""
