@@ -18,10 +18,9 @@
 import argparse
 import calendar
 import datetime
-import logging
 import os
+from pprint import pformat
 
-import yaml
 from dateutil import parser as date_parser
 from dateutil.relativedelta import relativedelta
 from nise import __version__
@@ -29,11 +28,11 @@ from nise.report import aws_create_report
 from nise.report import azure_create_report
 from nise.report import gcp_create_report
 from nise.report import ocp_create_report
+from nise.util import load_yaml
+from nise.util import LOG
+from nise.util import LOG_VERBOSITY
 from nise.yaml_gen import add_yaml_parser_args
 from nise.yaml_gen import yaml_main
-
-LOG = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO, format="%(asctime)s : %(name)s.%(lineno)d : %(levelname)s : %(message)s")
 
 
 class NiseError(Exception):
@@ -163,6 +162,7 @@ def add_ocp_parser_args(parser):
 def create_parser():
     """Create the parser for incoming data."""
     parser = argparse.ArgumentParser()
+    parser.add_argument("-l", "--log-level", action="count", default=0, help="increase logging verbosity (up to -lll)")
     parser.add_argument("-v", "--version", action="version", version=f"%(prog)s {__version__}")
     subparsers = parser.add_subparsers(dest="command")
     report_parser = subparsers.add_parser("report", help="Generate fake cost usage reports.")
@@ -431,20 +431,6 @@ def _validate_provider_inputs(parser, options):
     return (valid_inputs, provider_type)
 
 
-def load_yaml_file(filename):
-    """Local data from yaml file."""
-    if not os.path.exists(filename):
-        raise FileNotFoundError(f'Cannot find file "{filename}"')
-    yamlfile = None
-    if filename:
-        try:
-            with open(filename, "r+") as yaml_file:
-                yamlfile = yaml.safe_load(yaml_file)
-        except TypeError:
-            yamlfile = yaml.safe_load(filename)
-    return yamlfile
-
-
 def _load_static_report_data(options):
     """Validate/load and set start_date if static file is provided."""
     if not options.get("static_report_file"):
@@ -453,7 +439,7 @@ def _load_static_report_data(options):
     aws_tags = set()
     start_dates = []
     end_dates = []
-    static_report_data = load_yaml_file(options.get("static_report_file"))
+    static_report_data = load_yaml(options.get("static_report_file"))
     for generator_dict in static_report_data.get("generators"):
         for _, attributes in generator_dict.items():
             generated_start_date = calculate_start_date(attributes.get("start_date"))
@@ -555,12 +541,15 @@ def main():
     """Run data generation program."""
     parser = create_parser()
     args = parser.parse_args()
+    if args.log_level:
+        LOG.setLevel(LOG_VERBOSITY[args.log_level])
     if not args.command:
         parser.error('"yaml" or "report" argument must be specified')
     elif args.command == "yaml":
         yaml_main(args)
         return
     options = vars(args)
+    LOG.debug("Options are: %s", pformat(options))
 
     if not (options.get("start_date") or options.get("static_report_file")):
         parser.error("the following arguments are required: -s, --start-date")

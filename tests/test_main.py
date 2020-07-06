@@ -26,10 +26,10 @@ from unittest.mock import patch
 from nise.__main__ import _load_static_report_data
 from nise.__main__ import _validate_provider_inputs
 from nise.__main__ import create_parser
-from nise.__main__ import load_yaml_file
 from nise.__main__ import main
 from nise.__main__ import run
 from nise.__main__ import valid_date
+from nise.util import load_yaml
 
 
 class MockGen:
@@ -63,7 +63,7 @@ class CommandLineTestCase(TestCase):
         User passes no args, should fail with SystemExit
         """
         with self.assertRaises(SystemExit):
-            mock_args.return_value = argparse.Namespace(command=None)
+            mock_args.return_value = argparse.Namespace(command=None, log_level=0)
             main()
 
     def test_main_with_report_args(self):
@@ -280,15 +280,12 @@ class CommandLineTestCase(TestCase):
         with self.assertRaises(SystemExit):
             main()
 
-    def test_load_yaml_file(self):
+    def test_load_yaml(self):
         """
         Test to load static report yaml file.
         """
-        data = load_yaml_file("tests/aws_static_report.yml")
+        data = load_yaml("tests/aws_static_report.yml")
         self.assertIsNotNone(data)
-
-        with self.assertRaises(FileNotFoundError):
-            load_yaml_file("None")
 
     def test_load_static_report_data(self):
         """
@@ -417,7 +414,7 @@ class CommandLineTestCase(TestCase):
 class MainDateTest(TestCase):
     """Functional data testing class."""
 
-    @patch("nise.__main__.load_yaml_file")
+    @patch("nise.__main__.load_yaml")
     def test_aws_dates(self, mock_load):
         """Test that select static-data-file dates return correct dates."""
         aws_gens = [
@@ -463,7 +460,7 @@ class MainDateTest(TestCase):
                     self.assertEqual(attributes.get("start_date"), str(expected.get(key).get("start_date")))
                     self.assertEqual(attributes.get("end_date"), str(expected.get(key).get("end_date")))
 
-    @patch("nise.__main__.load_yaml_file")
+    @patch("nise.__main__.load_yaml")
     def test_ocp_dates(self, mock_load):
         """Test that select static-data-file dates return correct dates."""
         ocp_gens = [
@@ -509,7 +506,7 @@ class MainDateTest(TestCase):
                     self.assertEqual(attributes.get("start_date"), str(expected.get(key).get("start_date")))
                     self.assertEqual(attributes.get("end_date"), str(expected.get(key).get("end_date")))
 
-    @patch("nise.__main__.load_yaml_file")
+    @patch("nise.__main__.load_yaml")
     def test_azure_dates(self, mock_load):
         """Test that select static-data-file dates return correct dates."""
         azure_gens = [

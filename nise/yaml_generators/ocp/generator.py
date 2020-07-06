@@ -14,13 +14,13 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """Utility to generate koku-nise OCP yaml files."""
-import logging
 import os
 from calendar import monthrange
 from datetime import date
 
 import faker
 from dateutil.relativedelta import relativedelta
+from nise.util import LOG
 from nise.yaml_generators.generator import Generator
 from nise.yaml_generators.utils import dicta
 from nise.yaml_generators.utils import generate_name
@@ -28,7 +28,6 @@ from nise.yaml_generators.utils import generate_resource_id
 
 
 FAKER = faker.Faker()
-LOG = logging.getLogger(__name__)
 SEEN_LABELS = set()
 
 

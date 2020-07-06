@@ -22,7 +22,6 @@ import csv
 import gzip
 import importlib
 import json
-import logging
 import os
 import random
 import shutil
@@ -68,8 +67,7 @@ from nise.manifest import ocp_generate_manifest
 from nise.upload import upload_to_azure_container
 from nise.upload import upload_to_gcp_storage
 from nise.upload import upload_to_s3
-
-LOG = logging.getLogger(__name__)
+from nise.util import LOG
 
 
 def create_temporary_copy(path, temp_file_name, temp_dir_name="None"):

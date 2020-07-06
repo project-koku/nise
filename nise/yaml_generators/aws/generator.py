@@ -15,7 +15,6 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """Utility to generate koku-nise AWS yaml files."""
-import logging
 import os
 import random
 import re
@@ -25,6 +24,7 @@ from random import uniform
 
 import faker
 from dateutil.relativedelta import relativedelta
+from nise.util import LOG
 from nise.yaml_generators.aws.ec2_instance_types import INSTANCE_TYPES as EC2_INSTANCES
 from nise.yaml_generators.aws.rds_instance_types import INSTANCE_TYPES as RDS_INSTANCES
 from nise.yaml_generators.aws.regions import REGIONS
@@ -32,8 +32,6 @@ from nise.yaml_generators.generator import Generator
 from nise.yaml_generators.utils import dicta
 from nise.yaml_generators.utils import generate_account_id
 from nise.yaml_generators.utils import generate_name
-
-LOG = logging.getLogger(__name__)
 
 SEEN_NAMES = set()
 SEEN_RESOURCE_IDS = set()

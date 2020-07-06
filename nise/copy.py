@@ -15,11 +15,10 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """Defines the upload mechanism to local directories for simulation."""
-import logging
 import os
 import shutil
 
-LOG = logging.getLogger(__name__)
+from nise.util import LOG
 
 
 def copy_to_local_dir(local_dir_home, local_path, local_file_path=None):

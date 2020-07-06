@@ -15,7 +15,6 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """Utility to generate koku-nise Azure yaml files"""
-import logging
 import os
 import random
 from calendar import monthrange
@@ -24,13 +23,13 @@ from uuid import uuid4
 
 import faker
 from dateutil.relativedelta import relativedelta
+from nise.util import LOG
 from nise.yaml_generators.generator import Generator
 from nise.yaml_generators.utils import dicta
 from nise.yaml_generators.utils import generate_name
 
 
 FAKER = faker.Faker()
-LOG = logging.getLogger(__name__)
 ACCTS_STR = {
     "sql": ("Microsoft.Sql", "servers"),
     "storage": ("Microsoft.Storage", "storageAccounts"),

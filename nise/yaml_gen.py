@@ -16,7 +16,6 @@
 #
 """YAML File Generator."""
 import argparse
-import logging
 import os
 from datetime import datetime
 
@@ -36,8 +35,6 @@ GENERATOR_MAP = {
     "AZURE": AzureGenerator(),
     "OCP-ON-CLOUD": OCPonCloudGenerator(),
 }
-
-LOG = logging.getLogger(__name__)
 
 
 class DateRangeArgsError(Exception):
