@@ -14,15 +14,12 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
-import logging
 import os
 
+from nise.util import LOG
 from nise.yaml_generators.aws.generator import AWSGenerator
 from nise.yaml_generators.azure.generator import AzureGenerator
 from nise.yaml_generators.ocp.generator import OCPGenerator
-
-
-LOG = logging.getLogger(__name__)
 
 
 def ocp_label_splitter(label):
@@ -105,9 +102,9 @@ class OCPonCloudGenerator:
 
     def process_template(self, args, config=None):
         """Process specific provider configs to produce yamls."""
-        from nise.__main__ import load_yaml_file
+        from nise.util import load_yaml
 
-        yaml_file = load_yaml_file(args.config_file_name)
+        yaml_file = load_yaml(args.config_file_name)
         if yaml_file.get("ocp-on-aws"):
             replace_args(args, yaml_file.get("ocp-on-aws").get("ocp"), "ocp", "ocp-on-aws")
             # First OCP:

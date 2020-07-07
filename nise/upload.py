@@ -15,7 +15,6 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """Defines the upload mechanism to various clouds."""
-import logging
 import os
 import sys
 import traceback
@@ -27,9 +26,8 @@ from google.cloud import storage
 from google.cloud.exceptions import GoogleCloudError
 from msrestazure.azure_exceptions import ClientException
 from msrestazure.azure_exceptions import CloudError
+from nise.util import LOG
 from requests.exceptions import ConnectionError as BotoConnectionError
-
-LOG = logging.getLogger(__name__)
 
 
 def upload_to_s3(bucket_name, bucket_file_path, local_path):

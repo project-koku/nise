@@ -20,6 +20,6 @@ from nise.generators.aws.data_transfer_generator import DataTransferGenerator  #
 from nise.generators.aws.ebs_generator import EBSGenerator  # noqa: F401
 from nise.generators.aws.ec2_generator import EC2Generator  # noqa: F401
 from nise.generators.aws.rds_generator import RDSGenerator  # noqa: F401
-from nise.generators.aws.route53_generatory import Route53Generator  # noqa: F401
+from nise.generators.aws.route53_generator import Route53Generator  # noqa: F401
 from nise.generators.aws.s3_generator import S3Generator  # noqa: F401
 from nise.generators.aws.vpc_generator import VPCGenerator  # noqa: F401

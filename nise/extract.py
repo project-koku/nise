@@ -14,7 +14,6 @@
 #
 """Extracts OCP .gz payload to local directory."""
 import json
-import logging
 import os
 import shutil
 import tempfile
@@ -23,8 +22,7 @@ from tarfile import TarFile
 
 from dateutil import parser
 from dateutil.relativedelta import relativedelta
-
-LOG = logging.getLogger(__name__)
+from nise.util import LOG
 
 
 def month_date_range(for_date_time):
