@@ -26,6 +26,7 @@ from nise.yaml_generators.azure.generator import AzureGenerator
 from nise.yaml_generators.ocp.generator import OCPGenerator
 from nise.yaml_generators.ocp_on_cloud.generator import OCPonCloudGenerator
 
+
 FILE_DIR = os.path.dirname(os.path.abspath(__file__))
 STATIC_DIR = os.path.join(os.path.dirname(FILE_DIR), "nise/yaml_generators/static")
 

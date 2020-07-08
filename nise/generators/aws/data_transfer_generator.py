@@ -29,9 +29,14 @@ class DataTransferGenerator(AWSGenerator):
         ("{}-{}-AWS-Out-Bytes", "PublicIP-Out", "InterRegion Outbound"),
     )
 
-    def __init__(self, start_date, end_date, payer_account, usage_accounts, attributes=None, tag_cols=None):
+    def __init__(
+        self, start_date, end_date, payer_account, usage_accounts, attributes=None, tag_cols=None, user_config=None
+    ):
         """Initialize the data transfer generator."""
-        super().__init__(start_date, end_date, payer_account, usage_accounts, attributes, tag_cols)
+        super().__init__(
+            start_date, end_date, payer_account, usage_accounts, attributes, tag_cols, user_config=user_config
+        )
+
         self._amount = None
         self._rate = None
         self._product_sku = None

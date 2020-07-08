@@ -31,7 +31,37 @@ GCP_REPORT_COLUMNS = (
 class GCPGenerator(AbstractGenerator):
     """Abstract class for GCP generators."""
 
-    def __init__(self, start_date, end_date, project, attributes=None):
+    TEMPLATE = "nise/generators/gcp/generator.j2"
+
+    TEMPLATE_KWARGS = {
+        "cloudstorage_gens": {
+            "line_item": "a",
+            "measurement": "b",
+            "measurement_total_consumption": "c",
+            "measurement_units": "d",
+            "cost": "e",
+            "currency": "f",
+            "description": "g",
+            "credit": "h",
+            "credit_amount": "i",
+            "credit_currency": "j",
+        },
+        "computeengine_gens": {
+            "line_item": "a",
+            "measurement": "b",
+            "measurement_total_consumption": "c",
+            "measurement_units": "d",
+            "cost": "e",
+            "currency": "f",
+            "description": "g",
+            "credit": "h",
+            "credit_amount": "i",
+            "credit_currency": "j",
+        },
+        "project_gens": {"account": "a", "number": "b", "id": "c", "labels": "d"},
+    }
+
+    def __init__(self, start_date, end_date, project, attributes=None, user_config=None):
         """
         Initialize the generator.
 
@@ -44,7 +74,8 @@ class GCPGenerator(AbstractGenerator):
             num_instances (int): number of instances to generate fake data for.
 
         """
-        super().__init__(start_date, end_date)
+        super().__init__(start_date, end_date, user_config=user_config)
+
         self.project = project
         self.num_instances = 1 if attributes else randint(2, 60)
         self.attributes = attributes

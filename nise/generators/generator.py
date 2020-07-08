@@ -16,10 +16,18 @@
 #
 """Defines the abstract generator."""
 import datetime
+import os
 from abc import ABC
 from abc import abstractmethod
 
 from faker import Faker
+from jinja2 import Environment
+from jinja2 import FunctionLoader
+from nise.jinja_ext import faker_passthrough
+from nise.util import deepupdate
+from nise.util import load_yaml
+from nise.util import LOG
+
 
 REPORT_TYPE = "report_type"
 
@@ -27,13 +35,41 @@ REPORT_TYPE = "report_type"
 class AbstractGenerator(ABC):
     """Defines a abstract class for generators."""
 
-    def __init__(self, start_date, end_date):
+    # Jinja template filename defined by each generator
+    TEMPLATE = None
+
+    def __init__(self, start_date, end_date, user_config=None):
         """Initialize the generator."""
+        if not self.TEMPLATE:
+            raise AttributeError("Class attribute 'TEMPLATE' must be defined.")
+
+        if not self.TEMPLATE_KWARGS:
+            raise AttributeError("Class attribute 'TEMPLATE_KWARGS' must be defined.")
+
+        env = Environment(loader=FunctionLoader(self.load_template))
+        env.globals["faker"] = faker_passthrough
+        template = env.get_template(self.TEMPLATE)
+
+        if user_config:
+            user_template = env.get_template(user_config)
+            user_rendered = user_template.render(**self.TEMPLATE_KWARGS)
+            user_config = load_yaml(user_rendered)
+
+            default_rendered = template.render(**self.TEMPLATE_KWARGS)
+            default_config = load_yaml(default_rendered)
+
+            self.config = deepupdate(default_config, user_config)
+        else:
+            self.config = template.render(**self.TEMPLATE_KWARGS)
+
+        LOG.debug("Current config: %s", self.config)
+
         self.start_date = start_date
         self.end_date = end_date
         self.hours = self._set_hours()
         self.days = self._set_days()
         self.fake = Faker()
+
         super().__init__()
 
     def _set_hours(self):
@@ -103,3 +139,14 @@ class AbstractGenerator(ABC):
     @abstractmethod
     def generate_data(self, report_type=None):
         """Responsible for generating data."""
+
+    def load_template(self, name):
+        """Responsible for loading the Jinja template."""
+        template = None
+        if os.path.exists(name):
+            try:
+                with open(name, "r") as fh:
+                    template = fh.read()
+            except (IOError, OSError, TypeError) as exc:
+                LOG.error(exc)
+        return template

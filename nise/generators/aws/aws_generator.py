@@ -231,8 +231,110 @@ class AWSGenerator(AbstractGenerator):
         ("AWS GovCloud (US)", "us-gov-west-1", "us-gov-west-1a", "USGW1-EBS"),
     )
 
-    def __init__(self, start_date, end_date, payer_account, usage_accounts, attributes=None, tag_cols=None):
+    TEMPLATE = "nise/generators/aws/generator.j2"
+
+    TEMPLATE_KWARGS = {
+        "data_transfer_gens": [
+            {
+                "start_date": "a",
+                "end_date": "b",
+                "resource_id": "c",
+                "product_sku": "d",
+                "amount": "e",
+                "rate": "f",
+                "tags": [{"key": "g", "value": "h"}],
+            }
+        ],
+        "ebs_gens": [
+            {
+                "start_date": "a",
+                "end_date": "b",
+                "resource_id": "c",
+                "product_sku": "d",
+                "amount": "e",
+                "rate": "f",
+                "tags": [{"key": "g", "value": "h"}],
+            }
+        ],
+        "ec2_gens": [
+            {
+                "start_date": "a",
+                "end_date": "b",
+                "resource_id": "c",
+                "product_sku": "d",
+                "region": "e",
+                "processor_arch": "f",
+                "instance_type": {
+                    "inst_type": "g",
+                    "vcpu": "h",
+                    "memory": "i",
+                    "storage": "j",
+                    "family": "k",
+                    "cost": "l",
+                    "rate": "m",
+                },
+                "tags": [{"key": "n", "value": "o"}],
+            }
+        ],
+        "rds_gens": [
+            {
+                "start_date": "a",
+                "end_date": "b",
+                "resource_id": "c",
+                "product_sku": "d",
+                "region": "e",
+                "processor_arch": "f",
+                "instance_type": {
+                    "inst_type": "g",
+                    "vcpu": "h",
+                    "memory": "i",
+                    "storage": "j",
+                    "family": "k",
+                    "cost": "l",
+                    "rate": "m",
+                },
+                "tags": [{"key": "n", "value": "o"}],
+            }
+        ],
+        "route53_gens": [
+            {
+                "start_date": "a",
+                "end_date": "b",
+                "resource_id": "c",
+                "product_sku": "d",
+                "tags": [{"key": "e", "value": "f"}],
+            }
+        ],
+        "s3_gens": [
+            {
+                "start_date": "a",
+                "end_date": "b",
+                "resource_id": "c",
+                "product_sku": "d",
+                "amount": "e",
+                "rate": "f",
+                "tags": [{"key": "g", "value": "h"}],
+            }
+        ],
+        "vpc_gens": [
+            {
+                "start_date": "a",
+                "end_date": "b",
+                "resource_id": "c",
+                "product_sku": "d",
+                "tags": [{"key": "e", "value": "f"}],
+            }
+        ],
+        "payer": "x",
+        "users": ["x", "y", "z"],
+    }
+
+    def __init__(
+        self, start_date, end_date, payer_account, usage_accounts, attributes=None, tag_cols=None, user_config=None
+    ):
         """Initialize the generator."""
+        super().__init__(start_date, end_date, user_config=user_config)
+
         self.payer_account = payer_account
         self.usage_accounts = usage_accounts
         self.attributes = attributes
@@ -241,7 +343,6 @@ class AWSGenerator(AbstractGenerator):
         if tag_cols:
             self.RESOURCE_TAG_COLS.update(tag_cols)
             self.AWS_COLUMNS.update(tag_cols)
-        super().__init__(start_date, end_date)
 
     @staticmethod
     def timestamp(in_date):

@@ -303,19 +303,18 @@ def _generate_accounts(static_report_data=None):
     return payer_account, usage_accounts
 
 
-def _get_generators(generator_list):
+def _get_generators(generator_list=[]):
     """Collect a list of report generators."""
     generators = []
-    if generator_list:
-        for item in generator_list:
-            for generator_cls, attributes in item.items():
-                generator_obj = {"generator": getattr(importlib.import_module(__name__), generator_cls)}
-                if attributes.get("start_date"):
-                    attributes["start_date"] = parser.parse(attributes.get("start_date"))
-                if attributes.get("end_date"):
-                    attributes["end_date"] = parser.parse(attributes.get("end_date"))
-                generator_obj["attributes"] = attributes
-                generators.append(generator_obj)
+    for item in generator_list:
+        for generator_cls, attributes in item.items():
+            generator_obj = {"generator": getattr(importlib.import_module(__name__), generator_cls)}
+            if attributes.get("start_date"):
+                attributes["start_date"] = parser.parse(attributes.get("start_date"))
+            if attributes.get("end_date"):
+                attributes["end_date"] = parser.parse(attributes.get("end_date"))
+            generator_obj["attributes"] = attributes
+            generators.append(generator_obj)
     return generators
 
 
@@ -432,8 +431,15 @@ def aws_create_report(options):  # noqa: C901
 
                 gen_start_date, gen_end_date = _create_generator_dates_from_yaml(attributes, month)
 
+            # XXX: gen start
             gen = generator_cls(
-                gen_start_date, gen_end_date, payer_account, usage_accounts, attributes, options.get("aws_tags")
+                gen_start_date,
+                gen_end_date,
+                payer_account,
+                usage_accounts,
+                attributes,
+                options.get("aws_tags"),
+                user_config=options.get("static_report_file"),
             )
             num_instances = 1 if attributes else randint(2, 60)
             for _ in range(num_instances):
@@ -550,7 +556,16 @@ def azure_create_report(options):  # noqa: C901
             gen_start_date, gen_end_date = _create_generator_dates_from_yaml(attributes, month)
 
             attributes["meter_cache"] = meter_cache
-            gen = generator_cls(gen_start_date, gen_end_date, payer_account, usage_accounts, attributes)
+
+            # XXX: gen start
+            gen = generator_cls(
+                gen_start_date,
+                gen_end_date,
+                payer_account,
+                usage_accounts,
+                attributes,
+                user_config=options.get("static_report_file"),
+            )
             data += gen.generate_data()
             meter_cache = gen.get_meter_cache()
 
@@ -627,7 +642,10 @@ def ocp_create_report(options):  # noqa: C901
 
                 gen_start_date, gen_end_date = _create_generator_dates_from_yaml(attributes, month)
 
-            gen = generator_cls(gen_start_date, gen_end_date, attributes)
+            # XXX: gen start
+            gen = generator_cls(
+                gen_start_date, gen_end_date, attributes, user_config=options.get("static_report_file")
+            )
             for report_type in gen.ocp_report_generation.keys():
                 LOG.info(f"Generating data for {report_type} for {month.get('name')}")
                 for hour in gen.generate_data(report_type):
@@ -732,7 +750,10 @@ def gcp_create_report(options):  # noqa: C901
                 end_date = attributes.get("end_date")
 
             generator_cls = generator.get("generator")
-            gen = generator_cls(start_date, end_date, project, attributes=attributes)
+            # XXX: gen start
+            gen = generator_cls(
+                start_date, end_date, project, attributes=attributes, user_config=options.get("static_report_file")
+            )
             generated_data = gen.generate_data()
             for key, item in generated_data.items():
                 if key in data:

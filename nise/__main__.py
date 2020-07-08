@@ -518,25 +518,6 @@ def fix_dates(options, provider_type):
         options["end_date"] += relativedelta(days=1)
 
 
-def run(provider_type, options):
-    """Run nise."""
-    static_data_bool = _load_static_report_data(options)
-    if not options.get("start_date"):
-        raise NiseError("'start_date' is required in static files.")
-    if not static_data_bool:
-        fix_dates(options, provider_type)
-
-    LOG.info("Creating reports...")
-    if provider_type == "aws":
-        aws_create_report(options)
-    elif provider_type == "azure":
-        azure_create_report(options)
-    elif provider_type == "ocp":
-        ocp_create_report(options)
-    elif provider_type == "gcp":
-        gcp_create_report(options)
-
-
 def main():
     """Run data generation program."""
     parser = create_parser()
@@ -556,7 +537,21 @@ def main():
 
     _, provider_type = _validate_provider_inputs(parser, options)
 
-    run(provider_type, options)
+    # static_data_bool = _load_static_report_data(options)
+    # if not options.get("start_date"):
+    #     raise NiseError("'start_date' is required in static files.")
+    # if not static_data_bool:
+    #     fix_dates(options, provider_type)
+
+    LOG.info("Creating reports...")
+    if provider_type == "aws":
+        aws_create_report(options)
+    elif provider_type == "azure":
+        azure_create_report(options)
+    elif provider_type == "ocp":
+        ocp_create_report(options)
+    elif provider_type == "gcp":
+        gcp_create_report(options)
 
 
 if __name__ == "__main__":

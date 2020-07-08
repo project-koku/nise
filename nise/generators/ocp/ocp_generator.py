@@ -89,13 +89,47 @@ OCP_REPORT_TYPE_TO_COLS = {
 class OCPGenerator(AbstractGenerator):
     """Defines a abstract class for generators."""
 
-    def __init__(self, start_date, end_date, attributes):
+    TEMPLATE = "nise/generators/ocp/generator.j2"
+
+    TEMPLATE_KWARGS = {
+        "start_date": "a",
+        "end_date": "b",
+        "nodes": [{"name": "c", "cpu_cores": "d", "memory_gig": "e", "resource_id": "f"}],
+        "namespaces": [
+            {
+                "namespace": "g",
+                "pods": [
+                    {
+                        "name": "h",
+                        "cpu_request": "i",
+                        "mem_request_gig": "j",
+                        "cpu_limit": "k",
+                        "mem_limit_gig": "l",
+                        "pod_seconds": "m",
+                        "labels": "n",
+                    }
+                ],
+                "volumes": [
+                    {
+                        "name": "o",
+                        "storage_class": "p",
+                        "volume_request_gig": "q",
+                        "labels": "r",
+                        "volume_claims": [{"name": "s", "pod_name": "t", "labels": "u", "capacity_gig": "v"}],
+                    }
+                ],
+            }
+        ],
+    }
+
+    def __init__(self, start_date, end_date, attributes, user_config=None):
         """Initialize the generator."""
+        super().__init__(start_date, end_date, user_config=user_config)
+
         self._nodes = None
         if attributes:
             self._nodes = attributes.get("nodes")
 
-        super().__init__(start_date, end_date)
         self.apps = [
             self.fake.word(),
             self.fake.word(),
