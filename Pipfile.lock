@@ -956,11 +956,10 @@
         },
         "typing": {
             "hashes": [
-                "sha256:91dfe6f3f706ee8cc32d38edbbf304e9b7583fb37108fef38229617f8b3eba23",
-                "sha256:c8cabb5ab8945cd2f54917be357d134db9cc1eb039e59d1606dc1e60cb1d9d36",
-                "sha256:f38d83c5a7a7086543a0f649564d661859c5146a85775ab90c0d2f93ffaa9714"
+                "sha256:6f6f3553709d2234e412092e5daa93aaaaa42ea1854505442280b39f9311707f",
+                "sha256:e470592ab1725d6810cd91d687c857a853d136d9a9dc9289713fa887f39b931a"
             ],
-            "version": "==3.7.4.1"
+            "version": "==3.7.4.2"
         },
         "urllib3": {
             "hashes": [
