@@ -612,17 +612,14 @@ def write_ocp_file(file_number, cluster_id, month_name, year, report_type, data)
 
 def ocp_create_report(options):  # noqa: C901
     """Create a usage report file."""
+    cluster_id = options.get("ocp_cluster_id")
+
+    generators = [{"generator": OCPGenerator}]
+
     start_date = options.get("start_date")
     end_date = options.get("end_date")
-    cluster_id = options.get("ocp_cluster_id")
-    static_report_data = options.get("static_report_data")
-    if static_report_data:
-        generators = _get_generators(static_report_data.get("generators"))
-    else:
-        generators = [{"generator": OCPGenerator, "attributes": None}]
+    months = _create_month_list(start_date, end_date)  # FIXME: DRY this up
 
-    months = _create_month_list(start_date, end_date)
-    insights_upload = options.get("insights_upload")
     write_monthly = options.get("write_monthly", False)
     for month in months:
         data = {OCP_POD_USAGE: [], OCP_STORAGE_USAGE: [], OCP_NODE_LABEL: []}
@@ -630,9 +627,11 @@ def ocp_create_report(options):  # noqa: C901
         monthly_files = []
         for generator in generators:
             generator_cls = generator.get("generator")
-            attributes = generator.get("attributes")
+
             gen_start_date = month.get("start")
             gen_end_date = month.get("end")
+
+            attributes = generator.get("attributes")
             if attributes:
                 # Skip if generator usage is outside of current month
                 if attributes.get("end_date") < month.get("start"):
@@ -642,14 +641,12 @@ def ocp_create_report(options):  # noqa: C901
 
                 gen_start_date, gen_end_date = _create_generator_dates_from_yaml(attributes, month)
 
-            # XXX: gen start
-            gen = generator_cls(
-                gen_start_date, gen_end_date, attributes, user_config=options.get("static_report_file")
-            )
+            gen = generator_cls(gen_start_date, gen_end_date, user_config=options.get("static_report_file"))
             for report_type in gen.ocp_report_generation.keys():
                 LOG.info(f"Generating data for {report_type} for {month.get('name')}")
                 for hour in gen.generate_data(report_type):
                     data[report_type] += [hour]
+
                     if len(data[report_type]) == options.get("row_limit"):
                         file_numbers[report_type] += 1
                         month_output_file = write_ocp_file(
@@ -677,6 +674,7 @@ def ocp_create_report(options):  # noqa: C901
             )
             monthly_files.append(month_output_file)
 
+        insights_upload = options.get("insights_upload")
         if insights_upload:
             # Generate manifest for all files
             ocp_assembly_id = uuid4()

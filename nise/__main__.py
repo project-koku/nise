@@ -511,11 +511,31 @@ def calculate_end_date(start_date, end_date):
     return generated_end_date
 
 
+# FIXME: this should go in the AzureGenerator
 def fix_dates(options, provider_type):
     """Correct any unique dates."""
     # Azure end_date is always the following day
     if provider_type == "azure":
         options["end_date"] += relativedelta(days=1)
+
+
+def run(provider_type, options):
+    """Run nise."""
+    static_data_bool = _load_static_report_data(options)
+    if not options.get("start_date"):
+        raise NiseError("'start_date' is required in static files.")
+    if not static_data_bool:
+        fix_dates(options, provider_type)
+
+    LOG.info("Creating reports...")
+    if provider_type == "aws":
+        aws_create_report(options)
+    elif provider_type == "azure":
+        azure_create_report(options)
+    elif provider_type == "ocp":
+        ocp_create_report(options)
+    elif provider_type == "gcp":
+        gcp_create_report(options)
 
 
 def main():
@@ -537,21 +557,7 @@ def main():
 
     _, provider_type = _validate_provider_inputs(parser, options)
 
-    # static_data_bool = _load_static_report_data(options)
-    # if not options.get("start_date"):
-    #     raise NiseError("'start_date' is required in static files.")
-    # if not static_data_bool:
-    #     fix_dates(options, provider_type)
-
-    LOG.info("Creating reports...")
-    if provider_type == "aws":
-        aws_create_report(options)
-    elif provider_type == "azure":
-        azure_create_report(options)
-    elif provider_type == "ocp":
-        ocp_create_report(options)
-    elif provider_type == "gcp":
-        gcp_create_report(options)
+    run(provider_type, options)
 
 
 if __name__ == "__main__":
