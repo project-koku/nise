@@ -51,7 +51,7 @@ hccm_local_container() {
                            -v $KOKU_PATH/testing/pvc_dir/insights_local:/var/tmp/masu/insights_local${FLAGS} \
                            -v $NISE_PATH:/var/nise/${FLAGS} \
                            $IMAGE \
-                           bash -c "iqe plugin uninstall hccm && iqe plugin install --editable /hccm_plugin/ && cd /var/nise/scripts/; ./entrypoint_append.sh; cd -; $COMMAND" \
+                           bash -c "iqe plugin uninstall cost_management && iqe plugin install --editable /hccm_plugin/ && cd /var/nise/scripts/; ./entrypoint_append.sh; cd -; $COMMAND" \
 
 }
 
