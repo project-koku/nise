@@ -15,7 +15,9 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """OCP Generator Unit Tests."""
+import os
 import random
+import tempfile
 from copy import copy
 from datetime import datetime
 from datetime import timedelta
@@ -45,23 +47,27 @@ class OCPGeneratorTestCase(TestCase):
         self.one_day = timedelta(hours=24)
         self.two_hours_ago = self.now - (2 * self.one_hour)
 
+        namespace = f"namespace_{self.fake.word()}"
         self.attributes = {
             "nodes": [
                 {
                     "node": self.fake.uuid4(),
                     "node_name": self.fake.word(),
-                    "node_labels": (
+                    "labels": (
                         f"label_{self.fake.word()}:{self.fake.word()}",
                         f"|label_{self.fake.word()}:{self.fake.word()}",
                     ),
                     "cpu_cores": self.fake.pyint(1, 10),
                     "memory_gig": self.fake.pyint(1, 32),
-                    "namespaces": {
-                        f"namespace_{self.fake.word()}": {
+                    "resource_id": "i-" + self.fake.ean8(),
+                    "namespaces": [
+                        {
+                            "namespace_name": namespace,
                             "pods": [
                                 {
                                     "pod": self.fake.uuid4(),
                                     "pod_name": f"pod_{self.fake.word()}",
+                                    "namespace": namespace,
                                     "cpu_request": self.fake.pyint(1, 10),
                                     "mem_request_gig": self.fake.pyint(1, 32),
                                     "cpu_limit": self.fake.pyint(1, 10),
@@ -77,6 +83,7 @@ class OCPGeneratorTestCase(TestCase):
                                 {
                                     "pod": self.fake.uuid4(),
                                     "pod_name": f"pod_{self.fake.word()}",
+                                    "namespace": namespace,
                                     "cpu_request": self.fake.pyint(1, 10),
                                     "mem_request_gig": self.fake.pyint(1, 32),
                                     "cpu_limit": self.fake.pyint(1, 10),
@@ -91,10 +98,12 @@ class OCPGeneratorTestCase(TestCase):
                                 {
                                     "volume_name": f"vol_{self.fake.word()}",
                                     "volume_request_gig": self.fake.pyint(1, 100),
+                                    "namespace": namespace,
                                     "volume_claims": [
                                         {
                                             "volume_claim_name": f"volumeclaim_{self.fake.word()}",
                                             "pod_name": f"pod_{self.fake.word()}",
+                                            "namespace": namespace,
                                             "capacity_gig": self.fake.pyint(1, 100),
                                             "volume_claim_usage_gig": self._usage_dict(),
                                             "labels": (
@@ -103,6 +112,7 @@ class OCPGeneratorTestCase(TestCase):
                                             ),
                                         }
                                     ],
+                                    "storage_class": random.choice(("gp2", "fast", "slow", "gold")),
                                     "labels": (
                                         f"label_{self.fake.word()}:{self.fake.word()}",
                                         f"|label_{self.fake.word()}:{self.fake.word()}",
@@ -110,7 +120,7 @@ class OCPGeneratorTestCase(TestCase):
                                 }
                             ],
                         }
-                    },
+                    ],
                 }
             ]
         }
@@ -123,36 +133,43 @@ class OCPGeneratorTestCase(TestCase):
         return dikt
 
     def test_init_no_attributes(self):
-        """Test the init without attributes."""
-        generator = OCPGenerator(self.two_hours_ago, self.now, {})
-
-        for attribute in ["nodes", "namespaces", "pods", "namespace2pods", "volumes"]:
-            with self.subTest(attribute=attribute):
-                attr = getattr(generator, attribute)
-                self.assertIsNotNone(attr)
-
-                if attribute == "nodes":
-                    self.assertIsInstance(attr, list)
-                    self.assertNotEqual(attr, [])
-                else:
-                    self.assertIsInstance(attr, dict)
-                    self.assertNotEqual(attr, {})
+        """Test the init generates at least one node."""
+        generator = OCPGenerator(self.two_hours_ago, self.now)
+        self.assertIsNotNone(generator.nodes)
+        self.assertIsInstance(generator.nodes, list)
+        self.assertGreaterEqual(len(generator.nodes), 1)
 
     def test_init_with_attributes(self):
-        """Test the init with attributes."""
-        generator = OCPGenerator(self.two_hours_ago, self.now, self.attributes)
+        """Test the init with attributes generates a node with the provided name."""
+        in_yaml = """
+---
+generators:
+  - OCPGenerator:
+      start_date: 1970-01-01
+      end_date: 1970-02-01
+      nodes:
+        - node_name: test_node
+          namespaces:
+            - namespace_name: test_namespace
+              pods:
+                - pod_name: test_pod
+              volumes:
+                - volume_name: test_volume
+                  volume_claims:
+                  - volume_claim_name: test_claim
+"""
 
-        for attribute in ["nodes", "namespaces", "pods", "namespace2pods", "volumes"]:
-            with self.subTest(attribute=attribute):
-                attr = getattr(generator, attribute)
-                self.assertIsNotNone(attr)
+        _, tmp_filename = tempfile.mkstemp()
+        with open(tmp_filename, "w+") as tmp_handle:
+            tmp_handle.write(in_yaml)
 
-                if attribute == "nodes":
-                    self.assertIsInstance(attr, list)
-                    self.assertNotEqual(attr, [])
-                else:
-                    self.assertIsInstance(attr, dict)
-                    self.assertNotEqual(attr, {})
+        generator = OCPGenerator(self.two_hours_ago, self.now, user_config=tmp_filename)
+        self.assertIsNotNone(generator.nodes)
+        self.assertIsInstance(generator.nodes, list)
+        self.assertGreaterEqual(len(generator.nodes), 1)
+        self.assertEqual(generator.nodes[0].get("node_name"), "test_node")
+
+        os.remove(tmp_filename)
 
     def test_add_common_usage_info(self):
         """Test that add_common_usage_info updates usage timestamps."""
@@ -164,9 +181,11 @@ class OCPGeneratorTestCase(TestCase):
 
     def test_gen_hourly_node_label_usage(self):
         """Test that gen_hourly_node_label_usage generates rows."""
-        generator = OCPGenerator(self.two_hours_ago, self.now, self.attributes)
+        generator = OCPGenerator(self.two_hours_ago, self.now)
+        generator.nodes = self.attributes.get("nodes")
+
         namespaces = self.attributes.get("nodes")[0].get("namespaces")
-        for dikt in namespaces.values():
+        for dikt in namespaces:
             pods = dikt.get("pods")
             for pod in pods:
                 with self.subTest(pod=pod):
@@ -181,9 +200,11 @@ class OCPGeneratorTestCase(TestCase):
 
     def test_gen_hourly_pods_usage(self):
         """Test that gen_hourly_pods_usage generates rows."""
-        generator = OCPGenerator(self.two_hours_ago, self.now, self.attributes)
+        generator = OCPGenerator(self.two_hours_ago, self.now)
+        generator.nodes = self.attributes.get("nodes")
+
         namespaces = self.attributes.get("nodes")[0].get("namespaces")
-        for dikt in namespaces.values():
+        for dikt in namespaces:
             pods = dikt.get("pods")
             for pod in pods:
                 with self.subTest(pod=pod):
@@ -198,9 +219,11 @@ class OCPGeneratorTestCase(TestCase):
 
     def test_gen_hourly_storage_usage(self):
         """Test that gen_hourly_storage_usage generates rows."""
-        generator = OCPGenerator(self.two_hours_ago, self.now, self.attributes)
+        generator = OCPGenerator(self.two_hours_ago, self.now)
+        generator.nodes = self.attributes.get("nodes")
+
         namespaces = self.attributes.get("nodes")[0].get("namespaces")
-        for dikt in namespaces.values():
+        for dikt in namespaces:
             pods = dikt.get("pods")
             for pod in pods:
                 with self.subTest(pod=pod):
@@ -213,65 +236,76 @@ class OCPGeneratorTestCase(TestCase):
                                     self.assertIsNotNone(row[col])
                         break  # only test one row
 
-    def test_gen_namespaces_with_namespace(self):
-        """Test that gen_namespaces arranges the output dict in the expected way.
-
-            If namespaces are specified, namespaces are not generated.
-        """
-        in_nodes = self.attributes.get("nodes")
-        generator = OCPGenerator(self.two_hours_ago, self.now, self.attributes)
-        out_namespaces = generator._gen_namespaces(in_nodes)
-        self.assertEqual(list(out_namespaces.keys()), list(in_nodes[0].get("namespaces").keys()))
-        for value in out_namespaces.values():
-            with self.subTest(node=value):
-                self.assertEqual(list(value.get("namespaces").keys()), list(in_nodes[0].get("namespaces").keys()))
-
     def test_gen_namespaces_without_namespace(self):
         """Test that gen_namespaces arranges the output dict in the expected way.
 
             If no namespaces are specified, namespaces are generated.
         """
         in_nodes = self.attributes.get("nodes")
-        del in_nodes[0]["namespaces"]
-        generator = OCPGenerator(self.two_hours_ago, self.now, self.attributes)
-        out_namespaces = generator._gen_namespaces(in_nodes)
+        generator = OCPGenerator(self.two_hours_ago, self.now)
+        out_namespaces = generator._gen_namespaces(in_nodes[0])
 
         # auto-generating namespaces should create at least 2 namespaces
-        self.assertGreater(len(list(out_namespaces.keys())), 1)
-
-        for value in out_namespaces.values():
-            with self.subTest(namespace=value):
-                self.assertEqual(list(value.keys()), list(in_nodes[0].keys()))
+        self.assertGreaterEqual(len(out_namespaces), 1)
 
     def test_gen_nodes_with_nodes(self):
         """Test that gen_nodes arranges the output dict in the expected way.
 
-            If nodes are specified, nodes are not generated.
+            If nodes are specified, the specified data is overlayed onto the generated data.
         """
-        in_nodes = self.attributes.get("nodes")
-        generator = OCPGenerator(self.two_hours_ago, self.now, self.attributes)
-        out_nodes = generator._gen_nodes()
-        self.assertEqual(len(list(out_nodes)), len(list(in_nodes)))
-        expected_keys = ["name", "cpu_cores", "memory_bytes", "resource_id", "namespaces", "node_labels"]
-        self.assertEqual(list(out_nodes[0].keys()), expected_keys)
+        in_yaml = """
+---
+generators:
+  - OCPGenerator:
+      start_date: 1970-01-01
+      end_date: 1970-02-01
+      nodes:
+        - node_name: test_node
+          namespaces:
+            - namespace_name: test_namespace
+              pods:
+                - pod_name: test_pod
+              volumes:
+                - volume_name: test_volume
+                  volume_claims:
+                  - volume_claim_name: test_claim
+"""
+
+        _, tmp_filename = tempfile.mkstemp()
+        with open(tmp_filename, "w+") as tmp_handle:
+            tmp_handle.write(in_yaml)
+
+        generator = OCPGenerator(self.two_hours_ago, self.now, user_config=tmp_filename)
+        self.assertGreaterEqual(len(generator.nodes), 2)
+        self.assertEqual(generator.nodes[0].get("node_name"), "test_node")
+        self.assertEqual(generator.nodes[0].get("namespaces")[0].get("namespace_name"), "test_namespace")
+        self.assertEqual(generator.nodes[0].get("namespaces")[0].get("pods")[0].get("pod_name"), "test_pod")
+        self.assertEqual(generator.nodes[0].get("namespaces")[0].get("volumes")[0].get("volume_name"), "test_volume")
+        self.assertEqual(
+            generator.nodes[0].get("namespaces")[0].get("volumes")[0].get("volume_claims")[0].get("volume_claim_name"),
+            "test_claim",
+        )
+        expected_keys = ["node_name", "cpu_cores", "memory_gig", "resource_id", "labels", "namespaces"]
+        self.assertEqual(list(generator.nodes[0].keys()), expected_keys)
+
+        os.remove(tmp_filename)
 
     def test_gen_nodes_without_nodes(self):
         """Test that gen_nodes arranges the output dict in the expected way.
 
             If nodes are not specified, nodes are generated.
         """
-        generator = OCPGenerator(self.two_hours_ago, self.now, {})
-        out_nodes = generator._gen_nodes()
-        self.assertGreaterEqual(len(list(out_nodes)), 2)
-        self.assertLessEqual(len(list(out_nodes)), 6)
-        expected_keys = ["name", "cpu_cores", "memory_bytes", "resource_id", "node_labels"]
-        self.assertEqual(list(out_nodes[0].keys()), expected_keys)
+        generator = OCPGenerator(self.two_hours_ago, self.now)  # _gen_nodes is called by the constructor.
+        self.assertGreaterEqual(len(list(generator.nodes)), 2)
+        self.assertLessEqual(len(list(generator.nodes)), 6)
+        expected_keys = ["node_name", "cpu_cores", "memory_gig", "resource_id", "labels", "namespaces"]
+        self.assertEqual(list(generator.nodes[0].keys()), expected_keys)
 
     def test_gen_openshift_labels(self):
         """Test that gen_openshift_labels creates well-formatted labels."""
-        generator = OCPGenerator(self.two_hours_ago, self.now, {})
+        generator = OCPGenerator(self.two_hours_ago, self.now)
         out_labels = generator._gen_openshift_labels()
-        matcher = r"(\w+:\w+)(\|(\w+:\w+))+"
+        matcher = r"(\w+:\w+)(\|(\w+:\w+))*"
         self.assertRegex(out_labels, matcher)
 
     def test_gen_pods_with_namespaces(self):
@@ -279,89 +313,71 @@ class OCPGeneratorTestCase(TestCase):
 
             If namespaces with pods are specified, defined pods are used.
         """
-        generator = OCPGenerator(self.two_hours_ago, self.now, self.attributes)
-        out_pods, _ = generator._gen_pods(generator.namespaces)  # gen_pods depends on the output of gen_namespaces.
-        self.assertEqual(len(out_pods), 2)
+        generator = OCPGenerator(self.two_hours_ago, self.now)
+        in_node = self.attributes.get("nodes")[0]
+        in_namespace = self.attributes.get("nodes")[0].get("namespaces")[0].get("namespace_name")
+        out_pods = generator._gen_pods(in_node, in_namespace)
+        self.assertGreaterEqual(len(out_pods), 2)
 
         expected = (
-            "cpu_limit",
-            "cpu_request",
-            "cpu_usage",
-            "interval_start",
-            "interval_end",
-            "mem_limit_gig",
-            "mem_request_gig",
-            "mem_usage_gig",
             "namespace",
             "node",
+            "resource_id",
+            "pod_name",
             "node_capacity_cpu_cores",
             "node_capacity_cpu_core_seconds",
             "node_capacity_memory_bytes",
             "node_capacity_memory_byte_seconds",
-            "node_labels",
-            "pod",
-            "pod_labels",
-            "pod_limit_cpu_core_seconds",
-            "pod_limit_memory_byte_seconds",
-            "pod_request_cpu_core_seconds",
-            "pod_request_memory_byte_seconds",
+            "cpu_request",
+            "cpu_limit",
+            "mem_request_gig",
+            "mem_limit_gig",
+            "labels",
+            "cpu_usage",
+            "mem_usage_gig",
             "pod_seconds",
-            "pod_usage_cpu_core_seconds",
-            "pod_usage_memory_byte_seconds",
-            "report_period_start",
-            "report_period_end",
-            "resource_id",
         )
-        for pod in out_pods.values():
+        for pod in out_pods:
             with self.subTest(podkeys=pod.keys()):
                 for key in pod.keys():
                     with self.subTest(key=key):
                         self.assertIn(key, expected)
+            self.assertEqual(pod.get("node"), in_node.get("node_name"))
+            self.assertEqual(pod.get("namespace"), in_namespace)
 
     def test_gen_pods_without_namespaces(self):
         """Test that gen_pods arranges the output dict in the expected way.
 
             If no namespaces are specified, pods are generated.
         """
-        generator = OCPGenerator(self.two_hours_ago, self.now, {})
-        out_pods, _ = generator._gen_pods(generator.namespaces)
+        generator = OCPGenerator(self.two_hours_ago, self.now)
+        out_pods = [
+            pod for node in generator.nodes for namespace in node.get("namespaces") for pod in namespace.get("pods")
+        ]
 
         # these magic numbers are the random ranges defined in the OCP generator.
         self.assertGreaterEqual(len(out_pods), 2 * 2 * 2)
         self.assertLessEqual(len(out_pods), 6 * 12 * 20)
 
-        # This list isn't quite the same as (OCP_POD_USAGE_COLUMNS + OCP_NODE_LABEL_COLUMNS + OCP_STORAGE_COLUMNS)
-        # This might be a bug.
         expected = (
-            "cpu_limit",
-            "cpu_request",
-            "cpu_usage",
-            "interval_start",
-            "interval_end",
-            "mem_limit_gig",
-            "mem_request_gig",
-            "mem_usage_gig",
             "namespace",
             "node",
+            "resource_id",
+            "pod_name",
             "node_capacity_cpu_cores",
             "node_capacity_cpu_core_seconds",
             "node_capacity_memory_bytes",
             "node_capacity_memory_byte_seconds",
-            "node_labels",
-            "pod",
-            "pod_labels",
-            "pod_limit_cpu_core_seconds",
-            "pod_limit_memory_byte_seconds",
-            "pod_request_cpu_core_seconds",
-            "pod_request_memory_byte_seconds",
+            "cpu_request",
+            "cpu_limit",
+            "mem_request_gig",
+            "mem_limit_gig",
+            "labels",
+            "cpu_usage",
+            "mem_usage_gig",
             "pod_seconds",
-            "pod_usage_cpu_core_seconds",
-            "pod_usage_memory_byte_seconds",
-            "report_period_start",
-            "report_period_end",
-            "resource_id",
         )
-        for pod in out_pods.values():
+        for pod in out_pods:
             with self.subTest(podkeys=pod.keys()):
                 for key in pod.keys():
                     with self.subTest(key=key):
@@ -369,84 +385,80 @@ class OCPGeneratorTestCase(TestCase):
 
     def test_gen_pods_usage_lt_capacity(self):
         """Test that gen_pods generates requests and usage values which don't exceed capacity."""
-        for attributes in [self.attributes, {}]:
-            with self.subTest(attributes=attributes):
-                generator = OCPGenerator(self.two_hours_ago, self.now, attributes)
-                # gen_pods depends on the output of gen_namespaces.
-                out_pods, _ = generator._gen_pods(generator.namespaces)
-                for pod in out_pods.values():
-                    with self.subTest(pod=pod):
-                        self.assertLessEqual(pod.get("cpu_limit"), pod.get("node_capacity_cpu_cores"))
-                        self.assertLessEqual(pod.get("cpu_request"), pod.get("node_capacity_cpu_cores"))
-                        self.assertLessEqual(pod.get("mem_limit_gig"), pod.get("node_capacity_memory_bytes"))
-                        self.assertLessEqual(pod.get("mem_request_gig"), pod.get("node_capacity_memory_bytes"))
-                        if attributes:
-                            for value in pod.get("cpu_usage").values():
-                                self.assertLessEqual(value, pod.get("node_capacity_cpu_cores"))
-                            for value in pod.get("mem_usage_gig").values():
-                                self.assertLessEqual(value, pod.get("node_capacity_memory_bytes"))
+        generator = OCPGenerator(self.two_hours_ago, self.now)
+        for node in generator.nodes:
+            with self.subTest(node=node):
+                for namespace in node.get("namespaces"):
+                    with self.subTest(namespace=namespace.get("namespace_name")):
+                        for pod in namespace.get("pods"):
+                            with self.subTest(pod=pod.get("pod_name")):
+                                self.assertLessEqual(pod.get("cpu_limit"), pod.get("node_capacity_cpu_cores"))
+                                self.assertLessEqual(pod.get("cpu_request"), pod.get("node_capacity_cpu_cores"))
+                                self.assertLessEqual(pod.get("mem_limit_gig"), pod.get("node_capacity_memory_bytes"))
+                                self.assertLessEqual(pod.get("mem_request_gig"), pod.get("node_capacity_memory_bytes"))
+                                for value in pod.get("cpu_usage").values():
+                                    self.assertLessEqual(value, pod.get("node_capacity_cpu_cores"))
+                                for value in pod.get("mem_usage_gig").values():
+                                    self.assertLessEqual(value, pod.get("node_capacity_memory_bytes"))
 
     def test_gen_volumes_with_namespaces(self):
         """Test that gen_volumes arranges the output dict in the expected way.
 
             If namespaces with volumes are specified, defined volumes are used.
         """
-        generator = OCPGenerator(self.two_hours_ago, self.now, self.attributes)
-
-        # gen_volumes depends on the output formatting of gen_namespaces and gen_pods.
-        out_volumes = generator._gen_volumes(generator.namespaces, generator.namespace2pods)
+        generator = OCPGenerator(self.two_hours_ago, self.now)
 
         namespaces = self.attributes.get("nodes")[0].get("namespaces")
-        volume_names = [vol.get("volume_name") for ns in namespaces for vol in namespaces.get(ns).get("volumes")]
-        self.assertEqual(list(out_volumes.keys()), volume_names)
+        in_pods = namespaces[0].get("pods")
 
-        expected = ["namespace", "volume", "storage_class", "volume_request", "labels", "volume_claims"]
-        for vol in out_volumes.values():
+        out_volumes = generator._gen_volumes(in_pods)
+
+        expected = ["namespace", "volume_name", "storage_class", "volume_request_gig", "labels", "volume_claims"]
+        for vol in out_volumes:
             with self.subTest(volume=vol):
                 self.assertEqual(list(vol.keys()), expected)
+            self.assertEqual(vol.get("namespace"), namespaces[0].get("namespace_name"))
 
     def test_gen_volumes_without_namespaces(self):
         """Test that gen_volumes arranges the output dict in the expected way.
 
             If no namespaces are specified, volumes are generated.
         """
-        generator = OCPGenerator(self.two_hours_ago, self.now, {})
+        generator = OCPGenerator(self.two_hours_ago, self.now)
 
-        # gen_volumes depends on the output formatting of gen_namespaces and gen_pods.
-        out_volumes = generator._gen_volumes(generator.namespaces, generator.namespace2pods)
+        out_volumes = generator.nodes[0].get("namespaces")[0].get("volumes")
 
         # these magic numbers are the random ranges defined in the OCP generator.
-        self.assertGreaterEqual(len(out_volumes), 2 * 2 * 1)
-        self.assertLessEqual(len(out_volumes), 6 * 12 * 3)
+        self.assertGreaterEqual(len(out_volumes), 2)
+        self.assertLessEqual(len(out_volumes), 6)
 
-        expected = ["namespace", "volume", "storage_class", "volume_request", "labels", "volume_claims"]
-        for vol in out_volumes.values():
+        expected = ["volume_name", "namespace", "storage_class", "volume_request_gig", "labels", "volume_claims"]
+        for vol in out_volumes:
             with self.subTest(volume=vol):
                 self.assertEqual(list(vol.keys()), expected)
 
     def test_gen_volumes_usage_lt_capacity(self):
         """Test that gen_volumes generates requests and usage values which don't exceed capacity."""
-        for attributes in [self.attributes, {}]:
-            with self.subTest(attributes=attributes):
-                generator = OCPGenerator(self.two_hours_ago, self.now, attributes)
-                # gen_volumes depends on the output formatting of gen_namespaces and gen_pods.
-                out_volumes = generator._gen_volumes(generator.namespaces, generator.namespace2pods)
-                for volume in out_volumes.values():
-                    with self.subTest(volume=volume):
-                        total_capacity = 0
-                        for claim in volume.get("volume_claims").values():
-                            with self.subTest(claim=claim):
-                                capacity = claim.get("capacity")
-                                total_capacity += capacity
+        generator = OCPGenerator(self.two_hours_ago, self.now)
+        for node in generator.nodes:
+            with self.subTest(node=node):
+                for namespace in node.get("namespaces"):
+                    with self.subTest(namespace=namespace.get("namespace_name")):
+                        for volume in namespace.get("volumes"):
+                            with self.subTest(volume=volume.get("volume_name")):
+                                total_capacity = 0
+                                for claim in volume.get("volume_claims"):
+                                    with self.subTest(claim=claim):
+                                        capacity = claim.get("capacity_gig")
+                                        total_capacity += capacity
 
-                                if attributes:
-                                    for value in claim.get("volume_claim_usage_gig").values():
-                                        self.assertLessEqual(value * GIGABYTE, capacity)
-                        self.assertLessEqual(total_capacity, volume.get("volume_request_gig", 80.0 * GIGABYTE))
+                                        for value in claim.get("volume_claim_usage_gig").values():
+                                            self.assertLessEqual(value, capacity)
+                                self.assertLessEqual(total_capacity, volume.get("volume_request_gig"))
 
     def test_generate_hourly_data(self):
         """Test that generate_hourly_data calls the test method."""
-        generator = OCPGenerator(self.two_hours_ago, self.now, self.attributes)
+        generator = OCPGenerator(self.two_hours_ago, self.now)
         test_method1 = Mock(return_value=True)
         test_method2 = Mock(return_value=True)
         with patch.dict(
@@ -467,7 +479,7 @@ class OCPGeneratorTestCase(TestCase):
 
     def test_init_data_row(self):
         """Test that init_data_row initializes a row of data."""
-        generator = OCPGenerator(self.two_hours_ago, self.now, self.attributes)
+        generator = OCPGenerator(self.two_hours_ago, self.now)
 
         for report_type, columns in [
             (OCP_POD_USAGE, OCP_POD_USAGE_COLUMNS),
@@ -477,11 +489,11 @@ class OCPGeneratorTestCase(TestCase):
             with self.subTest(report_type=report_type):
                 row = generator._init_data_row(self.two_hours_ago, self.now, report_type=report_type)
                 self.assertIsInstance(row, dict)
-                self.assertEqual(list(row.keys()), list(columns))
+                self.assertEqual(sorted(list(row.keys())), sorted(list(columns)))
 
     def test_update_data(self):
         """Test that update_data calls the expected update method."""
-        generator = OCPGenerator(self.two_hours_ago, self.now, self.attributes)
+        generator = OCPGenerator(self.two_hours_ago, self.now)
         test_method1 = Mock(return_value=True)
         test_method2 = Mock(return_value=True)
         with patch.dict(
@@ -490,15 +502,7 @@ class OCPGeneratorTestCase(TestCase):
         ):
             kwargs = {"report_type": "test_report"}
             generator._update_data({}, self.two_hours_ago, self.now, **kwargs)
-            test_method2.assert_called_with(
-                {
-                    "interval_start": self.two_hours_ago.strftime("%Y-%m-%d %H:%M:%S +0000 UTC"),
-                    "interval_end": self.now.strftime("%Y-%m-%d %H:%M:%S +0000 UTC"),
-                },
-                self.two_hours_ago,
-                self.now,
-                **kwargs,
-            )
+            test_method2.assert_called_with({}, self.two_hours_ago, self.now, **kwargs)
             test_method1.assert_not_called()
 
     def test_update_node_label_data(self):
@@ -506,7 +510,7 @@ class OCPGeneratorTestCase(TestCase):
         node = self.attributes.get("nodes")[0]
         kwargs = {"node": node.get("node"), "node_labels": node.get("node_labels")}
 
-        generator = OCPGenerator(self.two_hours_ago, self.now, {})
+        generator = OCPGenerator(self.two_hours_ago, self.now)
         in_row = generator._init_data_row(self.two_hours_ago, self.now, report_type=OCP_NODE_LABEL)
         out_row = generator._update_node_label_data(copy(in_row), self.two_hours_ago, self.now, **kwargs)
 
@@ -517,10 +521,12 @@ class OCPGeneratorTestCase(TestCase):
 
     def test_update_pod_data(self):
         """Test that _update_pod_data updates pod data"""
-        pods = next(iter(self.attributes.get("nodes")[0].get("namespaces").values())).get("pods")
+        pods = self.attributes.get("nodes")[0].get("namespaces")[0].get("pods")
+        usage_dict = self._usage_dict()
         kwargs = {
-            "cpu_usage": self._usage_dict(),
-            "mem_usage_gig": self._usage_dict(),
+            "report_type": "test_report",
+            "cpu_usage": usage_dict,
+            "mem_usage_gig": usage_dict,
             "pod_seconds": 86400,
             "pod": pods[0],
         }
@@ -533,30 +539,34 @@ class OCPGeneratorTestCase(TestCase):
             "pod_limit_memory_byte_seconds",
         }
 
-        generator = OCPGenerator(self.two_hours_ago, self.now, {})
+        generator = OCPGenerator(self.two_hours_ago, self.now)
+        generator.nodes = self.attributes
         in_row = generator._init_data_row(self.two_hours_ago, self.now, report_type=OCP_POD_USAGE)
-        out_row = generator._update_pod_data(copy(in_row), self.two_hours_ago, self.now, **kwargs)
+        out_row = generator._update_pod_data(
+            copy(in_row), datetime.strptime(random.choice(list(usage_dict.keys())), "%m-%d-%Y"), self.now, **kwargs
+        )
 
         for key in changed:
             with self.subTest(key=key):
-                self.assertEqual(out_row.get(key), pods[0].get(key))
+                self.assertIsNotNone(out_row.get(key))
                 self.assertNotEqual(out_row.get(key), in_row.get(key))
 
         for key in list(set(out_row.keys()) - changed):
             with self.subTest(key=key):
-                self.assertIn(out_row.get(key), [pods[0].get(key), in_row.get(key)])
+                self.assertIsNotNone(out_row.get(key))
 
     def test_update_pod_data_usage_lt_request(self):
         """Test that _update_pod_data keeps usage <= limit <= request."""
-        pods = next(iter(self.attributes.get("nodes")[0].get("namespaces").values())).get("pods")
+        pods = self.attributes.get("nodes")[0].get("namespaces")[0].get("pods")
         kwargs = {
+            "report_type": "test_report",
             "cpu_usage": self._usage_dict(),
             "mem_usage_gig": self._usage_dict(),
             "pod_seconds": 86400,
             "pod": pods[0],
         }
 
-        generator = OCPGenerator(self.two_hours_ago, self.now, {})
+        generator = OCPGenerator(self.two_hours_ago, self.now)
         in_row = generator._init_data_row(self.two_hours_ago, self.now, report_type=OCP_POD_USAGE)
         out_row = generator._update_pod_data(copy(in_row), self.two_hours_ago, self.now, **kwargs)
 
@@ -605,7 +615,7 @@ class OCPGeneratorTestCase(TestCase):
             "persistentvolumeclaim_usage_byte_seconds",
         }
 
-        generator = OCPGenerator(self.two_hours_ago, self.now, {})
+        generator = OCPGenerator(self.two_hours_ago, self.now)
         in_row = generator._init_data_row(self.two_hours_ago, self.now, report_type=OCP_STORAGE_USAGE)
         out_row = generator._update_storage_data(copy(in_row), self.two_hours_ago, self.now, **kwargs)
 
@@ -617,7 +627,7 @@ class OCPGeneratorTestCase(TestCase):
 
         for key in list(set(out_row.keys()) - changed):
             with self.subTest(key=key):
-                self.assertIn(out_row.get(key), [kwargs.get(key), in_row.get(key)])
+                self.assertIsNotNone(out_row.get(key))
 
     def test_update_storage_data_usage_lt_request(self):
         """Test that _update_storge_data keeps usage <= capacity <= request."""
@@ -640,7 +650,7 @@ class OCPGeneratorTestCase(TestCase):
             ),
         }
 
-        generator = OCPGenerator(self.two_hours_ago, self.now, {})
+        generator = OCPGenerator(self.two_hours_ago, self.now)
         in_row = generator._init_data_row(self.two_hours_ago, self.now, report_type=OCP_STORAGE_USAGE)
         out_row = generator._update_storage_data(copy(in_row), self.two_hours_ago, self.now, **kwargs)
 
@@ -655,7 +665,7 @@ class OCPGeneratorTestCase(TestCase):
 
     def test_generate_data(self):
         """Test that generate_data calls the test method."""
-        generator = OCPGenerator(self.two_hours_ago, self.now, self.attributes)
+        generator = OCPGenerator(self.two_hours_ago, self.now)
         with patch.object(generator, "_generate_hourly_data") as mock_method:
             kwargs = {"report_type": "test_report"}
             generator.generate_data(**kwargs)

@@ -139,7 +139,7 @@ class MiscReportTestCase(TestCase):
 
     def test_get_generators(self):
         """Test the _get_generators helper function."""
-        generators = _get_generators(None)
+        generators = _get_generators()
         self.assertEqual(generators, [])
 
         generator_list = [{"EC2Generator": {"start_date": "2019-01-21", "end_date": "2019-01-22"}}]

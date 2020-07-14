@@ -52,7 +52,7 @@ class VMGenerator(AzureGenerator):
         },
     )
 
-    def __init__(self, start_date, end_date, payer_account, usage_accounts, attributes=None):
+    def __init__(self, start_date, end_date, payer_account, usage_accounts, attributes=None, user_config=None):
         """Initialize the data transfer generator."""
         self._service_name = "Virtual Machines"
-        super().__init__(start_date, end_date, payer_account, usage_accounts, attributes)
+        super().__init__(start_date, end_date, payer_account, usage_accounts, attributes, user_config=user_config)

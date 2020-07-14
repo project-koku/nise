@@ -21,9 +21,14 @@ from nise.generators.aws.aws_generator import AWSGenerator
 class VPCGenerator(AWSGenerator):
     """Generator for VPC data."""
 
-    def __init__(self, start_date, end_date, payer_account, usage_accounts, attributes=None, tag_cols=None):
+    def __init__(
+        self, start_date, end_date, payer_account, usage_accounts, attributes=None, tag_cols=None, user_config=None
+    ):
         """Initialize the VPC generator."""
-        super().__init__(start_date, end_date, payer_account, usage_accounts, attributes, tag_cols)
+        super().__init__(
+            start_date, end_date, payer_account, usage_accounts, attributes, tag_cols, user_config=user_config
+        )
+
         self._resource_id = "vpn-{}".format(self.fake.ean8())
         self._product_sku = self.fake.pystr(min_chars=12, max_chars=12).upper()
         if self.attributes:

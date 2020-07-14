@@ -88,8 +88,15 @@ class AzureGenerator(AbstractGenerator):
 
     SERVICE_NAMES = ["SQL Database", "Storage", "Virtual Machines", "Virtual Network"]
 
-    def __init__(self, start_date, end_date, payer_account, usage_accounts, attributes=None):  # noqa: C901
+    TEMPLATE = "nise/generators/azure/generator.j2"
+
+    # Not yet implemented.
+    TEMPLATE_KWARGS = {"NotImplemented": True}
+
+    def __init__(self, start_date, end_date, payer_account, usage_accounts, attributes=None, user_config=None):
         """Initialize the generator."""
+        super().__init__(start_date, end_date, user_config=user_config)
+
         self.payer_account = payer_account
         self.usage_accounts = usage_accounts
         self.attributes = attributes
@@ -124,7 +131,6 @@ class AzureGenerator(AbstractGenerator):
                 self._tags = attributes.get("tags")
             if attributes.get("meter_cache"):
                 self._meter_cache = attributes.get("meter_cache")
-        super().__init__(start_date, end_date)
 
     def _get_accts_str(self, service_name):
         """Return instance idea fields."""
