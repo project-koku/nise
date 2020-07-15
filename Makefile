@@ -2,7 +2,7 @@ DATE    = $(shell date)
 PYTHON  = $(shell which python)
 
 TOPDIR = $(shell pwd)
-IQE_CMD = 'iqe tests plugin --debug hccm -k test_api -m hccm_smoke'
+IQE_CMD = 'iqe tests plugin --debug cost_management -k test_api -m cost_smoke'
 
 DOCKER := $(shell command -v docker 2> /dev/null)
 PODMAN := $(shell command -v podman 2> /dev/null)

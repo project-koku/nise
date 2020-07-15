@@ -129,7 +129,7 @@ class OCPGenerator(AbstractGenerator):
     def _gen_nodes(self):
         """Create nodes for report."""
         nodes = []
-        for _ in enumerate(range(0, self.fake.pyint(2, 6))):
+        for _ in range(0, self.fake.pyint(2, 6)):
             node = {
                 "node_name": "node_" + self.fake.word(),
                 "cpu_cores": self.fake.pyint(2, 16),
@@ -148,7 +148,7 @@ class OCPGenerator(AbstractGenerator):
     def _gen_namespaces(self, node):
         """Create namespaces on specific nodes and keep relationship."""
         namespaces = []
-        names = ["ns_" + self.fake.word() for _ in enumerate(range(0, self.fake.pyint(1, 4)))]
+        names = ["ns_" + self.fake.word() for _ in range(0, self.fake.pyint(1, 4))]
         for name in names:
             pods = self._gen_pods(node, name)
             namespace = {"namespace_name": name, "pods": pods, "volumes": self._gen_volumes(pods)}
@@ -157,10 +157,10 @@ class OCPGenerator(AbstractGenerator):
 
     def _gen_openshift_labels(self, seeding=None):
         """Create pod labels for output data."""
-        self.apps = [self.fake.word() for _ in enumerate(range(0, self.fake.pyint(3, 6)))]
-        self.organizations = [self.fake.word() for _ in enumerate(range(0, self.fake.pyint(3, 6)))]
-        self.markets = [self.fake.word() for _ in enumerate(range(0, self.fake.pyint(3, 6)))]
-        self.versions = [self.fake.word() for _ in enumerate(range(0, self.fake.pyint(3, 6)))]
+        self.apps = [self.fake.word() for _ in range(0, self.fake.pyint(3, 6))]
+        self.organizations = [self.fake.word() for _ in range(0, self.fake.pyint(3, 6))]
+        self.markets = [self.fake.word() for _ in range(0, self.fake.pyint(3, 6))]
+        self.versions = [self.fake.word() for _ in range(0, self.fake.pyint(3, 6))]
         seeded_labels = {
             "environment": ["dev", "ci", "qa", "stage", "prod"],
             "app": self.apps,
@@ -170,7 +170,7 @@ class OCPGenerator(AbstractGenerator):
         }
         if seeding:
             seeded_labels = seeding
-        gen_label_keys = [self.fake.word() for _ in enumerate(range(0, self.fake.pyint(3, 6)))]
+        gen_label_keys = [self.fake.word() for _ in range(0, self.fake.pyint(3, 6))]
         all_label_keys = list(seeded_labels.keys()) + gen_label_keys
         num_labels = randint(2, len(all_label_keys))
         chosen_label_keys = choices(all_label_keys, k=num_labels)
@@ -193,7 +193,7 @@ class OCPGenerator(AbstractGenerator):
         pods = []
         cpu_used = 0
         mem_used = 0
-        for _ in enumerate(range(0, self.fake.pyint(2, 5))):
+        for _ in range(0, self.fake.pyint(2, 5)):
             cpu_cores = node.get("cpu_cores")
             if cpu_used >= cpu_cores * 0.95:
                 break
@@ -241,13 +241,13 @@ class OCPGenerator(AbstractGenerator):
     def _gen_volumes(self, pods):
         """Create volumes on specific namespaces and keep relationship."""
         volumes = []
-        for _ in enumerate(range(0, len(pods))):
+        for _ in range(0, len(pods)):
             volume_name = "vol_" + self.fake.word()
             volume_request_gig = self.fake.pyint(20, 100)
             volume_request = volume_request_gig * GIGABYTE
             volume_claims = []
             total_claims = 0
-            for _ in enumerate(range(0, len(pods))):
+            for _ in range(0, len(pods)):
                 if volume_request - total_claims <= GIGABYTE:
                     break
                 volume_claim_name = "vc_" + self.fake.word()

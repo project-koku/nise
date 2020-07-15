@@ -15,7 +15,7 @@ generators:
             - namespace_name: {{namespace.namespace_name}}
               pods:
                 {% for pod in namespace.pods %}{# start pod loop #}
-                - pod_name: {{pod.name}}
+                - pod_name: {{pod.pod_name}}
                   cpu_request: {{pod.cpu_request}}
                   mem_request_gig: {{pod.mem_request_gig}}
                   cpu_limit: {{pod.cpu_limit}}
@@ -25,13 +25,13 @@ generators:
                 {% endfor %}{# end pod loop #}
               volumes:
                 {% for volume in namespace.volumes %}{# start volume loop #}
-                - volume_name: {{volume.name}}
+                - volume_name: {{volume.volume_name}}
                   storage_class: {{volume.storage_class}}
                   volume_request_gig: {{volume.volume_request_gig}}
                   labels: {{volume.labels}}
                   volume_claims:
                   {% for volume_claim in volume.volume_claims %}# start volume-claim loop
-                  - volume_claim_name: {{volume_claim.name}}
+                  - volume_claim_name: {{volume_claim.volume_claim_name}}
                     pod_name: {{volume_claim.pod_name}}
                     labels: {{volume_claim.labels}}
                     capacity_gig: {{volume_claim.capacity_gig}}

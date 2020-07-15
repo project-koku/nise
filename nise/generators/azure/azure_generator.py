@@ -90,74 +90,8 @@ class AzureGenerator(AbstractGenerator):
 
     TEMPLATE = "nise/generators/azure/generator.j2"
 
-    TEMPLATE_KWARGS = {
-        "bandwidth_gens": [
-            {
-                "start_date": "a",
-                "end_date": "b",
-                "instance_id": "c",
-                "meter_id": "d",
-                "resource_location": "e",
-                "usage_quantity": "f",
-                "resource_rate": "g",
-                "pre_tax_cost": "h",
-                "tags": [{"key": "i", "value": "j"}],
-            }
-        ],
-        "sql_gens": [
-            {
-                "start_date": "a",
-                "end_date": "b",
-                "instance_id": "c",
-                "meter_id": "d",
-                "resource_location": "e",
-                "usage_quantity": "f",
-                "resource_rate": "g",
-                "pre_tax_cost": "h",
-                "tags": [{"key": "i", "value": "j"}],
-            }
-        ],
-        "storage_gens": [
-            {
-                "start_date": "a",
-                "end_date": "b",
-                "instance_id": "c",
-                "meter_id": "d",
-                "resource_location": "e",
-                "usage_quantity": "f",
-                "resource_rate": "g",
-                "pre_tax_cost": "h",
-                "tags": [{"key": "i", "value": "j"}],
-            }
-        ],
-        "vmachine_gens": [
-            {
-                "start_date": "a",
-                "end_date": "b",
-                "instance_id": "c",
-                "meter_id": "d",
-                "resource_location": "e",
-                "usage_quantity": "f",
-                "resource_rate": "g",
-                "pre_tax_cost": "h",
-                "tags": [{"key": "i", "value": "j"}],
-            }
-        ],
-        "vnetwork_gens": [
-            {
-                "start_date": "a",
-                "end_date": "b",
-                "instance_id": "c",
-                "meter_id": "d",
-                "resource_location": "e",
-                "usage_quantity": "f",
-                "resource_rate": "g",
-                "pre_tax_cost": "h",
-                "tags": [{"key": "i", "value": "j"}],
-            }
-        ],
-        "payer": "x",
-    }
+    # Not yet implemented.
+    TEMPLATE_KWARGS = {"NotImplemented": True}
 
     def __init__(self, start_date, end_date, payer_account, usage_accounts, attributes=None, user_config=None):
         """Initialize the generator."""

@@ -4,21 +4,19 @@ generators:
       start_date: {{generator.start_date}}
       end_date: {{generator.end_date}}
       nodes:
-        {% for node in generator.nodes %} # start node loop
+        {% for node in nodes %}{# start node loop #}
         - node:
           node_name: {{node.name}}
           cpu_cores: {{node.cpu_cores}}
           memory_gig: {{node.memory_gig}}
           resource_id: {{node.resource_id}}
+          labels: {{node.labels}}
           namespaces:
-            # start namespace loop
-            {% for namespace in node.namespaces %}
-            {{namespace.name}}:
+            {% for namespace in node.namespaces %}{# start namespace loop #}
+            - namespace_name: {{namespace.namespace_name}}
               pods:
-                # start pod loop
-                {% for pod in namespace.pods %}
-                - pod:
-                  pod_name: {{pod.name}}
+                {% for pod in namespace.pods %}{# start pod loop #}
+                - pod_name: {{pod.pod_name}}
                   cpu_request: {{pod.cpu_request}}
                   mem_request_gig: {{pod.mem_request_gig}}
                   cpu_limit: {{pod.cpu_limit}}
@@ -27,22 +25,18 @@ generators:
                   labels: {{pod.labels}}
                 {% endfor %} # end pod loop
               volumes:
-                # start volume loop
-                {% for volume in namespace.volumes %}
-                - volume:
-                  volume_name: {{volume.name}}
+                {% for volume in namespace.volumes %}{# start volume loop #}
+                - volume_name: {{volume.volume_name}}
                   storage_class: {{volume.storage_class}}
                   volume_request_gig: {{volume.volume_request_gig}}
                   labels: {{volume.labels}}
                   volume_claims:
-                  # start volume-claim loop
-                  {% for volume_claim in volume.volume_claims %}
-                  - volume_claim:
-                    volume_claim_name: {{volume_claim.name}}
+                  {% for volume_claim in volume.volume_claims %}{# start volume-claim loop #}
+                  - volume_claim_name: {{volume_claim.volume_claim_name}}
                     pod_name: {{volume_claim.pod_name}}
                     labels: {{volume_claim.labels}}
                     capacity_gig: {{volume_claim.capacity_gig}}
-                  {% endfor %} # end volume claim loop
-                {% endfor %} # end volume loop
-            {% endfor %} # end namespace loop
-        {% endfor %} # end node loop
+                  {% endfor %}{# end volume claim loop #}
+                {% endfor %}{# end volume loop #}
+            {% endfor %}{# end namespace loop #}
+        {% endfor %}{# end node loop #}
