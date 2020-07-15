@@ -45,7 +45,7 @@ def deepupdate(original, update):
 
     original and update must have the same structure
     """
-    if not (isinstance(update, list) or isinstance(update, dict)):
+    if not isinstance(update, (list, dict)):
         return update
 
     if isinstance(update, dict):
