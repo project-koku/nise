@@ -31,7 +31,12 @@ GCP_REPORT_COLUMNS = (
 class GCPGenerator(AbstractGenerator):
     """Abstract class for GCP generators."""
 
-    def __init__(self, start_date, end_date, project, attributes=None):
+    TEMPLATE = "nise/generators/gcp/generator.j2"
+
+    # Not yet implemented.
+    TEMPLATE_KWARGS = {"NotImplemented": True}
+
+    def __init__(self, start_date, end_date, project, attributes=None, user_config=None):
         """
         Initialize the generator.
 
@@ -44,7 +49,8 @@ class GCPGenerator(AbstractGenerator):
             num_instances (int): number of instances to generate fake data for.
 
         """
-        super().__init__(start_date, end_date)
+        super().__init__(start_date, end_date, user_config=user_config)
+
         self.project = project
         self.num_instances = 1 if attributes else randint(2, 60)
         self.attributes = attributes

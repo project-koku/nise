@@ -231,8 +231,17 @@ class AWSGenerator(AbstractGenerator):
         ("AWS GovCloud (US)", "us-gov-west-1", "us-gov-west-1a", "USGW1-EBS"),
     )
 
-    def __init__(self, start_date, end_date, payer_account, usage_accounts, attributes=None, tag_cols=None):
+    TEMPLATE = "nise/generators/aws/generator.j2"
+
+    # Not yet implemented.
+    TEMPLATE_KWARGS = {"NotImplemented": True}
+
+    def __init__(
+        self, start_date, end_date, payer_account, usage_accounts, attributes=None, tag_cols=None, user_config=None
+    ):
         """Initialize the generator."""
+        super().__init__(start_date, end_date, user_config=user_config)
+
         self.payer_account = payer_account
         self.usage_accounts = usage_accounts
         self.attributes = attributes
@@ -241,7 +250,6 @@ class AWSGenerator(AbstractGenerator):
         if tag_cols:
             self.RESOURCE_TAG_COLS.update(tag_cols)
             self.AWS_COLUMNS.update(tag_cols)
-        super().__init__(start_date, end_date)
 
     @staticmethod
     def timestamp(in_date):
