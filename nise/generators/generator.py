@@ -29,7 +29,6 @@ from nise.util import deepupdate
 from nise.util import load_yaml
 from nise.util import LOG
 
-
 REPORT_TYPE = "report_type"
 
 
@@ -60,11 +59,19 @@ class AbstractGenerator(ABC):
             default_template = env.get_template(self.TEMPLATE)
             if user_config:
                 user_template = env.get_template(user_config)
-                user_config = load_yaml(user_template.render(**self.TEMPLATE_KWARGS))
-                default_config = load_yaml(default_template.render(**self.TEMPLATE_KWARGS))
-                config = deepupdate(default_config, user_config)  # merge user-supplied static file with base template
+                user_yaml = load_yaml(user_template.render(**self.TEMPLATE_KWARGS))
+
+                # sort lists of dicts so that generator class names align.
+                generators = user_yaml.get("generators")
+                user_yaml["generators"] = sorted(generators, key=lambda d: list(d.keys()))
+
+                default_yaml = load_yaml(default_template.render(**self.TEMPLATE_KWARGS))
+                config = deepupdate(default_yaml, user_yaml)  # merge user-supplied static file with base template
             else:
                 config = load_yaml(default_template.render(**self.TEMPLATE_KWARGS))
+
+            # handle special-cases in YAML config syntax
+            config = self._format_config(config)
 
             # remove top-level class name
             self.config = []
@@ -81,6 +88,15 @@ class AbstractGenerator(ABC):
         self.days = self._set_days()
 
         super().__init__()
+
+    @abstractmethod
+    def _format_config(self, config):
+        """Abstract method for sub-classes to handle special cases in the config layout.
+
+        Note for implementors: this method should be used sparingly.
+        When possible, the config file should be designed to minimize special cases that require additional processing.
+        """
+        return config
 
     def _set_hours(self):
         """Create a list of hours between the start and end dates for hourly aws data."""

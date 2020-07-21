@@ -21,6 +21,7 @@ from uuid import uuid4
 
 import jinja2
 from dateutil.relativedelta import relativedelta
+from faker import Faker
 
 TEMPLATE_DIR = os.path.dirname(__file__)
 AWS_TEMPLATE_FILE = "aws-template-manifest.json"
@@ -54,11 +55,10 @@ def _manifest_datetime_range(start, end):
     return start_str + "-" + end_str
 
 
-def aws_generate_manifest(fake, template_data):
+def aws_generate_manifest(template_data):
     """Generate the manifest file.
 
     Args:
-        fake (Obj): Used to create fake data
         template_data (Dict): data to render template with
     Returns:
         (String): S3 storage path
@@ -72,7 +72,7 @@ def aws_generate_manifest(fake, template_data):
 
     range_str = _manifest_datetime_range(bp_start, bp_end)
     assembly_id = uuid4()
-    report_id = fake.sha256(raw_output=False)
+    report_id = Faker().sha256(raw_output=False)
     prefix_name = template_data.get("aws_prefix_name")
     file_names = template_data.get("file_names")
     report_keys = []

@@ -19,6 +19,7 @@ from random import choice
 from random import uniform
 
 from nise.generators.aws.aws_generator import AWSGenerator
+from nise.generators.aws.constants import REGIONS
 
 
 class DataTransferGenerator(AWSGenerator):
@@ -29,69 +30,47 @@ class DataTransferGenerator(AWSGenerator):
         ("{}-{}-AWS-Out-Bytes", "PublicIP-Out", "InterRegion Outbound"),
     )
 
-    def __init__(
-        self, start_date, end_date, payer_account, usage_accounts, attributes=None, tag_cols=None, user_config=None
-    ):
-        """Initialize the data transfer generator."""
-        super().__init__(
-            start_date, end_date, payer_account, usage_accounts, attributes, tag_cols, user_config=user_config
-        )
+    def _gen_fake_data(self, count):
+        """Populate TEMPLATE_KWARGS with fake values.
 
-        self._amount = None
-        self._rate = None
-        self._product_sku = None
-        self._resource_id = None
-        self._product_code = "AmazonEC2"
-        self._product_name = "Amazon Elastic Compute Cloud"
-        if attributes:
-            if attributes.get("product_code"):
-                self._product_code = attributes.get("product_code")
-            if attributes.get("product_name"):
-                self._product_name = attributes.get("product_name")
-            if attributes.get("resource_id"):
-                self._resource_id = attributes.get("resource_id")
-            if attributes.get("amount"):
-                self._amount = float(attributes.get("amount"))
-            if attributes.get("rate"):
-                self._rate = float(attributes.get("rate"))
-            if attributes.get("product_sku"):
-                self._product_sku = attributes.get("product_sku")
-            if attributes.get("tags"):
-                self._tags = attributes.get("tags")
+        The base template has defaults for most values. The values set here have extra requirements.
+        """
+        self.TEMPLATE_KWARGS["data_transfer_gens"] = []
+        while len(self.TEMPLATE_KWARGS["data_transfer_gens"]) < count:
+            self.TEMPLATE_KWARGS["data_transfer_gens"].append(
+                {
+                    "amount": uniform(0.000002, 0.09),
+                    "rate": round(uniform(0.12, 0.19), 3),
+                    "region": choice(REGIONS)[1],
+                }
+            )
 
-    def _get_data_transfer(self, rate):
+    def _get_data_transfer(self, rate, config={}):
         """Get data transfer info."""
-        location1, aws_region, _, storage_region1 = self._get_location()
-        location2, _, _, storage_region2 = self._get_location()
+        location1, aws_region, _, storage_region1 = self._get_location(config=config)
+        location2, _, _, storage_region2 = self._get_location(config=config)
         trans_desc, operation, trans_type = choice(self.DATA_TRANSFER)
         trans_desc = trans_desc.format(storage_region1, storage_region2)
         description = f"${rate} per GB - {location1} data transfer to {location2}"
         return trans_desc, operation, description, location1, location2, trans_type, aws_region
 
-    def _get_product_sku(self):
-        """Generate product sku."""
-        if self._product_sku:
-            sku = self._product_sku
-        else:
-            sku = self.fake.pystr(min_chars=12, max_chars=12).upper()
-        return sku
-
     def _update_data(self, row, start, end, **kwargs):
         """Update data with generator specific data."""
+        current_config = kwargs.get("config", {})
+
         row = self._add_common_usage_info(row, start, end)
 
-        resource_id = self._resource_id if self._resource_id else self.fake.ean8()
-        rate = self._rate if self._rate else round(uniform(0.12, 0.19), 3)
-        amount = self._amount if self._amount else uniform(0.000002, 0.09)
+        rate = current_config.get("rate")
+        amount = current_config.get("amount")
         cost = amount * rate
         trans_desc, operation, description, location1, location2, trans_type, aws_region = self._get_data_transfer(
-            rate
+            rate, config=current_config
         )
 
-        row["lineItem/ProductCode"] = self._product_code
+        row["lineItem/ProductCode"] = current_config.get("product_code")
         row["lineItem/UsageType"] = trans_desc
         row["lineItem/Operation"] = operation
-        row["lineItem/ResourceId"] = resource_id
+        row["lineItem/ResourceId"] = current_config.get("resource_id")
         row["lineItem/UsageAmount"] = str(amount)
         row["lineItem/CurrencyCode"] = "USD"
         row["lineItem/UnblendedRate"] = str(rate)
@@ -99,13 +78,13 @@ class DataTransferGenerator(AWSGenerator):
         row["lineItem/BlendedRate"] = str(rate)
         row["lineItem/BlendedCost"] = str(cost)
         row["lineItem/LineItemDescription"] = description
-        row["product/ProductName"] = self._product_name
+        row["product/ProductName"] = current_config.get("product_name")
         row["product/location"] = location1
         row["product/locationType"] = "AWS Region"
         row["product/productFamily"] = "Data Transfer"
         row["product/region"] = aws_region
         row["product/servicecode"] = "AWSDataTransfer"
-        row["product/sku"] = self._get_product_sku()
+        row["product/sku"] = current_config.get("product_sku")
         row["product/toLocation"] = location2
         row["product/toLocationType"] = "AWS Region"
         row["product/transferType"] = trans_type
@@ -118,14 +97,14 @@ class DataTransferGenerator(AWSGenerator):
         return row
 
     def _generate_hourly_data(self, **kwargs):
-        """Create houldy data."""
+        """Create hourly data."""
         data = []
         for hour in self.hours:
-            start = hour.get("start")
-            end = hour.get("end")
-            row = self._init_data_row(start, end)
-            row = self._update_data(row, start, end)
-            if self.fake.pybool():
+            for cfg in self.config:
+                start = hour.get("start")
+                end = hour.get("end")
+                row = self._init_data_row(start, end, config=cfg)
+                row = self._update_data(row, start, end, config=cfg)
                 data.append(row)
         return data
 

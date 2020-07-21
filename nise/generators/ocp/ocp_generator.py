@@ -95,7 +95,6 @@ class OCPGenerator(AbstractGenerator):
 
     def __init__(self, start_date, end_date, user_config=None):
         """Initialize the generator."""
-
         # initialize TEMPLATE_KWARGS values
         self._gen_nodes()
 
@@ -118,6 +117,10 @@ class OCPGenerator(AbstractGenerator):
                 "_update_data": self._update_node_label_data,
             },
         }
+
+    def _format_config(self, config):
+        # no-op because OCP static file has no special cases
+        return config
 
     @staticmethod
     def timestamp(in_date):

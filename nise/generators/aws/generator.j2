@@ -1,90 +1,128 @@
 ---
 generators:
-{% for dtg in data_transfer_gens %}  - DataTransferGenerator:
-      start_date: {{ dtg.start_date }}
-      end_date: {{ dtg.end_date }}
-      resource_id: {{ dtg.resource_id }}
-      product_sku: {{ dtg.product_sku }}
-      amount: {{ dtg.amount }}
-      rate: {{ dtg.rate }}
-      tags:{% for tag in dtg.tags %}
-        {{ tag.key }}: {{ tag.value }}{% endfor %}
+{% for item in data_transfer_gens %}  - DataTransferGenerator:
+      start_date: {{ item.start_date|default(faker("date_time_this_month")) }}
+      end_date: {{ item.end_date|default(faker("date_time_between", start_date="now", end_date="now")) }}
+      invoice_id: {{ item.invoice_id }}
+      resource_id: {{ item.resource_id|default("i-"+faker("ean8")) }}
+      product_sku: {{ item.product_sku|default(faker("pystr",min_chars=12, max_chars=12)|upper) }}
+      product_code: {{ item.product_code|default("AmazonEC2") }}
+      product_name: {{ item.product_name|default("Amazon Elastic Compute Cloud") }}
+      region: {{ item.region|default(faker("word")) }}
+      amount: {{ item.amount|default(0.01) }}
+      rate: {{ item.rate|default(0.01) }}
+      tags: {% for tag in item.tags|default([{"key": "resourceTags/user:"+faker("word"), "value": faker("word")}]) %}
+        {{ tag.key }}: {{ tag.value }}
+      {% endfor %}
+      payer_account: {{ item.payer_account }}
+      usage_accounts: {% for acct in item.usage_accounts %}
+        - {{ acct }}
+      {% endfor %}
 {% endfor %}
-{% for ebs in ebs_gens %}  - EBSGenerator:
-      start_date: {{ ebs.start_date }}
-      end_date: {{ ebs.end_date }}
-      resource_id: {{ ebs.resource_id }}
-      product_sku: {{ ebs.product_sku }}
-      amount: {{ ebs.amount }}
-      rate: {{ ebs.rate }}
-      tags:{% for tag in ebs.tags %}
-        {{ tag.key }}: {{ tag.value }}{% endfor %}
+{% for item in ebs_gens %}  - EBSGenerator:
+      start_date: {{ item.start_date|default(faker("date_time_this_month")) }}
+      end_date: {{ item.end_date|default(faker("date_time_between", start_date="now", end_date="now")) }}
+      invoice_id: {{ item.invoice_id }}
+      resource_id: {{ item.resource_id|default("vol-"+faker("ean8")) }}
+      product_sku: {{ item.product_sku|default(faker("pystr",min_chars=12, max_chars=12)|upper) }}
+      region: {{ item.region|default(faker("word")) }}
+      amount: {{ item.amount|default(0.01) }}
+      rate: {{ item.rate|default(0.01) }}
+      tags: {% for tag in item.tags|default([{"key": "resourceTags/user:"+faker("word"), "value": faker("word")}]) %}
+        {{ tag.key }}: {{ tag.value }}
+      {% endfor %}
+      payer_account: {{ item.payer_account }}
+      usage_accounts: {% for acct in item.usage_accounts %}
+        - {{ acct }}
+      {% endfor %}
 {% endfor %}
-{% for ec2 in ec2_gens %}  - EC2Generator:
-      start_date: {{  ec2.start_date }}
-      end_date: {{  ec2.end_date }}
-      resource_id: {{  ec2.resource_id }}
-      product_sku: {{ ec2.product_sku }}
-      region: {{ ec2.region }}
-      processor_arch: {{  ec2.processor_arch }}
-      instance_type:
-        inst_type: {{ ec2.instance_type.inst_type }}
-        vcpu: {{ ec2.instance_type.vcpu }}
-        memory: {{ ec2.instance_type.memory }}
-        storage: {{ ec2.instance_type.storage }}
-        family: {{ ec2.instance_type.family }}
-        cost: {{ ec2.instance_type.cost }}
-        rate: {{ ec2.instance_type.rate }}
-      tags:{% for tag in ec2.tags %}
-        {{ tag.key }}: {{ tag.value }}{% endfor %}
+{% for item in ec2_gens %}  - EC2Generator:
+      start_date: {{ item.start_date|default(faker("date_time_this_month")) }}
+      end_date: {{ item.end_date|default(faker("date_time_between", start_date="now", end_date="now")) }}
+      invoice_id: {{ item.invoice_id }}
+      resource_id: {{ item.resource_id|default("i-"+faker("ean8")) }}
+      product_sku: {{ item.product_sku|default(faker("pystr",min_chars=12, max_chars=12)|upper) }}
+      region: {{ item.region|default(faker("word")) }}
+      processor_arch: {{ item.processor_arch|default("8-Bit") }}
+      instance_type: {% for key, val in item.instance_type.items()|default({}) %}
+        {{ key }}: {{ val }}
+      {% endfor %}
+      tags: {% for tag in item.tags|default([{"key": "resourceTags/user:"+faker("word"), "value": faker("word")}]) %}
+        {{ tag.key }}: {{ tag.value }}
+      {% endfor %}
+      payer_account: {{ item.payer_account }}
+      usage_accounts: {% for acct in item.usage_accounts %}
+        - {{ acct }}
+      {% endfor %}
 {% endfor %}
-{% for rds in rds_gens %}  - RDSGenerator:
-      start_date: {{ rds.start_date }}
-      end_date: {{ rds.end_date }}
-      resource_id: {{ rds.resource_id }}
-      product_sku: {{ rds.product_sku }}
-      region: {{ rds.region }}
-      processor_arch: {{ rds.processor_arch }}
-      instance_type:
-        inst_type: {{ rds.instance_type.inst_type }}
-        vcpu: {{ rds.instance_type.vcpu }}
-        memory: {{ rds.instance_type.memory }}
-        storage: {{ rds.instance_type.storage }}
-        family: {{ rds.instance_type.family }}
-        cost: {{ rds.instance_type.cost }}
-        rate: {{ rds.instance_type.rate }}
-      tags:{% for tag in rds.tags %}
-        {{ tag.key }}: {{ tag.value }}{% endfor %}
+{% for item in rds_gens %}  - RDSGenerator:
+      start_date: {{ item.start_date|default(faker("date_time_this_month")) }}
+      end_date: {{ item.end_date|default(faker("date_time_between", start_date="now", end_date="now")) }}
+      invoice_id: {{ item.invoice_id }}
+      resource_id: {{ item.resource_id|default("i-"+faker("ean8")) }}
+      product_sku: {{ item.product_sku|default(faker("pystr",min_chars=12, max_chars=12)|upper) }}
+      region: {{ item.region|default(faker("word")) }}
+      processor_arch: {{ item.processor_arch|default("8-Bit") }}
+      instance_type: {% for key, val in item.instance_type.items()|default({}) %}
+        {{ key }}: {{ val }}
+      {% endfor %}
+      tags: {% for tag in item.tags|default([{"key": "resourceTags/user:"+faker("word"), "value": faker("word")}]) %}
+        {{ tag.key }}: {{ tag.value }}
+      {% endfor %}
+      payer_account: {{ item.payer_account }}
+      usage_accounts: {% for acct in item.usage_accounts %}
+        - {{ acct }}
+      {% endfor %}
 {% endfor %}
-{% for r53 in route53_gens %}  - Route53Generator:
-      start_date: {{ r53.start_date }}
-      end_date: {{ r53.end_date }}
-      resource_id: {{ r53.resource_id }}
-      product_sku: {{ r53.product_sku }}
-      product_family: {{ r53.product_family }}
-      tags:{% for tag in r53.tags %}
-        {{ tag.key }}: {{ tag.value }}{% endfor %}
+{% for item in route53_gens %}  - Route53Generator:
+      start_date: {{ item.start_date|default(faker("date_time_this_month")) }}
+      end_date: {{ item.end_date|default(faker("date_time_between", start_date="now", end_date="now")) }}
+      invoice_id: {{ item.invoice_id }}
+      resource_id: {{ item.resource_id|default(faker("ean8")) }}
+      product_sku: {{ item.product_sku|default(faker("pystr",min_chars=12, max_chars=12)|upper) }}
+      product_family: {{ item.product_family|default(faker("word")) }}
+      tags: {% for tag in item.tags|default([{"key": "resourceTags/user:"+faker("word"), "value": faker("word")}]) %}
+        {{ tag.key }}: {{ tag.value }}
+      {% endfor %}
+      payer_account: {{ item.payer_account }}
+      usage_accounts: {% for acct in item.usage_accounts %}
+        - {{ acct }}
+      {% endfor %}
 {% endfor %}
-{% for s3 in s3_gens %}  - S3Generator:
-      start_date: {{ s3.start_date }}
-      end_date: {{ s3.end_date }}
-      resource_id: {{ s3.resource_id }}
-      product_sku: {{ s3.product_sku }}
-      amount: {{ s3.amount }}
-      rate: {{ s3.rate }}
-      tags:{% for tag in s3.tags %}
-        {{ tag.key }}: {{ tag.value }}{% endfor %}
+{% for item in s3_gens %}  - S3Generator:
+      start_date: {{ item.start_date|default(faker("date_time_this_month")) }}
+      end_date: {{ item.end_date|default(faker("date_time_between", start_date="now", end_date="now")) }}
+      invoice_id: {{ item.invoice_id }}
+      resource_id: {{ item.resource_id|default(faker("ean8")) }}
+      product_sku: {{ item.product_sku|default(faker("pystr",min_chars=12, max_chars=12)|upper) }}
+      amount: {{ item.amount|default(0.01) }}
+      rate: {{ item.rate|default(0.01) }}
+      tags: {% for tag in item.tags|default([{"key": "resourceTags/user:"+faker("word"), "value": faker("word")}]) %}
+        {{ tag.key }}: {{ tag.value }}
+      {% endfor %}
+      payer_account: {{ item.payer_account }}
+      usage_accounts: {% for acct in item.usage_accounts %}
+        - {{ acct }}
+      {% endfor %}
 {% endfor %}
-{% for vpc in vpc_gens %}  - VPCGenerator:
-      start_date: {{ vpc.start_date }}
-      end_date: {{ vpc.end_date }}
-      resource_id: {{ vpc.resource_id }}
-      product_sku: {{ vpc.product_sku }}
-      tags:{% for tag in vpc.tags %}
-        {{ tag.key }}: {{ tag.value }}{% endfor %}
+{% for item in vpc_gens %}  - VPCGenerator:
+      start_date: {{ item.start_date|default(faker("date_time_this_month")) }}
+      end_date: {{ item.end_date|default(faker("date_time_between", start_date="now", end_date="now")) }}
+      invoice_id: {{ item.invoice_id }}
+      resource_id: {{ item.resource_id|default("vpn-"+faker("ean8")) }}
+      product_sku: {{ item.product_sku|default(faker("pystr",min_chars=12, max_chars=12)|upper) }}
+      cost: {{ item.cost|default(0.01) }}
+      rate: {{ item.rate|default(0.01) }}
+      tags: {% for tag in item.tags|default([{"key": "resourceTags/user:"+faker("word"), "value": faker("word")}]) %}
+        {{ tag.key }}: {{ tag.value }}
+      {% endfor %}
+      payer_account: {{ item.payer_account }}
+      usage_accounts: {% for acct in item.usage_accounts %}
+        - {{ acct }}
+      {% endfor %}
 {% endfor %}
-
 accounts:
-  payer: {{ payer }}
-  user:{% for user in users %}
+  payer: {{ payer|default(faker("word")) }}
+  user:{% for user in users|default([faker("word")]) %}
     - {{ user }}{% endfor %}
+  invoice_id: {{ invoice_id|default(123456789) }}

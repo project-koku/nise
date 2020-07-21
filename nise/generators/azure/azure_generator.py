@@ -132,6 +132,10 @@ class AzureGenerator(AbstractGenerator):
             if attributes.get("meter_cache"):
                 self._meter_cache = attributes.get("meter_cache")
 
+    def _format_config(self, config):
+        """Handle special cases in the config layout."""
+        return config
+
     def _get_accts_str(self, service_name):
         """Return instance idea fields."""
         if service_name == "Bandwidth":

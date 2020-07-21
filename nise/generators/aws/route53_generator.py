@@ -18,48 +18,30 @@
 from random import choices
 
 from nise.generators.aws.aws_generator import AWSGenerator
-
-ROUTE_53_PRODUCTS_DICT = {
-    "DNS Zone": ("DNS Zone", "HostedZone", 0.500000000, 0.500000000),
-    "DNS Query": ("DNS Query", "DNS-Queries", 0.000000400, 0.000000400),
-}
-ROUTE_53_PRODUCTS = list(ROUTE_53_PRODUCTS_DICT.values())
+from nise.generators.aws.constants import ROUTE_53_PRODUCTS
+from nise.generators.aws.constants import ROUTE_53_PRODUCTS_DICT
 
 
 class Route53Generator(AWSGenerator):
     """Generator for Route53 data."""
 
-    def __init__(
-        self, start_date, end_date, payer_account, usage_accounts, attributes=None, tag_cols=None, user_config=None
-    ):
-        """Initialize the Route53 generator."""
-        super().__init__(
-            start_date, end_date, payer_account, usage_accounts, attributes, tag_cols, user_config=user_config
-        )
+    def _gen_fake_data(self, count):
+        """Populate TEMPLATE_KWARGS with fake values."""
+        self.TEMPLATE_KWARGS["route53_gens"] = []
+        while len(self.TEMPLATE_KWARGS["route53_gens"]) < count:
+            self.TEMPLATE_KWARGS["route53_gens"].append(
+                {"product_family": choices(ROUTE_53_PRODUCTS, weights=[1, 10])[0]}
+            )
 
-        self._product_sku = self.fake.pystr(min_chars=12, max_chars=12).upper()
-        self._product_family = None
-        self._resource_id = self.fake.ean8()
-        if self.attributes:
-            if self.attributes.get("product_family"):
-                self._product_family = self.attributes.get("product_family")
-            if self.attributes.get("product_sku"):
-                self._product_sku = self.attributes.get("product_sku")
-            if self.attributes.get("resource_id"):
-                self._resource_id = self.attributes.get("resource_id")
-            if self.attributes.get("tags"):
-                self._tags = self.attributes.get("tags")
-
-    def _get_arn(self):
+    def _get_arn(self, resource_id):
         """Create an amazon resource name."""
-        return f"arn:aws:Route53:::hostedzone:{self._resource_id}"
+        return f"arn:aws:Route53:::hostedzone:{resource_id}"
 
     def _update_data(self, row, start, end, **kwargs):
         """Update data with generator specific data."""
-        if self._product_family:
-            product_family, usage_type, rate, cost = ROUTE_53_PRODUCTS_DICT.get(self._product_family)
-        else:
-            product_family, usage_type, rate, cost = choices(ROUTE_53_PRODUCTS, weights=[1, 10])[0]
+        current_config = kwargs.get("config", {})
+
+        product_family, usage_type, rate, cost = ROUTE_53_PRODUCTS_DICT.get(current_config.get("product_family"))
         operation = self.fake.pystr(min_chars=1, max_chars=6).upper()
         if usage_type == "HostedZone":
             operation = usage_type
@@ -69,7 +51,7 @@ class Route53Generator(AWSGenerator):
         row["lineItem/UsageType"] = usage_type
         row["lineItem/Operation"] = operation
         row["lineItem/AvailabilityZone"] = ""
-        row["lineItem/ResourceId"] = self._get_arn()
+        row["lineItem/ResourceId"] = self._get_arn(current_config.get("resource_id"))
         row["lineItem/UsageAmount"] = "1"
         row["lineItem/CurrencyCode"] = "USD"
         row["lineItem/UnblendedRate"] = rate
@@ -98,7 +80,7 @@ class Route53Generator(AWSGenerator):
         row["product/productFamily"] = product_family
         row["product/region"] = "global"
         row["product/servicecode"] = "AmazonRoute53"
-        row["product/sku"] = self._product_sku
+        row["product/sku"] = current_config.get("product_sku")
         row["product/storage"] = ""
         row["product/tenancy"] = ""
         row["product/usagetype"] = usage_type
