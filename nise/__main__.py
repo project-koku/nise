@@ -511,7 +511,6 @@ def calculate_end_date(start_date, end_date):
     return generated_end_date
 
 
-# FIXME: this should go in the AzureGenerator
 def fix_dates(options, provider_type):
     """Correct any unique dates."""
     # Azure end_date is always the following day
