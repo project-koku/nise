@@ -85,13 +85,13 @@ class OCPGeneratorTestCase(TestCase):
             return v_min <= val <= config_val
 
         def validate_data(data, config, check_func):
-            node_keys = sorted(["name", "cpu_cores", "memory_gig", "resource_id", "namespaces"])
-            namespace_keys = sorted(["name", "pods", "volumes"])
+            node_keys = sorted(["name", "cpu_cores", "labels", "memory_gig", "resource_id", "namespaces"])
+            namespace_keys = sorted(["namespace_name", "pods", "volumes"])
             pod_keys = sorted(
-                ["name", "cpu_request", "mem_request_gig", "cpu_limit", "mem_limit_gig", "pod_seconds", "labels"]
+                ["pod_name", "cpu_request", "mem_request_gig", "cpu_limit", "mem_limit_gig", "pod_seconds", "labels"]
             )
-            volume_keys = sorted(["name", "storage_class", "volume_request_gig", "labels", "volume_claims"])
-            volume_claim_keys = sorted(["name", "pod_name", "labels", "capacity_gig"])
+            volume_keys = sorted(["volume_name", "storage_class", "volume_request_gig", "labels", "volume_claims"])
+            volume_claim_keys = sorted(["volume_claim_name", "pod_name", "labels", "capacity_gig"])
 
             self.assertTrue(isinstance(data, self.module.dicta))
 
@@ -107,10 +107,10 @@ class OCPGeneratorTestCase(TestCase):
 
                 for namespace in node.namespaces:
                     self.assertEqual(sorted(namespace.keys()), namespace_keys)
-                    self.assertTrue(namespace.name is not None and namespace.name != "")
+                    self.assertTrue(namespace.namespace_name is not None and namespace.namespace_name != "")
                     self.assertTrue(check_func(len(namespace.pods), config.max_node_namespace_pods))
                     self.assertTrue(check_func(len(namespace.volumes), config.max_node_namespace_volumes))
-                    pod_names = [p.name for p in namespace.pods]
+                    pod_names = [p.pod_name for p in namespace.pods]
 
                     for pod in namespace.pods:
                         self.assertEqual(sorted(pod.keys()), pod_keys)
@@ -126,7 +126,7 @@ class OCPGeneratorTestCase(TestCase):
                             )
                         )
                         self.assertEqual(len(pod.labels.split("|")), config.max_node_namespace_pod_labels)
-                        self.assertTrue(pod.name is not None and pod.name != "")
+                        self.assertTrue(pod.pod_name is not None and pod.pod_name != "")
 
                     for volume in namespace.volumes:
                         self.assertEqual(sorted(volume.keys()), volume_keys)
@@ -135,7 +135,7 @@ class OCPGeneratorTestCase(TestCase):
                             check_func(volume.volume_request_gig, config.max_node_namespace_volume_request_gig)
                         )
                         self.assertEqual(len(volume.labels.split("|")), config.max_node_namespace_volume_labels)
-                        self.assertTrue(volume.name is not None and volume.name != "")
+                        self.assertTrue(volume.volume_name is not None and volume.volume_name != "")
                         self.assertTrue(
                             check_func(len(volume.volume_claims), config.max_node_namespace_volume_volume_claims)
                         )
@@ -146,7 +146,9 @@ class OCPGeneratorTestCase(TestCase):
                                 len(volume_claim.labels.split("|")),
                                 config.max_node_namespace_volume_volume_claim_labels,
                             )
-                            self.assertTrue(volume_claim.name is not None and volume_claim.name != "")
+                            self.assertTrue(
+                                volume_claim.volume_claim_name is not None and volume_claim.volume_claim_name != ""
+                            )
                             self.assertTrue(volume_claim.pod_name in pod_names)
                             self.assertTrue(
                                 check_func(

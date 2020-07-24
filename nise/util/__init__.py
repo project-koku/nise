@@ -1,5 +1,5 @@
 #
-# Copyright 2018 Red Hat, Inc.
+# Copyright 2020 Red Hat, Inc.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -15,8 +15,6 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """Utility functions."""
-from collections import abc
-
 import yaml
 
 from .log import LOG  # noqa: F401
@@ -43,15 +41,22 @@ def load_yaml(objekt):
 
 
 def deepupdate(original, update):
-    """Recursively update a dict.
+    """Recursively update a nested dict/list.
 
-    Subdict's won't be overwritten but also updated.
+    original and update must have the same structure
     """
-    if not isinstance(original, abc.Mapping):
+    if not isinstance(update, (list, dict)):
         return update
-    for key, value in update.items():
-        if isinstance(value, abc.Mapping):
+
+    if isinstance(update, dict):
+        for key, value in update.items():
             original[key] = deepupdate(original.get(key, {}), value)
-        else:
-            original[key] = value
+
+    if isinstance(update, list):
+        for idx, item in enumerate(update):
+            if len(original) < idx:
+                original.append(item)
+            else:
+                original[idx] = deepupdate(original[idx], update[idx])
+
     return original

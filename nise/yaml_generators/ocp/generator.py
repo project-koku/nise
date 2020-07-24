@@ -74,8 +74,9 @@ class OCPGenerator(Generator):
                 cpu_cores: int,     (config.max_node_cpu_cores)
                 memory_gig: int,    (config.max_node_memory_gig)
                 resource_id: str,   (dynamic)
-                namespaces: [     (number of namespaces controlled by config.max_node_namespaces)
-                    {namespace: str,   (dynamic)
+                labels: str           (dynamic)
+                namespaces: [{     (number of namespaces controlled by config.max_node_namespaces)
+                    namespace_name: namespace str,   (dynamic)
                     pods: [           (number of pods controlled by config.max_node_namespace_pods)
                         pod_name: str,        (dynamic)
                         cpu_request: int,     (config.max_node_namespace_pod_cpu_request)
@@ -131,7 +132,15 @@ class OCPGenerator(Generator):
             node_name = generate_name(config)
             id_label_key = (resource_id, node_name)
             resourceid_labels[id_label_key] = []
-            node = dicta(name=node_name, cpu_cores=cores, memory_gig=memory, resource_id=resource_id, namespaces=[])
+            node_labels = generate_labels(config.max_node_namespace_pod_labels)
+            node = dicta(
+                name=node_name,
+                cpu_cores=cores,
+                memory_gig=memory,
+                resource_id=resource_id,
+                namespaces=[],
+                labels=node_labels,
+            )
             data.nodes.append(node)
 
             if _random:
@@ -142,7 +151,7 @@ class OCPGenerator(Generator):
             for namespace_ix in range(max_namespaces):
                 LOG.info(f"Building node {node_ix + 1}/{max_nodes}; namespace {namespace_ix + 1}/{max_namespaces}...")
 
-                namespace = dicta(name=generate_name(config, prefix=node.name), pods=[], volumes=[])
+                namespace = dicta(namespace_name=generate_name(config, prefix=node.name), pods=[], volumes=[])
                 node.namespaces.append(namespace)
 
                 if _random:
@@ -170,7 +179,9 @@ class OCPGenerator(Generator):
                     pod_labels = generate_labels(config.max_node_namespace_pod_labels)
                     resourceid_labels[id_label_key].append(pod_labels)
                     pod = dicta(
-                        name=generate_name(config, prefix=namespace.name + "-pod", suffix=str(pod_ix), dynamic=False),
+                        pod_name=generate_name(
+                            config, prefix=namespace.namespace_name + "-pod", suffix=str(pod_ix), dynamic=False
+                        ),
                         cpu_request=cpu_req,
                         mem_request_gig=mem_req,
                         cpu_limit=cpu_lim,
@@ -197,8 +208,8 @@ class OCPGenerator(Generator):
                     volume_labels = generate_labels(config.max_node_namespace_volume_labels)
                     resourceid_labels[id_label_key].append(volume_labels)
                     volume = dicta(
-                        name=generate_name(
-                            config, prefix=namespace.name + "-vol", suffix=str(volume_ix), dynamic=False
+                        volume_name=generate_name(
+                            config, prefix=namespace.namespace_name + "-vol", suffix=str(volume_ix), dynamic=False
                         ),
                         storage_class=storage_cls,
                         volume_request_gig=vol_req,
@@ -220,13 +231,13 @@ class OCPGenerator(Generator):
 
                         pod_name = namespace.pods[
                             -1 if volume_claim_ix >= len(namespace.pods) else volume_claim_ix
-                        ].name
+                        ].pod_name
                         volume_claim_labels = generate_labels(config.max_node_namespace_volume_volume_claim_labels)
                         resourceid_labels[id_label_key].append(volume_claim_labels)
                         volume_claim = dicta(
-                            name=generate_name(
+                            volume_claim_name=generate_name(
                                 config,
-                                prefix=namespace.name + "-vol-claim",
+                                prefix=namespace.namespace_name + "-vol-claim",
                                 suffix=str(volume_claim_ix),
                                 dynamic=False,
                             ),

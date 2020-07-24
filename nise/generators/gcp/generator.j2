@@ -1,0 +1,34 @@
+---
+generators:
+{% for csg in cloudstorage_gens %}  - CloudStorageGenerator:
+    Line Item: {{ csg.line_item }}
+    Measurement1: {{ csg.measurement }}
+    Measurement1 Total Consumption: {{ csg.measurement_total_consumption }}
+    Measurement1 Units: {{ csg.measurement_units }}
+    Cost: {{ csg.cost }}
+    Currency: {{ csg.currency }}
+    Description: {{ csg.description }}
+    Credit1: {{ csg.credit }}
+    Credit1 Amount: {{ csg.credit_amount }}
+    Credit1 Currency: {{ csg.credit_currency }}
+{% endfor %}
+{% for ceg in computeengine_gens %}  - ComputeEngineGenerator:
+    Line Item: {{ ceg.line_item }}
+    Measurement1: {{ ceg.measurement }}
+    Measurement1 Total Consumption: {{ ceg.measurement_total_consumption }}
+    Measurement1 Units: {{ ceg.measurement_units }}
+    Cost: {{ ceg.cost }}
+    Currency: {{ ceg.currency }}
+    Description: {{ ceg.description }}
+    Credit1: {{ ceg.credit }}
+    Credit1 Amount: {{ ceg.credit_amount }}
+    Credit1 Currency: {{ ceg.credit_currency }}
+{% endfor %}
+{% for project in project_gens %}  - ProjectGenerator:
+    Account ID: {{ project.account }}
+    Project: {{ project.number }}
+    Project Number: {{ project.number }}
+    Project ID: {{ project.id }}
+    Project Name: {{ project.id }}
+    Project Labels: {{ project.labels }}
+{% endfor %}
