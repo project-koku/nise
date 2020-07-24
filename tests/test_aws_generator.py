@@ -303,6 +303,7 @@ class TestRDSGenerator(AWSGeneratorTestCase):
         self.assertIn(self.tags["key"], generator.config[0].get("tags").keys())
         self.assertEqual(generator.config[0].get("resource_id"), self.resource_id)
         self.assertEqual(tuple(generator.config[0].get("instance_type").values()), tuple(self.instance_type.values()))
+        os.remove(test_config)
 
     def test_update_data(self):
         """Test RDS specific update data method."""
@@ -317,6 +318,7 @@ class TestRDSGenerator(AWSGeneratorTestCase):
         self.assertEqual(row["lineItem/ProductCode"], "AmazonRDS")
         self.assertEqual(row["lineItem/Operation"], "CreateDBInstance")
         self.assertEqual(row["product/ProductName"], "Amazon Relational Database Service")
+        os.remove(test_config)
 
     def test_generate_data(self):
         """Test that the RDS generate_data method works."""
@@ -367,6 +369,7 @@ class TestEBSGenerator(AWSGeneratorTestCase):
         self.assertEqual(generator.config[0].get("resource_id"), self.resource_id)
         self.assertEqual(generator.config[0].get("amount"), self.amount)
         self.assertEqual(generator.config[0].get("rate"), self.rate)
+        os.remove(test_config)
 
     def test_update_data(self):
         """Test EBS specific update data method."""
@@ -399,6 +402,7 @@ class TestEC2Generator(AWSGeneratorTestCase):
         self.assertIn(self.tags["key"], generator.config[0].get("tags").keys())
         self.assertEqual(generator.config[0].get("resource_id"), self.resource_id)
         self.assertEqual(tuple(generator.config[0].get("instance_type").values()), tuple(self.instance_type.values()))
+        os.remove(test_config)
 
     def test_update_data(self):
         """Test EBS specific update data method."""
@@ -430,6 +434,7 @@ class TestRoute53Generator(AWSGeneratorTestCase):
         self.assertEqual(generator.config[0].get("product_sku"), self.product_sku)
         self.assertIn(self.tags["key"], generator.config[0].get("tags").keys())
         self.assertEqual(generator.config[0].get("product_family"), self.product_family)
+        os.remove(test_config)
 
     def test_update_data(self):
         """Test Route53 specific update data method."""
@@ -462,6 +467,7 @@ class TestS3Generator(AWSGeneratorTestCase):
         self.assertIn(self.tags["key"], generator.config[0].get("tags").keys())
         self.assertEqual(generator.config[0].get("amount"), self.amount)
         self.assertEqual(generator.config[0].get("rate"), self.rate)
+        os.remove(test_config)
 
     def test_update_data(self):
         """Test S3 specific update data method."""
@@ -493,6 +499,7 @@ class TestVPCGenerator(AWSGeneratorTestCase):
         self.assertEqual(generator.config[0].get("product_sku"), self.product_sku)
         self.assertIn(self.tags["key"], generator.config[0].get("tags").keys())
         self.assertEqual(generator.config[0].get("resource_id"), self.resource_id)
+        os.remove(test_config)
 
     def test_update_data(self):
         """Test VPC specific update data method."""
