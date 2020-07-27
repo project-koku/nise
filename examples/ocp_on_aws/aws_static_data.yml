@@ -6,7 +6,7 @@ generators:
       processor_arch: 64-bit
       resource_id: 55555555
       product_sku: VEAJHRNKTJZQ
-      region: us-east-1a
+      region: us-east-1
       tags:
         resourceTags/user:version: prod
       instance_type:
@@ -23,7 +23,7 @@ generators:
       processor_arch: 64-bit
       resource_id: 55555556
       product_sku: VEAJHRNKTJAA
-      region: us-east-1a
+      region: us-east-1
       tags:
         resourceTags/user:environment: dev
         resourceTags/user:version: beta
@@ -41,7 +41,7 @@ generators:
       processor_arch: 64-bit
       resource_id: 55555557
       product_sku: VEAJHRNKTJAB
-      region: us-east-1a
+      region: us-east-1
       tags:
         resourceTags/user:environment: dev
         resourceTags/user:version: gamma
@@ -59,7 +59,7 @@ generators:
       processor_arch: 64-bit
       resource_id: 55555558
       product_sku: VEAJHRNKTJAC
-      region: us-east-1a
+      region: us-east-1
       tags:
         resourceTags/user:version: master
       instance_type:

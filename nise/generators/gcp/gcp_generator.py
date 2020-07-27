@@ -55,6 +55,10 @@ class GCPGenerator(AbstractGenerator):
         self.num_instances = 1 if attributes else randint(2, 60)
         self.attributes = attributes
 
+    def _format_config(self, config):
+        """Handle special cases in the config layout."""
+        return config
+
     @staticmethod
     def _create_days_list(start_date, end_date):
         """Create a list of days given the date range args."""

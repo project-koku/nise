@@ -19,6 +19,7 @@ from random import choice
 from random import uniform
 
 from nise.generators.aws.aws_generator import AWSGenerator
+from nise.generators.aws.constants import REGIONS
 
 
 class EBSGenerator(AWSGenerator):
@@ -29,30 +30,13 @@ class EBSGenerator(AWSGenerator):
         ("3000 for volumes <= 1 TiB", "10000", "160 MB/sec", "16 TiB", "SSD-backed", "General Purpose"),
     )
 
-    def __init__(
-        self, start_date, end_date, payer_account, usage_accounts, attributes=None, tag_cols=None, user_config=None
-    ):
-        """Initialize the EBS generator."""
-        super().__init__(
-            start_date, end_date, payer_account, usage_accounts, attributes, tag_cols, user_config=user_config
-        )
-
-        self._resource_id = "vol-{}".format(self.fake.ean8())
-        self._amount = uniform(0.2, 300.99)
-        self._rate = round(uniform(0.02, 0.16), 3)
-        self._product_sku = self.fake.pystr(min_chars=12, max_chars=12).upper()
-
-        if self.attributes:
-            if self.attributes.get("resource_id"):
-                self._resource_id = "vol-{}".format(self.attributes.get("resource_id"))
-            if self.attributes.get("amount"):
-                self._amount = float(self.attributes.get("amount"))
-            if self.attributes.get("rate"):
-                self._rate = float(self.attributes.get("rate"))
-            if self.attributes.get("product_sku"):
-                self._product_sku = self.attributes.get("product_sku")
-            if self.attributes.get("tags"):
-                self._tags = self.attributes.get("tags")
+    def _gen_fake_data(self, count):
+        """Populate TEMPLATE_KWARGS with fake values."""
+        self.TEMPLATE_KWARGS["ebs_gens"] = []
+        while len(self.TEMPLATE_KWARGS["ebs_gens"]) < count:
+            self.TEMPLATE_KWARGS["ebs_gens"].append(
+                {"amount": uniform(0.2, 300.99), "rate": round(uniform(0.02, 0.16), 3), "region": choice(REGIONS)[1]}
+            )
 
     def _get_storage(self):
         """Get storage data."""
@@ -60,19 +44,21 @@ class EBSGenerator(AWSGenerator):
 
     def _update_data(self, row, start, end, **kwargs):
         """Update data with generator specific data."""
+        current_config = kwargs.get("config", {})
+
         row = self._add_common_usage_info(row, start, end)
 
-        rate = self._rate
-        amount = self._amount
+        rate = current_config.get("rate")
+        amount = current_config.get("amount")
         cost = amount * rate
-        location, aws_region, _, storage_region = self._get_location()
+        location, aws_region, _, storage_region = self._get_location(config=current_config)
         description = f"${rate} per GB-Month of snapshot data stored - {location}"
         burst, max_iops, max_thru, max_vol_size, vol_backed, vol_type = self._get_storage()
 
         row["lineItem/ProductCode"] = "AmazonEC2"
         row["lineItem/UsageType"] = f"{storage_region}:VolumeUsage"
         row["lineItem/Operation"] = "CreateVolume"
-        row["lineItem/ResourceId"] = self._resource_id
+        row["lineItem/ResourceId"] = current_config.get("resource_id")
         row["lineItem/UsageAmount"] = str(amount)
         row["lineItem/CurrencyCode"] = "USD"
         row["lineItem/UnblendedRate"] = str(rate)
@@ -90,7 +76,7 @@ class EBSGenerator(AWSGenerator):
         row["product/productFamily"] = "Storage"
         row["product/region"] = aws_region
         row["product/servicecode"] = "AmazonEC2"
-        row["product/sku"] = self._product_sku
+        row["product/sku"] = current_config.get("product_sku")
         row["product/storageMedia"] = vol_backed
         row["product/usagetype"] = f"{storage_region}:VolumeUsage"
         row["product/volumeType"] = vol_type

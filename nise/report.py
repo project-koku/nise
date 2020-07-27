@@ -28,7 +28,6 @@ import shutil
 import string
 import tarfile
 from datetime import datetime
-from random import randint
 from tempfile import gettempdir
 from tempfile import NamedTemporaryFile
 from tempfile import TemporaryDirectory
@@ -40,13 +39,14 @@ from dateutil.relativedelta import relativedelta
 from faker import Faker
 from nise.copy import copy_to_local_dir
 from nise.extract import extract_payload
-from nise.generators.aws import DataTransferGenerator
-from nise.generators.aws import EBSGenerator
-from nise.generators.aws import EC2Generator
-from nise.generators.aws import RDSGenerator
-from nise.generators.aws import Route53Generator
-from nise.generators.aws import S3Generator
-from nise.generators.aws import VPCGenerator
+from nise.generators.aws import AWS_GENERATORS
+from nise.generators.aws import DataTransferGenerator  # noqa: F401
+from nise.generators.aws import EBSGenerator  # noqa: F401
+from nise.generators.aws import EC2Generator  # noqa: F401
+from nise.generators.aws import RDSGenerator  # noqa: F401
+from nise.generators.aws import Route53Generator  # noqa: F401
+from nise.generators.aws import S3Generator  # noqa: F401
+from nise.generators.aws import VPCGenerator  # noqa: F401
 from nise.generators.azure import AZURE_COLUMNS
 from nise.generators.azure import BandwidthGenerator
 from nise.generators.azure import SQLGenerator
@@ -269,19 +269,12 @@ def _create_month_list(start_date, end_date):
     return months
 
 
-def _aws_finalize_report(data, static_data=None):
+def _aws_finalize_report(data):
     """Populate invoice id for data."""
     data = copy.deepcopy(data)
-
-    invoice_id = None
-    if static_data and static_data.get("finalized_report"):
-        invoice_id = static_data.get("finalized_report").get("invoice_id")
-
-    if not invoice_id:
-        invoice_id = "".join([random.choice(string.digits) for _ in range(9)])
+    invoice_id = "".join([random.choice(string.digits) for _ in range(9)])
     for row in data:
         row["bill/InvoiceId"] = invoice_id
-
     return data
 
 
@@ -354,9 +347,7 @@ def _create_generator_dates_from_yaml(attributes, month):
     return gen_start_date, gen_end_date
 
 
-def write_aws_file(
-    file_number, aws_report_name, month_name, year, data, aws_finalize_report, static_report_data, headers
-):
+def write_aws_file(file_number, aws_report_name, month_name, year, data, aws_finalize_report, headers):
     """Write AWS data to a file."""
     headers = sorted(list(headers))
     if file_number != 0:
@@ -365,10 +356,10 @@ def write_aws_file(
         file_name = f"{month_name}-{year}-{aws_report_name}"
 
     if aws_finalize_report and aws_finalize_report == "overwrite":
-        data = _aws_finalize_report(data, static_report_data)
+        data = _aws_finalize_report(data)
     elif aws_finalize_report and aws_finalize_report == "copy":
         # Currently only a local option as this does not simulate
-        finalized_data = _aws_finalize_report(data, static_report_data)
+        finalized_data = _aws_finalize_report(data)
         file_name_finalized = f"{file_name}-finalized"
         full_file_name = "{}/{}.csv".format(os.getcwd(), file_name_finalized)
         _write_csv(full_file_name, finalized_data, headers)
@@ -385,57 +376,34 @@ def aws_create_report(options):  # noqa: C901
     start_date = options.get("start_date")
     end_date = options.get("end_date")
     aws_finalize_report = options.get("aws_finalize_report")
-    static_report_data = options.get("static_report_data")
-
-    if static_report_data:
-        generators = _get_generators(static_report_data.get("generators"))
-        accounts_list = static_report_data.get("accounts")
-    else:
-        generators = [
-            {"generator": DataTransferGenerator, "attributes": None},
-            {"generator": EBSGenerator, "attributes": None},
-            {"generator": EC2Generator, "attributes": None},
-            {"generator": S3Generator, "attributes": None},
-            {"generator": RDSGenerator, "attributes": None},
-            {"generator": Route53Generator, "attributes": None},
-            {"generator": VPCGenerator, "attributes": None},
-        ]
-        accounts_list = None
 
     months = _create_month_list(start_date, end_date)
-
-    payer_account, usage_accounts = _generate_accounts(accounts_list)
 
     aws_bucket_name = options.get("aws_bucket_name")
     aws_report_name = options.get("aws_report_name")
     write_monthly = options.get("write_monthly", False)
+    payer_account = None
     for month in months:
         data = []
         file_number = 0
         monthly_files = []
-        fake = Faker()
-        num_gens = len(generators)
+        num_gens = len(AWS_GENERATORS)
         ten_percent = int(num_gens * 0.1) if num_gens > 50 else 5
         LOG.info(f"Producing data for {num_gens} generators for {month.get('start').strftime('%Y-%m')}.")
-        for count, generator in enumerate(generators):
-            generator_cls = generator.get("generator")
-            attributes = generator.get("attributes")
+        for count, generator in enumerate(AWS_GENERATORS):
             gen_start_date = month.get("start")
             gen_end_date = month.get("end")
-            if attributes:
-                # Skip if generator usage is outside of current month
-                if attributes.get("end_date") < month.get("start"):
-                    continue
-                if attributes.get("start_date") > month.get("end"):
-                    continue
+            # Skip if generator usage is outside of current month
+            if end_date < month.get("start"):
+                continue
+            if start_date > month.get("end"):
+                continue
 
-                gen_start_date, gen_end_date = _create_generator_dates_from_yaml(attributes, month)
+            gen_start_date, gen_end_date = _create_generator_dates_from_yaml(options, month)
 
-            gen = generator_cls(
-                gen_start_date, gen_end_date, payer_account, usage_accounts, attributes, options.get("aws_tags")
-            )
-            num_instances = 1 if attributes else randint(2, 60)
-            for _ in range(num_instances):
+            gen = generator(gen_start_date, gen_end_date, user_config=options.get("static_report_file"))
+            payer_account = gen.config[0].get("accounts", {}).get("payer")
+            for _ in range(gen.num_instances):
                 for hour in gen.generate_data():
                     data += [hour]
                     if len(data) == options.get("row_limit"):
@@ -447,7 +415,6 @@ def aws_create_report(options):  # noqa: C901
                             gen_start_date.year,
                             data,
                             aws_finalize_report,
-                            static_report_data,
                             gen.AWS_COLUMNS,
                         )
                         monthly_files.append(month_output_file)
@@ -465,7 +432,6 @@ def aws_create_report(options):  # noqa: C901
             gen_start_date.year,
             data,
             aws_finalize_report,
-            static_report_data,
             gen.AWS_COLUMNS,
         )
         monthly_files.append(month_output_file)
@@ -476,7 +442,7 @@ def aws_create_report(options):  # noqa: C901
             manifest_values["start_date"] = gen_start_date
             manifest_values["end_date"] = gen_end_date
             manifest_values["file_names"] = monthly_files
-            s3_cur_path, manifest_data = aws_generate_manifest(fake, manifest_values)
+            s3_cur_path, manifest_data = aws_generate_manifest(manifest_values)
             s3_month_path = os.path.dirname(s3_cur_path)
             s3_month_manifest_path = s3_month_path + "/" + aws_report_name + "-Manifest.json"
             s3_assembly_manifest_path = s3_cur_path + "/" + aws_report_name + "-Manifest.json"
@@ -549,7 +515,15 @@ def azure_create_report(options):  # noqa: C901
             gen_start_date, gen_end_date = _create_generator_dates_from_yaml(attributes, month)
 
             attributes["meter_cache"] = meter_cache
-            gen = generator_cls(gen_start_date, gen_end_date, payer_account, usage_accounts, attributes)
+
+            gen = generator_cls(
+                gen_start_date,
+                gen_end_date,
+                payer_account,
+                usage_accounts,
+                attributes,
+                user_config=options.get("static_report_file"),
+            )
             data += gen.generate_data()
             meter_cache = gen.get_meter_cache()
 
@@ -597,9 +571,6 @@ def write_ocp_file(file_number, cluster_id, month_name, year, report_type, data)
 def ocp_create_report(options):  # noqa: C901
     """Create a usage report file."""
     cluster_id = options.get("ocp_cluster_id")
-
-    generators = [{"generator": OCPGenerator}]
-
     start_date = options.get("start_date")
     end_date = options.get("end_date")
     months = _create_month_list(start_date, end_date)  # FIXME: DRY this up
@@ -609,40 +580,36 @@ def ocp_create_report(options):  # noqa: C901
         data = {OCP_POD_USAGE: [], OCP_STORAGE_USAGE: [], OCP_NODE_LABEL: []}
         file_numbers = {OCP_POD_USAGE: 0, OCP_STORAGE_USAGE: 0, OCP_NODE_LABEL: 0}
         monthly_files = []
-        for generator in generators:
-            generator_cls = generator.get("generator")
 
-            gen_start_date = month.get("start")
-            gen_end_date = month.get("end")
+        gen_start_date = month.get("start")
+        gen_end_date = month.get("end")
 
-            attributes = generator.get("attributes")
-            if attributes:
-                # Skip if generator usage is outside of current month
-                if attributes.get("end_date") < month.get("start"):
-                    continue
-                if attributes.get("start_date") > month.get("end"):
-                    continue
+        # Skip if generator usage is outside of current month
+        if end_date < month.get("start"):
+            continue
+        if start_date > month.get("end"):
+            continue
 
-                gen_start_date, gen_end_date = _create_generator_dates_from_yaml(attributes, month)
+        gen_start_date, gen_end_date = _create_generator_dates_from_yaml(options, month)
 
-            gen = generator_cls(gen_start_date, gen_end_date, user_config=options.get("static_report_file"))
-            for report_type in gen.ocp_report_generation.keys():
-                LOG.info(f"Generating data for {report_type} for {month.get('name')}")
-                for hour in gen.generate_data(report_type):
-                    data[report_type] += [hour]
+        gen = OCPGenerator(gen_start_date, gen_end_date, user_config=options.get("static_report_file"))
+        for report_type in gen.ocp_report_generation.keys():
+            LOG.info(f"Generating data for {report_type} for {month.get('name')}")
+            for hour in gen.generate_data(report_type):
+                data[report_type] += [hour]
 
-                    if len(data[report_type]) == options.get("row_limit"):
-                        file_numbers[report_type] += 1
-                        month_output_file = write_ocp_file(
-                            file_numbers[report_type],
-                            cluster_id,
-                            month.get("name"),
-                            gen_start_date.year,
-                            report_type,
-                            data[report_type],
-                        )
-                        monthly_files.append(month_output_file)
-                        data[report_type].clear()
+                if len(data[report_type]) == options.get("row_limit"):
+                    file_numbers[report_type] += 1
+                    month_output_file = write_ocp_file(
+                        file_numbers[report_type],
+                        cluster_id,
+                        month.get("name"),
+                        gen_start_date.year,
+                        report_type,
+                        data[report_type],
+                    )
+                    monthly_files.append(month_output_file)
+                    data[report_type].clear()
 
         for report_type in gen.ocp_report_generation.keys():
             if file_numbers[report_type] != 0:
@@ -698,7 +665,6 @@ def ocp_create_report(options):  # noqa: C901
 def gcp_create_report(options):  # noqa: C901
     """Create a GCP cost usage report file."""
     fake = Faker()
-
     report_prefix = options.get("gcp_report_prefix") or fake.word()
     gcp_bucket_name = options.get("gcp_bucket_name")
 
@@ -732,7 +698,9 @@ def gcp_create_report(options):  # noqa: C901
                 end_date = attributes.get("end_date")
 
             generator_cls = generator.get("generator")
-            gen = generator_cls(start_date, end_date, project, attributes=attributes)
+            gen = generator_cls(
+                start_date, end_date, project, attributes=attributes, user_config=options.get("static_report_file")
+            )
             generated_data = gen.generate_data()
             for key, item in generated_data.items():
                 if key in data:

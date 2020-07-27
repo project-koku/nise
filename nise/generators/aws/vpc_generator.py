@@ -21,29 +21,20 @@ from nise.generators.aws.aws_generator import AWSGenerator
 class VPCGenerator(AWSGenerator):
     """Generator for VPC data."""
 
-    def __init__(
-        self, start_date, end_date, payer_account, usage_accounts, attributes=None, tag_cols=None, user_config=None
-    ):
-        """Initialize the VPC generator."""
-        super().__init__(
-            start_date, end_date, payer_account, usage_accounts, attributes, tag_cols, user_config=user_config
-        )
-
-        self._resource_id = "vpn-{}".format(self.fake.ean8())
-        self._product_sku = self.fake.pystr(min_chars=12, max_chars=12).upper()
-        if self.attributes:
-            if self.attributes.get("resource_id"):
-                self._resource_id = "vpn-{}".format(self.attributes.get("resource_id"))
-            if self.attributes.get("product_sku"):
-                self._product_sku = self.attributes.get("product_sku")
-            if self.attributes.get("tags"):
-                self._tags = self.attributes.get("tags")
+    def _gen_fake_data(self, count):
+        """Populate TEMPLATE_KWARGS with fake values."""
+        self.TEMPLATE_KWARGS["vpc_gens"] = []
+        while len(self.TEMPLATE_KWARGS["vpc_gens"]) < count:
+            self.TEMPLATE_KWARGS["vpc_gens"].append({"cost": 0.05, "rate": 0.05})
 
     def _update_data(self, row, start, end, **kwargs):
         """Update data with generator specific data."""
-        cost = 0.05
-        rate = 0.05
-        location, aws_region, avail_zone, _ = self._get_location()
+        current_config = kwargs.get("config", {})
+
+        cost = current_config.get("cost")
+        rate = current_config.get("rate")
+
+        location, aws_region, avail_zone, _ = self._get_location(config=current_config)
         row = self._add_common_usage_info(row, start, end)
         region_short_code = self._generate_region_short_code(aws_region)
         usage_type = f"{region_short_code}-VPN-Usage-Hours:ipsec.1"
@@ -52,7 +43,7 @@ class VPCGenerator(AWSGenerator):
         row["lineItem/UsageType"] = usage_type
         row["lineItem/Operation"] = "CreateVpnConnection"
         row["lineItem/AvailabilityZone"] = avail_zone
-        row["lineItem/ResourceId"] = self._resource_id
+        row["lineItem/ResourceId"] = current_config.get("resource_id")
         row["lineItem/UsageAmount"] = "1"
         row["lineItem/CurrencyCode"] = "USD"
         row["lineItem/UnblendedRate"] = rate
@@ -81,7 +72,7 @@ class VPCGenerator(AWSGenerator):
         row["product/productFamily"] = "Cloud Connectivity"
         row["product/region"] = aws_region
         row["product/servicecode"] = "AmazonVPC"
-        row["product/sku"] = self._product_sku
+        row["product/sku"] = current_config.get("product_sku")
         row["product/storage"] = ""
         row["product/tenancy"] = ""
         row["product/usagetype"] = usage_type

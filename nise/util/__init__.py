@@ -45,7 +45,7 @@ def deepupdate(original, update):
 
     original and update must have the same structure
     """
-    if not isinstance(update, (list, dict)):
+    if not (isinstance(update, list) or isinstance(update, dict)):
         return update
 
     if isinstance(update, dict):
@@ -54,7 +54,9 @@ def deepupdate(original, update):
 
     if isinstance(update, list):
         for idx, item in enumerate(update):
-            if len(original) < idx:
+            if not original:
+                original = update
+            elif len(original) <= idx:
                 original.append(item)
             else:
                 original[idx] = deepupdate(original[idx], update[idx])

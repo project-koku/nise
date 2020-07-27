@@ -23,3 +23,13 @@ from nise.generators.aws.rds_generator import RDSGenerator  # noqa: F401
 from nise.generators.aws.route53_generator import Route53Generator  # noqa: F401
 from nise.generators.aws.s3_generator import S3Generator  # noqa: F401
 from nise.generators.aws.vpc_generator import VPCGenerator  # noqa: F401
+
+AWS_GENERATORS = [
+    DataTransferGenerator,
+    EBSGenerator,
+    EC2Generator,
+    RDSGenerator,
+    Route53Generator,
+    S3Generator,
+    VPCGenerator,
+]

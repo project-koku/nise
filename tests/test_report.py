@@ -23,6 +23,7 @@ import os
 import re
 import shutil
 from tempfile import mkdtemp
+from tempfile import mkstemp
 from tempfile import NamedTemporaryFile
 from tempfile import TemporaryDirectory
 from unittest import TestCase
@@ -459,66 +460,63 @@ class AWSReportTestCase(TestCase):
         yesterday = now - one_day
         local_bucket_path = mkdtemp()
 
-        static_aws_data = {
-            "generators": [
-                {
-                    "EC2Generator": {
-                        "start_date": str(yesterday.date()),
-                        "end_date": str(now.date()),
-                        "processor_arch": "32-bit",
-                        "resource_id": 55555555,
-                        "product_sku": "VEAJHRNKTJZQ",
-                        "region": "us-east-1a",
-                        "tags": {"resourceTags/user:environment": "dev", "resourceTags/user:version": "alpha"},
-                        "instance_type": {
-                            "inst_type": "m5.large",
-                            "vcpu": 2,
-                            "memory": "8 GiB",
-                            "storage": "EBS Only",
-                            "family": "General Purpose",
-                            "cost": 1.0,
-                            "rate": 0.5,
-                        },
-                    }
-                },
-                {
-                    "S3Generator": {
-                        "start_date": str(yesterday.date()),
-                        "end_date": str(now.date()),
-                        "product_sku": "VEAJHRNAAAAA",
-                        "amount": 10,
-                        "rate": 3,
-                    }
-                },
-                {
-                    "EBSGenerator": {
-                        "start_date": str(yesterday.date()),
-                        "end_date": str(now.date()),
-                        "product_sku": "VEAJHRNBBBBB",
-                        "amount": 10,
-                        "rate": 3,
-                        "resource_id": 12345678,
-                    }
-                },
-                {
-                    "DataTransferGenerator": {
-                        "start_date": str(yesterday.date()),
-                        "end_date": str(now.date()),
-                        "product_sku": "VEAJHRNCCCCC",
-                        "amount": 10,
-                        "rate": 3,
-                    }
-                },
-            ],
-            "accounts": {"payer": 9999999999999, "user": [9999999999999]},
-        }
+        test_yaml = """
+---
+generators:
+  - EC2Generator:
+      start_date: {start}
+      end_date: {end}
+      processor_arch: 32-bit
+      resource_id: 55555555
+      product_sku: VEAJHRNKTJZQ
+      region: us-east-1a
+      tags:
+        resourceTags/user:environment: dev
+        resourceTags/user:version: alpha
+      instance_type:
+        inst_type: m5.large
+        vcpu: 2
+        memory: 8 GiB
+        storage: EBS Only
+        family: General Purpose
+        cost: 1.0
+        rate: 0.5
+  - S3Generator:
+      start_date: {start}
+      end_date: {end}
+      product_sku: VEAJHRNAAAAA
+      amount: 10
+      rate: 3
+  - EBSGenerator:
+      start_date: {start}
+      end_date: {end}
+      product_sku: VEAJHRNBBBBB
+      amount: 10
+      rate: 3
+      resource_id: 12345678
+  - DataTransferGenerator:
+      start_date: {start}
+      end_date: {end}
+      product_sku: VEAJHRNCCCCC
+      amount: 10
+      rate: 3
+accounts:
+  payer: 9999999999999
+  user:
+    - 9999999999999
+"""
+
+        _, tmp_filename = mkstemp()
+        with open(tmp_filename, "w+") as tmp_handle:
+            tmp_handle.write(test_yaml.format(start=str(yesterday.date()), end=str(now.date())))
+
         options = {
             "start_date": yesterday,
             "end_date": now,
             "aws_bucket_name": local_bucket_path,
             "aws_report_name": "cur_report",
-            "static_report_data": static_aws_data,
             "row_limit": 20,
+            "static_report_file": tmp_filename,
             "write_monthly": True,
         }
         aws_create_report(options)
@@ -536,6 +534,7 @@ class AWSReportTestCase(TestCase):
                 if regex.match(fname):
                     os.remove(fname)
         shutil.rmtree(local_bucket_path)
+        os.remove(tmp_filename)
 
 
 class OCPReportTestCase(TestCase):

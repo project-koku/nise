@@ -18,140 +18,82 @@
 from random import choice
 
 from nise.generators.aws.aws_generator import AWSGenerator
+from nise.generators.aws.constants import ARCHS
+from nise.generators.aws.constants import RDS_INSTANCE_TYPES
+from nise.generators.aws.constants import REGIONS
 
 
 class RDSGenerator(AWSGenerator):
     """Generator for RDS data."""
 
-    INSTANCE_TYPES = (
-        (
-            "db.t3.medium",
-            "2",
-            "4 GiB",
-            "EBS-Only",
-            "Memory Optimized",
-            "0.072",
-            "0.072",
-            "${} per On Demand Linux {} Instance Hour",
-        ),
-        (
-            "db.t3.large",
-            "2",
-            "8 GiB",
-            "EBS Only",
-            "General Purpose",
-            "0.145",
-            "0.145",
-            "${} per On Demand Linux {} Instance Hour",
-        ),
-        (
-            "db.m5.xlarge",
-            "4",
-            "16 GiB",
-            "1 x 200 NVMe SSD",
-            "Compute Optimized",
-            "0.356",
-            "0.356",
-            "${} per On Demand Linux {} Instance Hour",
-        ),
-        (
-            "db.r5.2xlarge",
-            "8",
-            "64 GiB",
-            "EBS-Only",
-            "Compute Optimized",
-            "1.00",
-            "1.00",
-            "${} per On Demand Linux {} Instance Hour",
-        ),
-    )
+    def _gen_fake_data(self, count):
+        """Populate TEMPLATE_KWARGS with fake values."""
+        self.TEMPLATE_KWARGS["rds_gens"] = []
+        while len(self.TEMPLATE_KWARGS["rds_gens"]) < count:
+            self.TEMPLATE_KWARGS["rds_gens"].append(
+                {
+                    "region": choice(REGIONS)[1],
+                    "processor_arch": choice(ARCHS),
+                    "instance_type": choice(RDS_INSTANCE_TYPES),
+                }
+            )
 
-    ARCHS = ("32-bit", "64-bit")
-
-    def __init__(
-        self, start_date, end_date, payer_account, usage_accounts, attributes=None, tag_cols=None, user_config=None
-    ):
-        """Initialize the RDS generator."""
-        super().__init__(
-            start_date, end_date, payer_account, usage_accounts, attributes, tag_cols, user_config=user_config
-        )
-
-        self._processor_arch = choice(self.ARCHS)
-        self._product_sku = self.fake.pystr(min_chars=12, max_chars=12).upper()
-        self._instance_type = choice(self.INSTANCE_TYPES)
-        self._resource_id = "i-{}".format(self.fake.ean8())
-        if self.attributes:
-            if self.attributes.get("product_sku"):
-                self._product_sku = self.attributes.get("product_sku")
-            if self.attributes.get("resource_id"):
-                self._resource_id = "i-{}".format(self.attributes.get("resource_id"))
-            if self.attributes.get("tags"):
-                self._tags = self.attributes.get("tags")
-            instance_type = self.attributes.get("instance_type")
-            if instance_type:
-                self._instance_type = (
-                    instance_type.get("inst_type"),
-                    instance_type.get("vcpu"),
-                    instance_type.get("memory"),
-                    instance_type.get("storage"),
-                    instance_type.get("family"),
-                    instance_type.get("cost"),
-                    instance_type.get("rate"),
-                    "${} per On Demand Linux {} Instance Hour",
-                )
-
-    def _get_arn(self, avail_zone):
+    def _get_arn(self, avail_zone, config):
         """Create an amazon resource name."""
-        return f"arn:aws:rds:{avail_zone}:{self.payer_account}:db:{self._resource_id}"
+        return f"arn:aws:rds:{avail_zone}:{config.get('payer_account')}:db:{config.get('resource_id')}"
 
     def _update_data(self, row, start, end, **kwargs):
         """Update data with generator specific data."""
-        inst_type, vcpu, memory, storage, family, cost, rate, description = self._instance_type
-        inst_description = description.format(cost, inst_type)
-        location, aws_region, avail_zone, _ = self._get_location()
+        current_config = kwargs.get("config", {})
+
+        inst_type = current_config.get("instance_type", {}).get("inst_type")
+        cost = current_config.get("instance_type", {}).get("cost")
+        rate = current_config.get("instance_type", {}).get("rate")
+
+        location, aws_region, avail_zone, _ = self._get_location(config=current_config)
         row = self._add_common_usage_info(row, start, end)
-        # split_region = aws_region.split('-')
-        # region_short_code = aws_region[0:2].upper() + split_region[1][0].upper() + split_region[2]
         region_short_code = self._generate_region_short_code(aws_region)
 
         row["lineItem/ProductCode"] = "AmazonRDS"
         row["lineItem/UsageType"] = f"{region_short_code}-InstanceUsage:{inst_type}"
         row["lineItem/Operation"] = "CreateDBInstance"
         row["lineItem/AvailabilityZone"] = avail_zone
-        row["lineItem/ResourceId"] = self._get_arn(avail_zone)
+        row["lineItem/ResourceId"] = self._get_arn(avail_zone, config=current_config)
         row["lineItem/UsageAmount"] = "1"
         row["lineItem/CurrencyCode"] = "USD"
         row["lineItem/UnblendedRate"] = rate
         row["lineItem/UnblendedCost"] = cost
         row["lineItem/BlendedRate"] = rate
         row["lineItem/BlendedCost"] = cost
-        row["lineItem/LineItemDescription"] = inst_description
+        row["lineItem/LineItemDescription"] = (
+            current_config.get("instance_type", {}).get("desc").format(cost, inst_type)
+        )
         row["product/ProductName"] = "Amazon Relational Database Service"
         row["product/clockSpeed"] = "2.8 GHz"
         row["product/currentGeneration"] = "Yes"
         row["product/ecu"] = "14"
         row["product/enhancedNetworkingSupported"] = "Yes"
-        row["product/instanceFamily"] = family
+        row["product/instanceFamily"] = current_config.get("instance_type", {}).get("family")
         row["product/instanceType"] = inst_type
         row["product/licenseModel"] = "No License required"
         row["product/location"] = location
         row["product/locationType"] = "AWS Region"
-        row["product/memory"] = memory
+        row["product/memory"] = current_config.get("instance_type", {}).get("memory")
         row["product/networkPerformance"] = "Moderate"
         row["product/operatingSystem"] = "Linux"
         row["product/operation"] = "RunInstances"
         row["product/physicalProcessor"] = "Intel Xeon Family"
         row["product/preInstalledSw"] = "NA"
-        row["product/processorArchitecture"] = self._processor_arch
+        row["product/processorArchitecture"] = current_config.get("processor_arch")
         row["product/processorFeatures"] = "Intel AVX Intel Turbo"
         row["product/productFamily"] = "Database Instance"
         row["product/region"] = aws_region
         row["product/servicecode"] = "AmazonRDS"
-        row["product/sku"] = self._product_sku
-        row["product/storage"] = storage
+        row["product/sku"] = current_config.get("product_sku")
+        row["product/storage"] = current_config.get("instance_type", {}).get("storage")
         row["product/tenancy"] = "Shared"
         row["product/usagetype"] = f"BoxUsage:{inst_type}"
-        row["product/vcpu"] = vcpu
+        row["product/vcpu"] = current_config.get("instance_type", {}).get("vcpu")
         row["pricing/publicOnDemandCost"] = cost
         row["pricing/publicOnDemandRate"] = rate
         row["pricing/term"] = "OnDemand"
