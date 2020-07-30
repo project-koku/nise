@@ -317,7 +317,7 @@ generators:
         in_node = self.attributes.get("nodes")[0]
         in_namespace = self.attributes.get("nodes")[0].get("namespaces")[0].get("namespace_name")
         out_pods = generator._gen_pods(in_node, in_namespace)
-        self.assertGreaterEqual(len(out_pods), 2)
+        self.assertGreaterEqual(len(out_pods), 1)
 
         expected = (
             "namespace",
