@@ -48,11 +48,12 @@ from nise.generators.aws import Route53Generator  # noqa: F401
 from nise.generators.aws import S3Generator  # noqa: F401
 from nise.generators.aws import VPCGenerator  # noqa: F401
 from nise.generators.azure import AZURE_COLUMNS
-from nise.generators.azure import BandwidthGenerator
-from nise.generators.azure import SQLGenerator
-from nise.generators.azure import StorageGenerator
-from nise.generators.azure import VMGenerator
-from nise.generators.azure import VNGenerator
+from nise.generators.azure import AZURE_GENERATORS
+from nise.generators.azure import BandwidthGenerator  # noqa: F401
+from nise.generators.azure import SQLGenerator  # noqa: F401
+from nise.generators.azure import StorageGenerator  # noqa: F401
+from nise.generators.azure import VMGenerator  # noqa: F401
+from nise.generators.azure import VNGenerator  # noqa: F401
 from nise.generators.gcp import CloudStorageGenerator
 from nise.generators.gcp import ComputeEngineGenerator
 from nise.generators.gcp import GCP_REPORT_COLUMNS
@@ -278,24 +279,6 @@ def _aws_finalize_report(data):
     return data
 
 
-def _generate_accounts(static_report_data=None):
-    """Generate payer and usage accounts."""
-    if static_report_data:
-        payer_account = static_report_data.get("payer")
-        usage_accounts = tuple(static_report_data.get("user"))
-    else:
-        fake = Faker()
-        payer_account = fake.ean(length=13)
-        usage_accounts = (
-            payer_account,
-            fake.ean(length=13),
-            fake.ean(length=13),
-            fake.ean(length=13),
-            fake.ean(length=13),
-        )
-    return payer_account, usage_accounts
-
-
 def _get_generators(generator_list=[]):
     """Collect a list of report generators."""
     generators = []
@@ -425,6 +408,7 @@ def aws_create_report(options):  # noqa: C901
 
         if file_number != 0:
             file_number += 1
+
         month_output_file = write_aws_file(
             file_number,
             aws_report_name,
@@ -466,23 +450,8 @@ def azure_create_report(options):  # noqa: C901
     data = []
     start_date = options.get("start_date")
     end_date = options.get("end_date")
-    static_report_data = options.get("static_report_data")
-    if static_report_data:
-        generators = _get_generators(static_report_data.get("generators"))
-        accounts_list = static_report_data.get("accounts")
-    else:
-        generators = [
-            {"generator": BandwidthGenerator, "attributes": {}},
-            {"generator": SQLGenerator, "attributes": {}},
-            {"generator": StorageGenerator, "attributes": {}},
-            {"generator": VMGenerator, "attributes": {}},
-            {"generator": VNGenerator, "attributes": {}},
-        ]
-        accounts_list = None
 
     months = _create_month_list(start_date, end_date)
-
-    payer_account, usage_accounts = _generate_accounts(accounts_list)
 
     meter_cache = {}
     # The options params are not going to change so we don't
@@ -495,35 +464,21 @@ def azure_create_report(options):  # noqa: C901
     for month in months:
         data = []
         monthly_files = []
-        num_gens = len(generators)
+        num_gens = len(AZURE_GENERATORS)
         ten_percent = int(num_gens * 0.1) if num_gens > 50 else 5
         LOG.info(f"Producing data for {num_gens} generators for {month.get('start').strftime('%Y-%m')}.")
-        for count, generator in enumerate(generators):
-            generator_cls = generator.get("generator")
-            attributes = generator.get("attributes", {})
+        for count, generator in enumerate(AZURE_GENERATORS):
             gen_start_date = month.get("start")
             gen_end_date = month.get("end")
-            if attributes:
-                # Skip if generator usage is outside of current month
-                if attributes.get("end_date") < month.get("start"):
-                    continue
-                if attributes.get("start_date") > month.get("end"):
-                    continue
-            else:
-                attributes = {"end_date": end_date, "start_date": start_date}
+            # Skip if generator usage is outside of current month
+            if end_date < month.get("start"):
+                continue
+            if start_date > month.get("end"):
+                continue
 
-            gen_start_date, gen_end_date = _create_generator_dates_from_yaml(attributes, month)
+            gen_start_date, gen_end_date = _create_generator_dates_from_yaml(options, month)
 
-            attributes["meter_cache"] = meter_cache
-
-            gen = generator_cls(
-                gen_start_date,
-                gen_end_date,
-                payer_account,
-                usage_accounts,
-                attributes,
-                user_config=options.get("static_report_file"),
-            )
+            gen = generator(gen_start_date, gen_end_date, meter_cache, user_config=options.get("static_report_file"))
             data += gen.generate_data()
             meter_cache = gen.get_meter_cache()
 

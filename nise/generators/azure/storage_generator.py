@@ -61,8 +61,17 @@ class StorageGenerator(AzureGenerator):
         ("hccm", "costmgmtacct1234"),
     )
     ADDITIONAL_INFO = [None]
+    SERVICE_NAME = "Storage"
 
-    def __init__(self, start_date, end_date, payer_account, usage_accounts, attributes=None, user_config=None):
-        """Initialize the data transfer generator."""
-        self._service_name = "Storage"
-        super().__init__(start_date, end_date, payer_account, usage_accounts, attributes, user_config=user_config)
+    def _gen_fake_data(self, count):
+        """Populate TEMPLATE_KWARGS with fake values.
+
+        The base template has defaults for most values. The values set here have extra requirements.
+        """
+        self.TEMPLATE_KWARGS["storage_gens"] = []
+        while len(self.TEMPLATE_KWARGS["storage_gens"]) < count:
+            # this might look strange, but because the Azure template has defaults for each element, we don't need to
+            # populate the dict with anything. The list just needs to have the right number of elements.
+            #
+            # If a future change needs to push default values into the template, the values may be added here.
+            self.TEMPLATE_KWARGS["storage_gens"].append({})
