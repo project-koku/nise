@@ -51,36 +51,34 @@ class AbstractGenerator(ABC):
         if not self.TEMPLATE_KWARGS:
             raise AttributeError("Class attribute 'TEMPLATE_KWARGS' must be defined.")
 
-        # XXX: temporary conditional until all generators support using the jinja templating
-        if not self.TEMPLATE_KWARGS.get("NotImplemented"):
-            env = Environment(loader=FunctionLoader(self.load_template))
-            env.globals["faker"] = faker_passthrough
+        env = Environment(loader=FunctionLoader(self.load_template))
+        env.globals["faker"] = faker_passthrough
 
-            default_template = env.get_template(self.TEMPLATE)
-            if user_config:
-                user_template = env.get_template(user_config)
-                user_yaml = load_yaml(user_template.render(**self.TEMPLATE_KWARGS))
+        default_template = env.get_template(self.TEMPLATE)
+        if user_config:
+            user_template = env.get_template(user_config)
+            user_yaml = load_yaml(user_template.render(**self.TEMPLATE_KWARGS))
 
-                # sort lists of dicts so that generator class names align.
-                generators = user_yaml.get("generators")
-                user_yaml["generators"] = sorted(generators, key=lambda d: list(d.keys()))
+            # sort lists of dicts so that generator class names align.
+            generators = user_yaml.get("generators")
+            user_yaml["generators"] = sorted(generators, key=lambda d: list(d.keys()))
 
-                default_yaml = load_yaml(default_template.render(**self.TEMPLATE_KWARGS))
-                config = deepupdate(default_yaml, user_yaml)  # merge user-supplied static file with base template
-            else:
-                config = load_yaml(default_template.render(**self.TEMPLATE_KWARGS))
+            default_yaml = load_yaml(default_template.render(**self.TEMPLATE_KWARGS))
+            config = deepupdate(default_yaml, user_yaml)  # merge user-supplied static file with base template
+        else:
+            config = load_yaml(default_template.render(**self.TEMPLATE_KWARGS))
 
-            # handle special-cases in YAML config syntax
-            config = self._format_config(config)
+        # handle special-cases in YAML config syntax
+        config = self._format_config(config)
 
-            # remove top-level class name
-            self.config = []
-            for generators in config.get("generators"):
-                for key, val in generators.items():
-                    if key == type(self).__name__:
-                        self.config.append(val)
+        # remove top-level class name
+        self.config = []
+        for generators in config.get("generators"):
+            for key, val in generators.items():
+                if key == type(self).__name__:
+                    self.config.append(val)
 
-            LOG.debug("Current config: %s", pformat(self.config))
+        LOG.debug("Current config: %s", pformat(self.config))
 
         self.start_date = start_date
         self.end_date = end_date

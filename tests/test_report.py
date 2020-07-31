@@ -35,7 +35,6 @@ from nise.generators.ocp.ocp_generator import OCP_REPORT_TYPE_TO_COLS
 from nise.report import _convert_bytes
 from nise.report import _create_month_list
 from nise.report import _generate_azure_filename
-from nise.report import _get_generators
 from nise.report import _remove_files
 from nise.report import _write_csv
 from nise.report import _write_manifest
@@ -137,26 +136,6 @@ class MiscReportTestCase(TestCase):
         for test_case in test_matrix:
             output = _create_month_list(test_case["start_date"], test_case["end_date"])
             self.assertCountEqual(output, test_case["expected_list"])
-
-    def test_get_generators(self):
-        """Test the _get_generators helper function."""
-        generators = _get_generators()
-        self.assertEqual(generators, [])
-
-        generator_list = [{"EC2Generator": {"start_date": "2019-01-21", "end_date": "2019-01-22"}}]
-        generators = _get_generators(generator_list)
-
-        self.assertIsNotNone(generators)
-        self.assertEqual(len(generators), 1)
-
-        self.assertIsInstance(generators[0].get("attributes").get("start_date"), datetime.datetime)
-        self.assertIsInstance(generators[0].get("attributes").get("end_date"), datetime.datetime)
-        self.assertEqual(generators[0].get("attributes").get("start_date").month, 1)
-        self.assertEqual(generators[0].get("attributes").get("start_date").day, 21)
-        self.assertEqual(generators[0].get("attributes").get("start_date").year, 2019)
-        self.assertEqual(generators[0].get("attributes").get("end_date").month, 1)
-        self.assertEqual(generators[0].get("attributes").get("end_date").day, 22)
-        self.assertEqual(generators[0].get("attributes").get("end_date").year, 2019)
 
     @patch.dict(os.environ, {"INSIGHTS_ACCOUNT_ID": "12345", "INSIGHTS_ORG_ID": "54321"})
     @patch("nise.report.requests.post")

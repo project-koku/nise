@@ -20,7 +20,6 @@ import calendar
 import copy
 import csv
 import gzip
-import importlib
 import json
 import os
 import random
@@ -34,7 +33,6 @@ from tempfile import TemporaryDirectory
 from uuid import uuid4
 
 import requests
-from dateutil import parser
 from dateutil.relativedelta import relativedelta
 from faker import Faker
 from nise.copy import copy_to_local_dir
@@ -54,8 +52,9 @@ from nise.generators.azure import SQLGenerator  # noqa: F401
 from nise.generators.azure import StorageGenerator  # noqa: F401
 from nise.generators.azure import VMGenerator  # noqa: F401
 from nise.generators.azure import VNGenerator  # noqa: F401
-from nise.generators.gcp import CloudStorageGenerator
-from nise.generators.gcp import ComputeEngineGenerator
+from nise.generators.gcp import CloudStorageGenerator  # noqa: F401
+from nise.generators.gcp import ComputeEngineGenerator  # noqa: F401
+from nise.generators.gcp import GCP_GENERATORS
 from nise.generators.gcp import GCP_REPORT_COLUMNS
 from nise.generators.gcp import ProjectGenerator
 from nise.generators.ocp import OCP_NODE_LABEL
@@ -68,6 +67,7 @@ from nise.manifest import ocp_generate_manifest
 from nise.upload import upload_to_azure_container
 from nise.upload import upload_to_gcp_storage
 from nise.upload import upload_to_s3
+from nise.util import load_yaml
 from nise.util import LOG
 
 
@@ -279,21 +279,6 @@ def _aws_finalize_report(data):
     return data
 
 
-def _get_generators(generator_list=[]):
-    """Collect a list of report generators."""
-    generators = []
-    for item in generator_list:
-        for generator_cls, attributes in item.items():
-            generator_obj = {"generator": getattr(importlib.import_module(__name__), generator_cls)}
-            if attributes.get("start_date"):
-                attributes["start_date"] = parser.parse(attributes.get("start_date"))
-            if attributes.get("end_date"):
-                attributes["end_date"] = parser.parse(attributes.get("end_date"))
-            generator_obj["attributes"] = attributes
-            generators.append(generator_obj)
-    return generators
-
-
 def _create_generator_dates_from_yaml(attributes, month):
     """Calculate generator start and end dates based on yaml and current month."""
     gen_start_date = None
@@ -332,7 +317,12 @@ def _create_generator_dates_from_yaml(attributes, month):
 
 def write_aws_file(file_number, aws_report_name, month_name, year, data, aws_finalize_report, headers):
     """Write AWS data to a file."""
-    headers = sorted(list(headers))
+    try:
+        headers = sorted(list(headers))
+    except TypeError:
+        LOG.critical("BUG: %s", headers)
+        raise
+
     if file_number != 0:
         file_name = "{}-{}-{}-{}".format(month_name, year, aws_report_name, str(file_number))
     else:
@@ -626,36 +616,26 @@ def gcp_create_report(options):  # noqa: C901
     start_date = options.get("start_date")
     end_date = options.get("end_date")
 
-    static_report_data = options.get("static_report_data")
-    if static_report_data:
-        generators = _get_generators(static_report_data.get("generators"))
-        projects = static_report_data.get("projects")
-
+    projects = []
+    if options.get("static_report_file"):
+        config = load_yaml(options.get("static_report_file"))
+        project_gens = list(filter(lambda x: "ProjectGenerator" in x, config.get("generators")))
+        projects = []
+        for gen in project_gens:
+            project_generator = ProjectGenerator(gen.get("ProjectGenerator", {}).get("Account ID"))
+            projects = projects + [prj for prj in project_generator.generate_projects()]
     else:
-        generators = [
-            {"generator": CloudStorageGenerator, "attributes": None},
-            {"generator": ComputeEngineGenerator, "attributes": None},
-        ]
         account = "{}-{}".format(fake.word(), fake.word())
-
         project_generator = ProjectGenerator(account)
-        projects = project_generator.generate_projects()
+        projects = projects + [prj for prj in project_generator.generate_projects()]
 
     data = {}
     for project in projects:
-        num_gens = len(generators)
+        num_gens = len(GCP_GENERATORS)
         ten_percent = int(num_gens * 0.1) if num_gens > 50 else 5
-        LOG.info(f"Producing data for {num_gens} generators for {'INSERT SOMETHING FOR GCP'}.")
-        for count, generator in enumerate(generators):
-            attributes = generator.get("attributes", {})
-            if attributes:
-                start_date = attributes.get("start_date")
-                end_date = attributes.get("end_date")
-
-            generator_cls = generator.get("generator")
-            gen = generator_cls(
-                start_date, end_date, project, attributes=attributes, user_config=options.get("static_report_file")
-            )
+        LOG.info(f"Producing data for {num_gens} generators for GCP Project '{project}'.")
+        for count, generator in enumerate(GCP_GENERATORS):
+            gen = generator(start_date, end_date, project, user_config=options.get("static_report_file"))
             generated_data = gen.generate_data()
             for key, item in generated_data.items():
                 if key in data:

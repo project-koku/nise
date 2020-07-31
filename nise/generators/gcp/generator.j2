@@ -1,34 +1,34 @@
 ---
 generators:
-{% for csg in cloudstorage_gens %}  - CloudStorageGenerator:
-    Line Item: {{ csg.line_item }}
-    Measurement1: {{ csg.measurement }}
-    Measurement1 Total Consumption: {{ csg.measurement_total_consumption }}
-    Measurement1 Units: {{ csg.measurement_units }}
-    Cost: {{ csg.cost }}
-    Currency: {{ csg.currency }}
-    Description: {{ csg.description }}
-    Credit1: {{ csg.credit }}
-    Credit1 Amount: {{ csg.credit_amount }}
-    Credit1 Currency: {{ csg.credit_currency }}
+{% for item in cloudstorage_gens %}  - CloudStorageGenerator:
+      Line Item: {{ item.line_item|default(item._storage[0]) }}
+      Measurement1: {{ item.measurement|default(item._storage[0]) }}
+      Measurement1 Total Consumption: {{ item.measurement_total_consumption|default(faker("pyint")) }}
+      Measurement1 Units: {{ item.measurement_units|default(item._storage[1]) }}
+      Cost: {{ item.cost|default(faker("pyint")) }}
+      Currency: {{ item.currency|default("USD") }}
+      Description: {{ item.description|default(item._storage[2]) }}
+      Credit1: {{ item.credit|default("No Credit") }}
+      Credit1 Amount: {{ item.credit_amount|default(0) }}
+      Credit1 Currency: {{ item.credit_currency|default("USD") }}
 {% endfor %}
-{% for ceg in computeengine_gens %}  - ComputeEngineGenerator:
-    Line Item: {{ ceg.line_item }}
-    Measurement1: {{ ceg.measurement }}
-    Measurement1 Total Consumption: {{ ceg.measurement_total_consumption }}
-    Measurement1 Units: {{ ceg.measurement_units }}
-    Cost: {{ ceg.cost }}
-    Currency: {{ ceg.currency }}
-    Description: {{ ceg.description }}
-    Credit1: {{ ceg.credit }}
-    Credit1 Amount: {{ ceg.credit_amount }}
-    Credit1 Currency: {{ ceg.credit_currency }}
+{% for item in computeengine_gens %}  - ComputeEngineGenerator:
+      Line Item: {{ item.line_item|default(item._compute[0]) }}
+      Measurement1: {{ item.measurement|default(item._compute[0]) }}
+      Measurement1 Total Consumption: {{ item.measurement_total_consumption|default(faker("pyint")) }}
+      Measurement1 Units: {{ item.measurement_units|default(item._compute[1]) }}
+      Cost: {{ item.cost|default(faker("pyint")) }}
+      Currency: {{ item.currency|default("USD") }}
+      Description: {{ item.description|default(item._compute[2]) }}
+      Credit1: {{ item.credit|default("No Credit") }}
+      Credit1 Amount: {{ item.credit_amount|default(0) }}
+      Credit1 Currency: {{ item.credit_currency|default("USD") }}
 {% endfor %}
-{% for project in project_gens %}  - ProjectGenerator:
-    Account ID: {{ project.account }}
-    Project: {{ project.number }}
-    Project Number: {{ project.number }}
-    Project ID: {{ project.id }}
-    Project Name: {{ project.id }}
-    Project Labels: {{ project.labels }}
+{% for item in project_gens %}  - ProjectGenerator:
+      Account ID: {{ item.account|default(faker("word")+"-"+faker("word")) }}
+      Project: {{ item.number|default(faker("ean13")) }}
+      Project Number: {{ item.number|default(faker("ean13")) }}
+      Project ID: {{ item.id|default(faker("word")+"-"+faker("word")+"-"+faker("word")) }}
+      Project Name: {{ item.id|default(faker("word")+"-"+faker("word")+"-"+faker("word")) }}
+      Project Labels: {{ item.labels|default(faker("word")+":"+faker("word")+";"+faker("word")+":"+faker("word")) }}
 {% endfor %}
