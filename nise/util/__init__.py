@@ -40,25 +40,49 @@ def load_yaml(objekt):
     return yamlfile
 
 
-def deepupdate(original, update):
+def deepupdate(original, update):  # noqa: C901
     """Recursively update a nested dict/list.
 
-    original and update must have the same structure
+    original and update must have the same structure.
+
     """
     if not (isinstance(update, list) or isinstance(update, dict)):
         return update
 
     if isinstance(update, dict):
         for key, value in update.items():
-            original[key] = deepupdate(original.get(key, {}), value)
+            # TODO: change static file syntax to not require these special cases
+            if key == "tags" and value:
+                # don't preserve generated tags, only overwrite
+                original[key] = value
+            elif key == "generators":
+                # line up FooGenerator keys within the generators list and update matching dicts.
+                original[key] = _deepupdate_generators(original[key], value)
+            elif key in original or "Generator" not in key:
+                # only "drill in" if the FooGenerator keys match, or it's another key name
+                original[key] = deepupdate(original.get(key, {}), value)
 
     if isinstance(update, list):
+        if not original:
+            return update
+
         for idx, item in enumerate(update):
-            if not original:
-                original = update
-            elif len(original) <= idx:
+            if len(original) <= idx:
                 original.append(item)
             else:
                 original[idx] = deepupdate(original[idx], update[idx])
 
+    return original
+
+
+def _deepupdate_generators(original, update):
+    """Handle the generators deepupdate special-case."""
+    updated_list = []
+    for up_dikt in update:
+        for idx, orig_dikt in enumerate(original):
+            updated = deepupdate(orig_dikt, up_dikt)
+            if updated != orig_dikt:
+                updated_list.append((idx, updated))
+    for idx, updated in updated_list:
+        original[idx] = updated
     return original

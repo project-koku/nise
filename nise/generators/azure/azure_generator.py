@@ -17,11 +17,13 @@
 """Defines the abstract generator."""
 import datetime
 import json
+from abc import abstractmethod
+from copy import deepcopy
 from random import choice
 from random import randint
-from random import uniform
 
 from nise.generators.generator import AbstractGenerator
+from nise.util import load_yaml
 
 AZURE_COLUMNS = (
     "SubscriptionGuid",
@@ -90,51 +92,57 @@ class AzureGenerator(AbstractGenerator):
 
     TEMPLATE = "nise/generators/azure/generator.j2"
 
-    # Not yet implemented.
-    TEMPLATE_KWARGS = {"NotImplemented": True}
+    TEMPLATE_KWARGS = {
+        "payer": AbstractGenerator.fake.uuid4(),
+        "users": [AbstractGenerator.fake.uuid4() for _ in range(0, randint(2, 6))],
+    }
 
-    def __init__(self, start_date, end_date, payer_account, usage_accounts, attributes=None, user_config=None):
+    def __init__(self, start_date, end_date, cache={}, user_config=None):
         """Initialize the generator."""
+        # generate the same number of elements as the static file, if there is one
+        # this is needed to ensure that deepupdate() works correctly.
+        gen_count = randint(2, 6)
+        if user_config:
+            preload = load_yaml(user_config)
+            seen = {}
+            for generators in preload.get("generators"):
+                for key in generators.keys():
+                    if key in seen.keys():
+                        seen[key] += 1
+                    else:
+                        seen[key] = 1
+            name = type(self).__name__
+            if name in seen:
+                gen_count = seen[name]
+        self._gen_fake_data(gen_count)
+
+        # pass an element of the instance_id defaults into the template
+        svcname, svctype = self._get_accts_str(self.SERVICE_NAME)
+        self.TEMPLATE_KWARGS["_service_name"] = "{}/{}".format(svcname, svctype[:-1])
+
         super().__init__(start_date, end_date, user_config=user_config)
 
-        self.payer_account = payer_account
-        self.usage_accounts = usage_accounts
-        self.attributes = attributes
-        self._tags = None
-        self.num_instances = 1 if attributes else randint(2, 60)
-        self._usage_quantity = None
-        self._resource_rate = None
-        self._pre_tax_cost = None
-        self._instance_id = None
-        self._meter_id = None
-        self._meter_name = None
-        self._resource_location = None
-        self._service_tier = None
-        self._consumed = None
-        self._resource_type = None
-        self._meter_cache = {}
+        self._meter_cache = cache
 
-        if attributes:
-            if attributes.get("instance_id"):
-                self._instance_id = attributes.get("instance_id")
-            if attributes.get("meter_id"):
-                self._meter_id = attributes.get("meter_id")
-            if attributes.get("resource_location"):
-                self._resource_location = attributes.get("resource_location")
-            if attributes.get("usage_quantity"):
-                self._usage_quantity = attributes.get("usage_quantity")
-            if attributes.get("resource_rate"):
-                self._resource_rate = attributes.get("resource_rate")
-            if attributes.get("pre_tax_cost"):
-                self._pre_tax_cost = attributes.get("pre_tax_cost")
-            if attributes.get("tags"):
-                self._tags = attributes.get("tags")
-            if attributes.get("meter_cache"):
-                self._meter_cache = attributes.get("meter_cache")
+    @abstractmethod
+    def _gen_fake_data(self, count):
+        """Populate TEMPLATE_KWARGS with fake values."""
 
     def _format_config(self, config):
         """Handle special cases in the config layout."""
-        return config
+        # handle payer and account info and invoice id
+        accounts = config.get("accounts", {})
+        payer = accounts.get("payer")
+        users = accounts.get("user", [])
+
+        updated = deepcopy(config)
+        for idx, gen in enumerate(config.get("generators", [])):
+            for key, val in gen.items():
+                if not val.get("payer_account"):
+                    updated["generators"][idx][key]["payer_account"] = payer
+                if not val.get("usage_accounts"):
+                    updated["generators"][idx][key]["usage_accounts"] = tuple(set([payer] + users))
+        return updated
 
     def _get_accts_str(self, service_name):
         """Return instance idea fields."""
@@ -155,44 +163,15 @@ class AzureGenerator(AbstractGenerator):
         resource_group, resource_name = choice(ex_resource)
         additional_info = choice(add_info)
         service_info_2 = choice(service_info)
-        if self._instance_id:
-            self._consumed, second_part = accts_str = self._get_accts_str(self._service_name)
-            self._resource_type = self._consumed + "/" + second_part
-            instance_id = self._instance_id
-        else:
-            self._consumed, second_part = accts_str = self._get_accts_str(self._service_name)
-            self._resource_type = self._consumed + "/" + second_part
-            accts_str = "/providers/" + self._resource_type + "/"
-            instance_id = "{}/{}/{}/{}/{}/{}".format(
-                "subscriptions", self.payer_account, "resourceGroups", resource_group, accts_str[1:-2], resource_name
-            )
-        return (
-            resource_group,
-            instance_id,
-            service_tier,
-            meter_sub,
-            meter_name,
-            units_of_measure,
-            additional_info,
-            service_info_2,
-        )
+        self._consumed, second_part = self._get_accts_str(self.SERVICE_NAME)
+        self._resource_type = self._consumed + "/" + second_part
 
-    def _get_location_info(self):
+        return (resource_group, service_tier, meter_sub, meter_name, units_of_measure, additional_info, service_info_2)
+
+    def _get_location_info(self, config={}):
         """Get bandwidth info."""
-        azure_region, meter_region = self._get_location()
+        azure_region, meter_region = self._get_location(config)
         return azure_region, meter_region
-
-    def _pick_tag(self, key1, val1, key2, val2):
-        """Generate a randomized 2-item tag or blank tag from options."""
-        if self._tags:
-            tags = self._tags
-        elif self.attributes and self.attributes.get("tags"):
-            tags = None
-        else:
-            init_tag = {key1: choice(val1), key2: choice(val2)}
-            tag_choices = (init_tag, "")
-            tags = choice(tag_choices)
-        return tags
 
     def _init_data_row(self, start, end, **kwargs):  # noqa: C901
         """Create a row of data with placeholder for all headers."""
@@ -207,43 +186,42 @@ class AzureGenerator(AbstractGenerator):
         for column in AZURE_COLUMNS:
             row[column] = ""
             if column == "SubscriptionGuid":
-                row[column] = self.payer_account
+                row[column] = self.config[0].get("payer_account")
         return row
 
-    def _get_location(self):
+    def _get_location(self, config={}):
         """Pick resource location."""
-        if self._resource_location:
-            location = choice([option for option in self.RESOURCE_LOCATION if self._resource_location in option])
+        filtered = list(filter(lambda x: config.get("resource_location") in x, self.RESOURCE_LOCATION))
+        if filtered:
+            location = choice(filtered)
         else:
             location = choice(self.RESOURCE_LOCATION)
         return location
 
     def _add_common_usage_info(self, row, start, end, **kwargs):
         """Add common usage information."""
-        row["SubscriptionGuid"] = self.payer_account
+        row["SubscriptionGuid"] = self.config[0].get("payer_account")
         row["UsageDateTime"] = start
         return row
 
-    def _add_tag_data(self, row):
+    def _add_tag_data(self, row, config):
         """Add tag dictionary data options to the row."""
-        if not self._tags:
-            self._tags = self._pick_tag(
-                "environment", ("dev", "ci", "qa", "stage", "prod"), "project", ("p1", "p2", "p3")
-            )
-        row["Tags"] = json.dumps(self._tags)
+        row["Tags"] = json.dumps(config.get("tags"))
 
     def _update_data(self, row, start, end, **kwargs):
         """Update data with generator specific data."""
+        current_config = kwargs.get("config", {})
+
         row = self._add_common_usage_info(row, start, end)
 
-        meter_id = self._meter_id if self._meter_id else self.fake.uuid4()
-        rate = self._resource_rate if self._resource_rate else round(uniform(0.1, 0.50), 5)
-        amount = self._usage_quantity if self._usage_quantity else uniform(0.01, 1)
-        cost = self._pre_tax_cost if self._pre_tax_cost else amount * rate
-        azure_region, meter_region = self._get_location_info()
+        meter_id = current_config.get("meter_id")
+        rate = current_config.get("resource_rate ")
+        amount = current_config.get("usage_quantity")
+        cost = current_config.get("pre_tax_cost") if current_config.get("pre_tax_cost") else amount * rate
+        azure_region, meter_region = self._get_location_info(current_config)
+        instance_id = current_config.get("instance_id")
         (
             resource_group,
-            instance_id,
             service_tier,
             meter_sub,
             meter_name,
@@ -260,7 +238,7 @@ class AzureGenerator(AbstractGenerator):
 
         row["ResourceGroup"] = resource_group
         row["ResourceLocation"] = azure_region
-        row["MeterCategory"] = self._service_name
+        row["MeterCategory"] = self.SERVICE_NAME
         row["MeterSubcategory"] = meter_sub
         row["MeterId"] = str(meter_id)
         row["MeterName"] = meter_name
@@ -275,11 +253,11 @@ class AzureGenerator(AbstractGenerator):
         row["AdditionalInfo"] = json.dumps(additional_info)
         row["ServiceInfo1"] = ""
         row["ServiceInfo2"] = service_info_2
-        row["ServiceName"] = self._service_name
+        row["ServiceName"] = self.SERVICE_NAME
         row["ServiceTier"] = service_tier
         row["Currency"] = "USD"
         row["UnitOfMeasure"] = units_of_measure
-        self._add_tag_data(row)
+        self._add_tag_data(row, current_config)
 
         return row
 
@@ -292,11 +270,12 @@ class AzureGenerator(AbstractGenerator):
         """Create daily data."""
         data = []
         for day in self.days:
-            start = day.get("start")
-            end = day.get("end")
-            row = self._init_data_row(start, end)
-            row = self._update_data(row, start, end)
-            data.append(row)
+            for cfg in self.config:
+                start = day.get("start")
+                end = day.get("end")
+                row = self._init_data_row(start, end)
+                row = self._update_data(row, start, end, config=cfg)
+                data.append(row)
         return data
 
     def generate_data(self, report_type=None):
