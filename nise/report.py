@@ -549,6 +549,8 @@ def azure_create_report(options):  # noqa: C901
 
             gen_start_date, gen_end_date = _create_generator_dates_from_yaml(attributes, month)
 
+            if attributes.get("meter_cache"):
+                meter_cache.update(attributes.get("meter_cache"))  # needed so that meter_cache can be defined in yaml
             attributes["meter_cache"] = meter_cache
             gen = generator_cls(gen_start_date, gen_end_date, payer_account, usage_accounts, attributes)
             data += gen.generate_data()
