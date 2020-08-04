@@ -317,12 +317,7 @@ def _create_generator_dates_from_yaml(attributes, month):
 
 def write_aws_file(file_number, aws_report_name, month_name, year, data, aws_finalize_report, headers):
     """Write AWS data to a file."""
-    try:
-        headers = sorted(list(headers))
-    except TypeError:
-        LOG.critical("BUG: %s", headers)
-        raise
-
+    headers = sorted(list(headers))
     if file_number != 0:
         file_name = "{}-{}-{}-{}".format(month_name, year, aws_report_name, str(file_number))
     else:
