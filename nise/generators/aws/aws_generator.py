@@ -87,7 +87,7 @@ class AWSGenerator(AbstractGenerator):
         self._tags = {}
         for cfg in self.config:
             for key, value in cfg.get("tags", {}).items():
-                tag_cols.append(key)
+                tag_cols.append(str(key))
                 self._tags[key] = value
 
         self.num_instances = randint(2, 60)

@@ -1,7 +1,22 @@
+#
+# Copyright 2019 Red Hat, Inc.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
 """Abstract class for gcp data generation."""
 import datetime
 from abc import abstractmethod
-from random import randint
 
 from nise.generators.generator import AbstractGenerator
 
@@ -34,33 +49,27 @@ class GCPGenerator(AbstractGenerator):
     TEMPLATE = "nise/generators/gcp/generator.j2"
 
     # Not yet implemented.
-    TEMPLATE_KWARGS = {"NotImplemented": True}
+    TEMPLATE_KWARGS = {}
 
-    def __init__(self, start_date, end_date, project, attributes=None, user_config=None):
+    def __init__(self, start_date, end_date, project, user_config=None):
         """
         Initialize the generator.
 
         Args:
             start_date (datetime): Day to start generating reports from.
             end_date (datetime): Last day to generate reports for.
-            account (string): Name of the account
-            project_number (int): GCP project number
-            project_id (string): GCP project id
-            num_instances (int): number of instances to generate fake data for.
-
+            project (int): GCP project number
         """
+        self.TEMPLATE_KWARGS["project_gens"] = [{}]
         super().__init__(start_date, end_date, user_config=user_config)
 
         self.project = project
-        self.num_instances = 1 if attributes else randint(2, 60)
-        self.attributes = attributes
 
     def _format_config(self, config):
         """Handle special cases in the config layout."""
         return config
 
-    @staticmethod
-    def _create_days_list(start_date, end_date):
+    def _create_days_list(self, start_date, end_date):
         """Create a list of days given the date range args."""
         days = []
 

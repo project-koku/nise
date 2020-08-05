@@ -1,0 +1,23 @@
+---
+generators:
+  - CloudStorageGenerator:
+      Line Item: "com.google.cloud/services/compute-engine/TestCompute"
+      Measurement1: "com.google.cloud/services/compute-engine/TestCompute"
+      Measurement1 Total Consumption: 10
+      Measurement1 Units: "seconds"
+      Cost: 0.01
+      Description: "Test Compute"
+  - ComputeEngineGenerator:
+      Line Item: "com.google.cloud/services/cloud-storage/TestStorage"
+      Measurement1: "com.google.cloud/services/cloud-storage/TestStorage"
+      Measurement1 Total Consumption: 5
+      Measurement1 Units: "byte-seconds"
+      Cost: 0.02
+      Description: "Test Storage"
+  - ProjectGenerator:
+      Account ID: "0987654321"
+      Project: 1234567890
+      Project Number: 1234567890
+      Project ID: "some-test-project"
+      Project Name: "some-test-project"
+      Project Labels: "test:first;other:second;last:third"
