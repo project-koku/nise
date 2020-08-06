@@ -470,7 +470,7 @@ class TestRoute53Generator(AWSGeneratorTestCase):
         row = generator._update_data(start_row, self.two_hours_ago, self.now, **{"config": generator.config[0]})
 
         self.assertEqual(row["product/servicecode"], "AmazonRoute53")
-        self.assertEqual(row["product/productFamily"], self.product_family)
+        self.assertIn(row["product/productFamily"], ["DNS Query", "DNS Zone"])
         self.assertEqual(row["lineItem/ProductCode"], "AmazonRoute53")
 
     def test_generate_data(self):
