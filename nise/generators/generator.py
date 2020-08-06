@@ -22,14 +22,17 @@ from abc import abstractmethod
 from pprint import pformat
 
 from faker import Faker
+from jinja2 import ChoiceLoader
 from jinja2 import Environment
-from jinja2 import FunctionLoader
+from jinja2 import FileSystemLoader
+from jinja2 import PackageLoader
 from nise.jinja_ext import faker_passthrough
 from nise.util import deepupdate
 from nise.util import load_yaml
 from nise.util import LOG
 
 REPORT_TYPE = "report_type"
+LOADER_LIST = []
 
 
 class AbstractGenerator(ABC):
@@ -51,12 +54,16 @@ class AbstractGenerator(ABC):
         if not self.TEMPLATE_KWARGS:
             raise AttributeError("Class attribute 'TEMPLATE_KWARGS' must be defined.")
 
-        env = Environment(loader=FunctionLoader(self.load_template))
+        LOADER_LIST.append(PackageLoader("nise"))
+        if user_config:
+            LOADER_LIST.append(FileSystemLoader(os.path.abspath(os.path.dirname(user_config))))
+
+        env = Environment(loader=ChoiceLoader(LOADER_LIST))
         env.globals["faker"] = faker_passthrough
 
         default_template = env.get_template(self.TEMPLATE)
         if user_config:
-            user_template = env.get_template(user_config)
+            user_template = env.get_template(os.path.basename(user_config))
             user_yaml = load_yaml(user_template.render(**self.TEMPLATE_KWARGS))
 
             # sort lists of dicts so that generator class names align.
@@ -163,14 +170,3 @@ class AbstractGenerator(ABC):
     @abstractmethod
     def generate_data(self, report_type=None):
         """Responsible for generating data."""
-
-    def load_template(self, name):
-        """Responsible for loading the Jinja template."""
-        template = None
-        if os.path.exists(name):
-            try:
-                with open(name, "r") as fh:
-                    template = fh.read()
-            except (IOError, OSError, TypeError) as exc:
-                LOG.error(exc)
-        return template

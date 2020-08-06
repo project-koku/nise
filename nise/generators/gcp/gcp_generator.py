@@ -46,7 +46,7 @@ GCP_REPORT_COLUMNS = (
 class GCPGenerator(AbstractGenerator):
     """Abstract class for GCP generators."""
 
-    TEMPLATE = "nise/generators/gcp/generator.j2"
+    TEMPLATE = "gcp.j2"
 
     # Not yet implemented.
     TEMPLATE_KWARGS = {}

@@ -90,7 +90,7 @@ class AzureGenerator(AbstractGenerator):
 
     SERVICE_NAMES = ["SQL Database", "Storage", "Virtual Machines", "Virtual Network"]
 
-    TEMPLATE = "nise/generators/azure/generator.j2"
+    TEMPLATE = "azure.j2"
 
     TEMPLATE_KWARGS = {
         "payer": AbstractGenerator.fake.uuid4(),

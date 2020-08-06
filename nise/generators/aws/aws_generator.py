@@ -54,7 +54,7 @@ class AWSGenerator(AbstractGenerator):
         + RESERVE_COLS
         + tuple(RESOURCE_TAG_COLS)
     )
-    TEMPLATE = "nise/generators/aws/generator.j2"
+    TEMPLATE = "aws.j2"
 
     TEMPLATE_KWARGS = {
         "payer": AbstractGenerator.fake.ean13(),
