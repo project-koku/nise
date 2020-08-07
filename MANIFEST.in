@@ -1,3 +1,9 @@
 include nise/aws-template-manifest.json
 include nise/ocp-template-manifest.json
 include nise/yaml_generators/static/*
+include nise/templates/*
+recursive-exclude .tox *
+recursive-exclude .git *
+recursive-exclude .github *
+recursive-exclude tests *
+exclude .coverage .coveragerc .pre-commit-config.yaml .pyup.yml
