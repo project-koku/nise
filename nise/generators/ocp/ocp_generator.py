@@ -88,7 +88,7 @@ OCP_REPORT_TYPE_TO_COLS = {
 class OCPGenerator(AbstractGenerator):
     """Defines a abstract class for generators."""
 
-    TEMPLATE = "nise/generators/ocp/generator.j2"
+    TEMPLATE = "ocp.j2"
 
     # Keyword args passed to TEMPLATE at render time.
     TEMPLATE_KWARGS = {"start_date": None, "end_date": None, "nodes": []}
