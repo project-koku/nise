@@ -408,9 +408,9 @@ class OCPGenerator(AbstractGenerator):
             start = hour.get("start")
             end = hour.get("end")
             for node in self.nodes:
-                for namespace in node.get("namespaces"):
+                for namespace in node.get("namespaces", []):
                     name = namespace.get("namespace_name")
-                    for pod in namespace.get("pods"):
+                    for pod in namespace.get("pods", []):
                         cpu_usage = pod.get("cpu_usage", None)
                         mem_usage_gig = pod.get("mem_usage_gig", None)
                         pod_seconds = pod.get("pod_seconds", None)
@@ -444,10 +444,10 @@ class OCPGenerator(AbstractGenerator):
             start = hour.get("start")
             end = hour.get("end")
             for node in self.nodes:
-                for namespace in node.get("namespaces"):
+                for namespace in node.get("namespaces", []):
                     name = namespace.get("namespace_name")
-                    for volume in namespace.get("volumes"):
-                        for volume_claim in volume.get("volume_claims"):
+                    for volume in namespace.get("volumes", []):
+                        for volume_claim in volume.get("volume_claims", []):
                             row = self._init_data_row(start, end, **kwargs)
                             row = self._update_data(
                                 row,

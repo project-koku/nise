@@ -215,9 +215,12 @@ class AzureGenerator(AbstractGenerator):
         row = self._add_common_usage_info(row, start, end)
 
         meter_id = current_config.get("meter_id")
-        rate = current_config.get("resource_rate ")
+        rate = current_config.get("resource_rate")
         amount = current_config.get("usage_quantity")
-        cost = current_config.get("pre_tax_cost") if current_config.get("pre_tax_cost") else amount * rate
+        if current_config.get("pre_tax_cost") != "None":
+            cost = current_config.get("pre_tax_cost")
+        else:
+            cost = amount * rate
         azure_region, meter_region = self._get_location_info(current_config)
         instance_id = current_config.get("instance_id")
         (
