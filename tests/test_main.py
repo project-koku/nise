@@ -436,19 +436,19 @@ class MainDateTest(TestCase):
         ]
         static_report_data = {"generators": aws_gens}
         expected = {
-            "aws_gen_first": {"start_date": datetime(2020, 6, 1, 0, 0), "end_date": datetime(2020, 6, 1, 23, 59)},
+            "aws_gen_first": {"start_date": datetime(2020, 6, 1, 0, 0), "end_date": datetime(2020, 6, 1, 0, 0)},
             "aws_gen_first_second": {
                 "start_date": datetime(2020, 6, 1, 0, 0),
-                "end_date": datetime(2020, 6, 2, 23, 59),
+                "end_date": datetime(2020, 6, 2, 0, 0),
             },
             "aws_gen_first_start": {
                 "start_date": datetime(2020, 6, 1, 0, 0),
-                "end_date": datetime.now().replace(hour=23, minute=59, second=0, microsecond=0),
+                "end_date": datetime.now().replace(minute=0, second=0, microsecond=0),
             },
-            "aws_gen_last": {"start_date": datetime(2020, 5, 31, 0, 0), "end_date": datetime(2020, 5, 31, 23, 59)},
+            "aws_gen_last": {"start_date": datetime(2020, 5, 31, 0, 0), "end_date": datetime(2020, 5, 31, 0, 0)},
             "aws_gen_last_first": {
                 "start_date": datetime(2020, 5, 31, 0, 0),
-                "end_date": datetime(2020, 6, 1, 23, 59),
+                "end_date": datetime(2020, 6, 1, 0, 0),
             },
         }
         options = {"provider": "aws", "static_report_file": "fake-file"}
@@ -482,19 +482,19 @@ class MainDateTest(TestCase):
         ]
         static_report_data = {"generators": ocp_gens}
         expected = {
-            "ocp_gen_first": {"start_date": datetime(2020, 6, 1, 0, 0), "end_date": datetime(2020, 6, 1, 23, 59)},
+            "ocp_gen_first": {"start_date": datetime(2020, 6, 1, 0, 0), "end_date": datetime(2020, 6, 1, 0, 0)},
             "ocp_gen_first_second": {
                 "start_date": datetime(2020, 6, 1, 0, 0),
-                "end_date": datetime(2020, 6, 2, 23, 59),
+                "end_date": datetime(2020, 6, 2, 0, 0),
             },
             "ocp_gen_first_start": {
                 "start_date": datetime(2020, 6, 1, 0, 0),
-                "end_date": datetime.now().replace(hour=23, minute=59, second=0, microsecond=0),
+                "end_date": datetime.now().replace(minute=0, second=0, microsecond=0),
             },
-            "ocp_gen_last": {"start_date": datetime(2020, 5, 31, 0, 0), "end_date": datetime(2020, 5, 31, 23, 59)},
+            "ocp_gen_last": {"start_date": datetime(2020, 5, 31, 0, 0), "end_date": datetime(2020, 5, 31, 0, 0)},
             "ocp_gen_last_first": {
                 "start_date": datetime(2020, 5, 31, 0, 0),
-                "end_date": datetime(2020, 6, 1, 23, 59),
+                "end_date": datetime(2020, 6, 1, 0, 0),
             },
         }
         options = {"provider": "ocp", "static_report_file": "fake-file"}
