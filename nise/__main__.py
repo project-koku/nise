@@ -16,19 +16,15 @@
 #
 """Cost and Usage Generator CLI."""
 import argparse
-import calendar
 import datetime
 import os
 from pprint import pformat
 
-from dateutil import parser as date_parser
-from dateutil.relativedelta import relativedelta
 from nise import __version__
 from nise.report import aws_create_report
 from nise.report import azure_create_report
 from nise.report import gcp_create_report
 from nise.report import ocp_create_report
-from nise.util import load_yaml
 from nise.util import LOG
 from nise.util import LOG_VERBOSITY
 from nise.yaml_gen import add_yaml_parser_args
@@ -44,14 +40,9 @@ def valid_date(date_string):
     try:
         valid = datetime.datetime.strptime(date_string, "%Y-%m-%d")
     except ValueError:
-        msg = f"{date_string} is an unsupported date format."
+        msg = f"{date_string} is an unsupported date format. Use YYYY-MM-DD."
         raise argparse.ArgumentTypeError(msg)
     return valid
-
-
-def today():
-    """Create the date of today."""
-    return datetime.datetime.now().replace(microsecond=0, second=0, minute=0)
 
 
 def add_aws_parser_args(parser):
@@ -187,8 +178,16 @@ def create_parser():
         dest="end_date",
         required=False,
         type=valid_date,
-        default=today(),
+        default=datetime.datetime.now().replace(microsecond=0, second=0, minute=0),
         help="Date to end generating data (YYYY-MM-DD). Default is today.",
+    )
+    parent_parser.add_argument(
+        "--days-per-month",
+        metavar="NUM",
+        required=False,
+        type=int,
+        default=4,
+        help="Number of days of data per month to generate. (Default: 4)",
     )
     parent_parser.add_argument(
         "--file-row-limit",
@@ -431,99 +430,8 @@ def _validate_provider_inputs(parser, options):
     return (valid_inputs, provider_type)
 
 
-def _load_static_report_data(options):
-    """Validate/load and set start_date if static file is provided."""
-    if not options.get("static_report_file"):
-        return
-    LOG.info("Loading static data...")
-    aws_tags = set()
-    start_dates = []
-    end_dates = []
-    static_report_data = load_yaml(options.get("static_report_file"))
-    for generator_dict in static_report_data.get("generators"):
-        for _, attributes in generator_dict.items():
-            generated_start_date = calculate_start_date(attributes.get("start_date"))
-            start_dates.append(generated_start_date)
-
-            if attributes.get("end_date"):
-                generated_end_date = calculate_end_date(generated_start_date, attributes.get("end_date"))
-            else:
-                generated_end_date = today()
-            if options.get("provider") == "azure":
-                generated_end_date += datetime.timedelta(hours=24)
-            end_dates.append(generated_end_date)
-
-            attributes["start_date"] = str(generated_start_date)
-            attributes["end_date"] = str(generated_end_date)
-
-            if options.get("provider") == "aws":
-                aws_tags.update(attributes.get("tags", {}).keys())
-
-    options["start_date"] = min(start_dates)
-    latest_date = max(end_dates)
-    last_day_of_month = calendar.monthrange(year=latest_date.year, month=latest_date.month)[1]
-    options["end_date"] = latest_date.replace(day=last_day_of_month, hour=0, minute=0)
-    options["static_report_data"] = static_report_data
-
-    if options.get("provider") == "aws" and aws_tags:
-        options["aws_tags"] = aws_tags
-
-    return True
-
-
-def calculate_start_date(start_date):
-    """Return a datetime for the start date."""
-    if start_date == "last_month":
-        generated_start_date = today().replace(day=1, hour=0, minute=0, second=0) + relativedelta(months=-1)
-    elif start_date == "today":
-        generated_start_date = today().replace(hour=0, minute=0, second=0)
-    elif start_date and isinstance(start_date, datetime.date):
-        generated_start_date = datetime.datetime.fromordinal(start_date.toordinal())
-    elif start_date:
-        generated_start_date = date_parser.parse(start_date)
-    else:
-        generated_start_date = today().replace(day=1, hour=0, minute=0, second=0)
-    return generated_start_date
-
-
-def calculate_end_date(start_date, end_date):
-    """Return a datetime for the end date."""
-    try:
-        if end_date == "last_month":
-            generated_end_date = today().replace(day=1, hour=0, minute=0, second=0) + relativedelta(months=-1)
-        elif end_date == "today":
-            generated_end_date = today().replace(hour=0, minute=0, second=0)
-        elif end_date and isinstance(end_date, datetime.date):
-            generated_end_date = datetime.datetime.fromordinal(end_date.toordinal())
-        else:
-            generated_end_date = date_parser.parse(end_date)
-    except TypeError:
-        offset = end_date
-        offset_date = start_date + relativedelta(days=offset)
-        if offset_date.month > start_date.month:
-            generated_end_date = offset_date
-        else:
-            generated_end_date = min(start_date + relativedelta(days=offset), today())
-    if generated_end_date < start_date:
-        raise ValueError("Static yaml error: End date must be after start date.")
-    return generated_end_date
-
-
-def fix_dates(options, provider_type):
-    """Correct any unique dates."""
-    # Azure end_date is always the following day
-    if provider_type == "azure":
-        options["end_date"] += relativedelta(days=1)
-
-
 def run(provider_type, options):
     """Run nise."""
-    static_data_bool = _load_static_report_data(options)
-    if not options.get("start_date"):
-        raise NiseError("'start_date' is required in static files.")
-    if not static_data_bool:
-        fix_dates(options, provider_type)
-
     LOG.info("Creating reports...")
     if provider_type == "aws":
         aws_create_report(options)
@@ -550,7 +458,7 @@ def main():
     LOG.debug("Options are: %s", pformat(options))
 
     if not (options.get("start_date") or options.get("static_report_file")):
-        parser.error("the following arguments are required: -s, --start-date")
+        parser.error("the following arguments are required: -s, --start-date OR --static-report-file")
 
     _, provider_type = _validate_provider_inputs(parser, options)
 

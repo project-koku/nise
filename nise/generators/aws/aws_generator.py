@@ -90,7 +90,7 @@ class AWSGenerator(AbstractGenerator):
                 tag_cols.append(str(key))
                 self._tags[key] = value
 
-        self.num_instances = randint(2, 60)
+        self.num_instances = randint(2, 6)
         if tag_cols:
             self.RESOURCE_TAG_COLS.update(tag_cols)
             self.AWS_COLUMNS.update(tag_cols)

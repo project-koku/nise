@@ -22,6 +22,7 @@ from copy import deepcopy
 from random import choice
 from random import randint
 
+from dateutil.relativedelta import relativedelta
 from nise.generators.generator import AbstractGenerator
 from nise.util import load_yaml
 
@@ -123,6 +124,9 @@ class AzureGenerator(AbstractGenerator):
         super().__init__(start_date, end_date, user_config=user_config)
 
         self._meter_cache = cache
+
+        # Azure end_date is always the following day
+        self.end_date += relativedelta(days=1)
 
     @abstractmethod
     def _gen_fake_data(self, count):

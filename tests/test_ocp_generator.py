@@ -429,7 +429,7 @@ generators:
         out_volumes = generator.nodes[0].get("namespaces")[0].get("volumes")
 
         # these magic numbers are the random ranges defined in the OCP generator.
-        self.assertGreaterEqual(len(out_volumes), 2)
+        self.assertGreaterEqual(len(out_volumes), 1)
         self.assertLessEqual(len(out_volumes), 6)
 
         expected = ["volume_name", "namespace", "storage_class", "volume_request_gig", "labels", "volume_claims"]

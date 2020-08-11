@@ -85,12 +85,12 @@ class AbstractGenerator(ABC):
                 if key == type(self).__name__:
                     self.config.append(val)
 
-        LOG.debug("Current config: %s", pformat(self.config))
-
-        self.start_date = start_date
-        self.end_date = end_date
+        self.start_date = self._set_date_config(start_date, "start")
+        self.end_date = self._set_date_config(end_date, "end")
         self.hours = self._set_hours()
         self.days = self._set_days()
+
+        LOG.debug("Current config: %s", pformat(self.config))
 
         super().__init__()
 
@@ -102,6 +102,21 @@ class AbstractGenerator(ABC):
         When possible, the config file should be designed to minimize special cases that require additional processing.
         """
         return config
+
+    def _set_date_config(self, dateobj, kind):
+        """Set the provided date to either the CLI-provided value or the value provided by the config."""
+        keyname = f"{kind}_date"
+
+        # if CLI has set a date, use that and update the config with that date.
+        if dateobj is not None:
+            for idx, item in enumerate(self.config):
+                if keyname in item.keys():
+                    self.config[idx][keyname] = dateobj
+            return dateobj
+        # if CLI did not set a date, use the first date in the config.
+        for item in self.config:
+            if keyname in item.keys():
+                return item.get(keyname)
 
     def _set_hours(self):
         """Create a list of hours between the start and end dates for hourly aws data."""

@@ -1,0 +1,177 @@
+---
+generators:
+  - EC2Generator:
+      start_date: 2019-04-01
+      end_date: 2019-07-31
+      region: us-east-1a
+      tags:
+        resourceTags/user:environment: prod
+        resourceTags/user:version: 15.16.17
+      instance_type:
+        inst_type: m5.large
+        cost: 0.096
+        rate: 0.096
+  - EC2Generator:
+      start_date: 2019-04-01
+      end_date: 2019-07-31
+      processor_arch: 64-bit
+      region: us-east-1a
+      tags:
+        resourceTags/user:environment: dev
+        resourceTags/user:version: beta
+      instance_type:
+        inst_type: m5.large
+        vcpu: 2
+        memory: '8 GiB'
+        storage: 'EBS Only'
+        cost: 0.096
+        rate: 0.096
+  - EC2Generator:
+      start_date: 2019-04-01
+      end_date: 2019-07-31
+      processor_arch: 64-bit
+      resource_id: 11111117
+      region: us-east-1a
+      tags:
+        resourceTags/user:environment: dev
+        resourceTags/user:version: zeta
+      instance_type:
+        inst_type: m5.large
+        cost: 0.096
+        rate: 0.096
+  - EC2Generator:
+      start_date: 2019-04-01
+      end_date: 2019-07-31
+      tags:
+        resourceTags/user:version: master
+      instance_type:
+        inst_type: m5.large
+        cost: 0.096
+        rate: 0.096
+  - S3Generator:
+      start_date: 2019-04-01
+      end_date: 2019-07-31
+      amount: 10
+      rate: 0.05
+      tags:
+        resourceTags/user:storageclass: charlie
+  - EBSGenerator:
+      start_date: 2019-04-01
+      end_date: 2019-07-31
+      amount: 10
+      rate: 0.01
+      tags:
+        resourceTags/user:storageclass: bravo
+  - EBSGenerator:
+      start_date: 2019-04-01
+      end_date: 2019-07-31
+      amount: 10
+      rate: 0.01
+      tags:
+        resourceTags/user:storageclass: delta
+  - EBSGenerator:
+      start_date: 2019-04-01
+      end_date: 2019-07-31
+      amount: 10
+      rate: 0.01
+      tags:
+        resourceTags/user:storageclass: epsilon
+  - EBSGenerator:
+      start_date: 2019-04-01
+      end_date: 2019-07-31
+      amount: 10
+      rate: 0.01
+      tags:
+        resourceTags/user:storageclass: glipglop
+  - RDSGenerator:
+      start_date: 2019-04-01
+      end_date: 2019-07-31
+      tags:
+        resourceTags/user:app: analytics
+  - VPCGenerator:
+      start_date: 2019-04-01
+      end_date: 2019-07-31
+      tags:
+        resourceTags/user:app: thingy
+  - Route53Generator:
+      start_date: 2019-04-01
+      end_date: 2019-07-31
+      tags:
+        resourceTags/user:app: moose
+  - Route53Generator:
+      start_date: 2019-04-01
+      end_date: 2019-07-31
+      product_family: DNS Query
+      tags:
+        resourceTags/user:app: fun
+  - Route53Generator:
+      start_date: 2019-04-01
+      end_date: 2019-07-31
+      product_family: DNS Zone
+      tags:
+        resourceTags/user:app: analyticz
+  - DataTransferGenerator:
+      start_date: 2019-04-01
+      end_date: 2019-07-31
+      tags:
+        resourceTags/user:app: analyticz
+  - DataTransferGenerator:
+      start_date: 2019-04-01
+      end_date: 2019-07-31
+      tags:
+        resourceTags/user:app: cost
+  - DataTransferGenerator:
+      start_date: 2019-04-01
+      end_date: 2019-07-31
+      tags:
+        resourceTags/user:app: catalog
+  - DataTransferGenerator:
+      start_date: 2019-04-01
+      end_date: 2019-07-31
+      tags:
+        resourceTags/user:app: catalog
+  - DataTransferGenerator:
+      start_date: 2019-04-01
+      end_date: 2019-07-31
+      tags:
+        resourceTags/user:app: cost
+  - DataTransferGenerator:
+      start_date: 2019-04-01
+      end_date: 2019-07-31
+      resource_id: ''
+      product_code: AmazonDynamoDB
+      product_name: Amazon DynamoDB
+      tags:
+        resourceTags/user:app: catalog
+  - DataTransferGenerator:
+      start_date: 2019-04-01
+      end_date: 2019-07-31
+      resource_id: ''
+      product_code: AmazonDynamoDB
+      product_name: Amazon DynamoDB
+      tags:
+        resourceTags/user:app: catalog
+  - DataTransferGenerator:
+      start_date: 2019-04-01
+      end_date: 2019-07-31
+      resource_id: ''
+      product_code: AmazonDynamoDB
+      product_name: Amazon DynamoDB
+      tags:
+        resourceTags/user:app: catalog
+  - DataTransferGenerator:
+      start_date: 2019-04-01
+      end_date: 2019-07-31
+      resource_id: i-55555554
+      product_sku: AERJHRNCCCCC
+      product_code: AmazonRDS
+      product_name: Amazon Relational Database Service
+      tags:
+        resourceTags/user:app: analytics
+
+
+accounts:
+  payer: 111111111111
+  user:
+    - 111111111111
+    - 222222222222

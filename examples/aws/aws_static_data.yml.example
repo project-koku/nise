@@ -1,0 +1,222 @@
+---
+generators:
+  - EC2Generator:
+      start_date: 2020-02-01
+      end_date: 2020-04-30
+      processor_arch: 64-bit
+      resource_id: 11111111
+      product_sku: VEAJHRNKTJZQ
+      region: us-east-1a
+      tags:
+        resourceTags/user:environment: prod
+        resourceTags/user:version: 15.16.17
+      instance_type:
+        inst_type: m5.large
+        vcpu: 2
+        memory: '8 GiB'
+        storage: 'EBS Only'
+        family: 'General Purpose'
+        cost: 0.096
+        rate: 0.096
+  - EC2Generator:
+      start_date: 2020-02-01
+      end_date: 2020-04-30
+      processor_arch: 64-bit
+      resource_id: 11111116
+      product_sku: VEAJHRNKTJAA
+      region: us-east-1a
+      tags:
+        resourceTags/user:environment: dev
+        resourceTags/user:version: beta
+      instance_type:
+        inst_type: m5.large
+        vcpu: 2
+        memory: '8 GiB'
+        storage: 'EBS Only'
+        family: 'General Purpose'
+        cost: 0.096
+        rate: 0.096
+  - EC2Generator:
+      start_date: 2020-02-01
+      end_date: 2020-04-30
+      processor_arch: 64-bit
+      resource_id: 11111117
+      product_sku: VEAJHRNKTJAB
+      region: us-east-1a
+      tags:
+        resourceTags/user:environment: dev
+        resourceTags/user:version: zeta
+      instance_type:
+        inst_type: m5.large
+        vcpu: 2
+        memory: '8 GiB'
+        storage: 'EBS Only'
+        family: 'General Purpose'
+        cost: 0.096
+        rate: 0.096
+  - EC2Generator:
+      start_date: 2020-02-01
+      end_date: 2020-04-30
+      processor_arch: 64-bit
+      resource_id: 11111118
+      product_sku: VEAJHRNKTJAC
+      region: us-east-1a
+      tags:
+        resourceTags/user:version: master
+      instance_type:
+        inst_type: m5.large
+        vcpu: 2
+        memory: '8 GiB'
+        storage: 'EBS Only'
+        family: 'General Purpose'
+        cost: 0.096
+        rate: 0.096
+  - S3Generator:
+      start_date: 2020-02-01
+      end_date: 2020-04-30
+      product_sku: VEAJHRNAAAAA
+      amount: 10
+      rate: 0.05
+      tags:
+        resourceTags/user:storageclass: charlie
+  - EBSGenerator:
+      start_date: 2020-02-01
+      end_date: 2020-04-30
+      product_sku: VEAJHRNBBBBA
+      resource_id: 11111112
+      amount: 10
+      rate: 0.01
+      tags:
+        resourceTags/user:storageclass: bravo
+  - EBSGenerator:
+      start_date: 2020-02-01
+      end_date: 2020-04-30
+      product_sku: VEAJHRNBBBBB
+      resource_id: 11111113
+      amount: 10
+      rate: 0.01
+      tags:
+        resourceTags/user:storageclass: delta
+  - EBSGenerator:
+      start_date: 2020-02-01
+      end_date: 2020-04-30
+      product_sku: VEAJHRNBBBBC
+      resource_id: 11111114
+      amount: 10
+      rate: 0.01
+      tags:
+        resourceTags/user:storageclass: epsilon
+  - EBSGenerator:
+      start_date: 2020-02-01
+      end_date: 2020-04-30
+      product_sku: VEAJHRNBBBBD
+      resource_id: 11111115
+      amount: 10
+      rate: 0.01
+      tags:
+        resourceTags/user:storageclass: glipglop
+  - RDSGenerator:
+      start_date: 2020-02-01
+      end_date: 2020-04-30
+      tags:
+        resourceTags/user:app: analytics
+  - VPCGenerator:
+      start_date: 2020-02-01
+      end_date: 2020-04-30
+      tags:
+        resourceTags/user:app: thingy
+  - Route53Generator:
+      start_date: 2020-02-01
+      end_date: 2020-04-30
+      # product_family: DNS Zone
+      tags:
+        resourceTags/user:app: moose
+  - Route53Generator:
+      start_date: 2020-02-01
+      end_date: 2020-04-30
+      product_family: DNS Query
+      tags:
+        resourceTags/user:app: fun
+  - Route53Generator:
+      start_date: 2020-02-01
+      end_date: 2020-04-30
+      product_family: DNS Query
+      tags:
+        resourceTags/user:app: analyticz
+  - DataTransferGenerator:
+      start_date: 2020-02-01
+      end_date: 2020-04-30
+      product_sku: VEAJHRNKTJZQ
+      resource_id: i-11111111
+      tags:
+        resourceTags/user:app: analyticz
+  - DataTransferGenerator:
+      start_date: 2020-02-01
+      end_date: 2020-04-30
+      product_sku: VEAJHRNKTJAA
+      resource_id: i-11111116
+      tags:
+        resourceTags/user:app: cost
+  - DataTransferGenerator:
+      start_date: 2020-02-01
+      end_date: 2020-04-30
+      product_sku: VEAJHRNKTJAB
+      resource_id: i-11111117
+      tags:
+        resourceTags/user:app: catalog
+  - DataTransferGenerator:
+      start_date: 2020-02-01
+      end_date: 2020-04-30
+      product_sku: VEAJHRNKTJAC
+      resource_id: i-11111118
+      tags:
+        resourceTags/user:app: catalog
+  - DataTransferGenerator:
+      start_date: 2020-02-01
+      end_date: 2020-04-30
+      product_sku: VEAJHRNAAAAA
+      resource_id: i-11111119
+      tags:
+        resourceTags/user:app: cost
+  - DataTransferGenerator:
+      start_date: 2020-02-01
+      end_date: 2020-04-30
+      resource_id: ''
+      product_sku: AERJHRNCCCCC
+      product_code: AmazonDynamoDB
+      product_name: Amazon DynamoDB
+      tags:
+        resourceTags/user:app: catalog
+  - DataTransferGenerator:
+      start_date: 2020-02-01
+      end_date: 2020-04-30
+      resource_id: ''
+      product_sku: AERJHRNCCCCD
+      product_code: AmazonDynamoDB
+      product_name: Amazon DynamoDB
+      tags:
+        resourceTags/user:app: catalog
+  - DataTransferGenerator:
+      start_date: 2020-02-01
+      end_date: 2020-04-30
+      resource_id: ''
+      product_sku: AERJHRNCCCCE
+      product_code: AmazonDynamoDB
+      product_name: Amazon DynamoDB
+      tags:
+        resourceTags/user:app: catalog
+  - DataTransferGenerator:
+      start_date: 2020-02-01
+      end_date: 2020-04-30
+      resource_id: i-55555554
+      product_sku: AERJHRNCCCCC
+      product_code: AmazonRDS
+      product_name: Amazon Relational Database Service
+      tags:
+        resourceTags/user:app: analytics
+
+
+accounts:
+  payer: 111111111111
+  user:
+    - 111111111111
