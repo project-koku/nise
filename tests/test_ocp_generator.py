@@ -368,7 +368,7 @@ class OCPGeneratorTestCase(TestCase):
                         self.assertIn(key, expected)
 
     def test_gen_pods_usage_lt_capacity(self):
-        """Test that gen_pods generates requests and usage values which don't exceed capacity."""
+        """Test that gen_pods generates requests and usage values which don't exceed limit."""
         for attributes in [self.attributes, {}]:
             with self.subTest(attributes=attributes):
                 generator = OCPGenerator(self.two_hours_ago, self.now, attributes)
@@ -546,8 +546,8 @@ class OCPGeneratorTestCase(TestCase):
             with self.subTest(key=key):
                 self.assertIn(out_row.get(key), [pods[0].get(key), in_row.get(key)])
 
-    def test_update_pod_data_usage_lt_request(self):
-        """Test that _update_pod_data keeps usage <= limit <= request."""
+    def test_update_pod_data_usage_lt_limit(self):
+        """Test that _update_pod_data keeps usage <= request <= limit."""
         pods = next(iter(self.attributes.get("nodes")[0].get("namespaces").values())).get("pods")
         kwargs = {
             "cpu_usage": self._usage_dict(),
@@ -563,12 +563,10 @@ class OCPGeneratorTestCase(TestCase):
         for x in ["cpu_core", "memory_byte"]:
             with self.subTest(row=out_row):
                 with self.subTest(x=x):
-                    self.assertLessEqual(
-                        out_row.get(f"pod_usage_{x}_seconds"), out_row.get(f"pod_request_{x}_seconds")
-                    )
+                    self.assertLessEqual(out_row.get(f"pod_usage_{x}_seconds"), out_row.get(f"pod_limit_{x}_seconds"))
                     self.assertLessEqual(out_row.get(f"pod_usage_{x}_seconds"), out_row.get(f"pod_limit_{x}_seconds"))
                     self.assertLessEqual(
-                        out_row.get(f"pod_limit_{x}_seconds"), out_row.get(f"pod_request_{x}_seconds")
+                        out_row.get(f"pod_request_{x}_seconds"), out_row.get(f"pod_limit_{x}_seconds")
                     )
 
     def test_update_storage_data(self):
