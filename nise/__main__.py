@@ -35,6 +35,9 @@ from nise.yaml_gen import add_yaml_parser_args
 from nise.yaml_gen import yaml_main
 
 
+os.environ["TZ"] = "UTC"
+
+
 class NiseError(Exception):
     """A Nise Exception class."""
 
