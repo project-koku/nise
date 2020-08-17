@@ -619,8 +619,8 @@ class OCPGeneratorTestCase(TestCase):
             with self.subTest(key=key):
                 self.assertIn(out_row.get(key), [kwargs.get(key), in_row.get(key)])
 
-    def test_update_storage_data_usage_lt_request(self):
-        """Test that _update_storge_data keeps usage <= capacity <= request."""
+    def test_update_storage_data_usage_lt_capacity(self):
+        """Test that _update_storge_data keeps usage <= request <= capacity."""
         kwargs = {
             "volume_claim_usage_gig": self._usage_dict(),
             "vc_capacity": self.fake.pyint(1, 100),
@@ -646,11 +646,11 @@ class OCPGeneratorTestCase(TestCase):
 
         self.assertLessEqual(
             out_row.get("persistentvolumeclaim_usage_byte_seconds"),
-            out_row.get("persistentvolumeclaim_capacity_byte_seconds") * GIGABYTE,
+            out_row.get("volume_request_storage_byte_seconds") * GIGABYTE,
         )
         self.assertLessEqual(
-            out_row.get("persistentvolumeclaim_capacity_byte_seconds"),
             out_row.get("volume_request_storage_byte_seconds"),
+            out_row.get("persistentvolumeclaim_capacity_byte_seconds"),
         )
 
     def test_generate_data(self):

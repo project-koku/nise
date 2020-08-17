@@ -246,7 +246,7 @@ class OCPGenerator(AbstractGenerator):
                     cpu_cores = node.get("cpu_cores")
                     memory_bytes = node.get("memory_bytes")
 
-                    cpu_limit = specified_pod.get("cpu_limit", cpu_cores)
+                    cpu_limit = min(specified_pod.get("cpu_limit", cpu_cores), cpu_cores)
                     cpu_request = min(specified_pod.get("cpu_request", round(uniform(0.02, cpu_limit), 5)), cpu_limit)
                     cpu_usage = specified_pod.get("cpu_usage", {})
                     for key, value in cpu_usage.items():
@@ -254,7 +254,7 @@ class OCPGenerator(AbstractGenerator):
                             cpu_usage[key] = cpu_limit
 
                     memory_gig = memory_bytes / GIGABYTE
-                    mem_limit_gig = specified_pod.get("mem_limit_gig", memory_gig)
+                    mem_limit_gig = min(specified_pod.get("mem_limit_gig", memory_gig), memory_gig)
                     mem_request_gig = min(
                         specified_pod.get("mem_request_gig", round(uniform(25.0, 80.0), 2)), mem_limit_gig
                     )
