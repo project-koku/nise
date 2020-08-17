@@ -34,6 +34,8 @@ from nise.util import LOG_VERBOSITY
 from nise.yaml_gen import add_yaml_parser_args
 from nise.yaml_gen import yaml_main
 
+os.environ["TZ"] = "UTC"
+
 
 os.environ["TZ"] = "UTC"
 
