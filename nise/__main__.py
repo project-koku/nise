@@ -37,9 +37,6 @@ from nise.yaml_gen import yaml_main
 os.environ["TZ"] = "UTC"
 
 
-os.environ["TZ"] = "UTC"
-
-
 class NiseError(Exception):
     """A Nise Exception class."""
 
