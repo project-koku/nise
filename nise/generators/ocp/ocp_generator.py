@@ -246,20 +246,22 @@ class OCPGenerator(AbstractGenerator):
                     cpu_cores = node.get("cpu_cores")
                     memory_bytes = node.get("memory_bytes")
 
-                    cpu_request = min(specified_pod.get("cpu_request", round(uniform(0.02, 1.0), 5)), cpu_cores)
+                    cpu_limit = min(specified_pod.get("cpu_limit", cpu_cores), cpu_cores)
+                    cpu_request = min(specified_pod.get("cpu_request", round(uniform(0.02, cpu_limit), 5)), cpu_limit)
                     cpu_usage = specified_pod.get("cpu_usage", {})
                     for key, value in cpu_usage.items():
-                        if value > cpu_request:
-                            cpu_usage[key] = cpu_request
+                        if value > cpu_limit:
+                            cpu_usage[key] = cpu_limit
 
                     memory_gig = memory_bytes / GIGABYTE
+                    mem_limit_gig = min(specified_pod.get("mem_limit_gig", memory_gig), memory_gig)
                     mem_request_gig = min(
-                        specified_pod.get("mem_request_gig", round(uniform(25.0, 80.0), 2)), memory_gig
+                        specified_pod.get("mem_request_gig", round(uniform(25.0, 80.0), 2)), mem_limit_gig
                     )
                     memory_usage_gig = specified_pod.get("mem_usage_gig", {})
                     for key, value in memory_usage_gig.items():
-                        if value > memory_gig:
-                            memory_usage_gig[key] = memory_gig
+                        if value > mem_limit_gig:
+                            memory_usage_gig[key] = mem_limit_gig
 
                     pods[pod] = {
                         "namespace": namespace,
@@ -271,11 +273,9 @@ class OCPGenerator(AbstractGenerator):
                         "node_capacity_memory_bytes": memory_bytes,
                         "node_capacity_memory_byte_seconds": memory_bytes * HOUR,
                         "cpu_request": cpu_request,
-                        "cpu_limit": min(
-                            specified_pod.get("cpu_limit", round(uniform(cpu_request, 1.0), 5)), cpu_cores
-                        ),
+                        "cpu_limit": cpu_limit,
                         "mem_request_gig": mem_request_gig,
-                        "mem_limit_gig": specified_pod.get("mem_limit_gig", round(uniform(mem_request_gig, 80.0), 2)),
+                        "mem_limit_gig": mem_limit_gig,
                         "pod_labels": specified_pod.get("labels", None),
                         "cpu_usage": cpu_usage,
                         "mem_usage_gig": memory_usage_gig,
@@ -289,10 +289,12 @@ class OCPGenerator(AbstractGenerator):
                     pod = self.fake.word() + "_" + pod_type
                     namespace2pod[namespace].append(pod)
                     cpu_cores = node.get("cpu_cores")
+                    cpu_limit = round(uniform(0.02, cpu_cores), 5)
+                    cpu_request = round(uniform(0.02, cpu_limit), 5)
                     memory_bytes = node.get("memory_bytes")
                     memory_gig = memory_bytes / GIGABYTE
-                    cpu_request = min(round(uniform(0.02, 1.0), 5), cpu_cores)
-                    mem_request_gig = min(round(uniform(25.0, 80.0), 2), memory_gig)
+                    mem_limit_gig = round(uniform(25.0, memory_gig), 2)
+                    mem_request_gig = round(uniform(25.0, mem_limit_gig), 2)
                     pods[pod] = {
                         "namespace": namespace,
                         "node": node.get("name"),
@@ -303,9 +305,9 @@ class OCPGenerator(AbstractGenerator):
                         "node_capacity_memory_bytes": memory_bytes,
                         "node_capacity_memory_byte_seconds": memory_bytes * HOUR,
                         "cpu_request": cpu_request,
-                        "cpu_limit": round(uniform(cpu_request, 1.0), 5),
+                        "cpu_limit": cpu_limit,
                         "mem_request_gig": mem_request_gig,
-                        "mem_limit_gig": round(uniform(mem_request_gig, 80.0), 2),
+                        "mem_limit_gig": mem_limit_gig,
                         "pod_labels": self._gen_openshift_labels(),
                     }
         return pods, namespace2pod
@@ -329,7 +331,7 @@ class OCPGenerator(AbstractGenerator):
                             break
                         vol_claim = specified_vc.get("volume_claim_name", self.fake.word())
                         pod = specified_vc.get("pod_name")
-                        claim_capacity = min(
+                        claim_capacity = max(
                             specified_vc.get("capacity_gig") * GIGABYTE, (volume_request_gig * GIGABYTE - total_claims)
                         )
                         usage_gig = specified_vc.get("volume_claim_usage_gig")
@@ -432,11 +434,11 @@ class OCPGenerator(AbstractGenerator):
         pod_seconds = user_pod_seconds if user_pod_seconds else randint(2, HOUR)
         pod = kwargs.get("pod")
 
-        cpu_request = pod.pop("cpu_request")
-        mem_request_gig = pod.pop("mem_request_gig")
+        cpu_limit = pod.pop("cpu_limit")
+        mem_limit_gig = pod.pop("mem_limit_gig")
 
-        cpu_limit = min(pod.pop("cpu_limit"), cpu_request)
-        mem_limit_gig = min(pod.pop("mem_limit_gig"), mem_request_gig)
+        cpu_request = min(pod.pop("cpu_request"), cpu_limit)
+        mem_request_gig = min(pod.pop("mem_request_gig"), mem_limit_gig)
 
         cpu_usage = self._get_usage_for_date(kwargs.get("cpu_usage"), start)
         cpu = round(uniform(0.02, cpu_limit), 5)
@@ -462,7 +464,7 @@ class OCPGenerator(AbstractGenerator):
         volume_claim_usage_gig = self._get_usage_for_date(kwargs.get("volume_claim_usage_gig"), start)
 
         volume_request = kwargs.get("volume_request")
-        vc_capacity_gig = min(kwargs.get("vc_capacity", 10.0), volume_request) / GIGABYTE
+        vc_capacity_gig = max(kwargs.get("vc_capacity", 10.0), volume_request) / GIGABYTE
 
         vc_usage_gig = round(uniform(2.0, vc_capacity_gig), 2)
         if volume_claim_usage_gig:
