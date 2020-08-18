@@ -52,7 +52,7 @@ def deepupdate(original, update):  # noqa: C901
     if isinstance(update, dict):
         for key, value in update.items():
             # TODO: change static file syntax to not require these special cases
-            if key == "tags" and value:
+            if key in ["tags", "labels"] and value:
                 # don't preserve generated tags, only overwrite
                 original[key] = value
             elif key == "generators":
