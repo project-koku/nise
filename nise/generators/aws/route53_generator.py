@@ -89,7 +89,7 @@ class Route53Generator(AWSGenerator):
         row["pricing/publicOnDemandRate"] = rate
         row["pricing/term"] = "OnDemand"
         row["pricing/unit"] = "Hrs"
-        self._add_tag_data(row)
+        self._add_tag_data(row, current_config)
 
         return row
 

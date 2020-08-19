@@ -1110,13 +1110,7 @@ class ReportDataTest(TestCase):
         load_static_report_data(options)
         self.assertEqual(options.get("start_date"), datetime.now().replace(microsecond=0, second=0, minute=0, hour=0))
 
-        last_day_of_month = calendar.monthrange(
-            year=options.get("end_date").year, month=options.get("end_date").month
-        )[1]
-        self.assertEqual(
-            options.get("end_date"),
-            datetime.now().replace(microsecond=0, second=0, minute=0, hour=0, day=last_day_of_month),
-        )
+        self.assertEqual(options.get("end_date"), datetime.now().replace(microsecond=0, second=0, minute=0, hour=0))
 
 
 class ReportDateTest(TestCase):
@@ -1142,7 +1136,6 @@ class ReportDateTest(TestCase):
                 }
             },
         ]
-        last_day_of_month = calendar.monthrange(year=datetime.now().year, month=datetime.now().month)[1]
         expected = {
             "aws_gen_first": {"start_date": datetime(2020, 6, 1, 0, 0), "end_date": datetime(2020, 6, 30, 0, 0)},
             "aws_gen_first_second": {
@@ -1151,7 +1144,7 @@ class ReportDateTest(TestCase):
             },
             "aws_gen_first_start": {
                 "start_date": datetime(2020, 6, 1, 0, 0),
-                "end_date": datetime.now().replace(microsecond=0, second=0, minute=0, hour=0, day=last_day_of_month),
+                "end_date": datetime.now().replace(microsecond=0, second=0, minute=0, hour=0),
             },
             "aws_gen_last": {"start_date": datetime(2020, 5, 31, 0, 0), "end_date": datetime(2020, 5, 31, 0, 0)},
             "aws_gen_last_first": {"start_date": datetime(2020, 5, 31, 0, 0), "end_date": datetime(2020, 6, 30, 0, 0)},
@@ -1187,7 +1180,6 @@ class ReportDateTest(TestCase):
                 }
             },
         ]
-        last_day_of_month = calendar.monthrange(year=datetime.now().year, month=datetime.now().month)[1]
         expected = {
             "ocp_gen_first": {"start_date": datetime(2020, 6, 1, 0, 0), "end_date": datetime(2020, 6, 30, 0, 0)},
             "ocp_gen_first_second": {
@@ -1196,7 +1188,7 @@ class ReportDateTest(TestCase):
             },
             "ocp_gen_first_start": {
                 "start_date": datetime(2020, 6, 1, 0, 0),
-                "end_date": datetime.now().replace(microsecond=0, second=0, minute=0, hour=0, day=last_day_of_month),
+                "end_date": datetime.now().replace(microsecond=0, second=0, minute=0, hour=0),
             },
             "ocp_gen_last": {"start_date": datetime(2020, 5, 31, 0, 0), "end_date": datetime(2020, 5, 31, 0, 0)},
             "ocp_gen_last_first": {"start_date": datetime(2020, 5, 31, 0, 0), "end_date": datetime(2020, 6, 30, 0, 0)},
@@ -1231,7 +1223,6 @@ class ReportDateTest(TestCase):
                 }
             },
         ]
-        last_day_of_month = calendar.monthrange(year=datetime.now().year, month=datetime.now().month)[1]
         expected = {
             "azure_gen_first": {"start_date": datetime(2020, 6, 1, 0, 0), "end_date": datetime(2020, 6, 30, 0, 0)},
             "azure_gen_first_second": {
@@ -1240,7 +1231,7 @@ class ReportDateTest(TestCase):
             },
             "azure_gen_first_start": {
                 "start_date": datetime(2020, 6, 1, 0, 0),
-                "end_date": datetime.now().replace(microsecond=0, second=0, minute=0, hour=0, day=last_day_of_month),
+                "end_date": datetime.now().replace(microsecond=0, second=0, minute=0, hour=0),
             },
             "azure_gen_last": {"start_date": datetime(2020, 5, 31, 0, 0), "end_date": datetime(2020, 6, 30, 0, 0)},
             "azure_gen_last_first": {

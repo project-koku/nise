@@ -96,7 +96,8 @@ class OCPGenerator(AbstractGenerator):
     def __init__(self, start_date, end_date, user_config=None):
         """Initialize the generator."""
         # initialize TEMPLATE_KWARGS values
-        self._gen_nodes()
+        if not user_config:
+            self._gen_nodes()
 
         # super() renders the TEMPLATE
         super().__init__(start_date, end_date, user_config=user_config)
@@ -127,7 +128,7 @@ class OCPGenerator(AbstractGenerator):
         """Provide timestamp for a date."""
         if not (in_date and isinstance(in_date, datetime.datetime)):
             raise ValueError("in_date must be a date object.")
-        return in_date.strftime("%Y-%m-%d %H:%M:%S +0000 UTC")
+        return in_date.replace(tzinfo=datetime.timezone.utc).strftime("%Y-%m-%d %H:%M:%S +0000 UTC")
 
     def _gen_nodes(self):
         """Create nodes for report."""

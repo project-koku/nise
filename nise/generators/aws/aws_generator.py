@@ -86,11 +86,10 @@ class AWSGenerator(AbstractGenerator):
         tag_cols = []
         self._tags = {}
         for cfg in self.config:
-            for key, value in cfg.get("tags", {}).items():
+            for key in cfg.get("tags", {}).keys():
                 tag_cols.append(str(key))
-                self._tags[key] = value
 
-        self.num_instances = randint(2, 6)
+        self.num_instances = len(self.config)
         if tag_cols:
             self.RESOURCE_TAG_COLS.update(tag_cols)
             self.AWS_COLUMNS.update(tag_cols)
@@ -180,23 +179,14 @@ class AWSGenerator(AbstractGenerator):
         """Add common usage information."""
         row["lineItem/UsageAccountId"] = choice(self.config[0].get("usage_accounts"))
         row["lineItem/LineItemType"] = "Usage"
-        row["lineItem/UsageStartDate"] = start
-        row["lineItem/UsageEndDate"] = end
+        row["lineItem/UsageStartDate"] = start.replace(tzinfo=datetime.timezone.utc)
+        row["lineItem/UsageEndDate"] = end.replace(tzinfo=datetime.timezone.utc)
         return row
 
-    def _add_tag_data(self, row):
+    def _add_tag_data(self, row, config):
         """Add tag data to the row."""
-        if self._tags:
-            for tag in self._tags:
-                row[tag] = self._tags[tag]
-        else:
-            num_tags = self.fake.random_int(0, 5)
-            for _ in range(num_tags):
-                seen_tags = set()
-                tag_key = choice(list(self.RESOURCE_TAG_COLS))
-                if tag_key not in seen_tags:
-                    row[tag_key] = self.fake.word()
-                    seen_tags.update([tag_key])
+        for key, value in config.get("tags", {}).items():
+            row[key] = value
 
     def _generate_region_short_code(self, region):
         """Generate the AWS short code for a region."""

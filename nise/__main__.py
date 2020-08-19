@@ -178,7 +178,6 @@ def create_parser():
         dest="end_date",
         required=False,
         type=valid_date,
-        default=datetime.datetime.now().replace(microsecond=0, second=0, minute=0),
         help="Date to end generating data (YYYY-MM-DD). Default is today.",
     )
     parent_parser.add_argument(

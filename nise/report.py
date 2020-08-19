@@ -174,7 +174,10 @@ def today():
 def load_static_report_data(options):
     """Load and set start and end dates if static file is provided."""
     if not options.get("static_report_file"):
-        return
+        options["start_date"] = datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        options["end_date"] = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        return options
+
     LOG.info("Loading static data...")
     start_dates = {}
     end_dates = {}
@@ -197,7 +200,7 @@ def load_static_report_data(options):
             end_dates[genname] = generated_end_date
 
     options["gen_starts"] = start_dates
-    options["gen_ends"] = start_dates
+    options["gen_ends"] = end_dates
 
     options["start_date"] = min(start_dates.values())
     latest_date = max(end_dates.values())

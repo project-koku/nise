@@ -1,6 +1,6 @@
 ---
 generators:
-{% for item in data_transfer_gens %}  - DataTransferGenerator:
+{% for item in data_transfer_gens|default([]) %}  - DataTransferGenerator:
       start_date: {{ item.start_date|default(faker("date_time_this_month")) }}
       end_date: {{ item.end_date|default(faker("date_time_between", start_date="now", end_date="now")) }}
       invoice_id: {{ item.invoice_id }}
@@ -19,7 +19,7 @@ generators:
         - {{ acct }}
       {% endfor %}
 {% endfor %}
-{% for item in ebs_gens %}  - EBSGenerator:
+{% for item in ebs_gens|default([]) %}  - EBSGenerator:
       start_date: {{ item.start_date|default(faker("date_time_this_month")) }}
       end_date: {{ item.end_date|default(faker("date_time_between", start_date="now", end_date="now")) }}
       invoice_id: {{ item.invoice_id }}
@@ -36,7 +36,7 @@ generators:
         - {{ acct }}
       {% endfor %}
 {% endfor %}
-{% for item in ec2_gens %}  - EC2Generator:
+{% for item in ec2_gens|default([]) %}  - EC2Generator:
       start_date: {{ item.start_date|default(faker("date_time_this_month")) }}
       end_date: {{ item.end_date|default(faker("date_time_between", start_date="now", end_date="now")) }}
       invoice_id: {{ item.invoice_id }}
@@ -55,7 +55,7 @@ generators:
         - {{ acct }}
       {% endfor %}
 {% endfor %}
-{% for item in rds_gens %}  - RDSGenerator:
+{% for item in rds_gens|default([]) %}  - RDSGenerator:
       start_date: {{ item.start_date|default(faker("date_time_this_month")) }}
       end_date: {{ item.end_date|default(faker("date_time_between", start_date="now", end_date="now")) }}
       invoice_id: {{ item.invoice_id }}
@@ -74,7 +74,7 @@ generators:
         - {{ acct }}
       {% endfor %}
 {% endfor %}
-{% for item in route53_gens %}  - Route53Generator:
+{% for item in route53_gens|default([]) %}  - Route53Generator:
       start_date: {{ item.start_date|default(faker("date_time_this_month")) }}
       end_date: {{ item.end_date|default(faker("date_time_between", start_date="now", end_date="now")) }}
       invoice_id: {{ item.invoice_id }}
@@ -89,7 +89,7 @@ generators:
         - {{ acct }}
       {% endfor %}
 {% endfor %}
-{% for item in s3_gens %}  - S3Generator:
+{% for item in s3_gens|default([]) %}  - S3Generator:
       start_date: {{ item.start_date|default(faker("date_time_this_month")) }}
       end_date: {{ item.end_date|default(faker("date_time_between", start_date="now", end_date="now")) }}
       invoice_id: {{ item.invoice_id }}
@@ -105,7 +105,7 @@ generators:
         - {{ acct }}
       {% endfor %}
 {% endfor %}
-{% for item in vpc_gens %}  - VPCGenerator:
+{% for item in vpc_gens|default([]) %}  - VPCGenerator:
       start_date: {{ item.start_date|default(faker("date_time_this_month")) }}
       end_date: {{ item.end_date|default(faker("date_time_between", start_date="now", end_date="now")) }}
       invoice_id: {{ item.invoice_id }}

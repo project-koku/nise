@@ -1,6 +1,6 @@
 ---
 generators:
-{% for item in bandwidth_gens %}  - BandwidthGenerator:
+{% for item in bandwidth_gens|default([]) %}  - BandwidthGenerator:
       start_date: {{ item.start_date|default(faker("date_time_this_month")) }}
       end_date: {{ item.end_date|default(faker("date_time_between", start_date="now", end_date="now")) }}
       instance_id: {{ item.instance_id|default("subscriptions/"+payer+"/resourceGroups/rg-"+faker("word")+"/providers/"+_service_name+"/sg-"+faker("word")) }}
@@ -9,11 +9,11 @@ generators:
       usage_quantity: {{ item.usage_quantity|default(faker("pyfloat", min_value=0, max_value=1, right_digits=5, positive=True)) }}
       resource_rate: {{ item.resource_rate|default(faker("pyfloat", min_value=0, max_value=1, right_digits=5, positive=True)) }}
       pre_tax_cost: {{ item.pre_tax_cost|default(None) }}
-      tags: {% for tag in item.tags|default([{"key": "environment", "value": faker("random_choices", elements=("dev", "ci", "qa", "stage", "prod"), length=1)},
-                                             {"key": "project", "value": faker("random_choices", elements=("p1", "p2", "p3"), length=1)}]) %}
+      tags: {% for tag in item.tags|default([{"key": "environment", "value": faker("random_element", elements=("dev", "ci", "qa", "stage", "prod"))},
+                                             {"key": "project", "value": faker("random_element", elements=("p1", "p2", "p3"))}]) %}
         {{ tag.key }}: {{ tag.value }}{% endfor %}
 {% endfor %}
-{% for item in sql_gens %}  - SQLGenerator:
+{% for item in sql_gens|default([]) %}  - SQLGenerator:
       start_date: {{ item.start_date|default(faker("date_time_this_month")) }}
       end_date: {{ item.end_date|default(faker("date_time_between", start_date="now", end_date="now")) }}
       instance_id: {{ item.instance_id|default("subscriptions/"+payer+"/resourceGroups/rg-"+faker("word")+"/providers/"+_service_name+"/sg-"+faker("word")) }}
@@ -22,11 +22,11 @@ generators:
       usage_quantity: {{ item.usage_quantity|default(faker("pyfloat", min_value=0, max_value=1, right_digits=5, positive=True)) }}
       resource_rate: {{ item.resource_rate|default(faker("pyfloat", min_value=0, max_value=1, right_digits=5, positive=True)) }}
       pre_tax_cost: {{ item.pre_tax_cost|default(None) }}
-      tags: {% for tag in item.tags|default([{"key": "environment", "value": faker("random_choices", elements=("dev", "ci", "qa", "stage", "prod"), length=1)},
-                                             {"key": "project", "value": faker("random_choices", elements=("p1", "p2", "p3"), length=1)}]) %}
+      tags: {% for tag in item.tags|default([{"key": "environment", "value": faker("random_element", elements=("dev", "ci", "qa", "stage", "prod"))},
+                                             {"key": "project", "value": faker("random_element", elements=("p1", "p2", "p3"))}]) %}
         {{ tag.key }}: {{ tag.value }}{% endfor %}
 {% endfor %}
-{% for item in storage_gens %}  - StorageGenerator:
+{% for item in storage_gens|default([]) %}  - StorageGenerator:
       start_date: {{ item.start_date|default(faker("date_time_this_month")) }}
       end_date: {{ item.end_date|default(faker("date_time_between", start_date="now", end_date="now")) }}
       instance_id: {{ item.instance_id|default("subscriptions/"+payer+"/resourceGroups/rg-"+faker("word")+"/providers/"+_service_name+"/sg-"+faker("word")) }}
@@ -35,11 +35,11 @@ generators:
       usage_quantity: {{ item.usage_quantity|default(faker("pyfloat", min_value=0, max_value=1, right_digits=5, positive=True)) }}
       resource_rate: {{ item.resource_rate|default(faker("pyfloat", min_value=0, max_value=1, right_digits=5, positive=True)) }}
       pre_tax_cost: {{ item.pre_tax_cost|default(None) }}
-      tags: {% for tag in item.tags|default([{"key": "environment", "value": faker("random_choices", elements=("dev", "ci", "qa", "stage", "prod"), length=1)},
-                                             {"key": "project", "value": faker("random_choices", elements=("p1", "p2", "p3"), length=1)}]) %}
+      tags: {% for tag in item.tags|default([{"key": "environment", "value": faker("random_element", elements=("dev", "ci", "qa", "stage", "prod"))},
+                                             {"key": "project", "value": faker("random_element", elements=("p1", "p2", "p3"))}]) %}
         {{ tag.key }}: {{ tag.value }}{% endfor %}
 {% endfor %}
-{% for item in vmachine_gens %}  - VMGenerator:
+{% for item in vmachine_gens|default([]) %}  - VMGenerator:
       start_date: {{ item.start_date|default(faker("date_time_this_month")) }}
       end_date: {{ item.end_date|default(faker("date_time_between", start_date="now", end_date="now")) }}
       instance_id: {{ item.instance_id|default("subscriptions/"+payer+"/resourceGroups/rg-"+faker("word")+"/providers/"+_service_name+"/sg-"+faker("word")) }}
@@ -48,11 +48,11 @@ generators:
       usage_quantity: {{ item.usage_quantity|default(faker("pyfloat", min_value=0, max_value=1, right_digits=5, positive=True)) }}
       resource_rate: {{ item.resource_rate|default(faker("pyfloat", min_value=0, max_value=1, right_digits=5, positive=True)) }}
       pre_tax_cost: {{ item.pre_tax_cost|default(None) }}
-      tags: {% for tag in item.tags|default([{"key": "environment", "value": faker("random_choices", elements=("dev", "ci", "qa", "stage", "prod"), length=1)},
-                                             {"key": "project", "value": faker("random_choices", elements=("p1", "p2", "p3"), length=1)}]) %}
+      tags: {% for tag in item.tags|default([{"key": "environment", "value": faker("random_element", elements=("dev", "ci", "qa", "stage", "prod"))},
+                                             {"key": "project", "value": faker("random_element", elements=("p1", "p2", "p3"))}]) %}
         {{ tag.key }}: {{ tag.value }}{% endfor %}
 {% endfor %}
-{% for item in vnetwork_gens %}  - VNGenerator:
+{% for item in vnetwork_gens|default([]) %}  - VNGenerator:
       start_date: {{ item.start_date|default(faker("date_time_this_month")) }}
       end_date: {{ item.end_date|default(faker("date_time_between", start_date="now", end_date="now")) }}
       instance_id: {{ item.instance_id|default("subscriptions/"+payer+"/resourceGroups/rg-"+faker("word")+"/providers/"+_service_name+"/sg-"+faker("word")) }}
@@ -61,8 +61,8 @@ generators:
       usage_quantity: {{ item.usage_quantity|default(faker("pyfloat", min_value=0, max_value=1, right_digits=5, positive=True)) }}
       resource_rate: {{ item.resource_rate|default(faker("pyfloat", min_value=0, max_value=1, right_digits=5, positive=True)) }}
       pre_tax_cost: {{ item.pre_tax_cost|default(None) }}
-      tags: {% for tag in item.tags|default([{"key": "environment", "value": faker("random_choices", elements=("dev", "ci", "qa", "stage", "prod"), length=1)},
-                                             {"key": "project", "value": faker("random_choices", elements=("p1", "p2", "p3"), length=1)}]) %}
+      tags: {% for tag in item.tags|default([{"key": "environment", "value": faker("random_element", elements=("dev", "ci", "qa", "stage", "prod"))},
+                                             {"key": "project", "value": faker("random_element", elements=("p1", "p2", "p3"))}]) %}
         {{ tag.key }}: {{ tag.value }}{% endfor %}
 {% endfor %}
 

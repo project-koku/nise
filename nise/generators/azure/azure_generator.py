@@ -205,7 +205,7 @@ class AzureGenerator(AbstractGenerator):
     def _add_common_usage_info(self, row, start, end, **kwargs):
         """Add common usage information."""
         row["SubscriptionGuid"] = self.config[0].get("payer_account")
-        row["UsageDateTime"] = start
+        row["UsageDateTime"] = start.replace(tzinfo=datetime.timezone.utc)
         return row
 
     def _add_tag_data(self, row, config):
