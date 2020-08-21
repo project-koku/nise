@@ -1,58 +1,69 @@
 ---
 generators:
   - OCPGenerator:
-      start_date: {{start_date}}
-      end_date: {{end_date}}
+      start_date: {{ start_date|default(faker("date_time_this_month")) }}
+      end_date: {{ end_date|default(faker("date_time_between", start_date="now", end_date="now")) }}
       nodes:
-        {% for node in nodes %}{# start node loop #}
-        - node_name: {{node.node_name}}
-          cpu_cores: {{node.cpu_cores}}
-          memory_gig: {{node.memory_gig}}
-          resource_id: {{node.resource_id}}
-          labels: {{node.labels}}
+        {% for node in nodes|default([]) %}{# start node loop #}
+          {% set default_node_name = "node_"+faker("word") %}
+        - node_name: {{ node.node_name|default(default_node_name) }}
+          {% set default_cpu_cores = faker("pyint", min_value=2, max_value=16) %}
+          cpu_cores: {{ node.cpu_cores|default(default_cpu_cores) }}
+          {% set default_memory_gig = faker("pyint", min_value=16, max_value=256) %}
+          memory_gig: {{ node.memory_gig|default(default_memory_gig) }}
+          {% set default_node_id = "i-"+faker("ean8") %}
+          resource_id: {{ node.resource_id|default(default_node_id) }}
+          labels: {{ node.labels|default("") }}
           namespaces:
-            {% for namespace in node.namespaces %}{# start namespace loop #}
-            - namespace_name: {{namespace.namespace_name}}
+            {% for namespace in node.namespaces|default([]) %}{# start namespace loop #}
+            {% set default_namespace = "ns_"+faker("ean8") %}
+            - namespace_name: {{ namespace.namespace_name|default(default_namespace) }}
               pods:
-                {% for pod in namespace.pods %}{# start pod loop #}
-                - pod_name: {{pod.pod_name}}
-                  cpu_request: {{pod.cpu_request}}
-                  mem_request_gig: {{pod.mem_request_gig}}
-                  cpu_limit: {{pod.cpu_limit}}
-                  mem_limit_gig: {{pod.mem_limit_gig}}
-                  pod_seconds: {{pod.pod_seconds}}
-                  labels: {{pod.labels}}
-                  namespace: {{pod.namespace}}
-                  node: {{pod.node}}
-                  resource_id: {{pod.resource_id}}
-                  node_capacity_cpu_cores: {{pod.node_capacity_cpu_cores}}
-                  node_capacity_cpu_core_seconds: {{pod.node_capacity_cpu_core_seconds}}
-                  node_capacity_memory_bytes: {{pod.node_capacity_memory_bytes}}
-                  node_capacity_memory_byte_seconds: {{pod.node_capacity_memory_byte_seconds}}
+                {% for pod in namespace.pods|default([]) %}{# start pod loop #}
+                {% set default_pod_name = "pod_"+faker("ean8") %}
+                - pod_name: {{ pod.pod_name|default(default_pod_name) }}
+                  {% set default_cpu_request = faker("pyint", min_value=0, max_value=default_cpu_cores) %}
+                  cpu_request: {{ pod.cpu_request|default(default_cpu_request) }}
+                  {% set default_mem_request = faker("pyint", min_value=0, max_value=default_memory_gig) %}
+                  mem_request_gig: {{ pod.mem_request_gig|default("default_mem_request") }}
+                  {% set default_cpu_limit = faker("pyint", min_value=default_cpu_request, max_value=default_cpu_cores) %}
+                  cpu_limit: {{ pod.cpu_limit|default(default_cpu_limit) }}
+                  {% set default_mem_limit = faker("pyint", min_value=default_mem_request, max_value=default_memory_gig) %}
+                  mem_limit_gig: {{ pod.mem_limit_gig|default(default_mem_limit) }}
+                  pod_seconds: {{ pod.pod_seconds|default(faker("pyint", min_value=0, max_value=3600)) }}
+                  labels: {{ pod.labels|default("") }}
+                  namespace: {{ pod.namespace|default(default_namespace) }}
+                  node: {{ pod.node|default(default_node_name) }}
+                  resource_id: {{ pod.resource_id|default(default_node_id) }}
+                  node_capacity_cpu_cores: {{ pod.node_capacity_cpu_cores|default(default_cpu_cores) }}
+                  node_capacity_cpu_core_seconds: {{ pod.node_capacity_cpu_core_seconds|default(default_cpu_cores * 3600) }}
+                  node_capacity_memory_bytes: {{ pod.node_capacity_memory_bytes|default(default_memory_gig * 1073741824) }}
+                  node_capacity_memory_byte_seconds: {{ pod.node_capacity_memory_byte_seconds|default(default_memory_gig * 1073741824 * 3600) }}
                   cpu_usage:
                   {% for k, v in pod.cpu_usage.items() %}
-                    {{k}}: {{v}}
+                    {{ k }}: {{ v }}
                   {% endfor %}
                   mem_usage_gig:
                   {% for k, v in pod.mem_usage_gig.items() %}
-                    {{k}}: {{v}}
+                    {{ k }}: {{ v }}
                   {% endfor %}
                 {% endfor %}{# end pod loop #}
               volumes:
-                {% for volume in namespace.volumes %}{# start volume loop #}
-                - volume_name: {{volume.volume_name}}
-                  namespace: {{volume.namespace}}
-                  storage_class: {{volume.storage_class}}
-                  volume_request_gig: {{volume.volume_request_gig}}
-                  labels: {{volume.labels}}
+                {% for volume in namespace.volumes|default([]) %}{# start volume loop #}
+                - volume_name: {{ volume.volume_name|default("vol_"+faker("word")) }}
+                  namespace: {{ volume.namespace|default(default_namespace) }}
+                  storage_class: {{ volume.storage_class|default(faker("random_element", elements=("gp2", "fast", "slow", "gold"))) }}
+                  volume_request_gig: {{ volume.volume_request_gig|default(faker("pyint", min_value=20, max_value=100)) }}
+                  labels: {{ volume.labels|default("") }}
                   volume_claims:
-                  {% for volume_claim in volume.volume_claims %}{# start volume-claim loop #}
-                  - volume_claim_name: {{volume_claim.volume_claim_name}}
-                    namespace: {{volume_claim.namespace}}
-                    pod_name: {{volume_claim.pod_name}}
-                    labels: {{volume_claim.labels}}
-                    capacity_gig: {{volume_claim.capacity_gig}}
-                    volume_claim_usage_gig: {{volume_claim.volume_claim_usage_gig}}
+                  {% for volume_claim in volume.volume_claims|default([]) %}{# start volume-claim loop #}
+                  - volume_claim_name: {{ volume_claim.volume_claim_name|default("vc_"+faker("word")) }}
+                    namespace: {{ volume_claim.namespace|default(default_namespace) }}
+                    pod_name: {{ volume_claim.pod_name|default(default_pod_name) }}
+                    labels: {{ volume_claim.labels|default("") }}
+                    {% set default_claim_capacity = faker("pyint", min_value=20, max_value=100) %}
+                    capacity_gig: {{ volume_claim.capacity_gig|default(default_claim_capacity) }}
+                    volume_claim_usage_gig: {{ volume_claim.volume_claim_usage_gig|default({"full_period": faker("pyint", min_value=1, max_value=default_claim_capacity)}) }}
                   {% endfor %}{# end volume claim loop #}
                 {% endfor %}{# end volume loop #}
             {% endfor %}{# end namespace loop #}

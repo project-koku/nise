@@ -96,7 +96,8 @@ class OCPGenerator(AbstractGenerator):
     def __init__(self, start_date, end_date, user_config=None):
         """Initialize the generator."""
         # initialize TEMPLATE_KWARGS values
-        self._gen_nodes()
+        if not user_config:
+            self._gen_nodes()
 
         # super() renders the TEMPLATE
         super().__init__(start_date, end_date, user_config=user_config)
@@ -127,7 +128,7 @@ class OCPGenerator(AbstractGenerator):
         """Provide timestamp for a date."""
         if not (in_date and isinstance(in_date, datetime.datetime)):
             raise ValueError("in_date must be a date object.")
-        return in_date.strftime("%Y-%m-%d %H:%M:%S +0000 UTC")
+        return in_date.replace(tzinfo=datetime.timezone.utc).strftime("%Y-%m-%d %H:%M:%S +0000 UTC")
 
     def _gen_nodes(self):
         """Create nodes for report."""
@@ -408,9 +409,9 @@ class OCPGenerator(AbstractGenerator):
             start = hour.get("start")
             end = hour.get("end")
             for node in self.nodes:
-                for namespace in node.get("namespaces"):
+                for namespace in node.get("namespaces", []):
                     name = namespace.get("namespace_name")
-                    for pod in namespace.get("pods"):
+                    for pod in namespace.get("pods", []):
                         cpu_usage = pod.get("cpu_usage", None)
                         mem_usage_gig = pod.get("mem_usage_gig", None)
                         pod_seconds = pod.get("pod_seconds", None)
@@ -444,10 +445,10 @@ class OCPGenerator(AbstractGenerator):
             start = hour.get("start")
             end = hour.get("end")
             for node in self.nodes:
-                for namespace in node.get("namespaces"):
+                for namespace in node.get("namespaces", []):
                     name = namespace.get("namespace_name")
-                    for volume in namespace.get("volumes"):
-                        for volume_claim in volume.get("volume_claims"):
+                    for volume in namespace.get("volumes", []):
+                        for volume_claim in volume.get("volume_claims", []):
                             row = self._init_data_row(start, end, **kwargs)
                             row = self._update_data(
                                 row,

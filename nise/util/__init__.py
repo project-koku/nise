@@ -77,12 +77,17 @@ def deepupdate(original, update):  # noqa: C901
 
 def _deepupdate_generators(original, update):
     """Handle the generators deepupdate special-case."""
-    updated_list = []
-    for up_dikt in update:
-        for idx, orig_dikt in enumerate(original):
-            updated = deepupdate(orig_dikt, up_dikt)
-            if updated != orig_dikt:
-                updated_list.append((idx, updated))
-    for idx, updated in updated_list:
-        original[idx] = updated
+
+    update_keys = [key for x in update for key in list(x.keys())]
+    original_keys = [key for x in original for key in list(x.keys())]
+
+    for origkey in set(original_keys):
+        if origkey in set(update_keys):
+            original_indices = [idx for idx, item in enumerate(original_keys) if item == origkey]
+            update_indices = [idx for idx, item in enumerate(update_keys) if item == origkey]
+
+            for idx, up_idx in enumerate(update_indices):
+                original[original_indices[idx]][origkey] = deepupdate(
+                    original[original_indices[idx]][origkey], update[up_idx][origkey]
+                )
     return original

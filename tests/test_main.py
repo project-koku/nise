@@ -18,16 +18,12 @@ import argparse
 import builtins
 import os
 from datetime import date
-from datetime import datetime
-from datetime import timedelta
 from unittest import TestCase
 from unittest.mock import patch
 
-from nise.__main__ import _load_static_report_data
 from nise.__main__ import _validate_provider_inputs
 from nise.__main__ import create_parser
 from nise.__main__ import main
-from nise.__main__ import run
 from nise.__main__ import valid_date
 from nise.util import load_yaml
 
@@ -287,56 +283,6 @@ class CommandLineTestCase(TestCase):
         data = load_yaml("tests/aws_static_report.yml")
         self.assertIsNotNone(data)
 
-    def test_load_static_report_data(self):
-        """
-        Test to load static report data from option.
-        """
-        options = {"start_date": date.today(), "static_report_file": "tests/aws_static_report.yml"}
-
-        _load_static_report_data(options)
-        self.assertIsNotNone(options["static_report_data"])
-        self.assertIsNotNone(options["start_date"])
-        self.assertIsNotNone(options["end_date"])
-
-        missing_options = {}
-        _load_static_report_data(missing_options)
-        self.assertIsNone(missing_options.get("static_report_data"))
-
-    def test_load_static_report_data_no_start_date(self):
-        """
-        Test to load static report data from option with no start date.
-        """
-        options = {"static_report_file": "tests/aws_static_report.yml"}
-        _load_static_report_data(options)
-        self.assertIsNotNone(options.get("start_date"))
-        self.assertIsNotNone(options.get("end_date"))
-
-    def test_load_static_report_data_azure_dates(self):
-        """Test correct dates for Azure.
-
-        Azure is different than AWS/OCP. End date needs to be the next day.
-        """
-        args = [
-            "report",
-            "azure",
-            "--static-report-file",
-            "tests/azure_static_report.yml",
-            "--azure-container-name",
-            "storage",
-            "--azure-report-name",
-            "report",
-        ]
-        options = vars(self.parser.parse_args(args))
-        _load_static_report_data(options)
-        gen_values = dict(*options.get("static_report_data").get("generators")[0].values())
-        self.assertEqual(
-            gen_values.get("start_date"), str(datetime.now().replace(microsecond=0, second=0, minute=0, hour=0))
-        )
-        self.assertEqual(
-            gen_values.get("end_date"),
-            str(datetime.now().replace(microsecond=0, second=0, minute=0) + timedelta(hours=24)),
-        )
-
     def test_invalid_gcp_inputs(self):
         """
         Test where user args from azure, ocp, and aws when creating gcp data.
@@ -384,158 +330,3 @@ class CommandLineTestCase(TestCase):
                     mock_args.return_value = parsed_args
                     mock_options.return_value = options
                     self.assertIsNone(main())
-
-    def test_run_for_azure_startdates(self):
-        """That that fix_dates corrects the azure end_date."""
-        start = date.today().replace(day=1)
-        args = ["report", "azure", "-s", str(start)]
-        parsed_args = self.parser.parse_args(args)
-        options = vars(parsed_args)
-        _, provider_type = _validate_provider_inputs(self.parser, options)
-        self.assertEqual(provider_type, "azure")
-        with patch("nise.__main__.azure_create_report"):
-            run(provider_type, options)
-            self.assertEqual(options.get("end_date").date(), date.today() + timedelta(days=1))
-
-    def test_run_for_azure_enddates(self):
-        """That that fix_dates corrects the azure end_date."""
-        start = date.today().replace(day=1)
-        end = date.today().replace(day=1)
-        args = ["report", "azure", "-s", str(start), "-e", str(end)]
-        parsed_args = self.parser.parse_args(args)
-        options = vars(parsed_args)
-        _, provider_type = _validate_provider_inputs(self.parser, options)
-        self.assertEqual(provider_type, "azure")
-        with patch("nise.__main__.azure_create_report"):
-            run(provider_type, options)
-            self.assertEqual(options.get("end_date").date(), end + timedelta(days=1))
-
-
-class MainDateTest(TestCase):
-    """Functional data testing class."""
-
-    @patch("nise.__main__.load_yaml")
-    def test_aws_dates(self, mock_load):
-        """Test that select static-data-file dates return correct dates."""
-        aws_gens = [
-            {"aws_gen_first": {"start_date": datetime(2020, 6, 1).date(), "end_date": datetime(2020, 6, 1).date()}},
-            {
-                "aws_gen_first_second": {
-                    "start_date": datetime(2020, 6, 1).date(),
-                    "end_date": datetime(2020, 6, 2).date(),
-                }
-            },
-            {"aws_gen_first_start": {"start_date": datetime(2020, 6, 1).date()}},
-            {"aws_gen_last": {"start_date": datetime(2020, 5, 31).date(), "end_date": datetime(2020, 5, 31).date()}},
-            {
-                "aws_gen_last_first": {
-                    "start_date": datetime(2020, 5, 31).date(),
-                    "end_date": datetime(2020, 6, 1).date(),
-                }
-            },
-        ]
-        static_report_data = {"generators": aws_gens}
-        expected = {
-            "aws_gen_first": {"start_date": datetime(2020, 6, 1, 0, 0), "end_date": datetime(2020, 6, 1, 0, 0)},
-            "aws_gen_first_second": {"start_date": datetime(2020, 6, 1, 0, 0), "end_date": datetime(2020, 6, 2, 0, 0)},
-            "aws_gen_first_start": {
-                "start_date": datetime(2020, 6, 1, 0, 0),
-                "end_date": datetime.now().replace(minute=0, second=0, microsecond=0),
-            },
-            "aws_gen_last": {"start_date": datetime(2020, 5, 31, 0, 0), "end_date": datetime(2020, 5, 31, 0, 0)},
-            "aws_gen_last_first": {"start_date": datetime(2020, 5, 31, 0, 0), "end_date": datetime(2020, 6, 1, 0, 0)},
-        }
-        options = {"provider": "aws", "static_report_file": "fake-file"}
-        mock_load.return_value = static_report_data
-        _load_static_report_data(options)
-        for generator_dict in options.get("static_report_data").get("generators"):
-            for key, attributes in generator_dict.items():
-                with self.subTest(key=key):
-                    self.assertEqual(attributes.get("start_date"), str(expected.get(key).get("start_date")))
-                    self.assertEqual(attributes.get("end_date"), str(expected.get(key).get("end_date")))
-
-    @patch("nise.__main__.load_yaml")
-    def test_ocp_dates(self, mock_load):
-        """Test that select static-data-file dates return correct dates."""
-        ocp_gens = [
-            {"ocp_gen_first": {"start_date": datetime(2020, 6, 1).date(), "end_date": datetime(2020, 6, 1).date()}},
-            {
-                "ocp_gen_first_second": {
-                    "start_date": datetime(2020, 6, 1).date(),
-                    "end_date": datetime(2020, 6, 2).date(),
-                }
-            },
-            {"ocp_gen_first_start": {"start_date": datetime(2020, 6, 1).date()}},
-            {"ocp_gen_last": {"start_date": datetime(2020, 5, 31).date(), "end_date": datetime(2020, 5, 31).date()}},
-            {
-                "ocp_gen_last_first": {
-                    "start_date": datetime(2020, 5, 31).date(),
-                    "end_date": datetime(2020, 6, 1).date(),
-                }
-            },
-        ]
-        static_report_data = {"generators": ocp_gens}
-        expected = {
-            "ocp_gen_first": {"start_date": datetime(2020, 6, 1, 0, 0), "end_date": datetime(2020, 6, 1, 0, 0)},
-            "ocp_gen_first_second": {"start_date": datetime(2020, 6, 1, 0, 0), "end_date": datetime(2020, 6, 2, 0, 0)},
-            "ocp_gen_first_start": {
-                "start_date": datetime(2020, 6, 1, 0, 0),
-                "end_date": datetime.now().replace(minute=0, second=0, microsecond=0),
-            },
-            "ocp_gen_last": {"start_date": datetime(2020, 5, 31, 0, 0), "end_date": datetime(2020, 5, 31, 0, 0)},
-            "ocp_gen_last_first": {"start_date": datetime(2020, 5, 31, 0, 0), "end_date": datetime(2020, 6, 1, 0, 0)},
-        }
-        options = {"provider": "ocp", "static_report_file": "fake-file"}
-        mock_load.return_value = static_report_data
-        _load_static_report_data(options)
-        for generator_dict in options.get("static_report_data").get("generators"):
-            for key, attributes in generator_dict.items():
-                with self.subTest(key=key):
-                    self.assertEqual(attributes.get("start_date"), str(expected.get(key).get("start_date")))
-                    self.assertEqual(attributes.get("end_date"), str(expected.get(key).get("end_date")))
-
-    @patch("nise.__main__.load_yaml")
-    def test_azure_dates(self, mock_load):
-        """Test that select static-data-file dates return correct dates."""
-        azure_gens = [
-            {"azure_gen_first": {"start_date": datetime(2020, 6, 1).date(), "end_date": datetime(2020, 6, 1).date()}},
-            {
-                "azure_gen_first_second": {
-                    "start_date": datetime(2020, 6, 1).date(),
-                    "end_date": datetime(2020, 6, 2).date(),
-                }
-            },
-            {"azure_gen_first_start": {"start_date": datetime(2020, 6, 1).date()}},
-            {"azure_gen_last": {"start_date": datetime(2020, 5, 31).date(), "end_date": datetime(2020, 5, 31).date()}},
-            {
-                "azure_gen_last_first": {
-                    "start_date": datetime(2020, 5, 31).date(),
-                    "end_date": datetime(2020, 6, 1).date(),
-                }
-            },
-        ]
-        static_report_data = {"generators": azure_gens}
-        expected = {
-            "azure_gen_first": {"start_date": datetime(2020, 6, 1, 0, 0), "end_date": datetime(2020, 6, 2, 0, 0)},
-            "azure_gen_first_second": {
-                "start_date": datetime(2020, 6, 1, 0, 0),
-                "end_date": datetime(2020, 6, 3, 0, 0),
-            },
-            "azure_gen_first_start": {
-                "start_date": datetime(2020, 6, 1, 0, 0),
-                "end_date": datetime.now().replace(microsecond=0, second=0, minute=0) + timedelta(hours=24),
-            },
-            "azure_gen_last": {"start_date": datetime(2020, 5, 31, 0, 0), "end_date": datetime(2020, 6, 1, 0, 0)},
-            "azure_gen_last_first": {
-                "start_date": datetime(2020, 5, 31, 0, 0),
-                "end_date": datetime(2020, 6, 2, 0, 0),
-            },
-        }
-        options = {"provider": "azure", "static_report_file": "fake-file"}
-        mock_load.return_value = static_report_data
-        _load_static_report_data(options)
-        for generator_dict in options.get("static_report_data").get("generators"):
-            for key, attributes in generator_dict.items():
-                with self.subTest(key=key):
-                    self.assertEqual(attributes.get("start_date"), str(expected.get(key).get("start_date")))
-                    self.assertEqual(attributes.get("end_date"), str(expected.get(key).get("end_date")))

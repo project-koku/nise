@@ -91,20 +91,6 @@ class AbstractGeneratorTestCase(TestCase):
                 with self.assertRaises(ValueError):
                     TestGenerator(self.now, "invalid")
 
-    def test_set_hours_none_start(self):
-        """Test that the start date is not None."""
-        for TestGenerator in AZURE_GENERATORS:
-            with self.subTest(generator=TestGenerator.__name__):
-                with self.assertRaises(ValueError):
-                    TestGenerator(None, self.now)
-
-    def test_set_hours_none_end(self):
-        """Test that the end date is not None."""
-        for TestGenerator in AZURE_GENERATORS:
-            with self.subTest(generator=TestGenerator.__name__):
-                with self.assertRaises(ValueError):
-                    TestGenerator(self.now, None)
-
     def test_set_hours_compared_dates(self):
         """Test that the start date must be less than the end date."""
         hour_ago = self.now - self.one_hour

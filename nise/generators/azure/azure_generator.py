@@ -22,6 +22,7 @@ from copy import deepcopy
 from random import choice
 from random import randint
 
+from dateutil.relativedelta import relativedelta
 from nise.generators.generator import AbstractGenerator
 from nise.util import load_yaml
 
@@ -124,6 +125,9 @@ class AzureGenerator(AbstractGenerator):
 
         self._meter_cache = cache
 
+        # Azure end_date is always the following day
+        self.end_date += relativedelta(days=1)
+
     @abstractmethod
     def _gen_fake_data(self, count):
         """Populate TEMPLATE_KWARGS with fake values."""
@@ -201,7 +205,7 @@ class AzureGenerator(AbstractGenerator):
     def _add_common_usage_info(self, row, start, end, **kwargs):
         """Add common usage information."""
         row["SubscriptionGuid"] = self.config[0].get("payer_account")
-        row["UsageDateTime"] = start
+        row["UsageDateTime"] = start.replace(tzinfo=datetime.timezone.utc)
         return row
 
     def _add_tag_data(self, row, config):
@@ -215,9 +219,12 @@ class AzureGenerator(AbstractGenerator):
         row = self._add_common_usage_info(row, start, end)
 
         meter_id = current_config.get("meter_id")
-        rate = current_config.get("resource_rate ")
+        rate = current_config.get("resource_rate")
         amount = current_config.get("usage_quantity")
-        cost = current_config.get("pre_tax_cost") if current_config.get("pre_tax_cost") else amount * rate
+        if current_config.get("pre_tax_cost") != "None":
+            cost = current_config.get("pre_tax_cost")
+        else:
+            cost = amount * rate
         azure_region, meter_region = self._get_location_info(current_config)
         instance_id = current_config.get("instance_id")
         (

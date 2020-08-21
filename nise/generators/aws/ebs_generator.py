@@ -84,7 +84,7 @@ class EBSGenerator(AWSGenerator):
         row["pricing/publicOnDemandRate"] = str(rate)
         row["pricing/term"] = "OnDemand"
         row["pricing/unit"] = "GB-Mo"
-        self._add_tag_data(row)
+        self._add_tag_data(row, current_config)
 
         return row
 

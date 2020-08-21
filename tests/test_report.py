@@ -17,11 +17,13 @@
 import base64
 import calendar
 import csv
-import datetime
 import json
 import os
 import re
 import shutil
+from datetime import date
+from datetime import datetime
+from datetime import timedelta
 from tempfile import mkdtemp
 from tempfile import mkstemp
 from tempfile import NamedTemporaryFile
@@ -42,6 +44,7 @@ from nise.report import aws_create_report
 from nise.report import azure_create_report
 from nise.report import gcp_create_report
 from nise.report import gcp_route_file
+from nise.report import load_static_report_data
 from nise.report import ocp_create_report
 from nise.report import ocp_route_file
 from nise.report import post_payload_to_ingest_service
@@ -100,41 +103,41 @@ class MiscReportTestCase(TestCase):
         """Test to create month lists."""
         test_matrix = [
             {
-                "start_date": datetime.datetime(year=2018, month=1, day=15),
-                "end_date": datetime.datetime(year=2018, month=1, day=30),
+                "start_date": datetime(year=2018, month=1, day=15),
+                "end_date": datetime(year=2018, month=1, day=30),
                 "expected_list": [
                     {
                         "name": "January",
-                        "start": datetime.datetime(year=2018, month=1, day=15),
-                        "end": datetime.datetime(year=2018, month=1, day=30, hour=23, minute=59),
+                        "start": datetime(year=2018, month=1, day=15),
+                        "end": datetime(year=2018, month=1, day=30, hour=23, minute=59),
                     }
                 ],
             },
             {
-                "start_date": datetime.datetime(year=2018, month=11, day=15),
-                "end_date": datetime.datetime(year=2019, month=1, day=5),
+                "start_date": datetime(year=2018, month=11, day=15),
+                "end_date": datetime(year=2019, month=1, day=5),
                 "expected_list": [
                     {
                         "name": "November",
-                        "start": datetime.datetime(year=2018, month=11, day=15),
-                        "end": datetime.datetime(year=2018, month=11, day=30, hour=23, minute=59),
+                        "start": datetime(year=2018, month=11, day=15),
+                        "end": datetime(year=2018, month=11, day=30, hour=23, minute=59),
                     },
                     {
                         "name": "December",
-                        "start": datetime.datetime(year=2018, month=12, day=1),
-                        "end": datetime.datetime(year=2018, month=12, day=31, hour=23, minute=59),
+                        "start": datetime(year=2018, month=12, day=1),
+                        "end": datetime(year=2018, month=12, day=31, hour=23, minute=59),
                     },
                     {
                         "name": "January",
-                        "start": datetime.datetime(year=2019, month=1, day=1),
-                        "end": datetime.datetime(year=2019, month=1, day=5, hour=23, minute=59),
+                        "start": datetime(year=2019, month=1, day=1),
+                        "end": datetime(year=2019, month=1, day=5, hour=23, minute=59),
                     },
                 ],
             },
         ]
 
         for test_case in test_matrix:
-            output = _create_month_list(test_case["start_date"], test_case["end_date"])
+            output = _create_month_list(test_case["start_date"], test_case["end_date"], days_per_month=32)
             self.assertCountEqual(output, test_case["expected_list"])
 
     @patch.dict(os.environ, {"INSIGHTS_ACCOUNT_ID": "12345", "INSIGHTS_ORG_ID": "54321"})
@@ -183,16 +186,27 @@ class AWSReportTestCase(TestCase):
     TestCase class for AWS report functions.
     """
 
+    def setUp(self):
+        """Test setup."""
+        self.today = datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
+        self.one_day = timedelta(days=1)
+        self.yesterday = self.today - self.one_day
+
     def test_aws_create_report_no_s3(self):
         """Test the aws report creation method no s3."""
-        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
-        one_day = datetime.timedelta(days=1)
-        yesterday = now - one_day
         aws_create_report(
-            {"start_date": yesterday, "end_date": now, "aws_report_name": "cur_report", "write_monthly": True}
+            {
+                "start_date": self.yesterday,
+                "end_date": self.today,
+                "aws_report_name": "cur_report",
+                "write_monthly": True,
+                "days_per_month": 4,
+            }
         )
 
-        month_output_file_name = "{}-{}-{}".format(calendar.month_name[now.month], now.year, "cur_report")
+        month_output_file_name = "{}-{}-{}".format(
+            calendar.month_name[self.today.month], self.today.year, "cur_report"
+        )
         expected_month_output_file = "{}/{}.csv".format(os.getcwd(), month_output_file_name)
         self.assertTrue(os.path.isfile(expected_month_output_file))
         os.remove(expected_month_output_file)
@@ -201,37 +215,37 @@ class AWSReportTestCase(TestCase):
     def test_aws_create_report_with_s3(self, mock_upload_to_s3):
         """Test the aws report creation method with s3."""
         mock_upload_to_s3.return_value = None
-        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
-        one_day = datetime.timedelta(days=1)
-        yesterday = now - one_day
         options = {
-            "start_date": yesterday,
-            "end_date": now,
+            "start_date": self.yesterday,
+            "end_date": self.today,
             "aws_bucket_name": "my_bucket",
             "aws_report_name": "cur_report",
             "write_monthly": True,
+            "days_per_month": 4,
         }
         aws_create_report(options)
-        month_output_file_name = "{}-{}-{}".format(calendar.month_name[now.month], now.year, "cur_report")
+        month_output_file_name = "{}-{}-{}".format(
+            calendar.month_name[self.today.month], self.today.year, "cur_report"
+        )
         expected_month_output_file = "{}/{}.csv".format(os.getcwd(), month_output_file_name)
         self.assertTrue(os.path.isfile(expected_month_output_file))
         os.remove(expected_month_output_file)
 
     def test_aws_create_report_with_local_dir(self):
         """Test the aws report creation method with local directory."""
-        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
-        one_day = datetime.timedelta(days=1)
-        yesterday = now - one_day
         local_bucket_path = mkdtemp()
         options = {
-            "start_date": yesterday,
-            "end_date": now,
+            "start_date": self.yesterday,
+            "end_date": self.today,
             "aws_bucket_name": local_bucket_path,
             "aws_report_name": "cur_report",
             "write_monthly": True,
+            "days_per_month": 4,
         }
         aws_create_report(options)
-        month_output_file_name = "{}-{}-{}".format(calendar.month_name[now.month], now.year, "cur_report")
+        month_output_file_name = "{}-{}-{}".format(
+            calendar.month_name[self.today.month], self.today.year, "cur_report"
+        )
         expected_month_output_file = "{}/{}.csv".format(os.getcwd(), month_output_file_name)
         self.assertTrue(os.path.isfile(expected_month_output_file))
         os.remove(expected_month_output_file)
@@ -239,20 +253,20 @@ class AWSReportTestCase(TestCase):
 
     def test_aws_create_report_with_local_dir_report_prefix(self):
         """Test the aws report creation method with local directory and a report prefix."""
-        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
-        one_day = datetime.timedelta(days=1)
-        yesterday = now - one_day
         local_bucket_path = mkdtemp()
         options = {
-            "start_date": yesterday,
-            "end_date": now,
+            "start_date": self.yesterday,
+            "end_date": self.today,
             "aws_bucket_name": local_bucket_path,
             "aws_report_name": "cur_report",
             "aws_prefix_name": "my_prefix",
             "write_monthly": True,
+            "days_per_month": 4,
         }
         aws_create_report(options)
-        month_output_file_name = "{}-{}-{}".format(calendar.month_name[now.month], now.year, "cur_report")
+        month_output_file_name = "{}-{}-{}".format(
+            calendar.month_name[self.today.month], self.today.year, "cur_report"
+        )
         expected_month_output_file = "{}/{}.csv".format(os.getcwd(), month_output_file_name)
         self.assertTrue(os.path.isfile(expected_month_output_file))
         os.remove(expected_month_output_file)
@@ -261,8 +275,8 @@ class AWSReportTestCase(TestCase):
     def test_aws_create_report_finalize_report_copy(self):
         """Test that an aws finalized copy of a report file has an invoice id."""
 
-        start_date = datetime.datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-        end_date = datetime.datetime.now().replace(day=5, hour=0, minute=0, second=0, microsecond=0)
+        start_date = datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        end_date = datetime.now().replace(day=5, hour=0, minute=0, second=0, microsecond=0)
         aws_create_report(
             {
                 "start_date": start_date,
@@ -270,6 +284,7 @@ class AWSReportTestCase(TestCase):
                 "aws_report_name": "cur_report",
                 "aws_finalize_report": "copy",
                 "write_monthly": True,
+                "days_per_month": 4,
             }
         )
         month_output_file_name = "{}-{}-{}".format(
@@ -295,8 +310,8 @@ class AWSReportTestCase(TestCase):
 
     def test_aws_create_report_finalize_report_overwrite(self):
         """Test that an aws report file has an invoice id."""
-        start_date = datetime.datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-        end_date = datetime.datetime.now().replace(day=5, hour=0, minute=0, second=0, microsecond=0)
+        start_date = datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        end_date = datetime.now().replace(day=5, hour=0, minute=0, second=0, microsecond=0)
         aws_create_report(
             {
                 "start_date": start_date,
@@ -304,6 +319,7 @@ class AWSReportTestCase(TestCase):
                 "aws_report_name": "cur_report",
                 "aws_finalize_report": "overwrite",
                 "write_monthly": True,
+                "days_per_month": 4,
             }
         )
 
@@ -322,17 +338,14 @@ class AWSReportTestCase(TestCase):
 
     def test_aws_create_report_with_local_dir_static_generation(self):
         """Test the aws report creation method with local directory and static generation."""
-        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0)
-        one_day = datetime.timedelta(days=1)
-        yesterday = now - one_day
         local_bucket_path = mkdtemp()
 
         static_aws_data = {
             "generators": [
                 {
                     "EC2Generator": {
-                        "start_date": str(yesterday.date()),
-                        "end_date": str(now.date()),
+                        "start_date": str(self.yesterday.date()),
+                        "end_date": str(self.today.date()),
                         "processor_arch": "32-bit",
                         "resource_id": 55555555,
                         "product_sku": "VEAJHRNKTJZQ",
@@ -351,8 +364,8 @@ class AWSReportTestCase(TestCase):
                 },
                 {
                     "S3Generator": {
-                        "start_date": str(yesterday.date()),
-                        "end_date": str(now.date()),
+                        "start_date": str(self.yesterday.date()),
+                        "end_date": str(self.today.date()),
                         "product_sku": "VEAJHRNAAAAA",
                         "amount": 10,
                         "rate": 3,
@@ -360,8 +373,8 @@ class AWSReportTestCase(TestCase):
                 },
                 {
                     "EBSGenerator": {
-                        "start_date": str(yesterday.date()),
-                        "end_date": str(now.date()),
+                        "start_date": str(self.yesterday.date()),
+                        "end_date": str(self.today.date()),
                         "product_sku": "VEAJHRNBBBBB",
                         "amount": 10,
                         "rate": 3,
@@ -370,8 +383,8 @@ class AWSReportTestCase(TestCase):
                 },
                 {
                     "DataTransferGenerator": {
-                        "start_date": str(yesterday.date()),
-                        "end_date": str(now.date()),
+                        "start_date": str(self.yesterday.date()),
+                        "end_date": str(self.today.date()),
                         "product_sku": "VEAJHRNCCCCC",
                         "amount": 10,
                         "rate": 3,
@@ -381,15 +394,18 @@ class AWSReportTestCase(TestCase):
             "accounts": {"payer": 9999999999999, "user": [9999999999999]},
         }
         options = {
-            "start_date": yesterday,
-            "end_date": now,
+            "start_date": self.yesterday,
+            "end_date": self.today,
             "aws_bucket_name": local_bucket_path,
             "aws_report_name": "cur_report",
             "static_report_data": static_aws_data,
             "write_monthly": True,
+            "days_per_month": 4,
         }
         aws_create_report(options)
-        month_output_file_name = "{}-{}-{}".format(calendar.month_name[now.month], now.year, "cur_report")
+        month_output_file_name = "{}-{}-{}".format(
+            calendar.month_name[self.today.month], self.today.year, "cur_report"
+        )
         expected_month_output_file = "{}/{}.csv".format(os.getcwd(), month_output_file_name)
         self.assertTrue(os.path.isfile(expected_month_output_file))
         os.remove(expected_month_output_file)
@@ -397,25 +413,25 @@ class AWSReportTestCase(TestCase):
 
     def test_aws_create_report_with_local_dir_static_generation_dates(self):
         """Test the aws report creation method with local directory and static generation with dates."""
-        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0)
-        one_day = datetime.timedelta(days=1)
-        yesterday = now - one_day
         local_bucket_path = mkdtemp()
 
         static_aws_data = {
-            "generators": [{"EC2Generator": {"start_date": str(now), "end_date": str(now)}}],
+            "generators": [{"EC2Generator": {"start_date": str(self.today), "end_date": str(self.today)}}],
             "accounts": {"payer": 9999999999999, "user": [9999999999999]},
         }
         options = {
-            "start_date": yesterday,
-            "end_date": now,
+            "start_date": self.yesterday,
+            "end_date": self.today,
             "aws_bucket_name": local_bucket_path,
             "aws_report_name": "cur_report",
             "static_report_data": static_aws_data,
             "write_monthly": True,
+            "days_per_month": 4,
         }
         aws_create_report(options)
-        month_output_file_name = "{}-{}-{}".format(calendar.month_name[now.month], now.year, "cur_report")
+        month_output_file_name = "{}-{}-{}".format(
+            calendar.month_name[self.today.month], self.today.year, "cur_report"
+        )
         expected_month_output_file = "{}/{}.csv".format(os.getcwd(), month_output_file_name)
         self.assertTrue(os.path.isfile(expected_month_output_file))
         os.remove(expected_month_output_file)
@@ -423,20 +439,23 @@ class AWSReportTestCase(TestCase):
 
     def test_aws_create_report_without_write_monthly(self):
         """Test that monthly file is not created by default."""
-        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
-        one_day = datetime.timedelta(days=1)
-        yesterday = now - one_day
-        aws_create_report({"start_date": yesterday, "end_date": now, "aws_report_name": "cur_report"})
+        aws_create_report(
+            {
+                "start_date": self.yesterday,
+                "end_date": self.today,
+                "aws_report_name": "cur_report",
+                "days_per_month": 4,
+            }
+        )
 
-        month_output_file_name = "{}-{}-{}".format(calendar.month_name[now.month], now.year, "cur_report")
+        month_output_file_name = "{}-{}-{}".format(
+            calendar.month_name[self.today.month], self.today.year, "cur_report"
+        )
         expected_month_output_file = "{}/{}.csv".format(os.getcwd(), month_output_file_name)
         self.assertFalse(os.path.isfile(expected_month_output_file))
 
     def test_aws_create_report_with_local_dir_static_generation_multi_file(self):
         """Test the aws report creation method with local directory and static generation in multiple files."""
-        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
-        one_day = datetime.timedelta(days=1)
-        yesterday = now - one_day
         local_bucket_path = mkdtemp()
 
         test_yaml = """
@@ -487,19 +506,22 @@ accounts:
 
         _, tmp_filename = mkstemp()
         with open(tmp_filename, "w+") as tmp_handle:
-            tmp_handle.write(test_yaml.format(start=str(yesterday.date()), end=str(now.date())))
+            tmp_handle.write(test_yaml.format(start=str(self.yesterday.date()), end=str(self.today.date())))
 
         options = {
-            "start_date": yesterday,
-            "end_date": now,
+            "start_date": self.yesterday,
+            "end_date": self.today,
             "aws_bucket_name": local_bucket_path,
             "aws_report_name": "cur_report",
             "row_limit": 20,
             "static_report_file": tmp_filename,
             "write_monthly": True,
+            "days_per_month": 4,
         }
         aws_create_report(options)
-        month_output_file_name = "{}-{}-{}".format(calendar.month_name[now.month], now.year, "cur_report")
+        month_output_file_name = "{}-{}-{}".format(
+            calendar.month_name[self.today.month], self.today.year, "cur_report"
+        )
         expected_month_output_file_1 = "{}/{}-1.csv".format(os.getcwd(), month_output_file_name)
         expected_month_output_file_2 = "{}/{}-2.csv".format(os.getcwd(), month_output_file_name)
 
@@ -521,17 +543,26 @@ class OCPReportTestCase(TestCase):
     TestCase class for OCP report functions.
     """
 
+    def setUp(self):
+        """Test setup."""
+        self.today = datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
+        self.one_day = timedelta(days=1)
+        self.yesterday = self.today - self.one_day
+
     def test_ocp_create_report(self):
         """Test the ocp report creation method."""
-        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
-        one_day = datetime.timedelta(days=1)
-        yesterday = now - one_day
         cluster_id = "11112222"
-        options = {"start_date": yesterday, "end_date": now, "ocp_cluster_id": cluster_id, "write_monthly": True}
+        options = {
+            "start_date": self.yesterday,
+            "end_date": self.today,
+            "ocp_cluster_id": cluster_id,
+            "write_monthly": True,
+            "days_per_month": 4,
+        }
         ocp_create_report(options)
         for report_type in OCP_REPORT_TYPE_TO_COLS.keys():
             month_output_file_name = "{}-{}-{}-{}".format(
-                calendar.month_name[now.month], now.year, cluster_id, report_type
+                calendar.month_name[self.today.month], self.today.year, cluster_id, report_type
             )
             expected_month_output_file = "{}/{}.csv".format(os.getcwd(), month_output_file_name)
             self.assertTrue(os.path.isfile(expected_month_output_file))
@@ -539,22 +570,20 @@ class OCPReportTestCase(TestCase):
 
     def test_ocp_create_report_with_local_dir(self):
         """Test the ocp report creation method with local directory."""
-        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
-        one_day = datetime.timedelta(days=1)
-        yesterday = now - one_day
         local_insights_upload = mkdtemp()
         cluster_id = "11112222"
         options = {
-            "start_date": yesterday,
-            "end_date": now,
+            "start_date": self.yesterday,
+            "end_date": self.today,
             "insights_upload": local_insights_upload,
             "ocp_cluster_id": cluster_id,
             "write_monthly": True,
+            "days_per_month": 4,
         }
         ocp_create_report(options)
         for report_type in OCP_REPORT_TYPE_TO_COLS.keys():
             month_output_file_name = "{}-{}-{}-{}".format(
-                calendar.month_name[now.month], now.year, cluster_id, report_type
+                calendar.month_name[self.today.month], self.today.year, cluster_id, report_type
             )
             expected_month_output_file = "{}/{}.csv".format(os.getcwd(), month_output_file_name)
             self.assertTrue(os.path.isfile(expected_month_output_file))
@@ -563,17 +592,14 @@ class OCPReportTestCase(TestCase):
 
     def test_ocp_create_report_with_local_dir_static_generation(self):
         """Test the ocp report creation method with local directory and static generation."""
-        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
-        one_day = datetime.timedelta(days=1)
-        yesterday = now - one_day
         local_insights_upload = mkdtemp()
         cluster_id = "11112222"
         static_ocp_data = {
             "generators": [
                 {
                     "OCPGenerator": {
-                        "start_date": str(yesterday.date()),
-                        "end_date": str(now.date()),
+                        "start_date": str(self.yesterday.date()),
+                        "end_date": str(self.today.date()),
                         "nodes": [
                             {
                                 "node": None,
@@ -614,18 +640,19 @@ class OCPReportTestCase(TestCase):
             ]
         }
         options = {
-            "start_date": yesterday,
-            "end_date": now,
+            "start_date": self.yesterday,
+            "end_date": self.today,
             "insights_upload": local_insights_upload,
             "ocp_cluster_id": cluster_id,
             "static_report_data": static_ocp_data,
             "write_monthly": True,
+            "days_per_month": 4,
         }
         ocp_create_report(options)
 
         for report_type in OCP_REPORT_TYPE_TO_COLS.keys():
             month_output_file_name = "{}-{}-{}-{}".format(
-                calendar.month_name[now.month], now.year, cluster_id, report_type
+                calendar.month_name[self.today.month], self.today.year, cluster_id, report_type
             )
             expected_month_output_file = "{}/{}.csv".format(os.getcwd(), month_output_file_name)
             self.assertTrue(os.path.isfile(expected_month_output_file))
@@ -634,25 +661,22 @@ class OCPReportTestCase(TestCase):
 
     def test_ocp_create_report_with_local_dir_static_generation_with_dates(self):
         """Test the ocp report creation method with local directory and static generation with usage dates."""
-        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
-        one_day = datetime.timedelta(days=1)
-        yesterday = now - one_day
         local_insights_upload = mkdtemp()
         cluster_id = "11112222"
         static_ocp_data = {
             "generators": [
                 {
                     "OCPGenerator": {
-                        "start_date": str(yesterday.date()),
-                        "end_date": str(now.date()),
+                        "start_date": str(self.yesterday.date()),
+                        "end_date": str(self.today.date()),
                         "nodes": [
                             {
                                 "node": None,
                                 "node_name": "alpha",
                                 "cpu_cores": 2,
                                 "memory_gig": 4,
-                                "start_date": str(now),
-                                "end_date": str(now),
+                                "start_date": str(self.today),
+                                "end_date": str(self.today),
                                 "namespaces": {
                                     "namespace_ci": {
                                         "pods": [
@@ -698,18 +722,19 @@ class OCPReportTestCase(TestCase):
             ]
         }
         options = {
-            "start_date": yesterday,
-            "end_date": now,
+            "start_date": self.yesterday,
+            "end_date": self.today,
             "insights_upload": local_insights_upload,
             "ocp_cluster_id": cluster_id,
             "static_report_data": static_ocp_data,
             "write_monthly": True,
+            "days_per_month": 4,
         }
         ocp_create_report(options)
 
         for report_type in OCP_REPORT_TYPE_TO_COLS.keys():
             month_output_file_name = "{}-{}-{}-{}".format(
-                calendar.month_name[now.month], now.year, cluster_id, report_type
+                calendar.month_name[self.today.month], self.today.year, cluster_id, report_type
             )
             expected_month_output_file = "{}/{}.csv".format(os.getcwd(), month_output_file_name)
             self.assertTrue(os.path.isfile(expected_month_output_file))
@@ -741,39 +766,38 @@ class OCPReportTestCase(TestCase):
 
     def test_ocp_create_report_without_write_monthly(self):
         """Test that monthly file is not created by default."""
-        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
-        one_day = datetime.timedelta(days=1)
-        yesterday = now - one_day
         cluster_id = "11112222"
-        options = {"start_date": yesterday, "end_date": now, "ocp_cluster_id": cluster_id}
+        options = {
+            "start_date": self.yesterday,
+            "end_date": self.today,
+            "ocp_cluster_id": cluster_id,
+            "days_per_month": 4,
+        }
         ocp_create_report(options)
         for report_type in OCP_REPORT_TYPE_TO_COLS.keys():
             month_output_file_name = "{}-{}-{}-{}".format(
-                calendar.month_name[now.month], now.year, cluster_id, report_type
+                calendar.month_name[self.today.month], self.today.year, cluster_id, report_type
             )
             expected_month_output_file = "{}/{}.csv".format(os.getcwd(), month_output_file_name)
             self.assertFalse(os.path.isfile(expected_month_output_file))
 
     def test_ocp_create_report_with_local_dir_static_generation_multi_file(self):
-        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
-        one_day = datetime.timedelta(days=1)
-        yesterday = now - one_day
         local_insights_upload = mkdtemp()
         cluster_id = "11112222"
         static_ocp_data = {
             "generators": [
                 {
                     "OCPGenerator": {
-                        "start_date": str(yesterday.date()),
-                        "end_date": str(now.date()),
+                        "start_date": str(self.yesterday.date()),
+                        "end_date": str(self.today.date()),
                         "nodes": [
                             {
                                 "node": None,
                                 "node_name": "alpha",
                                 "cpu_cores": 2,
                                 "memory_gig": 4,
-                                "start_date": str(yesterday.date()),
-                                "end_date": str(now.date()),
+                                "start_date": str(self.yesterday.date()),
+                                "end_date": str(self.today.date()),
                                 "namespaces": {
                                     "namespace_ci": {
                                         "pods": [
@@ -811,20 +835,21 @@ class OCPReportTestCase(TestCase):
             ]
         }
         options = {
-            "start_date": yesterday,
-            "end_date": now,
+            "start_date": self.yesterday,
+            "end_date": self.today,
             "insights_upload": local_insights_upload,
             "ocp_cluster_id": cluster_id,
             "static_report_data": static_ocp_data,
             "row_limit": 5,
             "write_monthly": True,
+            "days_per_month": 4,
         }
         ocp_create_report(options)
 
         for report_type in OCP_REPORT_TYPE_TO_COLS.keys():
             with self.subTest(report=report_type):
                 month_output_file_name = "{}-{}-{}-{}".format(
-                    calendar.month_name[now.month], now.year, cluster_id, report_type
+                    calendar.month_name[self.today.month], self.today.year, cluster_id, report_type
                 )
                 month_output_file_pt_1 = f"{month_output_file_name}-1"
                 month_output_file_pt_2 = f"{month_output_file_name}-2"
@@ -856,9 +881,11 @@ class AzureReportTestCase(TestCase):
     def setUp(self):
         """Setup shared variables for AzureReportTestCase."""
         self.MOCK_AZURE_REPORT_FILENAME = "{}/costreport_12345678-1234-5678-1234-567812345678.csv".format(os.getcwd())
+        self.today = datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
+        self.one_day = timedelta(days=1)
+        self.yesterday = self.today - self.one_day
 
-    @staticmethod
-    def mock_generate_azure_filename():
+    def mock_generate_azure_filename(self):
         """Create a fake azure filename."""
         fake_uuid = "12345678-1234-5678-1234-567812345678"
         output_file_name = "{}_{}".format("costreport", fake_uuid)
@@ -876,10 +903,7 @@ class AzureReportTestCase(TestCase):
     def test_azure_create_report(self, mock_name):
         """Test the azure report creation method."""
         mock_name.side_effect = self.mock_generate_azure_filename
-        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
-        one_day = datetime.timedelta(days=1)
-        yesterday = now - one_day
-        options = {"start_date": yesterday, "end_date": now, "write_monthly": True}
+        options = {"start_date": self.yesterday, "end_date": self.today, "write_monthly": True, "days_per_month": 4}
         azure_create_report(options)
         local_path = self.MOCK_AZURE_REPORT_FILENAME
         self.assertTrue(os.path.isfile(local_path))
@@ -889,34 +913,32 @@ class AzureReportTestCase(TestCase):
     def test_azure_create_report_with_static_data(self, mock_name):
         """Test the azure report creation method."""
         mock_name.side_effect = self.mock_generate_azure_filename
-        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
-        one_day = datetime.timedelta(days=1)
-        yesterday = now - one_day
         static_azure_data = {
             "generators": [
-                {"BandwidthGenerator": {"start_date": str(yesterday.date()), "end_date": str(now.date())}},
+                {"BandwidthGenerator": {"start_date": str(self.yesterday.date()), "end_date": str(self.today.date())}},
                 {
                     "SQLGenerator": {  # usage outside current month
-                        "start_date": str(yesterday.date() + relativedelta(months=-2)),
-                        "end_date": str(now.date() + relativedelta(months=-2)),
+                        "start_date": str(self.yesterday.date() + relativedelta(months=-2)),
+                        "end_date": str(self.today.date() + relativedelta(months=-2)),
                     }
                 },
                 {
                     "StorageGenerator": {  # usage outside current month
-                        "start_date": str(yesterday.date() + relativedelta(months=+2)),
-                        "end_date": str(now.date() + relativedelta(months=+2)),
+                        "start_date": str(self.yesterday.date() + relativedelta(months=+2)),
+                        "end_date": str(self.today.date() + relativedelta(months=+2)),
                     }
                 },
             ]
         }
         options = {
-            "start_date": yesterday,
-            "end_date": now,
+            "start_date": self.yesterday,
+            "end_date": self.today,
             "azure_prefix_name": "cost_report",
             "azure_report_name": "report",
             "azure_container_name": "cost",
             "static_report_data": static_azure_data,
             "write_monthly": True,
+            "days_per_month": 4,
         }
         azure_create_report(options)
         local_path = self.MOCK_AZURE_REPORT_FILENAME
@@ -927,16 +949,14 @@ class AzureReportTestCase(TestCase):
     def test_azure_create_report_with_local_dir(self, mock_name):
         """Test the azure report creation method with local directory."""
         mock_name.side_effect = self.mock_generate_azure_filename
-        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
-        one_day = datetime.timedelta(days=1)
-        yesterday = now - one_day
         local_storage_path = mkdtemp()
         options = {
-            "start_date": yesterday,
-            "end_date": now,
+            "start_date": self.yesterday,
+            "end_date": self.today,
             "azure_container_name": local_storage_path,
             "azure_report_name": "cur_report",
             "write_monthly": True,
+            "days_per_month": 4,
         }
         azure_create_report(options)
         expected_month_output_file = self.MOCK_AZURE_REPORT_FILENAME
@@ -962,18 +982,16 @@ class AzureReportTestCase(TestCase):
 
         mock_name.side_effect = self.mock_generate_azure_filename
         mock_upload.return_value = True
-        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
-        one_day = datetime.timedelta(days=1)
-        yesterday = now - one_day
         local_storage_path = mkdtemp()
         options = {
-            "start_date": yesterday,
-            "end_date": now,
+            "start_date": self.yesterday,
+            "end_date": self.today,
             "azure_account_name": fake.word(),
             "azure_prefic_name": "prefix",
             "azure_container_name": local_storage_path,
             "azure_report_name": "cur_report",
             "write_monthly": True,
+            "days_per_month": 4,
         }
         azure_create_report(options)
         mock_upload.assert_called()
@@ -983,10 +1001,7 @@ class AzureReportTestCase(TestCase):
     def test_azure_create_report_without_write_monthly(self, mock_name):
         """Test that monthly file is not created by default."""
         mock_name.side_effect = self.mock_generate_azure_filename
-        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
-        one_day = datetime.timedelta(days=1)
-        yesterday = now - one_day
-        options = {"start_date": yesterday, "end_date": now}
+        options = {"start_date": self.yesterday, "end_date": self.today, "days_per_month": 4}
         azure_create_report(options)
         local_path = self.MOCK_AZURE_REPORT_FILENAME
         self.assertFalse(os.path.isfile(local_path))
@@ -997,16 +1012,24 @@ class GCPReportTestCase(TestCase):
     Tests for GCP report generation.
     """
 
+    def setUp(self):
+        """Test setup."""
+        self.today = datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
+        self.one_day = timedelta(days=1)
+        self.yesterday = self.today - self.one_day
+
     def test_gcp_create_report(self):
         """Test the gcp report creation method."""
-        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
-        one_day = datetime.timedelta(days=1)
-        yesterday = now - one_day
         report_prefix = "test_report"
         gcp_create_report(
-            {"start_date": yesterday, "end_date": now, "gcp_report_prefix": report_prefix, "write_monthly": True}
+            {
+                "start_date": self.yesterday,
+                "end_date": self.today,
+                "gcp_report_prefix": report_prefix,
+                "write_monthly": True,
+            }
         )
-        output_file_name = "{}-{}.csv".format(report_prefix, yesterday.strftime("%Y-%m-%d"))
+        output_file_name = "{}-{}.csv".format(report_prefix, self.yesterday.strftime("%Y-%m-%d"))
         expected_output_file_path = "{}/{}".format(os.getcwd(), output_file_name)
 
         self.assertTrue(os.path.isfile(expected_output_file_path))
@@ -1039,12 +1062,189 @@ class GCPReportTestCase(TestCase):
 
     def test_gcp_create_report_without_write_monthly(self):
         """Test that monthly file is not created by default."""
-        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
-        one_day = datetime.timedelta(days=1)
-        yesterday = now - one_day
         report_prefix = "test_report"
-        gcp_create_report({"start_date": yesterday, "end_date": now, "gcp_report_prefix": report_prefix})
-        output_file_name = "{}-{}.csv".format(report_prefix, yesterday.strftime("%Y-%m-%d"))
+        gcp_create_report({"start_date": self.yesterday, "end_date": self.today, "gcp_report_prefix": report_prefix})
+        output_file_name = "{}-{}.csv".format(report_prefix, self.yesterday.strftime("%Y-%m-%d"))
         expected_output_file_path = "{}/{}".format(os.getcwd(), output_file_name)
 
         self.assertFalse(os.path.isfile(expected_output_file_path))
+
+
+class ReportDataTest(TestCase):
+    """Test static report loading."""
+
+    def test_load_static_report_data(self):
+        """
+        Test to load static report data from option.
+        """
+        options = {"start_date": date.today(), "static_report_file": "tests/aws_static_report.yml"}
+
+        load_static_report_data(options)
+        self.assertIsNotNone(options["start_date"])
+        self.assertIsNotNone(options["end_date"])
+
+        missing_options = {}
+        load_static_report_data(missing_options)
+        self.assertIsNone(missing_options.get("static_report_data"))
+
+    def test_load_static_report_data_no_start_date(self):
+        """
+        Test to load static report data from option with no start date.
+        """
+        options = {"static_report_file": "tests/aws_static_report.yml"}
+        load_static_report_data(options)
+        self.assertIsNotNone(options.get("start_date"))
+        self.assertIsNotNone(options.get("end_date"))
+
+    def test_load_static_report_data_azure_dates(self):
+        """Test correct dates for Azure.
+
+        Azure is different than AWS/OCP. End date needs to be the next day.
+        """
+        options = {
+            "provider": "azure",
+            "static_report_file": "tests/azure_static_report.yml",
+            "azure_container_name": "storage",
+            "azure_report_name": "test_report",
+        }
+        load_static_report_data(options)
+        self.assertEqual(options.get("start_date"), datetime.now().replace(microsecond=0, second=0, minute=0, hour=0))
+
+        self.assertEqual(options.get("end_date"), datetime.now().replace(microsecond=0, second=0, minute=0, hour=0))
+
+
+class ReportDateTest(TestCase):
+    """Functional data testing class."""
+
+    @patch("nise.report.load_yaml")
+    def test_aws_dates(self, mock_load):
+        """Test that select static-data-file dates return correct dates."""
+        aws_gens = [
+            {"aws_gen_first": {"start_date": datetime(2020, 6, 1).date(), "end_date": datetime(2020, 6, 1).date()}},
+            {
+                "aws_gen_first_second": {
+                    "start_date": datetime(2020, 6, 1).date(),
+                    "end_date": datetime(2020, 6, 2).date(),
+                }
+            },
+            {"aws_gen_first_start": {"start_date": datetime(2020, 6, 1).date()}},
+            {"aws_gen_last": {"start_date": datetime(2020, 5, 31).date(), "end_date": datetime(2020, 5, 31).date()}},
+            {
+                "aws_gen_last_first": {
+                    "start_date": datetime(2020, 5, 31).date(),
+                    "end_date": datetime(2020, 6, 1).date(),
+                }
+            },
+        ]
+        expected = {
+            "aws_gen_first": {"start_date": datetime(2020, 6, 1, 0, 0), "end_date": datetime(2020, 6, 30, 0, 0)},
+            "aws_gen_first_second": {
+                "start_date": datetime(2020, 6, 1, 0, 0),
+                "end_date": datetime(2020, 6, 30, 0, 0),
+            },
+            "aws_gen_first_start": {
+                "start_date": datetime(2020, 6, 1, 0, 0),
+                "end_date": datetime.now().replace(microsecond=0, second=0, minute=0, hour=0),
+            },
+            "aws_gen_last": {"start_date": datetime(2020, 5, 31, 0, 0), "end_date": datetime(2020, 5, 31, 0, 0)},
+            "aws_gen_last_first": {"start_date": datetime(2020, 5, 31, 0, 0), "end_date": datetime(2020, 6, 30, 0, 0)},
+        }
+
+        for generator_dict in aws_gens:
+            static_report_data = {"generators": [generator_dict]}
+            mock_load.return_value = static_report_data
+            options = {"provider": "aws", "static_report_file": "fake-file"}
+            updated_options = load_static_report_data(options)
+            for key, attributes in generator_dict.items():
+                with self.subTest(key=key):
+                    self.assertEqual(updated_options.get("start_date"), expected.get(key).get("start_date"))
+                    self.assertEqual(updated_options.get("end_date"), expected.get(key).get("end_date"))
+
+    @patch("nise.report.load_yaml")
+    def test_ocp_dates(self, mock_load):
+        """Test that select static-data-file dates return correct dates."""
+        ocp_gens = [
+            {"ocp_gen_first": {"start_date": datetime(2020, 6, 1).date(), "end_date": datetime(2020, 6, 1).date()}},
+            {
+                "ocp_gen_first_second": {
+                    "start_date": datetime(2020, 6, 1).date(),
+                    "end_date": datetime(2020, 6, 2).date(),
+                }
+            },
+            {"ocp_gen_first_start": {"start_date": datetime(2020, 6, 1).date()}},
+            {"ocp_gen_last": {"start_date": datetime(2020, 5, 31).date(), "end_date": datetime(2020, 5, 31).date()}},
+            {
+                "ocp_gen_last_first": {
+                    "start_date": datetime(2020, 5, 31).date(),
+                    "end_date": datetime(2020, 6, 1).date(),
+                }
+            },
+        ]
+        expected = {
+            "ocp_gen_first": {"start_date": datetime(2020, 6, 1, 0, 0), "end_date": datetime(2020, 6, 30, 0, 0)},
+            "ocp_gen_first_second": {
+                "start_date": datetime(2020, 6, 1, 0, 0),
+                "end_date": datetime(2020, 6, 30, 0, 0),
+            },
+            "ocp_gen_first_start": {
+                "start_date": datetime(2020, 6, 1, 0, 0),
+                "end_date": datetime.now().replace(microsecond=0, second=0, minute=0, hour=0),
+            },
+            "ocp_gen_last": {"start_date": datetime(2020, 5, 31, 0, 0), "end_date": datetime(2020, 5, 31, 0, 0)},
+            "ocp_gen_last_first": {"start_date": datetime(2020, 5, 31, 0, 0), "end_date": datetime(2020, 6, 30, 0, 0)},
+        }
+        for generator_dict in ocp_gens:
+            static_report_data = {"generators": [generator_dict]}
+            options = {"provider": "ocp", "static_report_file": "fake-file"}
+            mock_load.return_value = static_report_data
+            updated_options = load_static_report_data(options)
+            for key, attributes in generator_dict.items():
+                with self.subTest(key=key):
+                    self.assertEqual(updated_options.get("start_date"), expected.get(key).get("start_date"))
+                    self.assertEqual(updated_options.get("end_date"), expected.get(key).get("end_date"))
+
+    @patch("nise.report.load_yaml")
+    def test_azure_dates(self, mock_load):
+        """Test that select static-data-file dates return correct dates."""
+        azure_gens = [
+            {"azure_gen_first": {"start_date": datetime(2020, 6, 1).date(), "end_date": datetime(2020, 6, 1).date()}},
+            {
+                "azure_gen_first_second": {
+                    "start_date": datetime(2020, 6, 1).date(),
+                    "end_date": datetime(2020, 6, 2).date(),
+                }
+            },
+            {"azure_gen_first_start": {"start_date": datetime(2020, 6, 1).date()}},
+            {"azure_gen_last": {"start_date": datetime(2020, 5, 31).date(), "end_date": datetime(2020, 5, 31).date()}},
+            {
+                "azure_gen_last_first": {
+                    "start_date": datetime(2020, 5, 31).date(),
+                    "end_date": datetime(2020, 6, 1).date(),
+                }
+            },
+        ]
+        expected = {
+            "azure_gen_first": {"start_date": datetime(2020, 6, 1, 0, 0), "end_date": datetime(2020, 6, 30, 0, 0)},
+            "azure_gen_first_second": {
+                "start_date": datetime(2020, 6, 1, 0, 0),
+                "end_date": datetime(2020, 6, 30, 0, 0),
+            },
+            "azure_gen_first_start": {
+                "start_date": datetime(2020, 6, 1, 0, 0),
+                "end_date": datetime.now().replace(microsecond=0, second=0, minute=0, hour=0),
+            },
+            "azure_gen_last": {"start_date": datetime(2020, 5, 31, 0, 0), "end_date": datetime(2020, 6, 30, 0, 0)},
+            "azure_gen_last_first": {
+                "start_date": datetime(2020, 5, 31, 0, 0),
+                "end_date": datetime(2020, 6, 30, 0, 0),
+            },
+        }
+        for generator_dict in azure_gens:
+            options = {"provider": "azure", "static_report_file": "fake-file"}
+            static_report_data = {"generators": [generator_dict]}
+            mock_load.return_value = static_report_data
+            updated_options = load_static_report_data(options)
+            for key, attributes in generator_dict.items():
+                with self.subTest(key=key):
+                    self.assertEqual(updated_options.get("start_date"), expected.get(key).get("start_date"))
+                    self.assertEqual(updated_options.get("end_date"), expected.get(key).get("end_date"))

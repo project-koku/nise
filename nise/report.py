@@ -26,13 +26,16 @@ import random
 import shutil
 import string
 import tarfile
+from datetime import date
 from datetime import datetime
+from datetime import timedelta
 from tempfile import gettempdir
 from tempfile import NamedTemporaryFile
 from tempfile import TemporaryDirectory
 from uuid import uuid4
 
 import requests
+from dateutil import parser as date_parser
 from dateutil.relativedelta import relativedelta
 from faker import Faker
 from nise.copy import copy_to_local_dir
@@ -163,6 +166,90 @@ def _write_manifest(data):
     return t_file.name
 
 
+def today():
+    """Create the date of today."""
+    return datetime.now().replace(microsecond=0, second=0, minute=0)
+
+
+def load_static_report_data(options):
+    """Load and set start and end dates if static file is provided."""
+    if not options.get("static_report_file"):
+        options["start_date"] = datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        options["end_date"] = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        return options
+
+    LOG.info("Loading static data...")
+    start_dates = {}
+    end_dates = {}
+    static_report_data = load_yaml(options.get("static_report_file"))
+    for generator_dict in static_report_data.get("generators"):
+        for genname, attributes in generator_dict.items():
+
+            generated_start_date = calculate_start_date(attributes.get("start_date"))
+            start_dates[genname] = generated_start_date
+
+            if attributes.get("end_date"):
+                generated_end_date = calculate_end_date(generated_start_date, attributes.get("end_date"))
+            else:
+                generated_end_date = today()
+
+            if options.get("provider") == "azure":
+                generated_end_date += timedelta(hours=24)
+            else:
+                generated_end_date = generated_end_date.replace(hour=23, minute=59)
+            end_dates[genname] = generated_end_date
+
+    options["gen_starts"] = start_dates
+    options["gen_ends"] = end_dates
+
+    options["start_date"] = min(start_dates.values())
+    latest_date = max(end_dates.values())
+    last_day_of_month = calendar.monthrange(year=latest_date.year, month=latest_date.month)[1]
+    if latest_date.month == datetime.now().month and latest_date.year == datetime.now().year:
+        last_day_of_month = datetime.now().day  # don't generate date into the future.
+    options["end_date"] = latest_date.replace(day=last_day_of_month, hour=0, minute=0)
+
+    return options
+
+
+def calculate_start_date(start_date):
+    """Return a datetime for the start date."""
+    if start_date == "last_month":
+        generated_start_date = today().replace(day=1, hour=0, minute=0, second=0) + relativedelta(months=-1)
+    elif start_date == "today":
+        generated_start_date = today().replace(hour=0, minute=0, second=0)
+    elif start_date and isinstance(start_date, date):
+        generated_start_date = datetime.fromordinal(start_date.toordinal())
+    elif start_date:
+        generated_start_date = date_parser.parse(start_date)
+    else:
+        generated_start_date = today().replace(day=1, hour=0, minute=0, second=0)
+    return generated_start_date
+
+
+def calculate_end_date(start_date, end_date):
+    """Return a datetime for the end date."""
+    try:
+        if end_date == "last_month":
+            generated_end_date = today().replace(day=1, hour=0, minute=0, second=0) + relativedelta(months=-1)
+        elif end_date == "today":
+            generated_end_date = today().replace(hour=0, minute=0, second=0)
+        elif end_date and isinstance(end_date, date):
+            generated_end_date = datetime.fromordinal(end_date.toordinal())
+        else:
+            generated_end_date = date_parser.parse(end_date)
+    except TypeError:
+        offset = end_date
+        offset_date = start_date + relativedelta(days=offset)
+        if offset_date.month > start_date.month:
+            generated_end_date = offset_date
+        else:
+            generated_end_date = min(start_date + relativedelta(days=offset), today())
+    if generated_end_date < start_date:
+        raise ValueError("Static yaml error: End date must be after start date.")
+    return generated_end_date
+
+
 def aws_route_file(bucket_name, bucket_file_path, local_path):
     """Route file to either S3 bucket or local filesystem."""
     if os.path.isdir(bucket_name):
@@ -241,21 +328,20 @@ def post_payload_to_ingest_service(insights_upload, local_path):
         )
 
 
-def _create_month_list(start_date, end_date):
+def _create_month_list(start_date, end_date, days_per_month):
     """Create a list of months given the date range args."""
     months = []
     current = start_date.replace(day=1)
     while current <= end_date:
+        month_end = calendar.monthrange(year=current.year, month=current.month)[1]
+        end_day = month_end
+        if start_date.day + days_per_month <= month_end:
+            end_day = start_date.day + days_per_month
+
         month = {
             "name": calendar.month_name[current.month],
             "start": datetime(year=current.year, month=current.month, day=1),
-            "end": datetime(
-                year=current.year,
-                month=current.month,
-                day=calendar.monthrange(year=current.year, month=current.month)[1],
-                hour=23,
-                minute=59,
-            ),
+            "end": datetime(year=current.year, month=current.month, day=end_day, hour=23, minute=59),
         }
         if current.month == start_date.month:
             # First month start with start_date
@@ -341,11 +427,14 @@ def write_aws_file(file_number, aws_report_name, month_name, year, data, aws_fin
 def aws_create_report(options):  # noqa: C901
     """Create a cost usage report file."""
     data = []
+    if not (options.get("start_date") and options.get("end_date")):
+        options = load_static_report_data(options)
     start_date = options.get("start_date")
     end_date = options.get("end_date")
+
     aws_finalize_report = options.get("aws_finalize_report")
 
-    months = _create_month_list(start_date, end_date)
+    months = _create_month_list(start_date, end_date, options.get("days_per_month"))
 
     aws_bucket_name = options.get("aws_bucket_name")
     aws_report_name = options.get("aws_report_name")
@@ -359,12 +448,12 @@ def aws_create_report(options):  # noqa: C901
         ten_percent = int(num_gens * 0.1) if num_gens > 50 else 5
         LOG.info(f"Producing data for {num_gens} generators for {month.get('start').strftime('%Y-%m')}.")
         for count, generator in enumerate(AWS_GENERATORS):
-            gen_start_date = month.get("start")
-            gen_end_date = month.get("end")
+            gen_start_date = options.get("gen_starts", {}).get(generator.__name__, month.get("start"))
+            gen_end_date = options.get("gen_ends", {}).get(generator.__name__, month.get("end"))
             # Skip if generator usage is outside of current month
-            if end_date < month.get("start"):
+            if gen_end_date < month.get("start"):
                 continue
-            if start_date > month.get("end"):
+            if gen_start_date > month.get("end"):
                 continue
 
             gen_start_date, gen_end_date = _create_generator_dates_from_yaml(options, month)
@@ -433,10 +522,12 @@ def aws_create_report(options):  # noqa: C901
 def azure_create_report(options):  # noqa: C901
     """Create a cost usage report file."""
     data = []
+    if not (options.get("start_date") and options.get("end_date")):
+        options = load_static_report_data(options)
     start_date = options.get("start_date")
     end_date = options.get("end_date")
 
-    months = _create_month_list(start_date, end_date)
+    months = _create_month_list(start_date, end_date, options.get("days_per_month"))
 
     meter_cache = {}
     # The options params are not going to change so we don't
@@ -453,12 +544,12 @@ def azure_create_report(options):  # noqa: C901
         ten_percent = int(num_gens * 0.1) if num_gens > 50 else 5
         LOG.info(f"Producing data for {num_gens} generators for {month.get('start').strftime('%Y-%m')}.")
         for count, generator in enumerate(AZURE_GENERATORS):
-            gen_start_date = month.get("start")
-            gen_end_date = month.get("end")
+            gen_start_date = options.get("gen_starts", {}).get(generator.__name__, month.get("start"))
+            gen_end_date = options.get("gen_ends", {}).get(generator.__name__, month.get("end"))
             # Skip if generator usage is outside of current month
-            if end_date < month.get("start"):
+            if gen_end_date < month.get("start"):
                 continue
-            if start_date > month.get("end"):
+            if gen_start_date > month.get("end"):
                 continue
 
             gen_start_date, gen_end_date = _create_generator_dates_from_yaml(options, month)
@@ -511,9 +602,11 @@ def write_ocp_file(file_number, cluster_id, month_name, year, report_type, data)
 def ocp_create_report(options):  # noqa: C901
     """Create a usage report file."""
     cluster_id = options.get("ocp_cluster_id")
+    if not (options.get("start_date") and options.get("end_date")):
+        options = load_static_report_data(options)
     start_date = options.get("start_date")
     end_date = options.get("end_date")
-    months = _create_month_list(start_date, end_date)  # FIXME: DRY this up
+    months = _create_month_list(start_date, end_date, options.get("days_per_month"))
 
     write_monthly = options.get("write_monthly", False)
     for month in months:
@@ -521,17 +614,7 @@ def ocp_create_report(options):  # noqa: C901
         file_numbers = {OCP_POD_USAGE: 0, OCP_STORAGE_USAGE: 0, OCP_NODE_LABEL: 0}
         monthly_files = []
 
-        gen_start_date = month.get("start")
-        gen_end_date = month.get("end")
-
-        # Skip if generator usage is outside of current month
-        if end_date < month.get("start"):
-            continue
-        if start_date > month.get("end"):
-            continue
-
         gen_start_date, gen_end_date = _create_generator_dates_from_yaml(options, month)
-
         gen = OCPGenerator(gen_start_date, gen_end_date, user_config=options.get("static_report_file"))
         for report_type in gen.ocp_report_generation.keys():
             LOG.info(f"Generating data for {report_type} for {month.get('name')}")

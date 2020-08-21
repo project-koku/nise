@@ -1,6 +1,6 @@
 ---
 generators:
-{% for item in cloudstorage_gens %}  - CloudStorageGenerator:
+{% for item in cloudstorage_gens|default([]) %}  - CloudStorageGenerator:
       Line Item: {{ item.line_item|default(item._storage[0]) }}
       Measurement1: {{ item.measurement|default(item._storage[0]) }}
       Measurement1 Total Consumption: {{ item.measurement_total_consumption|default(faker("pyint")) }}
@@ -12,7 +12,7 @@ generators:
       Credit1 Amount: {{ item.credit_amount|default(0) }}
       Credit1 Currency: {{ item.credit_currency|default("USD") }}
 {% endfor %}
-{% for item in computeengine_gens %}  - ComputeEngineGenerator:
+{% for item in computeengine_gens|default([]) %}  - ComputeEngineGenerator:
       Line Item: {{ item.line_item|default(item._compute[0]) }}
       Measurement1: {{ item.measurement|default(item._compute[0]) }}
       Measurement1 Total Consumption: {{ item.measurement_total_consumption|default(faker("pyint")) }}
@@ -24,7 +24,7 @@ generators:
       Credit1 Amount: {{ item.credit_amount|default(0) }}
       Credit1 Currency: {{ item.credit_currency|default("USD") }}
 {% endfor %}
-{% for item in project_gens %}  - ProjectGenerator:
+{% for item in project_gens|default([]) %}  - ProjectGenerator:
       Account ID: {{ item.account|default(faker("word")+"-"+faker("word")) }}
       Project: {{ item.number|default(faker("ean13")) }}
       Project Number: {{ item.number|default(faker("ean13")) }}
