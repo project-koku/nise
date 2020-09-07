@@ -77,10 +77,10 @@
         },
         "botocore": {
             "hashes": [
-                "sha256:17470c97435891cf40e147f533069de0109cda24c208c918f28997274bbac399",
-                "sha256:bc8b1c83ccc0d77963849b66a94bbb20a666ff0225aff84de7ed0175db1fd6f7"
+                "sha256:5a72e1758f3c89c663d74eb733d313f69d059ab4fd571ad41829d666e3367392",
+                "sha256:73fd22d70611fdcfbb44d1e5f77f7edf8a45a58e6286d50963cc19f9cf9e3e67"
             ],
-            "version": "==1.17.45"
+            "version": "==1.17.56"
         },
         "cachetools": {
             "hashes": [
