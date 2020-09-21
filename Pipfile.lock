@@ -237,10 +237,10 @@
         },
         "google-resumable-media": {
             "hashes": [
-                "sha256:0572998cc2c7ba9ca996337896a2f93dbe8bc88866ebd81c8b7f4d7b07222957",
-                "sha256:57841f5e65fb285c01071f439724745b2549a72eb75e5fd979198eb518608ed0"
+                "sha256:173acc6bade1480a529fa29c6c2717543ae2dc09d42e9461fdb86f39502efcf2",
+                "sha256:99b5ac33a75ddb25d5e6aad487b37ecb4fa18b1fbf3d1ad726e032c3d6fc9aff"
             ],
-            "version": "==0.7.1"
+            "version": "==1.0.0"
         },
         "googleapis-common-protos": {
             "hashes": [
