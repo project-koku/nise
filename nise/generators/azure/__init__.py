@@ -16,6 +16,7 @@
 #
 """Module for azure data generators."""
 from nise.generators.azure.azure_generator import AZURE_COLUMNS  # noqa: F401
+from nise.generators.azure.azure_generator import AZURE_COLUMNS_V2  # noqa: F401
 from nise.generators.azure.azure_generator import AzureGenerator  # noqa: F401
 from nise.generators.azure.bandwidth_generator import BandwidthGenerator  # noqa: F401
 from nise.generators.azure.sql_database_generator import SQLGenerator  # noqa: F401
