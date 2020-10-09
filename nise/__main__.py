@@ -129,7 +129,7 @@ def add_azure_parser_args(parser):
         dest="version_two",
         action="store_true",
         required=False,
-        help="Writes the monthly files.",
+        help="Generate version two of the azure report.",
     )
 
 
