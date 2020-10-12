@@ -50,6 +50,61 @@ AZURE_COLUMNS = (
     "UnitOfMeasure",
 )
 
+AZURE_COLUMNS_V2 = (
+    "InvoiceSectionName",
+    "AccountName",
+    "AccountOwnerId",
+    "SubscriptionId",
+    "SubscriptionName",
+    "ResourceGroup",
+    "ResourceLocation",
+    "Date",
+    "ProductName",
+    "MeterCategory",
+    "MeterSubCategory",
+    "MeterId",
+    "MeterName",
+    "MeterRegion",
+    "UnitOfMeasure",
+    "Quantity",
+    "EffectivePrice",
+    "CostInBillingCurrency",
+    "CostCenter",
+    "ConsumedService",
+    "ResourceId",
+    "Tags",
+    "OfferId",
+    "AdditionalInfo",
+    "ServiceInfo1",
+    "ServiceInfo2",
+    "ResourceName",
+    "ReservationId",
+    "ReservationName",
+    "UnitPrice",
+    "ProductOrderId",
+    "ProductOrderName",
+    "Term",
+    "PublisherType",
+    "PublisherName",
+    "ChargeType",
+    "Frequency",
+    "PricingModel",
+    "AvailabilityZone",
+    "BillingAccountId",
+    "BillingAccountName",
+    "BillingCurrencyCode",
+    "BillingPeriodStartDate",
+    "BillingPeriodEndDate",
+    "BillingProfileId",
+    "BillingProfileName",
+    "InvoiceSectionId",
+    "IsAzureCreditEligible",
+    "PartNumber",
+    "PayGPrice",
+    "PlanName",
+    "ServiceFamily",
+)
+
 
 class AzureGenerator(AbstractGenerator):
     """Defines an abstract class for generators."""
@@ -106,6 +161,7 @@ class AzureGenerator(AbstractGenerator):
         self._consumed = None
         self._resource_type = None
         self._meter_cache = {}
+        self.azure_columns = AZURE_COLUMNS
 
         if attributes:
             if attributes.get("instance_id"):
@@ -124,6 +180,8 @@ class AzureGenerator(AbstractGenerator):
                 self._tags = attributes.get("tags")
             if attributes.get("meter_cache"):
                 self._meter_cache = attributes.get("meter_cache")
+            if attributes.get("version_two"):
+                self.azure_columns = AZURE_COLUMNS_V2
         super().__init__(start_date, end_date)
 
     def _get_accts_str(self, service_name):
@@ -194,10 +252,8 @@ class AzureGenerator(AbstractGenerator):
             raise ValueError("end must be a date object.")
 
         row = {}
-        for column in AZURE_COLUMNS:
+        for column in self.azure_columns:
             row[column] = ""
-            if column == "SubscriptionGuid":
-                row[column] = self.payer_account
         return row
 
     def _get_location(self):
@@ -210,8 +266,12 @@ class AzureGenerator(AbstractGenerator):
 
     def _add_common_usage_info(self, row, start, end, **kwargs):
         """Add common usage information."""
-        row["SubscriptionGuid"] = self.payer_account
-        row["UsageDateTime"] = start
+        if self.azure_columns == AZURE_COLUMNS_V2:
+            row["SubscriptionId"] = self.payer_account
+            row["Date"] = start.date().strftime("%m/%d/%Y")
+        else:
+            row["SubscriptionGuid"] = self.payer_account
+            row["UsageDateTime"] = start
         return row
 
     def _add_tag_data(self, row):
@@ -251,26 +311,41 @@ class AzureGenerator(AbstractGenerator):
         row["ResourceGroup"] = resource_group
         row["ResourceLocation"] = azure_region
         row["MeterCategory"] = self._service_name
-        row["MeterSubcategory"] = meter_sub
         row["MeterId"] = str(meter_id)
         row["MeterName"] = meter_name
         row["MeterRegion"] = meter_region
-        row["UsageQuantity"] = str(amount)
-        row["ResourceRate"] = str(rate)
-        row["PreTaxCost"] = str(cost)
         row["ConsumedService"] = self._consumed
-        row["ResourceType"] = self._resource_type
-        row["InstanceId"] = instance_id
         row["OfferId"] = ""
         row["AdditionalInfo"] = json.dumps(additional_info)
         row["ServiceInfo1"] = ""
         row["ServiceInfo2"] = service_info_2
-        row["ServiceName"] = self._service_name
-        row["ServiceTier"] = service_tier
-        row["Currency"] = "USD"
         row["UnitOfMeasure"] = units_of_measure
+        row = self._map_header_to_report_version(
+            row, meter_sub, str(amount), str(rate), str(cost), instance_id, service_tier
+        )
         self._add_tag_data(row)
 
+        return row
+
+    def _map_header_to_report_version(self, row, meter_sub, amount, rate, cost, instance_id, service_tier):
+        if self.azure_columns == AZURE_COLUMNS_V2:
+            row["MeterSubCategory"] = meter_sub
+            row["Quantity"] = amount
+            row["EffectivePrice"] = rate
+            row["CostInBillingCurrency"] = cost
+            row["ResourceId"] = instance_id
+            row["BillingCurrencyCode"] = "MC"
+        else:
+            row["MeterSubcategory"] = meter_sub
+            row["UsageQuantity"] = amount
+            row["ResourceRate"] = rate
+            row["PreTaxCost"] = cost
+            row["InstanceId"] = instance_id
+            row["Currency"] = "USD"
+            # Version one specific
+            row["ResourceType"] = self._resource_type
+            row["ServiceName"] = self._service_name
+            row["ServiceTier"] = service_tier
         return row
 
     def _generate_hourly_data(self, **kwargs):

@@ -47,7 +47,6 @@ from nise.generators.aws import RDSGenerator
 from nise.generators.aws import Route53Generator
 from nise.generators.aws import S3Generator
 from nise.generators.aws import VPCGenerator
-from nise.generators.azure import AZURE_COLUMNS
 from nise.generators.azure import BandwidthGenerator
 from nise.generators.azure import SQLGenerator
 from nise.generators.azure import StorageGenerator
@@ -526,6 +525,7 @@ def azure_create_report(options):  # noqa: C901
     storage_account_name = options.get("azure_account_name")
     azure_prefix_name = options.get("azure_prefix_name")
     azure_report_name = options.get("azure_report_name")
+    version_two = options.get("version_two", False)
     write_monthly = options.get("write_monthly", False)
     for month in months:
         data = []
@@ -552,7 +552,9 @@ def azure_create_report(options):  # noqa: C901
             if attributes.get("meter_cache"):
                 meter_cache.update(attributes.get("meter_cache"))  # needed so that meter_cache can be defined in yaml
             attributes["meter_cache"] = meter_cache
+            attributes["version_two"] = version_two
             gen = generator_cls(gen_start_date, gen_end_date, payer_account, usage_accounts, attributes)
+            azure_columns = gen.azure_columns
             data += gen.generate_data()
             meter_cache = gen.get_meter_cache()
 
@@ -562,7 +564,7 @@ def azure_create_report(options):  # noqa: C901
         local_path, output_file_name = _generate_azure_filename()
         date_range = _generate_azure_date_range(month)
 
-        _write_csv(local_path, data, AZURE_COLUMNS)
+        _write_csv(local_path, data, azure_columns)
         monthly_files.append(local_path)
 
         if azure_container_name:

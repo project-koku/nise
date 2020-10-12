@@ -123,6 +123,14 @@ def add_azure_parser_args(parser):
         default=os.getenv("AZURE_STORAGE_ACCOUNT"),
         help="Azure container to place the data.",
     )
+    parser.add_argument(
+        "-v2",
+        "--version-two",
+        dest="version_two",
+        action="store_true",
+        required=False,
+        help="Generate version two of the azure report.",
+    )
 
 
 def add_gcp_parser_args(parser):
