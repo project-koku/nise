@@ -23,7 +23,6 @@ import gzip
 import importlib
 import json
 import os
-import pprint
 import random
 import shutil
 import string
@@ -68,8 +67,6 @@ from nise.upload import upload_to_azure_container
 from nise.upload import upload_to_gcp_storage
 from nise.upload import upload_to_s3
 from nise.util import LOG
-
-pp = pprint.PrettyPrinter()
 
 
 def create_temporary_copy(path, temp_file_name, temp_dir_name="None"):
