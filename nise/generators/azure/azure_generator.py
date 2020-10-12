@@ -320,12 +320,14 @@ class AzureGenerator(AbstractGenerator):
         row["ServiceInfo1"] = ""
         row["ServiceInfo2"] = service_info_2
         row["UnitOfMeasure"] = units_of_measure
-        row = self._map_header_to_report_version(row, meter_sub, str(amount), str(rate), str(cost), instance_id)
+        row = self._map_header_to_report_version(
+            row, meter_sub, str(amount), str(rate), str(cost), instance_id, service_tier
+        )
         self._add_tag_data(row)
 
         return row
 
-    def _map_header_to_report_version(self, row, meter_sub, amount, rate, cost, instance_id):
+    def _map_header_to_report_version(self, row, meter_sub, amount, rate, cost, instance_id, service_tier):
         if self.azure_columns == AZURE_COLUMNS_V2:
             row["MeterSubCategory"] = meter_sub
             row["Quantity"] = amount
@@ -340,7 +342,10 @@ class AzureGenerator(AbstractGenerator):
             row["PreTaxCost"] = cost
             row["InstanceId"] = instance_id
             row["Currency"] = "USD"
+            # Version one specific
             row["ResourceType"] = self._resource_type
+            row["ServiceName"] = self._service_name
+            row["ServiceTier"] = service_tier
         return row
 
     def _generate_hourly_data(self, **kwargs):
