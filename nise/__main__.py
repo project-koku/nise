@@ -452,11 +452,14 @@ def _load_static_report_data(options):
     static_report_data = load_yaml(options.get("static_report_file"))
     for generator_dict in static_report_data.get("generators"):
         for _, attributes in generator_dict.items():
-            generated_start_date = calculate_start_date(attributes.get("start_date"))
+            start_date = get_start_date(attributes, options)
+            generated_start_date = calculate_start_date(start_date)
             start_dates.append(generated_start_date)
 
             if attributes.get("end_date"):
                 generated_end_date = calculate_end_date(generated_start_date, attributes.get("end_date"))
+            elif options.get("end_date") and options.get("end_date").date() != today().date():
+                generated_end_date = calculate_end_date(generated_start_date, options.get("end_date"))
             else:
                 generated_end_date = today()
             if options.get("provider") == "azure":
@@ -479,6 +482,16 @@ def _load_static_report_data(options):
         options["aws_tags"] = aws_tags
 
     return True
+
+
+def get_start_date(attributes, options):
+    """Gets a start date from from yml or cli, returns None if neither"""
+    if attributes.get("start_date"):
+        return attributes.get("start_date")
+    elif options.get("start_date"):
+        return options.get("start_date")
+    else:
+        return None
 
 
 def calculate_start_date(start_date):
