@@ -493,6 +493,7 @@ def get_start_date(attributes, options):
     else:
         return None
 
+
 def calculate_start_date(start_date):
     """Return a datetime for the start date."""
     if start_date == "last_month":
