@@ -386,9 +386,10 @@ def _validate_ocp_arguments(parser, options):
             insights_user is None or insights_password is None
         ):
             msg = (
-                "The environment must have \nINSIGHTS_USER and "
-                "INSIGHTS_PASSWORD or\nINSIGHTS_ACCOUNT_ID and INSIGHTS_ORG_ID"
-                "defined when {} {} is supplied."
+                f"\n\t--insights-upload {insights_upload} was supplied as an argument\n"
+                "\tbut this directory does not exist locally. Attempting to upload to Ingress instead, but\n"
+                "\tthe environment must have \n\t\tINSIGHTS_USER and INSIGHTS_PASSWORD\n\tor\n"
+                "\t\tINSIGHTS_ACCOUNT_ID and INSIGHTS_ORG_ID\n\tdefined when attempting an upload to Ingress.\n"
             )
             msg = msg.format("--insights-upload", insights_upload)
             parser.error(msg)
