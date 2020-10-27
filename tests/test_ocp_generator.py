@@ -90,12 +90,12 @@ class OCPGeneratorTestCase(TestCase):
                             "volumes": [
                                 {
                                     "volume_name": f"vol_{self.fake.word()}",
-                                    "volume_request_gig": self.fake.pyint(1, 100),
+                                    "volume_request_gig": self.fake.pyint(1, 80),
                                     "volume_claims": [
                                         {
                                             "volume_claim_name": f"volumeclaim_{self.fake.word()}",
                                             "pod_name": f"pod_{self.fake.word()}",
-                                            "capacity_gig": self.fake.pyint(1, 100),
+                                            "capacity_gig": self.fake.pyint(1, 80),
                                             "volume_claim_usage_gig": self._usage_dict(),
                                             "labels": (
                                                 f"label_{self.fake.word()}:{self.fake.word()}",
