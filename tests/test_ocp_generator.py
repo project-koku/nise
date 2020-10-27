@@ -33,6 +33,8 @@ from nise.generators.ocp.ocp_generator import OCP_STORAGE_COLUMNS
 from nise.generators.ocp.ocp_generator import OCP_STORAGE_USAGE
 from nise.generators.ocp.ocp_generator import OCPGenerator
 
+MAX_VOL_GIGS = 80
+
 
 class OCPGeneratorTestCase(TestCase):
     """TestCase class for OCP Generator."""
@@ -90,12 +92,12 @@ class OCPGeneratorTestCase(TestCase):
                             "volumes": [
                                 {
                                     "volume_name": f"vol_{self.fake.word()}",
-                                    "volume_request_gig": self.fake.pyint(1, 100),
+                                    "volume_request_gig": self.fake.pyint(1, MAX_VOL_GIGS),
                                     "volume_claims": [
                                         {
                                             "volume_claim_name": f"volumeclaim_{self.fake.word()}",
                                             "pod_name": f"pod_{self.fake.word()}",
-                                            "capacity_gig": self.fake.pyint(1, 100),
+                                            "capacity_gig": self.fake.pyint(1, MAX_VOL_GIGS),
                                             "volume_claim_usage_gig": self._usage_dict(),
                                             "labels": (
                                                 f"label_{self.fake.word()}:{self.fake.word()}",
@@ -442,7 +444,7 @@ class OCPGeneratorTestCase(TestCase):
                                 if attributes:
                                     for value in claim.get("volume_claim_usage_gig").values():
                                         self.assertLessEqual(value * GIGABYTE, capacity)
-                        self.assertLessEqual(total_capacity, volume.get("volume_request_gig", 80.0 * GIGABYTE))
+                        self.assertLessEqual(total_capacity, volume.get("volume_request_gig", MAX_VOL_GIGS * GIGABYTE))
 
     def test_generate_hourly_data(self):
         """Test that generate_hourly_data calls the test method."""
