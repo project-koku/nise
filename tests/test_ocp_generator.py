@@ -35,6 +35,7 @@ from nise.generators.ocp.ocp_generator import OCPGenerator
 
 MAX_VOL_GIGS = 80
 
+
 class OCPGeneratorTestCase(TestCase):
     """TestCase class for OCP Generator."""
 
