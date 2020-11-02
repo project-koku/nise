@@ -675,11 +675,10 @@
         },
         "importlib-resources": {
             "hashes": [
-                "sha256:83985739b3a6679702f9ab33f0ad016ad564664d0568a31ac14d7c64789453e6",
-                "sha256:f5edfcece1cc9435d0979c19e08739521f4cf1aa1adaf6e571f732df6f568962"
+                "sha256:7b51f0106c8ec564b1bef3d9c588bc694ce2b92125bbb6278f4f2f5b54ec3592",
+                "sha256:a3d34a8464ce1d5d7c92b0ea4e921e696d86f2aa212e684451cb1482c8d84ed5"
             ],
-            "index": "pypi",
-            "version": "==2.0.1"
+            "version": "==3.3.0"
         },
         "jeepney": {
             "hashes": [
