@@ -33,6 +33,7 @@ HOUR = 60 * 60
 OCP_POD_USAGE = "ocp_pod_usage"
 OCP_STORAGE_USAGE = "ocp_storage_usage"
 OCP_NODE_LABEL = "ocp_node_label"
+OCP_NAMESPACE_LABEL = "ocp_namespace_label"
 OCP_POD_USAGE_COLUMNS = (
     "report_period_start",
     "report_period_end",
@@ -79,10 +80,19 @@ OCP_NODE_LABEL_COLUMNS = (
     "node",
     "node_labels",
 )
+OCP_NAMESPACE_LABEL_COLUMNS = (
+    "report_period_start",
+    "report_period_end",
+    "interval_start",
+    "interval_end",
+    "namespace",
+    "namespace_labels",
+)
 OCP_REPORT_TYPE_TO_COLS = {
     OCP_POD_USAGE: OCP_POD_USAGE_COLUMNS,
     OCP_STORAGE_USAGE: OCP_STORAGE_COLUMNS,
     OCP_NODE_LABEL: OCP_NODE_LABEL_COLUMNS,
+    OCP_NAMESPACE_LABEL: OCP_NAMESPACE_LABEL_COLUMNS,
 }
 
 
@@ -137,6 +147,10 @@ class OCPGenerator(AbstractGenerator):
             OCP_NODE_LABEL: {
                 "_generate_hourly_data": self._gen_hourly_node_label_usage,
                 "_update_data": self._update_node_label_data,
+            },
+            OCP_NAMESPACE_LABEL: {
+                "_generate_hourly_data": self._gen_hourly_namespace_label_usage,
+                "_update_data": self._update_namespace_label_data,
             },
         }
 
@@ -493,6 +507,12 @@ class OCPGenerator(AbstractGenerator):
         row.update(data)
         return row
 
+    def _update_namespace_label_data(self, row, start, end, **kwargs):
+        """Update data with generator specific data."""
+        data = {"namespace": kwargs.get("namespace"), "namespace_labels": kwargs.get("namespace_labels")}
+        row.update(data)
+        return row
+
     def _update_data(self, row, start, end, **kwargs):
         """Update data with generator specific data."""
         row = self._add_common_usage_info(row, start, end)
@@ -588,6 +608,20 @@ class OCPGenerator(AbstractGenerator):
                     row, start, end, node_labels=node.get("node_labels"), node=node.get("name"), **kwargs
                 )
                 yield row
+
+    def _gen_hourly_namespace_label_usage(self, **kwargs):
+        """Create hourly data for nodel label report."""
+        for hour in self.hours:
+            start = hour.get("start")
+            end = hour.get("end")
+            for node in self.nodes:
+                if node.get("namespaces"):
+                    for name, _ in node.get("namespaces").items():
+                        row = self._init_data_row(start, end, **kwargs)
+                        row = self._update_data(
+                            row, start, end, namespace_labels=node.get("namespaces").get(name).get("namespace_labels"), namespace=name, **kwargs
+                        )
+                        yield row
 
     def _generate_hourly_data(self, **kwargs):
         """Create hourly data."""
