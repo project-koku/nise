@@ -19,6 +19,7 @@ import argparse
 import calendar
 import datetime
 import os
+import time
 from pprint import pformat
 
 from dateutil import parser as date_parser
@@ -35,6 +36,7 @@ from nise.yaml_gen import add_yaml_parser_args
 from nise.yaml_gen import yaml_main
 
 os.environ["TZ"] = "UTC"
+time.tzset()
 
 
 class NiseError(Exception):
