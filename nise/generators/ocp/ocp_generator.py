@@ -619,7 +619,7 @@ class OCPGenerator(AbstractGenerator):
                     for name, _ in node.get("namespaces").items():
                         row = self._init_data_row(start, end, **kwargs)
                         row = self._update_data(
-                            row, start, end, namespace_labels=node.get("namespaces").get(name).get("labels",None), namespace=name, **kwargs
+                            row, start, end, namespace_labels=node.get("namespaces").get(name).get("namespace_labels",None), namespace=name, **kwargs
                         )
                         yield row
 
