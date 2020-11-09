@@ -624,7 +624,7 @@ class OCPGenerator(AbstractGenerator):
                             end,
                             namespace_labels=node.get("namespaces").get(name).get("namespace_labels"),
                             namespace=name,
-                            **kwargs
+                            **kwargs,
                         )
                         yield row
 
