@@ -889,10 +889,10 @@
         },
         "requirementslib": {
             "hashes": [
-                "sha256:c1bf68ee654fab14d11644e0aa8448ab694b18a767efd3166c7bba622f449529",
-                "sha256:ed6119a92370513236a017848314b1a425f70a0f105668d46fcd533ec043df7e"
+                "sha256:029dd232c5e384ce9b3d7c14876558f9b6176e564ac3628de149243667ccdaa0",
+                "sha256:fe4486d936489239ae2f10b114fcc5e81e13e41fe742b924c2970be32c6efeb2"
             ],
-            "version": "==1.5.14"
+            "version": "==1.5.15"
         },
         "rfc3986": {
             "hashes": [
