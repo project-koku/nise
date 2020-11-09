@@ -654,10 +654,10 @@
         },
         "identify": {
             "hashes": [
-                "sha256:b505f7658afbddc11556de5ff9a5a52eed81b9a380f8ff77b7dd9781cfee6884",
-                "sha256:e3c822614168c9ac248f4258ffe43092debceb45e299a07b8f2fb168ba875605"
+                "sha256:5dd84ac64a9a115b8e0b27d1756b244b882ad264c3c423f42af8235a6e71ca12",
+                "sha256:c9504ba6a043ee2db0a9d69e43246bc138034895f6338d5aed1b41e4a73b1513"
             ],
-            "version": "==1.5.7"
+            "version": "==1.5.9"
         },
         "idna": {
             "hashes": [
