@@ -11,7 +11,7 @@ generators:
           resource_id: 55555555
           namespaces:
             openshift-kube-controller-manager-operator:
-              namespace_labels: label_key1
+              namespace_labels: label_key2
               pods:
                 - pod:
                   pod_name: pod_name1
