@@ -5,7 +5,7 @@ generators:
       nodes:
         - node:
           node_name: alpha
-          node_labels: label_openshift_io_cluster_monitoring
+          node_labels: label_key1
           cpu_cores: 4
           memory_gig: 16
           resource_id: 55555555
