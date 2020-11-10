@@ -15,6 +15,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """Module for aws data generators."""
+from nise.generators.ocp.ocp_generator import OCP_NAMESPACE_LABEL  # noqa: F401
 from nise.generators.ocp.ocp_generator import OCP_NODE_LABEL  # noqa: F401
 from nise.generators.ocp.ocp_generator import OCP_POD_USAGE  # noqa: F401
 from nise.generators.ocp.ocp_generator import OCP_REPORT_TYPE_TO_COLS  # noqa: F401
