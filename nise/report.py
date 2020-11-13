@@ -317,7 +317,7 @@ def _generate_azure_account_info(static_report_data=None):
     if static_report_data:
         subscription_guid = static_report_data.get("payer")
         usage_accounts = tuple(static_report_data.get("user"))
-        currency_code = static_report_data.get("currency_code")
+        currency_code = static_report_data.get("currency_code", choice(("USD", "GBP", "EUR", "AUD")))
         for _ in usage_accounts:
             account_name = fake.city()
             trimmed_account_name = account_name.replace(" ", "")
