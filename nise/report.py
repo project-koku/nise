@@ -303,6 +303,7 @@ def _generate_accounts(static_report_data=None):
         )
     return payer_account, usage_accounts
 
+
 def _generate_azure_account_info(static_report_data=None):
     """Return Azure subscription, billing, and usage account info."""
     fake = Faker()
@@ -318,6 +319,7 @@ def _generate_azure_account_info(static_report_data=None):
         usage_accounts = tuple(static_report_data.get("user"))
         currency_code = static_report_data.get("currency_code")
         for _ in usage_accounts:
+            account_name = fake.city()
             trimmed_account_name = account_name.replace(" ", "")
             account_owner_id = f"{trimmed_account_name}{email_suffix}"
             accounts.append((account_name, account_owner_id))
@@ -330,22 +332,22 @@ def _generate_azure_account_info(static_report_data=None):
             fake.ean(length=13),
             fake.ean(length=13),
         )
-        currency_code = choice(("USD", "GBP", "EUR"))
+        currency_code = choice(("USD", "GBP", "EUR", "AUD"))
         for _ in usage_accounts:
             account_name = fake.city()
             trimmed_account_name = account_name.replace(" ", "")
             account_owner_id = f"{trimmed_account_name}{email_suffix}"
             accounts.append((account_name, account_owner_id))
     account_info = {
-            "subscription_guid": subscription_guid,
-            "subscription_name": subscription_name,
-            "billing_account_id": billing_account_id,
-            "billing_account_name": billing_account_name,
-            "usage_accounts": accounts,
-            "currency_code": currency_code
-
-        }
+        "subscription_guid": subscription_guid,
+        "subscription_name": subscription_name,
+        "billing_account_id": billing_account_id,
+        "billing_account_name": billing_account_name,
+        "usage_accounts": accounts,
+        "currency_code": currency_code,
+    }
     return account_info
+
 
 def _get_generators(generator_list):
     """Collect a list of report generators."""
