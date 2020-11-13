@@ -343,7 +343,8 @@ class AzureGenerator(AbstractGenerator):
         row = self._map_header_to_report_version(
             row, meter_sub, str(amount), str(rate), str(cost), instance_id, service_tier
         )
-        row = self.add_v2_specific_columns(row, instance_id=instance_id)
+        if self.azure_columns == AZURE_COLUMNS_V2:
+            row = self.add_v2_specific_columns(row, instance_id=instance_id)
         self._add_tag_data(row)
 
         return row

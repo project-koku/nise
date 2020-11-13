@@ -324,7 +324,7 @@ def _generate_azure_account_info(static_report_data=None):
             account_owner_id = f"{trimmed_account_name}{email_suffix}"
             accounts.append((account_name, account_owner_id))
     else:
-        subscription_name = fake.ean(length=13)
+        subscription_guid = fake.ean(length=13)
         usage_accounts = (
             subscription_guid,
             fake.ean(length=13),

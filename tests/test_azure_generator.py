@@ -28,6 +28,7 @@ from nise.generators.azure import SQLGenerator
 from nise.generators.azure import StorageGenerator
 from nise.generators.azure import VMGenerator
 from nise.generators.azure import VNGenerator
+from nise.report import _generate_azure_account_info
 
 # from nise.generators.generator import AbstractGenerator
 
@@ -54,50 +55,42 @@ class AbstractGeneratorTestCase(TestCase):
         self.fake = Faker()
         self.now = datetime.now().replace(microsecond=0, second=0, minute=0)
         self.one_hour = timedelta(minutes=60)
-        self.payer_account = self.fake.ean(length=13)
-        self.usage_accounts = (
-            self.payer_account,
-            self.fake.ean(length=13),
-            self.fake.ean(length=13),
-            self.fake.ean(length=13),
-            self.fake.ean(length=13),
-        )
+        self.account_info = _generate_azure_account_info()
+        self.payer_account = self.account_info.get("subscription_guid")
         self.version_two_attribute = {"version_two": True}
 
     def test_set_hours_invalid_start(self):
         """Test that the start date must be a date object."""
         with self.assertRaises(ValueError):
-            TestGenerator("invalid", self.now, self.payer_account, self.usage_accounts)
+            TestGenerator("invalid", self.now, self.account_info)
 
     def test_set_hours_invalid_end(self):
         """Test that the end date must be a date object."""
         with self.assertRaises(ValueError):
-            TestGenerator(self.now, "invalid", self.payer_account, self.usage_accounts)
+            TestGenerator(self.now, "invalid", self.account_info)
 
     def test_set_hours_none_start(self):
         """Test that the start date is not None."""
         with self.assertRaises(ValueError):
-            TestGenerator(None, self.now, self.payer_account, self.usage_accounts)
+            TestGenerator(None, self.now, self.account_info)
 
     def test_set_hours_none_end(self):
         """Test that the end date is not None."""
         with self.assertRaises(ValueError):
-            TestGenerator(self.now, None, self.payer_account, self.usage_accounts)
+            TestGenerator(self.now, None, self.account_info)
 
     def test_set_hours_compared_dates(self):
         """Test that the start date must be less than the end date."""
         hour_ago = self.now - self.one_hour
         with self.assertRaises(ValueError):
-            TestGenerator(self.now, hour_ago, self.payer_account, self.usage_accounts)
+            TestGenerator(self.now, hour_ago, self.account_info)
 
     def test_set_hours(self):
         """Test that a valid list of hours are returned."""
         two_hours_ago = (self.now - self.one_hour) - self.one_hour
         generators = [
-            TestGenerator(two_hours_ago, self.now, self.payer_account, self.usage_accounts),
-            TestGenerator(
-                two_hours_ago, self.now, self.payer_account, self.usage_accounts, self.version_two_attribute
-            ),
+            TestGenerator(two_hours_ago, self.now, self.account_info),
+            TestGenerator(two_hours_ago, self.now, self.account_info, self.version_two_attribute),
         ]
         expected = [
             {"start": two_hours_ago, "end": two_hours_ago + self.one_hour},
@@ -110,10 +103,8 @@ class AbstractGeneratorTestCase(TestCase):
         """Test the init data row method."""
         two_hours_ago = (self.now - self.one_hour) - self.one_hour
         generators = [
-            TestGenerator(two_hours_ago, self.now, self.payer_account, self.usage_accounts),
-            TestGenerator(
-                two_hours_ago, self.now, self.payer_account, self.usage_accounts, self.version_two_attribute
-            ),
+            TestGenerator(two_hours_ago, self.now, self.account_info),
+            TestGenerator(two_hours_ago, self.now, self.account_info, self.version_two_attribute),
         ]
         for generator in generators:
             columns = generator.azure_columns
@@ -127,10 +118,8 @@ class AbstractGeneratorTestCase(TestCase):
         """Test the init data row method none start date."""
         two_hours_ago = (self.now - self.one_hour) - self.one_hour
         generators = [
-            TestGenerator(two_hours_ago, self.now, self.payer_account, self.usage_accounts),
-            TestGenerator(
-                two_hours_ago, self.now, self.payer_account, self.usage_accounts, self.version_two_attribute
-            ),
+            TestGenerator(two_hours_ago, self.now, self.account_info),
+            TestGenerator(two_hours_ago, self.now, self.account_info, self.version_two_attribute),
         ]
         for generator in generators:
             with self.assertRaises(ValueError):
@@ -140,10 +129,8 @@ class AbstractGeneratorTestCase(TestCase):
         """Test the init data row method none end date."""
         two_hours_ago = (self.now - self.one_hour) - self.one_hour
         generators = [
-            TestGenerator(two_hours_ago, self.now, self.payer_account, self.usage_accounts),
-            TestGenerator(
-                two_hours_ago, self.now, self.payer_account, self.usage_accounts, self.version_two_attribute
-            ),
+            TestGenerator(two_hours_ago, self.now, self.account_info),
+            TestGenerator(two_hours_ago, self.now, self.account_info, self.version_two_attribute),
         ]
         for generator in generators:
             with self.assertRaises(ValueError):
@@ -153,10 +140,8 @@ class AbstractGeneratorTestCase(TestCase):
         """Test the init data row method invalid start date."""
         two_hours_ago = (self.now - self.one_hour) - self.one_hour
         generators = [
-            TestGenerator(two_hours_ago, self.now, self.payer_account, self.usage_accounts),
-            TestGenerator(
-                two_hours_ago, self.now, self.payer_account, self.usage_accounts, self.version_two_attribute
-            ),
+            TestGenerator(two_hours_ago, self.now, self.account_info),
+            TestGenerator(two_hours_ago, self.now, self.account_info, self.version_two_attribute),
         ]
         for generator in generators:
             with self.assertRaises(ValueError):
@@ -166,10 +151,8 @@ class AbstractGeneratorTestCase(TestCase):
         """Test the init data row method invalid end date."""
         two_hours_ago = (self.now - self.one_hour) - self.one_hour
         generators = [
-            TestGenerator(two_hours_ago, self.now, self.payer_account, self.usage_accounts),
-            TestGenerator(
-                two_hours_ago, self.now, self.payer_account, self.usage_accounts, self.version_two_attribute
-            ),
+            TestGenerator(two_hours_ago, self.now, self.account_info),
+            TestGenerator(two_hours_ago, self.now, self.account_info, self.version_two_attribute),
         ]
         for generator in generators:
             with self.assertRaises(ValueError):
@@ -178,13 +161,13 @@ class AbstractGeneratorTestCase(TestCase):
     def test_get_location(self):
         """Test the _get_location method."""
         two_hours_ago = (self.now - self.one_hour) - self.one_hour
-        generator = TestGenerator(two_hours_ago, self.now, self.payer_account, self.usage_accounts)
+        generator = TestGenerator(two_hours_ago, self.now, self.account_info)
         location = generator._get_location()
         self.assertIsInstance(location, tuple)
 
         attributes = {}
         attributes["resource_location"] = "US East"
-        generator = TestGenerator(two_hours_ago, self.now, self.payer_account, self.usage_accounts, attributes)
+        generator = TestGenerator(two_hours_ago, self.now, self.account_info, attributes)
         location = generator._get_location()
         self.assertIn("US East", location)
 
@@ -197,14 +180,8 @@ class AzureGeneratorTestCase(TestCase):
         self.fake = Faker()
         self.now = datetime.now().replace(microsecond=0, second=0, minute=0)
         self.one_hour = timedelta(minutes=60)
-        self.payer_account = self.fake.ean(length=13)
-        self.usage_accounts = (
-            self.payer_account,
-            self.fake.ean(length=13),
-            self.fake.ean(length=13),
-            self.fake.ean(length=13),
-            self.fake.ean(length=13),
-        )
+        self.account_info = _generate_azure_account_info()
+        self.payer_account = self.account_info.get("subscription_guid")
 
         self.tags = {"key": "value"}
         self.service_name = "Storage"
@@ -240,7 +217,7 @@ class TestBandwidthGenerator(AzureGeneratorTestCase):
     def test_init_no_attributes(self):
         """Test the init wihout attributes."""
         generator = BandwidthGenerator(
-            self.two_hours_ago, self.now, self.payer_account, self.usage_accounts, attributes={"empty": "dictionary"}
+            self.two_hours_ago, self.now, self.account_info, attributes={"empty": "dictionary"}
         )
         self.assertEqual(generator._service_name, "Bandwidth")
         self.assertIsNone(generator._service_tier)
@@ -248,10 +225,8 @@ class TestBandwidthGenerator(AzureGeneratorTestCase):
     def test_init_with_attributes(self):
         """Test the unique init options for Bandwidth."""
         default_generators = [
-            BandwidthGenerator(self.two_hours_ago, self.now, self.payer_account, self.usage_accounts, self.attributes),
-            BandwidthGenerator(
-                self.two_hours_ago, self.now, self.payer_account, self.usage_accounts, self.attributes_v2
-            ),
+            BandwidthGenerator(self.two_hours_ago, self.now, self.account_info, self.attributes),
+            BandwidthGenerator(self.two_hours_ago, self.now, self.account_info, self.attributes_v2),
         ]
         for generator in default_generators:
             self.assertEqual(generator._service_name, "Bandwidth")
@@ -264,10 +239,8 @@ class TestBandwidthGenerator(AzureGeneratorTestCase):
     def test_update_data(self):
         """Test that row is updated."""
         default_generators = [
-            BandwidthGenerator(self.two_hours_ago, self.now, self.payer_account, self.usage_accounts, self.attributes),
-            BandwidthGenerator(
-                self.two_hours_ago, self.now, self.payer_account, self.usage_accounts, self.attributes_v2
-            ),
+            BandwidthGenerator(self.two_hours_ago, self.now, self.account_info, self.attributes),
+            BandwidthGenerator(self.two_hours_ago, self.now, self.account_info, self.attributes_v2),
         ]
         for generator in default_generators:
             start_row = {}
@@ -281,7 +254,7 @@ class TestStorageGenerator(AzureGeneratorTestCase):
     def test_init_no_attributes(self):
         """Test the init wihout attributes."""
         generator = StorageGenerator(
-            self.two_hours_ago, self.now, self.payer_account, self.usage_accounts, attributes={"empty": "dictionary"}
+            self.two_hours_ago, self.now, self.account_info, attributes={"empty": "dictionary"}
         )
         self.assertEqual(generator._service_name, "Storage")
         self.assertIsNone(generator._service_tier)
@@ -289,10 +262,8 @@ class TestStorageGenerator(AzureGeneratorTestCase):
     def test_init_with_attributes(self):
         """Test the unique init options for Storage."""
         default_generators = [
-            StorageGenerator(self.two_hours_ago, self.now, self.payer_account, self.usage_accounts, self.attributes),
-            StorageGenerator(
-                self.two_hours_ago, self.now, self.payer_account, self.usage_accounts, self.attributes_v2
-            ),
+            StorageGenerator(self.two_hours_ago, self.now, self.account_info, self.attributes),
+            StorageGenerator(self.two_hours_ago, self.now, self.account_info, self.attributes_v2),
         ]
         for generator in default_generators:
             self.assertEqual(generator._service_name, "Storage")
@@ -305,10 +276,8 @@ class TestStorageGenerator(AzureGeneratorTestCase):
     def test_update_data(self):
         """Test that row is updated."""
         default_generators = [
-            StorageGenerator(self.two_hours_ago, self.now, self.payer_account, self.usage_accounts, self.attributes),
-            StorageGenerator(
-                self.two_hours_ago, self.now, self.payer_account, self.usage_accounts, self.attributes_v2
-            ),
+            StorageGenerator(self.two_hours_ago, self.now, self.account_info, self.attributes),
+            StorageGenerator(self.two_hours_ago, self.now, self.account_info, self.attributes_v2),
         ]
         for generator in default_generators:
             start_row = {}
@@ -327,17 +296,15 @@ class TestSQLGenerator(AzureGeneratorTestCase):
 
     def test_init_no_attributes(self):
         """Test the init wihout attributes."""
-        generator = SQLGenerator(
-            self.two_hours_ago, self.now, self.payer_account, self.usage_accounts, attributes={"empty": "dictionary"}
-        )
+        generator = SQLGenerator(self.two_hours_ago, self.now, self.account_info, attributes={"empty": "dictionary"})
         self.assertEqual(generator._service_name, "SQL Database")
         self.assertIsNone(generator._service_tier)
 
     def test_init_with_attributes(self):
         """Test the unique init options for SQL db."""
         default_generators = [
-            SQLGenerator(self.two_hours_ago, self.now, self.payer_account, self.usage_accounts, self.attributes),
-            SQLGenerator(self.two_hours_ago, self.now, self.payer_account, self.usage_accounts, self.attributes_v2),
+            SQLGenerator(self.two_hours_ago, self.now, self.account_info, self.attributes),
+            SQLGenerator(self.two_hours_ago, self.now, self.account_info, self.attributes_v2),
         ]
         for generator in default_generators:
             self.assertEqual(generator._service_name, "SQL Database")
@@ -350,8 +317,8 @@ class TestSQLGenerator(AzureGeneratorTestCase):
     def test_update_data(self):
         """Test that row is updated."""
         default_generators = [
-            SQLGenerator(self.two_hours_ago, self.now, self.payer_account, self.usage_accounts, self.attributes),
-            SQLGenerator(self.two_hours_ago, self.now, self.payer_account, self.usage_accounts, self.attributes_v2),
+            SQLGenerator(self.two_hours_ago, self.now, self.account_info, self.attributes),
+            SQLGenerator(self.two_hours_ago, self.now, self.account_info, self.attributes_v2),
         ]
         for generator in default_generators:
             start_row = {}
@@ -370,17 +337,15 @@ class TestVMGenerator(AzureGeneratorTestCase):
 
     def test_init_no_attributes(self):
         """Test the init wihout attributes."""
-        generator = VMGenerator(
-            self.two_hours_ago, self.now, self.payer_account, self.usage_accounts, attributes={"empty": "dictionary"}
-        )
+        generator = VMGenerator(self.two_hours_ago, self.now, self.account_info, attributes={"empty": "dictionary"})
         self.assertEqual(generator._service_name, "Virtual Machines")
         self.assertIsNone(generator._service_tier)
 
     def test_init_with_attributes(self):
         """Test the unique init options for VM."""
         default_generators = [
-            VMGenerator(self.two_hours_ago, self.now, self.payer_account, self.usage_accounts, self.attributes),
-            VMGenerator(self.two_hours_ago, self.now, self.payer_account, self.usage_accounts, self.attributes_v2),
+            VMGenerator(self.two_hours_ago, self.now, self.account_info, self.attributes),
+            VMGenerator(self.two_hours_ago, self.now, self.account_info, self.attributes_v2),
         ]
         for generator in default_generators:
             self.assertEqual(generator._service_name, "Virtual Machines")
@@ -393,8 +358,8 @@ class TestVMGenerator(AzureGeneratorTestCase):
     def test_update_data(self):
         """Test that row is updated."""
         default_generators = [
-            VMGenerator(self.two_hours_ago, self.now, self.payer_account, self.usage_accounts, self.attributes),
-            VMGenerator(self.two_hours_ago, self.now, self.payer_account, self.usage_accounts, self.attributes_v2),
+            VMGenerator(self.two_hours_ago, self.now, self.account_info, self.attributes),
+            VMGenerator(self.two_hours_ago, self.now, self.account_info, self.attributes_v2),
         ]
         for generator in default_generators:
             start_row = {}
@@ -413,17 +378,15 @@ class TestVNGenerator(AzureGeneratorTestCase):
 
     def test_init_no_attributes(self):
         """Test the init wihout attributes."""
-        generator = VNGenerator(
-            self.two_hours_ago, self.now, self.payer_account, self.usage_accounts, attributes={"empty": "dictionary"}
-        )
+        generator = VNGenerator(self.two_hours_ago, self.now, self.account_info, attributes={"empty": "dictionary"})
         self.assertEqual(generator._service_name, "Virtual Network")
         self.assertIsNone(generator._service_tier)
 
     def test_init_with_attributes(self):
         """Test the unique init options for VM."""
         default_generators = [
-            VNGenerator(self.two_hours_ago, self.now, self.payer_account, self.usage_accounts, self.attributes),
-            VNGenerator(self.two_hours_ago, self.now, self.payer_account, self.usage_accounts, self.attributes_v2),
+            VNGenerator(self.two_hours_ago, self.now, self.account_info, self.attributes),
+            VNGenerator(self.two_hours_ago, self.now, self.account_info, self.attributes_v2),
         ]
         for generator in default_generators:
             self.assertEqual(generator._service_name, "Virtual Network")
@@ -435,7 +398,7 @@ class TestVNGenerator(AzureGeneratorTestCase):
 
     def test_update_data(self):
         """Test that row is updated."""
-        generator = VNGenerator(self.two_hours_ago, self.now, self.payer_account, self.usage_accounts)
+        generator = VNGenerator(self.two_hours_ago, self.now, self.account_info)
         start_row = {}
         row = generator._update_data(start_row, self.two_hours_ago, self.now)
         self.assertEqual(row["ConsumedService"], "Microsoft.Network")
@@ -444,8 +407,8 @@ class TestVNGenerator(AzureGeneratorTestCase):
     def test_update_data_with_attributes(self):
         """Test that row is updated."""
         default_generators = [
-            VNGenerator(self.two_hours_ago, self.now, self.payer_account, self.usage_accounts, self.attributes),
-            VNGenerator(self.two_hours_ago, self.now, self.payer_account, self.usage_accounts, self.attributes_v2),
+            VNGenerator(self.two_hours_ago, self.now, self.account_info, self.attributes),
+            VNGenerator(self.two_hours_ago, self.now, self.account_info, self.attributes_v2),
         ]
         for generator in default_generators:
             start_row = {}
