@@ -28,6 +28,7 @@ import shutil
 import string
 import tarfile
 from datetime import datetime
+from random import choice
 from random import randint
 from tempfile import gettempdir
 from tempfile import NamedTemporaryFile
@@ -303,6 +304,51 @@ def _generate_accounts(static_report_data=None):
     return payer_account, usage_accounts
 
 
+def _generate_azure_account_info(static_report_data=None):
+    """Return Azure subscription, billing, and usage account info."""
+    fake = Faker()
+    company_name = fake.company()
+    company_email = company_name.replace(" ", "").replace(",", "")
+    email_suffix = f"@{company_email}.com"
+    subscription_name = f"{company_name} Azure Subscription"
+    billing_account_id = fake.ean(length=8)
+    billing_account_name = company_name
+    accounts = []
+    if static_report_data:
+        subscription_guid = static_report_data.get("payer")
+        usage_accounts = tuple(static_report_data.get("user"))
+        currency_code = static_report_data.get("currency_code", choice(("USD", "GBP", "EUR", "AUD")))
+        for _ in usage_accounts:
+            account_name = fake.city()
+            trimmed_account_name = account_name.replace(" ", "")
+            account_owner_id = f"{trimmed_account_name}{email_suffix}"
+            accounts.append((account_name, account_owner_id))
+    else:
+        subscription_guid = fake.ean(length=13)
+        usage_accounts = (
+            subscription_guid,
+            fake.ean(length=13),
+            fake.ean(length=13),
+            fake.ean(length=13),
+            fake.ean(length=13),
+        )
+        currency_code = choice(("USD", "GBP", "EUR", "AUD"))
+        for _ in usage_accounts:
+            account_name = fake.city()
+            trimmed_account_name = account_name.replace(" ", "")
+            account_owner_id = f"{trimmed_account_name}{email_suffix}"
+            accounts.append((account_name, account_owner_id))
+    account_info = {
+        "subscription_guid": subscription_guid,
+        "subscription_name": subscription_name,
+        "billing_account_id": billing_account_id,
+        "billing_account_name": billing_account_name,
+        "usage_accounts": accounts,
+        "currency_code": currency_code,
+    }
+    return account_info
+
+
 def _get_generators(generator_list):
     """Collect a list of report generators."""
     generators = []
@@ -517,7 +563,7 @@ def azure_create_report(options):  # noqa: C901
 
     months = _create_month_list(start_date, end_date)
 
-    payer_account, usage_accounts = _generate_accounts(accounts_list)
+    account_info = _generate_azure_account_info(accounts_list)
 
     meter_cache = {}
     # The options params are not going to change so we don't
@@ -554,7 +600,7 @@ def azure_create_report(options):  # noqa: C901
                 meter_cache.update(attributes.get("meter_cache"))  # needed so that meter_cache can be defined in yaml
             attributes["meter_cache"] = meter_cache
             attributes["version_two"] = version_two
-            gen = generator_cls(gen_start_date, gen_end_date, payer_account, usage_accounts, attributes)
+            gen = generator_cls(gen_start_date, gen_end_date, account_info, attributes)
             azure_columns = gen.azure_columns
             data += gen.generate_data()
             meter_cache = gen.get_meter_cache()

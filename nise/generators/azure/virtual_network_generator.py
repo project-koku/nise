@@ -35,7 +35,7 @@ class VNGenerator(AzureGenerator):
     )
     ADDITIONAL_INFO = ({"ConsumptionMeter": "f114cb19-ea64-40b5-bcd7-aee474b62853"},)
 
-    def __init__(self, start_date, end_date, payer_account, usage_accounts, attributes=None):
+    def __init__(self, start_date, end_date, account_info, attributes=None):
         """Initialize the data transfer generator."""
         self._service_name = "Virtual Network"
-        super().__init__(start_date, end_date, payer_account, usage_accounts, attributes)
+        super().__init__(start_date, end_date, account_info, attributes)

@@ -15,6 +15,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """Defines the abstract generator."""
+import calendar
 import datetime
 import json
 from random import choice
@@ -142,11 +143,16 @@ class AzureGenerator(AbstractGenerator):
     )
 
     SERVICE_NAMES = ["SQL Database", "Storage", "Virtual Machines", "Virtual Network"]
+    SERVICE_FAMILIES = ("Compute", "Storage", "Networking")
 
-    def __init__(self, start_date, end_date, payer_account, usage_accounts, attributes=None):  # noqa: C901
+    INVOICE_SECTION_NAMES = ("IT Services",)
+
+    def __init__(self, start_date, end_date, account_info, attributes=None):  # noqa: C901
         """Initialize the generator."""
-        self.payer_account = payer_account
-        self.usage_accounts = usage_accounts
+        self.azure_columns = AZURE_COLUMNS
+        self.subscription_guid = account_info.get("subscription_guid")
+        self.account_info = account_info
+        self.usage_accounts = account_info.get("usage_accounts")
         self.attributes = attributes
         self._tags = None
         self.num_instances = 1 if attributes else randint(2, 60)
@@ -161,28 +167,27 @@ class AzureGenerator(AbstractGenerator):
         self._consumed = None
         self._resource_type = None
         self._meter_cache = {}
-        self.azure_columns = AZURE_COLUMNS
+        self._billing_currency = account_info.get("currency_code")
+        # Version 2 fields
+        self._invoice_section_id = None
+        self._invoice_section_name = None
 
         if attributes:
-            if attributes.get("instance_id"):
-                self._instance_id = attributes.get("instance_id")
-            if attributes.get("meter_id"):
-                self._meter_id = attributes.get("meter_id")
-            if attributes.get("resource_location"):
-                self._resource_location = attributes.get("resource_location")
-            if attributes.get("usage_quantity"):
-                self._usage_quantity = attributes.get("usage_quantity")
-            if attributes.get("resource_rate"):
-                self._resource_rate = attributes.get("resource_rate")
-            if attributes.get("pre_tax_cost"):
-                self._pre_tax_cost = attributes.get("pre_tax_cost")
-            if attributes.get("tags"):
-                self._tags = attributes.get("tags")
-            if attributes.get("meter_cache"):
-                self._meter_cache = attributes.get("meter_cache")
+            for key, value in attributes.items():
+                attr_name = "_" + key
+                setattr(self, attr_name, value)
             if attributes.get("version_two"):
                 self.azure_columns = AZURE_COLUMNS_V2
         super().__init__(start_date, end_date)
+
+    @staticmethod
+    def first_day_of_month(in_date):
+        return in_date.replace(day=1).date()
+
+    @staticmethod
+    def last_day_of_month(in_date):
+        _, num_days = calendar.monthrange(in_date.year, in_date.month)
+        return in_date.replace(day=num_days).date()
 
     def _get_accts_str(self, service_name):
         """Return instance idea fields."""
@@ -212,7 +217,12 @@ class AzureGenerator(AbstractGenerator):
             self._resource_type = self._consumed + "/" + second_part
             accts_str = "/providers/" + self._resource_type + "/"
             instance_id = "{}/{}/{}/{}/{}/{}".format(
-                "subscriptions", self.payer_account, "resourceGroups", resource_group, accts_str[1:-2], resource_name
+                "subscriptions",
+                self.subscription_guid,
+                "resourceGroups",
+                resource_group,
+                accts_str[1:-2],
+                resource_name,
             )
         return (
             resource_group,
@@ -267,10 +277,20 @@ class AzureGenerator(AbstractGenerator):
     def _add_common_usage_info(self, row, start, end, **kwargs):
         """Add common usage information."""
         if self.azure_columns == AZURE_COLUMNS_V2:
-            row["SubscriptionId"] = self.payer_account
+            usage_account = choice(self.usage_accounts)
+            row["SubscriptionId"] = self.subscription_guid
+            row["SubscriptionName"] = self.account_info.get("subscription_name")
+            row["AccountName"] = usage_account[0]
+            row["AccountOwnerId"] = usage_account[1]
+            row["BillingAccountId"] = self.account_info.get("billing_account_id")
+            row["BillingAccountName"] = self.account_info.get("billing_account_name")
+            row["BillingProfileId"] = self.account_info.get("billing_account_id")
+            row["BillingProfileName"] = self.account_info.get("billing_account_name")
             row["Date"] = start.date().strftime("%m/%d/%Y")
+            row["BillingPeriodStartDate"] = self.first_day_of_month(start).strftime("%m/%d/%Y")
+            row["BillingPeriodEndDate"] = self.last_day_of_month(start).strftime("%m/%d/%Y")
         else:
-            row["SubscriptionGuid"] = self.payer_account
+            row["SubscriptionGuid"] = self.subscription_guid
             row["UsageDateTime"] = start
         return row
 
@@ -323,8 +343,45 @@ class AzureGenerator(AbstractGenerator):
         row = self._map_header_to_report_version(
             row, meter_sub, str(amount), str(rate), str(cost), instance_id, service_tier
         )
+        if self.azure_columns == AZURE_COLUMNS_V2:
+            row = self.add_v2_specific_columns(row, instance_id=instance_id)
         self._add_tag_data(row)
 
+        return row
+
+    def add_v2_specific_columns(self, row, **kwargs):
+        """Add values for columns specific to the V2 report."""
+
+        resource_name = ""
+        if kwargs.get("instance_id"):
+            resource_name = kwargs.get("instance_id").split("/")
+            resource_name = resource_name[len(resource_name) - 1]
+
+        # NOTE: Commented out columns exist in the report but we don't have enough
+        # informaton to date to accurately simulate values.
+        row["InvoiceSectionId"] = self._invoice_section_id if self._invoice_section_id else self.fake.ean(length=8)
+        row["InvoiceSectionName"] = (
+            self._invoice_section_name if self._invoice_section_id else choice(self.INVOICE_SECTION_NAMES)
+        )
+        row["ProductName"] = ""
+        row["ResourceName"] = resource_name
+        row["IsAzureCreditEligible"] = "TRUE"
+        row["ServiceFamily"] = choice(self.SERVICE_FAMILIES)
+        row["Frequency"] = "UsageBased"
+        row["PublisherType"] = "Azure"
+        row["ChargeType"] = "Usage"
+        row["PayGPrice"] = 0
+        # row['PricingModel'] =
+        # row['ReservationId'] =
+        # row['ReservationName'] =
+        # row['ProductOrderId'] =
+        # row['ProductOrderName'] =
+        # row['AvailabilityZone'] =
+        # row['Term'] =
+        # row['PublisherName'] =
+        # row['PlanName'] =
+        # row['PartNumber'] =
+        # row['CostCenter'] =
         return row
 
     def _map_header_to_report_version(self, row, meter_sub, amount, rate, cost, instance_id, service_tier):
@@ -332,16 +389,17 @@ class AzureGenerator(AbstractGenerator):
             row["MeterSubCategory"] = meter_sub
             row["Quantity"] = amount
             row["EffectivePrice"] = rate
+            row["UnitPrice"] = rate
             row["CostInBillingCurrency"] = cost
             row["ResourceId"] = instance_id
-            row["BillingCurrencyCode"] = "MC"
+            row["BillingCurrencyCode"] = self._billing_currency
         else:
             row["MeterSubcategory"] = meter_sub
             row["UsageQuantity"] = amount
             row["ResourceRate"] = rate
             row["PreTaxCost"] = cost
             row["InstanceId"] = instance_id
-            row["Currency"] = "USD"
+            row["Currency"] = self._billing_currency
             # Version one specific
             row["ResourceType"] = self._resource_type
             row["ServiceName"] = self._service_name

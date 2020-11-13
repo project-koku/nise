@@ -54,7 +54,7 @@ class BandwidthGenerator(AzureGenerator):
         },
     )
 
-    def __init__(self, start_date, end_date, payer_account, usage_accounts, attributes=None):
+    def __init__(self, start_date, end_date, account_info, attributes=None):
         """Initialize the data transfer generator."""
         self._service_name = "Bandwidth"
-        super().__init__(start_date, end_date, payer_account, usage_accounts, attributes)
+        super().__init__(start_date, end_date, account_info, attributes)
