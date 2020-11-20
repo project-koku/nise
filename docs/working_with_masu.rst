@@ -29,7 +29,7 @@ To create and ingest OCP sample data, there are three required pieces of informa
 
 ::
 
-  nise --ocp --ocp-cluster-id $(cluster_id) --insights-upload testing/pvc_dir/insights_local --static-report-file $(srf_yaml)
+  nise report ocp --ocp-cluster-id $(cluster_id) --insights-upload testing/pvc_dir/insights_local --static-report-file $(srf_yaml)
 .. highlight:: none
 
 **Step Two: Create the Provider**
@@ -72,7 +72,7 @@ To create and ingest AWS sample data, there are three required pieces of informa
 
 ::
 
-  nise --aws --static-report-file $(srf_yaml) --aws-s3-bucket-name testing/local_providers/aws_local --aws-s3-report-name $(report_name)
+  nise report aws --static-report-file $(srf_yaml) --aws-s3-bucket-name testing/local_providers/aws_local --aws-s3-report-name $(report_name)
 .. highlight:: none
 
 **Step Three: Create the AWS provider**
