@@ -141,7 +141,7 @@ To upload report files to ingress service::
 
 To move the generated data into a specific local directory::
 
-    nise reprot ocp  -s 2020-06-03 --ocp-cluster-id test-001 --insights-upload  /local/path/dir
+    nise report ocp  -s 2020-06-03 --ocp-cluster-id test-001 --insights-upload  /local/path/dir
 
 To use a static yaml to generate data::
 
