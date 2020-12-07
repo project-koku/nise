@@ -5,7 +5,6 @@ from random import randint
 
 from nise.generators.generator import AbstractGenerator
 
-
 GCP_REPORT_COLUMNS = (
     "Account ID",
     "Line Item",
@@ -26,7 +25,36 @@ GCP_REPORT_COLUMNS = (
     "Project Labels",
     "Description",
 )
-
+BIGQ_REPORT_COLUMNS = (
+    "Billing Account ID",
+    "Service ID",
+    "Service Description",
+    "SKU ID",
+    "SKU Description",
+    "Start Time",
+    "End Time",
+    "Project ID",
+    "Project Name",
+    "Project Labels",
+    "Project Ancestry Numbers",
+    "Labels",
+    "System Labels",
+    "Location",
+    "Country",
+    "Region",
+    "Zone",
+    "Export Time",
+    "Cost",
+    "Currency",
+    "Currency Conversion Rate",
+    "Usage Amount",
+    "Usage Unit",
+    "Usage Amount in Pricing Units",
+    "Pricing Unit",
+    "Credits",
+    "Invoice Month",
+    "Cost Type",
+)
 
 class GCPGenerator(AbstractGenerator):
     """Abstract class for GCP generators."""
@@ -83,7 +111,7 @@ class GCPGenerator(AbstractGenerator):
             raise ValueError("end must be a date object.")
 
         row = {}
-        for column in GCP_REPORT_COLUMNS:
+        for column in BIGQ_REPORT_COLUMNS:
             row[column] = ""
             if column == "Start Time":
                 row[column] = GCPGenerator.timestamp(start)

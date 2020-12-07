@@ -56,6 +56,7 @@ from nise.generators.azure import VNGenerator
 from nise.generators.gcp import CloudStorageGenerator
 from nise.generators.gcp import ComputeEngineGenerator
 from nise.generators.gcp import GCP_REPORT_COLUMNS
+from nise.generators.gcp import BIGQ_REPORT_COLUMNS
 from nise.generators.gcp import ProjectGenerator
 from nise.generators.ocp import OCP_NAMESPACE_LABEL
 from nise.generators.ocp import OCP_NODE_LABEL
@@ -750,7 +751,7 @@ def gcp_create_report(options):  # noqa: C901
     """Create a GCP cost usage report file."""
     fake = Faker()
 
-    report_prefix = options.get("gcp_report_prefix") or fake.word()
+    report_prefix = "gcp_big_q" #options.get("gcp_report_prefix") or fake.word()
     gcp_bucket_name = options.get("gcp_bucket_name")
 
     start_date = options.get("start_date")
@@ -763,7 +764,7 @@ def gcp_create_report(options):  # noqa: C901
 
     else:
         generators = [
-            {"generator": CloudStorageGenerator, "attributes": None},
+            #{"generator": CloudStorageGenerator, "attributes": None},
             {"generator": ComputeEngineGenerator, "attributes": None},
         ]
         account = "{}-{}".format(fake.word(), fake.word())
@@ -801,7 +802,7 @@ def gcp_create_report(options):  # noqa: C901
 
         output_file_path = os.path.join(os.getcwd(), output_file_name)
         monthly_files.append(output_file_path)
-        _write_csv(output_file_path, daily_data, GCP_REPORT_COLUMNS)
+        _write_csv(output_file_path, daily_data, BIGQ_REPORT_COLUMNS)
 
     if gcp_bucket_name:
         gcp_route_file(gcp_bucket_name, output_file_path, output_file_name)

@@ -1,30 +1,45 @@
 """Module for generating GCP Projects."""
 from faker import Faker
-
+from random import choice
 
 class ProjectGenerator:
     """Generator for GCP Compute Engine data."""
+
+    PROJECT_INFO = ( # id -  name, labels, ancestry_numbers
+        ("doug-cost-test","Doug-cost-test", "[]", ""),
+        ("doug-test-proj", "Doug-test-proj", "[{'key': 'foo', 'value': 'bar'}]", ""),
+    )
+
+    LOCATION = ( # (Location, Country, Region, Zone)
+        ("us-central1", "US","us-central1",""),
+    )
 
     def __init__(self, account):
         """Initialize GCP Project Generator."""
         self.account = account
         self.fake = Faker()
 
-    def generate_projects(self, num_projects=1):
+    def generate_projects(self, num_projects=2):
         """Generate GCP project information."""
         projects = []
         for _ in range(num_projects):
-            project_number = self.fake.ean13()
-            project_id = "{}-{}-{}".format(self.fake.word(), self.fake.word(), self.fake.ean8())
-            labels = {self.fake.word(): self.fake.word(), self.fake.word(): self.fake.word()}
-            formatted_labels = ";".join(f"{k}:{v}" for k, v in labels.items())
+            proj = choice(self.PROJECT_INFO)
+            project_name = proj[1] #self.fake.ean13()
+            project_id = proj[0] # "{}-{}-{}".format(self.fake.word(), self.fake.word(), self.fake.ean8())
+            #labels = {self.fake.word(): self.fake.word(), self.fake.word(): self.fake.word()}
+            formatted_labels = proj[2]#";".join(f"{k}:{v}" for k, v in labels.items())
+            project_an = proj[3]
+            location = choice(self.LOCATION)
             project = {
-                "Account ID": self.account,
-                "Project": project_number,
-                "Project Number": project_number,
+                "Billing Account ID": self.account,
                 "Project ID": project_id,
-                "Project Name": project_id,
+                "Project Name": project_name,
                 "Project Labels": formatted_labels,
+                "Project Ancestry Numbers": project_an,
+                "Location": location[0],
+                "Country": location[1],
+                "Region": location[2],
+                "Zone": location[3],
             }
             projects.append(project)
 
