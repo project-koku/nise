@@ -111,12 +111,13 @@ class GCPGenerator(AbstractGenerator):
             raise ValueError("end must be a date object.")
 
         row = {}
+        time_bill_start = start + datetime.timedelta(hours=randint(1,23))
         for column in BIGQ_REPORT_COLUMNS:
             row[column] = ""
             if column == "Start Time":
-                row[column] = GCPGenerator.timestamp(start)
+                row[column] = GCPGenerator.timestamp(time_bill_start)
             elif column == "End Time":
-                row[column] = GCPGenerator.timestamp(end)
+                row[column] = GCPGenerator.timestamp(time_bill_start + datetime.timedelta(hours=1))
         row.update(self.project)
         return row
 

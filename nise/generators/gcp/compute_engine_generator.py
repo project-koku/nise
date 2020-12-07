@@ -1,5 +1,6 @@
 """Module for gcp compute engine data generation."""
 from random import choice
+from random import uniform
 
 from nise.generators.gcp.gcp_generator import GCPGenerator
 
@@ -7,9 +8,7 @@ from nise.generators.gcp.gcp_generator import GCPGenerator
 class ComputeEngineGenerator(GCPGenerator):
     """Generator for GCP Compute Engine data."""
 
-    
-
-    SERVICE = ("Compute Engine", "6F81-5844-456A")
+    SERVICE = ("Compute Engine", "6F81-5844-456A") # Service Description and Service ID
 
     SKU = ( # (ID, Description, Usage Unit, Pricing Unit)
         ("D973-5D65-BAB2", "Storage PD Capacity", "byte-seconds", "gibibyte month" ),
@@ -32,6 +31,16 @@ class ComputeEngineGenerator(GCPGenerator):
         ("92CB-C25F-B1D1", "Network Google Egress from Americas to Americas", "bytes", "gibibyte"), # Left off at 125
     )
 
+    LABELS = (
+        ("[{'key': 'vm_key_proj2', 'value': 'vm_label_proj2'}]"),
+        ("[]"),
+    )
+
+    SYSTEM_LABELS = (
+        ("[{'key': 'compute.googleapis.com/cores', 'value': '2'}, {'key': 'compute.googleapis.com/machine_spec', 'value': 'e2-medium'}, {'key': 'compute.googleapis.com/memory', 'value': '4096'}]"),
+        ("[]"),
+    )
+
     def _update_data(self, row):
         """Update a data row with compute values."""
         if self.attributes:
@@ -44,11 +53,13 @@ class ComputeEngineGenerator(GCPGenerator):
             row["Service ID"] = self.SERVICE[1]
             row["SKU ID"] = sku[0]
             row["SKU Description"]= sku[1]
-            row["Cost"] = self.fake.pyint()
+            row["Cost"] = round(uniform(0,0.01),7) #self.fake.pydecimal(right_digits=6,positive=True,max_value = 1)
             usage_unit = sku[2]
             pricing_unit = sku[3]
             row["Usage Unit"] = usage_unit
             row["Pricing Unit"] = pricing_unit
+            row["Labels"] = choice(self.LABELS)
+            row["System Labels"] = choice(self.SYSTEM_LABELS)
 
             # All upper and lower bound values were estimated for each unit
             if usage_unit == "byte-seconds":
