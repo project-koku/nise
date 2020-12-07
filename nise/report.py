@@ -28,7 +28,6 @@ import shutil
 import string
 import tarfile
 from datetime import datetime
-from random import choice
 from random import randint
 from tempfile import gettempdir
 from tempfile import NamedTemporaryFile
@@ -318,7 +317,7 @@ def _generate_azure_account_info(static_report_data=None):
     if static_report_data:
         subscription_guid = static_report_data.get("payer")
         usage_accounts = tuple(static_report_data.get("user"))
-        currency_code = static_report_data.get("currency_code", choice(("USD", "GBP", "EUR", "AUD")))
+        currency_code = static_report_data.get("currency_code", "USD")
         for _ in usage_accounts:
             account_name = fake.city()
             trimmed_account_name = account_name.replace(" ", "")
@@ -333,7 +332,7 @@ def _generate_azure_account_info(static_report_data=None):
             fake.ean(length=13),
             fake.ean(length=13),
         )
-        currency_code = choice(("USD", "GBP", "EUR", "AUD"))
+        currency_code = "USD"
         for _ in usage_accounts:
             account_name = fake.city()
             trimmed_account_name = account_name.replace(" ", "")
