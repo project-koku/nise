@@ -81,6 +81,7 @@ class ComputeEngineGenerator(GCPGenerator):
                     row["Usage Amount in Pricing Units"] = amount / 3600.00
             else:
                 row["Usage Amount"] = 0
+
             row["Credits"] = "[]"
             row["Cost Type"] = "regular"
             row["Currency"] = "USD" #self.fake.currency()[0] 
