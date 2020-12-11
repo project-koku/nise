@@ -24,10 +24,9 @@ class ProjectGenerator:
         projects = []
         for _ in range(num_projects):
             proj = choice(self.PROJECT_INFO)
-            project_name = proj[1] #self.fake.ean13()
-            project_id = proj[0] # "{}-{}-{}".format(self.fake.word(), self.fake.word(), self.fake.ean8())
-            #labels = {self.fake.word(): self.fake.word(), self.fake.word(): self.fake.word()}
-            formatted_labels = proj[2]#";".join(f"{k}:{v}" for k, v in labels.items())
+            project_name = proj[1]
+            project_id = proj[0]
+            formatted_labels = proj[2]
             project_an = proj[3]
             location = choice(self.LOCATION)
             project = {

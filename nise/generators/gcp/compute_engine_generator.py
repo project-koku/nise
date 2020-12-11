@@ -53,7 +53,7 @@ class ComputeEngineGenerator(GCPGenerator):
             row["Service ID"] = self.SERVICE[1]
             row["SKU ID"] = sku[0]
             row["SKU Description"]= sku[1]
-            row["Cost"] = round(uniform(0,0.01),7) #self.fake.pydecimal(right_digits=6,positive=True,max_value = 1)
+            row["Cost"] = round(uniform(0,0.01),7)
             usage_unit = sku[2]
             pricing_unit = sku[3]
             row["Usage Unit"] = usage_unit
