@@ -153,10 +153,10 @@ def add_gcp_parser_args(parser):
     )
     parser.add_argument(
         "--daily-report",
-        #metavar= "GCP_DAILY_REPORT",
+        # metavar= "GCP_DAILY_REPORT",
         action="store_true",
         dest="daily_report",
-        help= "GCP daily report activation"
+        help="GCP daily report activation",
     )
 
 

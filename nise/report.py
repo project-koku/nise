@@ -52,10 +52,8 @@ from nise.generators.azure import SQLGenerator
 from nise.generators.azure import StorageGenerator
 from nise.generators.azure import VMGenerator
 from nise.generators.azure import VNGenerator
-from nise.generators.gcp import CloudStorageGenerator
-from nise.generators.gcp import ComputeEngineGenerator
-from nise.generators.gcp import GCP_REPORT_COLUMNS
 from nise.generators.gcp import BIGQ_REPORT_COLUMNS
+from nise.generators.gcp import ComputeEngineGenerator
 from nise.generators.gcp import ProjectGenerator
 from nise.generators.ocp import OCP_NAMESPACE_LABEL
 from nise.generators.ocp import OCP_NODE_LABEL
@@ -69,6 +67,8 @@ from nise.upload import upload_to_azure_container
 from nise.upload import upload_to_gcp_storage
 from nise.upload import upload_to_s3
 from nise.util import LOG
+
+# from nise.generators.gcp import CloudStorageGenerator (Functionality to be added)
 
 
 def create_temporary_copy(path, temp_file_name, temp_dir_name="None"):
@@ -750,7 +750,7 @@ def gcp_create_report(options):  # noqa: C901
     """Create a GCP cost usage report file."""
     fake = Faker()
 
-    report_prefix = "gcp_big_q" #options.get("gcp_report_prefix") or fake.word()
+    report_prefix = "gcp_big_q"  # options.get("gcp_report_prefix") or fake.word()
     gcp_bucket_name = options.get("gcp_bucket_name")
 
     start_date = options.get("start_date")
@@ -763,8 +763,8 @@ def gcp_create_report(options):  # noqa: C901
 
     else:
         generators = [
-            #{"generator": CloudStorageGenerator, "attributes": None},
-            {"generator": ComputeEngineGenerator, "attributes": None},
+            # {"generator": CloudStorageGenerator, "attributes": None},
+            {"generator": ComputeEngineGenerator, "attributes": None}
         ]
         account = "{}-{}".format(fake.word(), fake.word())
 
@@ -806,9 +806,9 @@ def gcp_create_report(options):  # noqa: C901
             _write_csv(output_file_path, daily_data, BIGQ_REPORT_COLUMNS)
         else:
             data_t += daily_data
-        
+
     if not daily_format:
-        output_file_name = "{}-{}.csv".format(report_prefix, day.strftime("%Y-%m"))    
+        output_file_name = "{}-{}.csv".format(report_prefix, day.strftime("%Y-%m"))
         output_file_path = os.path.join(os.getcwd(), output_file_name)
         monthly_files.append(output_file_path)
         _write_csv(output_file_path, data_t, BIGQ_REPORT_COLUMNS)

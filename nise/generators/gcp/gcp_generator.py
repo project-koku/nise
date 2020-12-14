@@ -56,6 +56,7 @@ BIGQ_REPORT_COLUMNS = (
     "Cost Type",
 )
 
+
 class GCPGenerator(AbstractGenerator):
     """Abstract class for GCP generators."""
 
@@ -112,7 +113,7 @@ class GCPGenerator(AbstractGenerator):
 
         row = {}
         # Initialize the start and end time measured
-        time_bill_start = start + datetime.timedelta(hours=randint(1,23))
+        time_bill_start = start + datetime.timedelta(hours=randint(1, 23))
         time_bill_end = time_bill_start + datetime.timedelta(hours=1)
         for column in BIGQ_REPORT_COLUMNS:
             row[column] = ""
@@ -121,7 +122,9 @@ class GCPGenerator(AbstractGenerator):
             elif column == "End Time":
                 row[column] = GCPGenerator.timestamp(time_bill_end)
             elif column == "Export Time":
-                export_time = time_bill_end + datetime.timedelta(hours=randint(1,5), minutes=randint(1,59), seconds=randint(1,59))
+                export_time = time_bill_end + datetime.timedelta(
+                    hours=randint(1, 5), minutes=randint(1, 59), seconds=randint(1, 59)
+                )
                 row[column] = GCPGenerator.timestamp(export_time)
         row.update(self.project)
         return row

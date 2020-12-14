@@ -1,18 +1,18 @@
 """Module for generating GCP Projects."""
-from faker import Faker
 from random import choice
+
+from faker import Faker
+
 
 class ProjectGenerator:
     """Generator for GCP Compute Engine data."""
 
-    PROJECT_INFO = ( # id -  name, labels, ancestry_numbers
-        ("doug-cost-test","Doug-cost-test", "[]", ""),
+    PROJECT_INFO = (  # id -  name, labels, ancestry_numbers
+        ("doug-cost-test", "Doug-cost-test", "[]", ""),
         ("doug-test-proj", "Doug-test-proj", "[{'key': 'foo', 'value': 'bar'}]", ""),
     )
 
-    LOCATION = ( # (Location, Country, Region, Zone)
-        ("us-central1", "US","us-central1",""),
-    )
+    LOCATION = (("us-central1", "US", "us-central1", ""),)  # (Location, Country, Region, Zone)
 
     def __init__(self, account):
         """Initialize GCP Project Generator."""
