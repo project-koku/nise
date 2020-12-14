@@ -795,13 +795,23 @@ def gcp_create_report(options):  # noqa: C901
             if count % ten_percent == 0:
                 LOG.info(f"Done with {count} of {num_gens} generators.")
 
-    monthly_files = []
-    for day, daily_data in data.items():
-        output_file_name = "{}-{}.csv".format(report_prefix, day.strftime("%Y-%m-%d"))
+    daily_format = options.get("daily_report")
 
+    monthly_files = []
+    data_t = []
+    for day, daily_data in data.items():
+        if daily_format:
+            output_file_name = "{}-{}.csv".format(report_prefix, day.strftime("%Y-%m-%d"))
+            output_file_path = os.path.join(os.getcwd(), output_file_name)
+            _write_csv(output_file_path, daily_data, BIGQ_REPORT_COLUMNS)
+        else:
+            data_t += daily_data
+        
+    if not daily_format:
+        output_file_name = "{}-{}.csv".format(report_prefix, day.strftime("%Y-%m"))    
         output_file_path = os.path.join(os.getcwd(), output_file_name)
         monthly_files.append(output_file_path)
-        _write_csv(output_file_path, daily_data, BIGQ_REPORT_COLUMNS)
+        _write_csv(output_file_path, data_t, BIGQ_REPORT_COLUMNS)
 
     if gcp_bucket_name:
         gcp_route_file(gcp_bucket_name, output_file_path, output_file_name)
