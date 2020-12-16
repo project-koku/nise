@@ -29,7 +29,7 @@ class TestGCPGenerator(TestCase):
         self.now = datetime.now().replace(microsecond=0, second=0, minute=0)
         self.yesterday = self.now - timedelta(days=1)
 
-    def test_cloud_storage_init_with_attributes(self): # Cloud storage not currently implemented 
+    def test_cloud_storage_init_with_attributes(self):  # Cloud storage not currently implemented
         """Test the init with attribute for Cloud Storage."""
 
     #     generator = CloudStorageGenerator(self.yesterday, self.now, self.project, attributes=self.attributes)
@@ -42,7 +42,7 @@ class TestGCPGenerator(TestCase):
         generated_data = generator.generate_data()
         self.assertEqual(generated_data[self.yesterday][0]["Cost"], self.attributes["Cost"])
         self.assertEqual(generated_data[self.yesterday][0]["Currency"], self.attributes["Currency"])
-        
+
     def test_set_hours_invalid_start(self):
         """Test that the start date must be a date object."""
         with self.assertRaises(ValueError):
