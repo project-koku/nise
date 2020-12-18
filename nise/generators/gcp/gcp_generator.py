@@ -5,6 +5,7 @@ from random import randint
 
 from nise.generators.generator import AbstractGenerator
 
+# Old report columns
 GCP_REPORT_COLUMNS = (
     "Account ID",
     "Line Item",
