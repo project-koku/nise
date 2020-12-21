@@ -85,10 +85,10 @@
         },
         "botocore": {
             "hashes": [
-                "sha256:4e9dc37fb3cc47425c6480dc22999d556ca3cf71714f2937df0fc3db2a7f6581",
-                "sha256:a2d789c8bed5bf1165cc57c95e2db1e74ec50508beb770a89f7c89bc68523281"
+                "sha256:bb0e4cc5e364785ff8fc380d74ad57dec9857a4093608633616d0acfe84caadc",
+                "sha256:ebfa880ac8cb8132dc6657902bf546f52cf2c43278570f60c8f8a0f894556555"
             ],
-            "version": "==1.19.15"
+            "version": "==1.19.40"
         },
         "cachetools": {
             "hashes": [
