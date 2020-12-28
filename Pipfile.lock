@@ -194,11 +194,10 @@
         },
         "google-cloud-core": {
             "hashes": [
-                "sha256:21afb70c1b0bce8eeb8abb5dca63c5fd37fc8aea18f4b6d60e803bd3d27e6b80",
-                "sha256:75abff9056977809937127418323faa3917f32df68490704d39a4f0d492ebc2b"
+                "sha256:1277a015f8eeb014c48f2ec094ed5368358318f1146cf49e8de389962dc19106",
+                "sha256:99a8a15f406f53f2b11bda1f45f952a9cdfbdbba8abf40c75651019d800879f5"
             ],
-            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'",
-            "version": "==1.4.3"
+            "version": "==1.5.0"
         },
         "google-cloud-storage": {
             "hashes": [
