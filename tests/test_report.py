@@ -1024,11 +1024,11 @@ class GCPReportTestCase(TestCase):
         now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
         one_day = datetime.timedelta(days=1)
         yesterday = now - one_day
-        report_prefix = "gcp_big_q"
+        report_prefix = "test_report"
         gcp_create_report(
             {"start_date": yesterday, "end_date": now, "gcp_report_prefix": report_prefix, "write_monthly": True}
         )
-        output_file_name = "{}-{}.csv".format(report_prefix, yesterday.strftime("%Y-%m"))
+        output_file_name = f"{report_prefix}.csv"
         expected_output_file_path = "{}/{}".format(os.getcwd(), output_file_name)
 
         self.assertTrue(os.path.isfile(expected_output_file_path))
