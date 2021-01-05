@@ -27,34 +27,34 @@ GCP_REPORT_COLUMNS = (
     "Description",
 )
 BIGQ_REPORT_COLUMNS = (
-    "Billing Account ID",
-    "Service ID",
-    "Service Description",
-    "SKU ID",
-    "SKU Description",
-    "Start Time",
-    "End Time",
-    "Project ID",
-    "Project Name",
-    "Project Labels",
-    "Project Ancestry Numbers",
-    "Labels",
-    "System Labels",
-    "Location",
-    "Country",
-    "Region",
-    "Zone",
-    "Export Time",
-    "Cost",
-    "Currency",
-    "Currency Conversion Rate",
-    "Usage Amount",
-    "Usage Unit",
-    "Usage Amount in Pricing Units",
-    "Pricing Unit",
-    "Credits",
-    "Invoice Month",
-    "Cost Type",
+    "billing_account_id",
+    "service.id",
+    "service.description",
+    "sku.id",
+    "sku.description",
+    "usage_start_time",
+    "usage_end_time",
+    "project.id",
+    "project.name",
+    "project.labels",
+    "project.ancestry_numbers",
+    "labels",
+    "system_labels",
+    "location.location",
+    "location.country",
+    "location.region",
+    "location.zone",
+    "export_time",
+    "cost",
+    "currency",
+    "currency_conversion_rate",
+    "usage.amount",
+    "usage.unit",
+    "usage.amount_in_pricing_units",
+    "usage.pricing_unit",
+    "credits",
+    "invoice.month",
+    "cost_type",
 )
 
 
@@ -118,11 +118,11 @@ class GCPGenerator(AbstractGenerator):
         time_bill_end = time_bill_start + datetime.timedelta(hours=1)
         for column in BIGQ_REPORT_COLUMNS:
             row[column] = ""
-            if column == "Start Time":
+            if column == "usage_start_time":
                 row[column] = GCPGenerator.timestamp(time_bill_start)
-            elif column == "End Time":
+            elif column == "usage_end_time":
                 row[column] = GCPGenerator.timestamp(time_bill_end)
-            elif column == "Export Time":
+            elif column == "export_time":
                 export_time = time_bill_end + datetime.timedelta(
                     hours=randint(1, 5), minutes=randint(1, 59), seconds=randint(1, 59)
                 )

@@ -19,18 +19,18 @@ class TestGCPGenerator(TestCase):
         project_generator = ProjectGenerator(self.account)
         self.project = project_generator.generate_projects(num_projects=2)[0]
         self.attributes = {
-            "Cost": fake.pyint(),
-            "Currency": fake.currency_code(),
-            "Currency Conversion Rate": 1,
-            "Usage Amount": fake.pydecimal(positive=True),
-            "Usage Unit": fake.word(),
-            "Cost Type": "regular",
+            "cost": fake.pyint(),
+            "currency": fake.currency_code(),
+            "currency_conversion_rate": 1,
+            "usage.amount": fake.pydecimal(positive=True),
+            "usage.unit": fake.word(),
+            "cost_type": "regular",
         }
         self.now = datetime.now().replace(microsecond=0, second=0, minute=0)
         self.yesterday = self.now - timedelta(days=1)
 
-    def test_cloud_storage_init_with_attributes(self):  # Cloud storage not currently implemented
-        """Test the init with attribute for Cloud Storage."""
+    # def test_cloud_storage_init_with_attributes(self):  # Cloud storage not currently implemented
+    #     """Test the init with attribute for Cloud Storage."""
 
     #     generator = CloudStorageGenerator(self.yesterday, self.now, self.project, attributes=self.attributes)
     #     generated_data = generator.generate_data()
@@ -40,8 +40,8 @@ class TestGCPGenerator(TestCase):
 
         generator = ComputeEngineGenerator(self.yesterday, self.now, self.project, attributes=self.attributes)
         generated_data = generator.generate_data()
-        self.assertEqual(generated_data[self.yesterday][0]["Cost"], self.attributes["Cost"])
-        self.assertEqual(generated_data[self.yesterday][0]["Currency"], self.attributes["Currency"])
+        self.assertEqual(generated_data[self.yesterday][0]["cost"], self.attributes["cost"])
+        self.assertEqual(generated_data[self.yesterday][0]["currency"], self.attributes["currency"])
 
     def test_set_hours_invalid_start(self):
         """Test that the start date must be a date object."""

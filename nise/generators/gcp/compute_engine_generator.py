@@ -44,49 +44,49 @@ class ComputeEngineGenerator(GCPGenerator):
     def _update_data(self, row):
         """Update a data row with compute values."""
         if self.attributes:
-            row["Cost"] = self.attributes["Cost"]
-            row["Currency"] = self.attributes["Currency"]
+            row["cost"] = self.attributes["cost"]
+            row["currency"] = self.attributes["currency"]
 
         else:
             sku = choice(self.SKU)
-            row["Service Description"] = self.SERVICE[0]
-            row["Service ID"] = self.SERVICE[1]
-            row["SKU ID"] = sku[0]
-            row["SKU Description"] = sku[1]
-            row["Cost"] = round(uniform(0, 0.01), 7)
+            row["service.description"] = self.SERVICE[0]
+            row["service.id"] = self.SERVICE[1]
+            row["sku.id"] = sku[0]
+            row["sku.description"] = sku[1]
+            row["cost"] = round(uniform(0, 0.01), 7)
             usage_unit = sku[2]
             pricing_unit = sku[3]
-            row["Usage Unit"] = usage_unit
-            row["Pricing Unit"] = pricing_unit
-            row["Labels"] = choice(self.LABELS)
-            row["System Labels"] = choice(self.SYSTEM_LABELS)
+            row["usage.unit"] = usage_unit
+            row["usage.pricing_unit"] = pricing_unit
+            row["labels"] = choice(self.LABELS)
+            row["system_labels"] = choice(self.SYSTEM_LABELS)
 
             # All upper and lower bound values were estimated for each unit
             if usage_unit == "byte-seconds":
                 amount = self.fake.pyint(min_value=10000000000, max_value=10000000000000)
-                row["Usage Amount"] = amount
+                row["usage.amount"] = amount
                 if pricing_unit == "gibibyte month":
-                    row["Usage Amount in Pricing Units"] = amount * 0.00244752
+                    row["usage.amount_in_pricing_units"] = amount * 0.00244752
                 elif pricing_unit == "gibibyte hour":
-                    row["Usage Amount in Pricing Units"] = amount * (3.3528 * 10 ** -6)
+                    row["usage.amount_in_pricing_units"] = amount * (3.3528 * 10 ** -6)
             elif usage_unit == "bytes":
                 amount = self.fake.pyint(min_value=1000, max_value=10000000)
-                row["Usage Amount"] = amount
+                row["usage.amount"] = amount
                 if pricing_unit == "gibibyte":
-                    row["Usage Amount in Pricing Units"] = amount * (9.31323 * 10 ** -0)
+                    row["usage.amount_in_pricing_units"] = amount * (9.31323 * 10 ** -0)
             elif usage_unit == "seconds":
                 amount = self.fake.pyfloat(max_value=3600, positive=True)
-                row["Usage Amount"] = amount
+                row["usage.amount"] = amount
                 if pricing_unit == "hour":
-                    row["Usage Amount in Pricing Units"] = amount / 3600.00
+                    row["usage.amount_in_pricing_units"] = amount / 3600.00
             else:
-                row["Usage Amount"] = 0
+                row["usage.amount"] = 0
 
-            row["Credits"] = "[]"
-            row["Cost Type"] = "regular"
-            row["Currency"] = "USD"  # self.fake.currency()[0]
-            row["Currency Conversion Rate"] = 1
-            row["Invoice Month"] = f"{self.start_date.year}{self.start_date.month}"
+            row["credits"] = "[]"
+            row["cost_type"] = "regular"
+            row["currency"] = "USD"  # self.fake.currency()[0]
+            row["currency_conversion_rate"] = 1
+            row["invoice.month"] = f"{self.start_date.year}{self.start_date.month}"
         return row
 
     def generate_data(self, report_type=None):
