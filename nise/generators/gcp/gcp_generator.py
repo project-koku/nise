@@ -78,6 +78,7 @@ class GCPGenerator(AbstractGenerator):
         self.project = project
         self.num_instances = 1 if attributes else randint(2, 60)
         self.attributes = attributes
+        self.column_labels = BIGQ_REPORT_COLUMNS
 
     @staticmethod
     def _create_days_list(start_date, end_date):
@@ -116,7 +117,7 @@ class GCPGenerator(AbstractGenerator):
         # Initialize the start and end time measured
         time_bill_start = start + datetime.timedelta(hours=randint(1, 23))
         time_bill_end = time_bill_start + datetime.timedelta(hours=1)
-        for column in BIGQ_REPORT_COLUMNS:
+        for column in self.column_labels:
             row[column] = ""
             if column == "usage_start_time":
                 row[column] = GCPGenerator.timestamp(time_bill_start)

@@ -1,44 +1,19 @@
 ---
 generators:
-  - CloudStorageGenerator:
-      start_date: 2019-08-02
-      end_date: 2019-08-03
-      Measurement1 Total Consumption: 5
-      Measurement1: com.google.cloud/services/cloud-storage/StorageRegionalUsGbsec
-      Measurement1 Units: byte-seconsd
-      Credit1: 0
-      Credit1 Amount: 0
-      Credit1 Currency: USD
-      Cost: 2
-      Currency: USD
-      Description: Regional Storage US
-      Line Item: com.google.cloud/services/cloud-storage/StorageRegionalUsGbsec
   - ComputeEngineGenerator:
-      start_date: 2019-08-02
-      end_date: 2019-08-03
-      Measurement1 Total Consumption: 5
-      Measurement1: com.google.cloud/services/compute-engine/Licensed1000207G1Small
-      Measurement1 Units: seconds
-      Credit1: 0
-      Credit1 Amount: 0
-      Credit1 Currency: USD
-      Cost: 2557
-      Currency: USD
-      Description: Licensing Fee for CentOS 7 running on Small instance with 1 VCPU
-      Line Item: com.google.cloud/services/compute-engine/Licensed1000207G1Small
+      start_date: 2021-01-01
+      end_date: 2021-01-05
+      cost: 2557
+      currency: USD
 
 projects:
   -
-    Account ID: random-words
-    Project: 7998245091927
-    Project Number: 7998245091927
-    Project Name: billion-force-58425800
-    Project ID: billion-force-58425800
-    Project Labels: step:chair;year:each
+    billing_account_id: random-words
+    project.name: billion-force-58425800
+    project.id: billion-force-58425800
+    project.labels: step:chair;year:each
   -
-    Account ID: fake-account
-    Project: 3242139683587
-    Project Number: 3242139683587
-    Project Name: winter-hill-23422098
-    Project ID: winter-hill-23422098
-    Project Labels:
+    billing_account_id: fake-account
+    project.name: winter-hill-23422098
+    project.id: winter-hill-23422098
+    project.labels:

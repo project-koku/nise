@@ -41,52 +41,51 @@ class ComputeEngineGenerator(GCPGenerator):
         ("[]"),
     )
 
-    def _update_data(self, row):
+    def _update_data(self, row):  # noqa: C901
         """Update a data row with compute values."""
+        sku = choice(self.SKU)
+        row["service.description"] = self.SERVICE[0]
+        row["service.id"] = self.SERVICE[1]
+        row["sku.id"] = sku[0]
+        row["sku.description"] = sku[1]
+        row["cost"] = round(uniform(0, 0.01), 7)
+        usage_unit = sku[2]
+        pricing_unit = sku[3]
+        row["usage.unit"] = usage_unit
+        row["usage.pricing_unit"] = pricing_unit
+        row["labels"] = choice(self.LABELS)
+        row["system_labels"] = choice(self.SYSTEM_LABELS)
+        row["usage.amount"] = 0
+
+        # All upper and lower bound values were estimated for each unit
+        if usage_unit == "byte-seconds":
+            amount = self.fake.pyint(min_value=10000000000, max_value=10000000000000)
+            row["usage.amount"] = amount
+            if pricing_unit == "gibibyte month":
+                row["usage.amount_in_pricing_units"] = amount * 0.00244752
+            elif pricing_unit == "gibibyte hour":
+                row["usage.amount_in_pricing_units"] = amount * (3.3528 * 10 ** -6)
+        elif usage_unit == "bytes":
+            amount = self.fake.pyint(min_value=1000, max_value=10000000)
+            row["usage.amount"] = amount
+            if pricing_unit == "gibibyte":
+                row["usage.amount_in_pricing_units"] = amount * (9.31323 * 10 ** -0)
+        elif usage_unit == "seconds":
+            amount = self.fake.pyfloat(max_value=3600, positive=True)
+            row["usage.amount"] = amount
+            if pricing_unit == "hour":
+                row["usage.amount_in_pricing_units"] = amount / 3600.00
+
+        row["credits"] = "[]"
+        row["cost_type"] = "regular"
+        row["currency"] = "USD"
+        row["currency_conversion_rate"] = 1
+        row["invoice.month"] = f"{self.start_date.year}{self.start_date.month}"
+
         if self.attributes:
-            row["cost"] = self.attributes["cost"]
-            row["currency"] = self.attributes["currency"]
-
-        else:
-            sku = choice(self.SKU)
-            row["service.description"] = self.SERVICE[0]
-            row["service.id"] = self.SERVICE[1]
-            row["sku.id"] = sku[0]
-            row["sku.description"] = sku[1]
-            row["cost"] = round(uniform(0, 0.01), 7)
-            usage_unit = sku[2]
-            pricing_unit = sku[3]
-            row["usage.unit"] = usage_unit
-            row["usage.pricing_unit"] = pricing_unit
-            row["labels"] = choice(self.LABELS)
-            row["system_labels"] = choice(self.SYSTEM_LABELS)
-
-            # All upper and lower bound values were estimated for each unit
-            if usage_unit == "byte-seconds":
-                amount = self.fake.pyint(min_value=10000000000, max_value=10000000000000)
-                row["usage.amount"] = amount
-                if pricing_unit == "gibibyte month":
-                    row["usage.amount_in_pricing_units"] = amount * 0.00244752
-                elif pricing_unit == "gibibyte hour":
-                    row["usage.amount_in_pricing_units"] = amount * (3.3528 * 10 ** -6)
-            elif usage_unit == "bytes":
-                amount = self.fake.pyint(min_value=1000, max_value=10000000)
-                row["usage.amount"] = amount
-                if pricing_unit == "gibibyte":
-                    row["usage.amount_in_pricing_units"] = amount * (9.31323 * 10 ** -0)
-            elif usage_unit == "seconds":
-                amount = self.fake.pyfloat(max_value=3600, positive=True)
-                row["usage.amount"] = amount
-                if pricing_unit == "hour":
-                    row["usage.amount_in_pricing_units"] = amount / 3600.00
-            else:
-                row["usage.amount"] = 0
-
-            row["credits"] = "[]"
-            row["cost_type"] = "regular"
-            row["currency"] = "USD"  # self.fake.currency()[0]
-            row["currency_conversion_rate"] = 1
-            row["invoice.month"] = f"{self.start_date.year}{self.start_date.month}"
+            for key in self.attributes:
+                if key in self.column_labels:
+                    row[key] = self.attributes[key]
         return row
 
     def generate_data(self, report_type=None):
