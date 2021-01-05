@@ -753,10 +753,10 @@ def write_gcp_file(start_date, end_date, data, report_prefix):
         invoice_month = start_date.strftime("%Y%m")
         scan_start = start_date.date()
         scan_end = end_date.date()
-        file_name = f"{invoice_month}_{etag}_{scan_start}:{scan_end}"
+        file_name = f"{invoice_month}_{etag}_{scan_start}:{scan_end}.csv"
     else:
-        file_name = report_prefix
-    full_file_name = "{}/{}.csv".format(os.getcwd(), file_name)
+        file_name = report_prefix + ".csv"
+    full_file_name = "{}/{}".format(os.getcwd(), file_name)
     _write_csv(full_file_name, data, BIGQ_REPORT_COLUMNS)
     return full_file_name, file_name
 

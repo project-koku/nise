@@ -1034,6 +1034,21 @@ class GCPReportTestCase(TestCase):
         self.assertTrue(os.path.isfile(expected_output_file_path))
         os.remove(expected_output_file_path)
 
+    def test_gcp_create_report_no_report_prefix(self):
+        """Test the gcp report creation method."""
+        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
+        one_day = datetime.timedelta(days=1)
+        yesterday = now - one_day
+        gcp_create_report({"start_date": yesterday, "end_date": now, "write_monthly": True})
+        invoice_month = yesterday.strftime("%Y%m")
+        etag = "nise"
+        scan_start = yesterday.date()
+        scan_end = now.date()
+        expected_file_name = f"{invoice_month}_{etag}_{scan_start}:{scan_end}.csv"
+        expected_output_file_path = "{}/{}".format(os.getcwd(), expected_file_name)
+        self.assertTrue(os.path.isfile(expected_output_file_path))
+        os.remove(expected_output_file_path)
+
     @patch("nise.report.copy_to_local_dir")
     @patch("nise.report.upload_to_gcp_storage")
     def test_gcp_route_file_local(self, mock_upload, mock_copy):
