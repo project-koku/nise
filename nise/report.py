@@ -757,7 +757,7 @@ def write_gcp_file(start_date, end_date, data, report_prefix):
     else:
         file_name = report_prefix + ".csv"
     local_file_path = "{}/{}".format(os.getcwd(), file_name)
-    output_file_name = "{}/{}".format(etag, file_name)
+    output_file_name = f"{etag}/{file_name}"
     _write_csv(local_file_path, data, BIGQ_REPORT_COLUMNS)
     return local_file_path, output_file_name
 
@@ -828,7 +828,6 @@ def gcp_create_report(options):  # noqa: C901
 
     if gcp_bucket_name:
         gcp_route_file(gcp_bucket_name, local_file_path, output_file_name)
-
 
     write_monthly = options.get("write_monthly", False)
     if not write_monthly:
