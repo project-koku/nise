@@ -40,7 +40,7 @@ test:
 	tox -e py36
 
 lint:
-	tox -e lint
+	pre-commit run --all-files
 
 run-iqe:
 	cd scripts; ./iqe_container.sh $(IQE_CMD)

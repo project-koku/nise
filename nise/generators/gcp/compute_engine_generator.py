@@ -35,8 +35,7 @@ class ComputeEngineGenerator(GCPGenerator):
 
     SYSTEM_LABELS = (
         (
-            """[{'key': 'compute.googleapis.com/cores', 'value': '2'}, {'key': 'compute.googleapis.com/machine_spec',
-            'value': 'e2-medium'}, {'key': 'compute.googleapis.com/memory', 'value': '4096'}]"""
+            """[{'key': 'compute.googleapis.com/cores', 'value': '2'}, {'key': 'compute.googleapis.com/machine_spec', 'value': 'e2-medium'}, {'key': 'compute.googleapis.com/memory', 'value': '4096'}]"""  # noqa: E501
         ),
         ("[]"),
     )
