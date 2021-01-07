@@ -748,17 +748,18 @@ def ocp_create_report(options):  # noqa: C901
 
 def write_gcp_file(start_date, end_date, data, report_prefix):
     """Write GCP data to a file."""
+    etag = uuid4()
     if not report_prefix:
-        etag = "nise"
         invoice_month = start_date.strftime("%Y%m")
         scan_start = start_date.date()
         scan_end = end_date.date()
         file_name = f"{invoice_month}_{etag}_{scan_start}:{scan_end}.csv"
     else:
         file_name = report_prefix + ".csv"
-    full_file_name = "{}/{}".format(os.getcwd(), file_name)
-    _write_csv(full_file_name, data, BIGQ_REPORT_COLUMNS)
-    return full_file_name, file_name
+    local_file_path = "{}/{}".format(os.getcwd(), file_name)
+    output_file_name = "{}/{}".format(etag, file_name)
+    _write_csv(local_file_path, data, BIGQ_REPORT_COLUMNS)
+    return local_file_path, output_file_name
 
 
 def gcp_create_report(options):  # noqa: C901
@@ -817,16 +818,17 @@ def gcp_create_report(options):  # noqa: C901
     for day, daily_data in data.items():
         if daily_format:
             scan_day = day.strftime("%Y-%m-%d")
-            output_file_path, output_file_name = write_gcp_file(scan_day, scan_day, daily_data, report_prefix)
+            local_file_path, output_file_name = write_gcp_file(scan_day, scan_day, daily_data, report_prefix)
         else:
             data_t += daily_data
 
     if not daily_format:
-        output_file_path, output_file_name = write_gcp_file(start_date, end_date, data_t, report_prefix)
-        monthly_files.append(output_file_path)
+        local_file_path, output_file_name = write_gcp_file(start_date, end_date, data_t, report_prefix)
+        monthly_files.append(local_file_path)
 
     if gcp_bucket_name:
-        gcp_route_file(gcp_bucket_name, output_file_path, output_file_name)
+        gcp_route_file(gcp_bucket_name, local_file_path, output_file_name)
+
 
     write_monthly = options.get("write_monthly", False)
     if not write_monthly:
