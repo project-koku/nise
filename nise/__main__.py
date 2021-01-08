@@ -158,6 +158,14 @@ def add_gcp_parser_args(parser):
         dest="daily_report",
         help="GCP daily report activation",
     )
+    parser.add_argument(
+        "-etag",
+        "--gcp-etag",
+        metavar="GCP_ETAG",
+        dest="gcp_etag",
+        required=False,
+        help="The etag in the filename",
+    )
 
 
 def add_ocp_parser_args(parser):

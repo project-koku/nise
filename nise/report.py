@@ -744,9 +744,10 @@ def ocp_create_report(options):  # noqa: C901
             _remove_files(monthly_files)
 
 
-def write_gcp_file(start_date, end_date, data, report_prefix):
+def write_gcp_file(start_date, end_date, data, options):
     """Write GCP data to a file."""
-    etag = uuid4()
+    report_prefix = options.get("gcp_report_prefix")
+    etag = options.get("gcp_etag", uuid4())
     if not report_prefix:
         invoice_month = start_date.strftime("%Y%m")
         scan_start = start_date.date()
@@ -763,8 +764,6 @@ def write_gcp_file(start_date, end_date, data, report_prefix):
 def gcp_create_report(options):  # noqa: C901
     """Create a GCP cost usage report file."""
     fake = Faker()
-
-    report_prefix = options.get("gcp_report_prefix")
     gcp_bucket_name = options.get("gcp_bucket_name")
 
     start_date = options.get("start_date")
@@ -816,12 +815,12 @@ def gcp_create_report(options):  # noqa: C901
     for day, daily_data in data.items():
         if daily_format:
             scan_day = day.strftime("%Y-%m-%d")
-            local_file_path, output_file_name = write_gcp_file(scan_day, scan_day, daily_data, report_prefix)
+            local_file_path, output_file_name = write_gcp_file(scan_day, scan_day, daily_data, options)
         else:
             data_t += daily_data
 
     if not daily_format:
-        local_file_path, output_file_name = write_gcp_file(start_date, end_date, data_t, report_prefix)
+        local_file_path, output_file_name = write_gcp_file(start_date, end_date, data_t, options)
         monthly_files.append(local_file_path)
 
     if gcp_bucket_name:
