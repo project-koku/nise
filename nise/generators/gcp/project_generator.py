@@ -7,9 +7,20 @@ from faker import Faker
 class ProjectGenerator:
     """Generator for GCP Compute Engine data."""
 
+    fake_words = [Faker().word() for i in range(6)]
     PROJECT_INFO = (  # id -  name, labels, ancestry_numbers
-        ("doug-cost-test", "Doug-cost-test", "[]", ""),
-        ("doug-test-proj", "Doug-test-proj", "[{'key': 'foo', 'value': 'bar'}]", ""),
+        (
+            f"{fake_words[0]}-{fake_words[1]}-{fake_words[2]}",
+            f"{fake_words[0]}-{fake_words[1]}-{fake_words[2]}",
+            "[]",
+            "",
+        ),
+        (
+            f"{fake_words[3]}-{fake_words[4]}-{fake_words[5]}",
+            f"{fake_words[3]}-{fake_words[4]}-{fake_words[5]}",
+            "[{'key': 'foo', 'value': 'bar'}]",
+            "",
+        ),
     )
 
     LOCATION = (("us-central1", "US", "us-central1", ""),)  # (Location, Country, Region, Zone)

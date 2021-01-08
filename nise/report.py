@@ -52,8 +52,8 @@ from nise.generators.azure import SQLGenerator
 from nise.generators.azure import StorageGenerator
 from nise.generators.azure import VMGenerator
 from nise.generators.azure import VNGenerator
-from nise.generators.gcp import BIGQ_REPORT_COLUMNS
 from nise.generators.gcp import ComputeEngineGenerator
+from nise.generators.gcp import GCP_REPORT_COLUMNS
 from nise.generators.gcp import ProjectGenerator
 from nise.generators.ocp import OCP_NAMESPACE_LABEL
 from nise.generators.ocp import OCP_NODE_LABEL
@@ -67,8 +67,6 @@ from nise.upload import upload_to_azure_container
 from nise.upload import upload_to_gcp_storage
 from nise.upload import upload_to_s3
 from nise.util import LOG
-
-# from nise.generators.gcp import CloudStorageGenerator (Functionality to be added)
 
 
 def create_temporary_copy(path, temp_file_name, temp_dir_name="None"):
@@ -758,7 +756,7 @@ def write_gcp_file(start_date, end_date, data, report_prefix):
         file_name = report_prefix + ".csv"
     local_file_path = "{}/{}".format(os.getcwd(), file_name)
     output_file_name = f"{etag}/{file_name}"
-    _write_csv(local_file_path, data, BIGQ_REPORT_COLUMNS)
+    _write_csv(local_file_path, data, GCP_REPORT_COLUMNS)
     return local_file_path, output_file_name
 
 

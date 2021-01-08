@@ -5,28 +5,7 @@ from random import randint
 
 from nise.generators.generator import AbstractGenerator
 
-# Old report columns
 GCP_REPORT_COLUMNS = (
-    "Account ID",
-    "Line Item",
-    "Start Time",
-    "End Time",
-    "Project",
-    "Measurement1",
-    "Measurement1 Total Consumption",
-    "Measurement1 Units",
-    "Credit1",
-    "Credit1 Amount",
-    "Credit1 Currency",
-    "Cost",
-    "Currency",
-    "Project Number",
-    "Project ID",
-    "Project Name",
-    "Project Labels",
-    "Description",
-)
-BIGQ_REPORT_COLUMNS = (
     "billing_account_id",
     "service.id",
     "service.description",
@@ -78,7 +57,7 @@ class GCPGenerator(AbstractGenerator):
         self.project = project
         self.num_instances = 1 if attributes else randint(2, 60)
         self.attributes = attributes
-        self.column_labels = BIGQ_REPORT_COLUMNS
+        self.column_labels = GCP_REPORT_COLUMNS
 
     @staticmethod
     def _create_days_list(start_date, end_date):

@@ -27,13 +27,7 @@ class CloudStorageGenerator(GCPGenerator):
 
     def _update_data(self, row):
         """Update a data row with storage values."""
-        # if self.attributes:
-        # row["Cost"] = self.attributes["Cost"]
-        # row["Currency"] = self.attributes["Currency"]
-        # else:
-        #    storage = choice(self.STORAGE)
-        # row["Cost"] = self.fake.pyint()
-        # row["Currency"] = "USD"
+        # TODO: Complete the storage generator
         return row
 
     def generate_data(self, report_type=None):
