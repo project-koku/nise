@@ -151,6 +151,16 @@ def add_gcp_parser_args(parser):
         required=False,
         help="GCP storage account to place the data.",
     )
+    parser.add_argument(
+        "--daily-report",
+        # metavar= "GCP_DAILY_REPORT",
+        action="store_true",
+        dest="daily_report",
+        help="GCP daily report activation",
+    )
+    parser.add_argument(
+        "-etag", "--gcp-etag", metavar="GCP_ETAG", dest="gcp_etag", required=False, help="The etag in the filename"
+    )
 
 
 def add_ocp_parser_args(parser):

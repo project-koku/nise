@@ -52,7 +52,6 @@ from nise.generators.azure import SQLGenerator
 from nise.generators.azure import StorageGenerator
 from nise.generators.azure import VMGenerator
 from nise.generators.azure import VNGenerator
-from nise.generators.gcp import CloudStorageGenerator
 from nise.generators.gcp import ComputeEngineGenerator
 from nise.generators.gcp import GCP_REPORT_COLUMNS
 from nise.generators.gcp import ProjectGenerator
@@ -745,11 +744,26 @@ def ocp_create_report(options):  # noqa: C901
             _remove_files(monthly_files)
 
 
+def write_gcp_file(start_date, end_date, data, options):
+    """Write GCP data to a file."""
+    report_prefix = options.get("gcp_report_prefix")
+    etag = options.get("gcp_etag", uuid4())
+    if not report_prefix:
+        invoice_month = start_date.strftime("%Y%m")
+        scan_start = start_date.date()
+        scan_end = end_date.date()
+        file_name = f"{invoice_month}_{etag}_{scan_start}:{scan_end}.csv"
+    else:
+        file_name = report_prefix + ".csv"
+    local_file_path = "{}/{}".format(os.getcwd(), file_name)
+    output_file_name = f"{etag}/{file_name}"
+    _write_csv(local_file_path, data, GCP_REPORT_COLUMNS)
+    return local_file_path, output_file_name
+
+
 def gcp_create_report(options):  # noqa: C901
     """Create a GCP cost usage report file."""
     fake = Faker()
-
-    report_prefix = options.get("gcp_report_prefix") or fake.word()
     gcp_bucket_name = options.get("gcp_bucket_name")
 
     start_date = options.get("start_date")
@@ -762,8 +776,8 @@ def gcp_create_report(options):  # noqa: C901
 
     else:
         generators = [
-            {"generator": CloudStorageGenerator, "attributes": None},
-            {"generator": ComputeEngineGenerator, "attributes": None},
+            # {"generator": CloudStorageGenerator, "attributes": None},
+            {"generator": ComputeEngineGenerator, "attributes": None}
         ]
         account = "{}-{}".format(fake.word(), fake.word())
 
@@ -794,16 +808,23 @@ def gcp_create_report(options):  # noqa: C901
             if count % ten_percent == 0:
                 LOG.info(f"Done with {count} of {num_gens} generators.")
 
-    monthly_files = []
-    for day, daily_data in data.items():
-        output_file_name = "{}-{}.csv".format(report_prefix, day.strftime("%Y-%m-%d"))
+    daily_format = options.get("daily_report")
 
-        output_file_path = os.path.join(os.getcwd(), output_file_name)
-        monthly_files.append(output_file_path)
-        _write_csv(output_file_path, daily_data, GCP_REPORT_COLUMNS)
+    monthly_files = []
+    data_t = []
+    for day, daily_data in data.items():
+        if daily_format:
+            scan_day = day.strftime("%Y-%m-%d")
+            local_file_path, output_file_name = write_gcp_file(scan_day, scan_day, daily_data, options)
+        else:
+            data_t += daily_data
+
+    if not daily_format:
+        local_file_path, output_file_name = write_gcp_file(start_date, end_date, data_t, options)
+        monthly_files.append(local_file_path)
 
     if gcp_bucket_name:
-        gcp_route_file(gcp_bucket_name, output_file_path, output_file_name)
+        gcp_route_file(gcp_bucket_name, local_file_path, output_file_name)
 
     write_monthly = options.get("write_monthly", False)
     if not write_monthly:

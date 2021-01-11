@@ -5,26 +5,35 @@ from random import randint
 
 from nise.generators.generator import AbstractGenerator
 
-
 GCP_REPORT_COLUMNS = (
-    "Account ID",
-    "Line Item",
-    "Start Time",
-    "End Time",
-    "Project",
-    "Measurement1",
-    "Measurement1 Total Consumption",
-    "Measurement1 Units",
-    "Credit1",
-    "Credit1 Amount",
-    "Credit1 Currency",
-    "Cost",
-    "Currency",
-    "Project Number",
-    "Project ID",
-    "Project Name",
-    "Project Labels",
-    "Description",
+    "billing_account_id",
+    "service.id",
+    "service.description",
+    "sku.id",
+    "sku.description",
+    "usage_start_time",
+    "usage_end_time",
+    "project.id",
+    "project.name",
+    "project.labels",
+    "project.ancestry_numbers",
+    "labels",
+    "system_labels",
+    "location.location",
+    "location.country",
+    "location.region",
+    "location.zone",
+    "export_time",
+    "cost",
+    "currency",
+    "currency_conversion_rate",
+    "usage.amount",
+    "usage.unit",
+    "usage.amount_in_pricing_units",
+    "usage.pricing_unit",
+    "credits",
+    "invoice.month",
+    "cost_type",
 )
 
 
@@ -48,6 +57,7 @@ class GCPGenerator(AbstractGenerator):
         self.project = project
         self.num_instances = 1 if attributes else randint(2, 60)
         self.attributes = attributes
+        self.column_labels = GCP_REPORT_COLUMNS
 
     @staticmethod
     def _create_days_list(start_date, end_date):
@@ -83,12 +93,20 @@ class GCPGenerator(AbstractGenerator):
             raise ValueError("end must be a date object.")
 
         row = {}
-        for column in GCP_REPORT_COLUMNS:
+        # Initialize the start and end time measured
+        time_bill_start = start + datetime.timedelta(hours=randint(1, 23))
+        time_bill_end = time_bill_start + datetime.timedelta(hours=1)
+        for column in self.column_labels:
             row[column] = ""
-            if column == "Start Time":
-                row[column] = GCPGenerator.timestamp(start)
-            elif column == "End Time":
-                row[column] = GCPGenerator.timestamp(end)
+            if column == "usage_start_time":
+                row[column] = GCPGenerator.timestamp(time_bill_start)
+            elif column == "usage_end_time":
+                row[column] = GCPGenerator.timestamp(time_bill_end)
+            elif column == "export_time":
+                export_time = time_bill_end + datetime.timedelta(
+                    hours=randint(1, 5), minutes=randint(1, 59), seconds=randint(1, 59)
+                )
+                row[column] = GCPGenerator.timestamp(export_time)
         row.update(self.project)
         return row
 

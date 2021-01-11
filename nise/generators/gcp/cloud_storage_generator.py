@@ -1,6 +1,5 @@
 """Module for gcp cloud storage data generation."""
-from random import choice
-
+# from random import choice
 from nise.generators.gcp.gcp_generator import GCPGenerator
 
 
@@ -28,26 +27,7 @@ class CloudStorageGenerator(GCPGenerator):
 
     def _update_data(self, row):
         """Update a data row with storage values."""
-        if self.attributes:
-            row["Line Item"] = self.attributes["Line Item"]
-            row["Measurement1"] = self.attributes["Measurement1"]
-            row["Measurement1 Total Consumption"] = self.attributes["Measurement1 Total Consumption"]
-            row["Measurement1 Units"] = self.attributes["Measurement1 Units"]
-            row["Cost"] = self.attributes["Cost"]
-            row["Currency"] = self.attributes["Currency"]
-            row["Description"] = self.attributes["Description"]
-            row["Credit1"] = self.attributes["Credit1"]
-            row["Credit1 Amount"] = self.attributes["Credit1 Amount"]
-            row["Credit1 Currency"] = self.attributes["Credit1 Currency"]
-        else:
-            storage = choice(self.STORAGE)
-            row["Line Item"] = storage[0]
-            row["Measurement1"] = storage[0]
-            row["Measurement1 Total Consumption"] = self.fake.pyint()
-            row["Measurement1 Units"] = storage[1]
-            row["Cost"] = self.fake.pyint()
-            row["Currency"] = "USD"
-            row["Description"] = storage[2]
+        # TODO: Complete the storage generator
         return row
 
     def generate_data(self, report_type=None):
