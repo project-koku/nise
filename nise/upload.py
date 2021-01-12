@@ -158,9 +158,7 @@ def gcp_bucket_to_dataset(gcp_bucket_name, csv_file_name, dataset_name, table_na
             write_disposition=bigquery.WriteDisposition.WRITE_TRUNCATE,
             autodetect=True,
             source_format=bigquery.SourceFormat.CSV,
-            time_partitioning=bigquery.TimePartitioning(
-                type_=bigquery.TimePartitioningType.DAY, field="usage_start_time"
-            ),
+            time_partitioning=bigquery.TimePartitioning(),
         )
 
         uri = f"gs://{gcp_bucket_name}/{csv_file_name}"
