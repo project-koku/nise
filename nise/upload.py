@@ -22,6 +22,7 @@ import traceback
 import boto3
 from azure.storage.blob import BlobServiceClient
 from botocore.exceptions import ClientError
+from google.cloud import bigquery
 from google.cloud import storage
 from google.cloud.exceptions import GoogleCloudError
 from msrestazure.azure_exceptions import ClientException
@@ -111,6 +112,65 @@ def upload_to_gcp_storage(bucket_name, source_file_name, destination_blob_name):
         blob.upload_from_filename(source_file_name)
 
         LOG.info(f"File {source_file_name} uploaded to GCP Storage {destination_blob_name}.")
+    except GoogleCloudError as upload_err:
+        LOG.error(upload_err)
+        uploaded = False
+    return uploaded
+
+
+def gcp_bucket_to_dataset(gcp_bucket_name, csv_file_name, dataset_name, table_name):
+    """
+    Create a gcp dataset from a file stored in a bucket.
+
+    Args:
+        gcp_bucket_name  (String): The container to upload file to
+        csv_file_name  (String): The name of the csv stored in GCP
+        dataset_name (String): name for the created dataset in GCP
+        table_name (String): name for the created dataset in GCP
+
+    Returns:
+        (Boolean): True if the dataset was created
+
+    """
+    uploaded = True
+
+    if "GOOGLE_APPLICATION_CREDENTIALS" not in os.environ:
+        LOG.warning(
+            "Please set your GOOGLE_APPLICATION_CREDENTIALS "
+            "environment variable before attempting to create a dataset."
+        )
+        return False
+    try:
+        bigquery_client = bigquery.Client()
+
+        project_name = bigquery_client.project
+        dataset_id = f"{project_name}.{dataset_name}"
+        dataset = bigquery.Dataset(dataset_id)
+
+        # delete dataset (does not error if it doesn't exist) and create fresh one
+        bigquery_client.delete_dataset(dataset_id, delete_contents=True, not_found_ok=True)
+        dataset = bigquery_client.create_dataset(dataset)
+
+        table_id = f"{project_name}.{dataset_name}.{table_name}"
+
+        # creates the job config with specifics
+        job_config = bigquery.LoadJobConfig(
+            write_disposition=bigquery.WriteDisposition.WRITE_TRUNCATE,
+            autodetect=True,
+            source_format=bigquery.SourceFormat.CSV,
+            time_partitioning=bigquery.TimePartitioning(
+                type_=bigquery.TimePartitioningType.DAY, field="usage_start_time"
+            ),
+        )
+
+        uri = f"gs://{gcp_bucket_name}/{csv_file_name}"
+
+        load_job = bigquery_client.load_table_from_uri(uri, table_id, job_config=job_config)
+
+        # waits for the job to finish, will raise an exception if it doesnt work
+        load_job.result()
+
+        LOG.info(f"Dataset {dataset_name} created in GCP bigquery under the table name {table_name}.")
     except GoogleCloudError as upload_err:
         LOG.error(upload_err)
         uploaded = False

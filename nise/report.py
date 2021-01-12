@@ -63,6 +63,7 @@ from nise.generators.ocp import OCP_STORAGE_USAGE
 from nise.generators.ocp import OCPGenerator
 from nise.manifest import aws_generate_manifest
 from nise.manifest import ocp_generate_manifest
+from nise.upload import gcp_bucket_to_dataset
 from nise.upload import upload_to_azure_container
 from nise.upload import upload_to_gcp_storage
 from nise.upload import upload_to_s3
@@ -765,6 +766,8 @@ def gcp_create_report(options):  # noqa: C901
     """Create a GCP cost usage report file."""
     fake = Faker()
     gcp_bucket_name = options.get("gcp_bucket_name")
+    gcp_dataset_name = options.get("gcp_dataset_name")
+    gcp_table_name = options.get("gcp_table_name")
 
     start_date = options.get("start_date")
     end_date = options.get("end_date")
@@ -825,6 +828,11 @@ def gcp_create_report(options):  # noqa: C901
 
     if gcp_bucket_name:
         gcp_route_file(gcp_bucket_name, local_file_path, output_file_name)
+
+    if gcp_dataset_name:
+        if not gcp_table_name:
+            gcp_table_name = f"gcp_billing_export_{fake.word()}"
+        gcp_bucket_to_dataset(gcp_bucket_name, output_file_name, gcp_dataset_name, gcp_table_name)
 
     write_monthly = options.get("write_monthly", False)
     if not write_monthly:
