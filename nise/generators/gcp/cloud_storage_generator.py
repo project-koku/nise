@@ -38,14 +38,9 @@ class CloudStorageGenerator(GCPGenerator):
         )
     }
 
-    LABELS = (("[{'key': 'vm_key_proj2', 'value': 'vm_label_proj2'}]"), ("[]"))
+    LABELS = (("[{'key': 'test_storage_key', 'value': 'test_storage_label'}]"), ("[]"))
 
-    SYSTEM_LABELS = (
-        (
-            """[{'key': 'compute.googleapis.com/cores', 'value': '2'}, {'key': 'compute.googleapis.com/machine_spec', 'value': 'e2-medium'}, {'key': 'compute.googleapis.com/memory', 'value': '4096'}]"""  # noqa: E501
-        ),
-        ("[]"),
-    )
+    SYSTEM_LABELS = (("[]"),)
 
     def _update_data(self, row):  # noqa: C901
         """Update a data row with compute values."""
