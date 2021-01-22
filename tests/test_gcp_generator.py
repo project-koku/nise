@@ -29,11 +29,13 @@ class TestGCPGenerator(TestCase):
         self.now = datetime.now().replace(microsecond=0, second=0, minute=0)
         self.yesterday = self.now - timedelta(days=1)
 
-    # def test_cloud_storage_init_with_attributes(self):  # Cloud storage not currently implemented
-    #     """Test the init with attribute for Cloud Storage."""
+    def test_cloud_storage_init_with_attributes(self):  # Cloud storage not currently implemented
+        """Test the init with attribute for Cloud Storage."""
 
-    #     generator = CloudStorageGenerator(self.yesterday, self.now, self.project, attributes=self.attributes)
-    #     generated_data = generator.generate_data()
+        generator = CloudStorageGenerator(self.yesterday, self.now, self.project, attributes=self.attributes)
+        generated_data = generator.generate_data()
+        self.assertEqual(generated_data[self.yesterday][0]["cost"], self.attributes["cost"])
+        self.assertEqual(generated_data[self.yesterday][0]["currency"], self.attributes["currency"])
 
     def test_compute_engine_init_with_attributes(self):
         """Test the init with attribute for Compute Engine."""

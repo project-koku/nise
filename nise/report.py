@@ -52,6 +52,7 @@ from nise.generators.azure import SQLGenerator
 from nise.generators.azure import StorageGenerator
 from nise.generators.azure import VMGenerator
 from nise.generators.azure import VNGenerator
+from nise.generators.gcp import CloudStorageGenerator
 from nise.generators.gcp import ComputeEngineGenerator
 from nise.generators.gcp import GCP_REPORT_COLUMNS
 from nise.generators.gcp import ProjectGenerator
@@ -747,7 +748,7 @@ def ocp_create_report(options):  # noqa: C901
 def write_gcp_file(start_date, end_date, data, options):
     """Write GCP data to a file."""
     report_prefix = options.get("gcp_report_prefix")
-    etag = options.get("gcp_etag", uuid4())
+    etag = options.get("gcp_etag") if options.get("gcp_etag") else str(uuid4())
     if not report_prefix:
         invoice_month = start_date.strftime("%Y%m")
         scan_start = start_date.date()
@@ -776,8 +777,8 @@ def gcp_create_report(options):  # noqa: C901
 
     else:
         generators = [
-            # {"generator": CloudStorageGenerator, "attributes": None},
-            {"generator": ComputeEngineGenerator, "attributes": None}
+            {"generator": CloudStorageGenerator, "attributes": None},
+            {"generator": ComputeEngineGenerator, "attributes": None},
         ]
         account = "{}-{}".format(fake.word(), fake.word())
 
