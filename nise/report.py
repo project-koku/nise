@@ -748,7 +748,7 @@ def ocp_create_report(options):  # noqa: C901
 def write_gcp_file(start_date, end_date, data, options):
     """Write GCP data to a file."""
     report_prefix = options.get("gcp_report_prefix")
-    etag = options.get("gcp_etag", uuid4())
+    etag = options.get("gcp_etag") if options.get("gcp_etag") else str(uuid4())
     if not report_prefix:
         invoice_month = start_date.strftime("%Y%m")
         scan_start = start_date.date()
