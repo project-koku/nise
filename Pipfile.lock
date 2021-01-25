@@ -946,11 +946,10 @@
         },
         "tox": {
             "hashes": [
-                "sha256:42ce19ce5dc2f6d6b1fdc5666c476e1f1e2897359b47e0aa3a5b774f335d57c2",
-                "sha256:4321052bfe28f9d85082341ca8e233e3ea901fdd14dab8a5d3fbd810269fbaf6"
+                "sha256:0aa777ee466f2ef18e6f58428c793c32378779e0a321dbb8934848bc3e78998c",
+                "sha256:f501808381c01c6d7827c2f17328be59c0a715046e94605ddca15fb91e65827d"
             ],
-            "index": "pypi",
-            "version": "==3.20.1"
+            "version": "==3.21.2"
         },
         "tqdm": {
             "hashes": [
