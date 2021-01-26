@@ -54,6 +54,8 @@ from nise.generators.azure import VMGenerator
 from nise.generators.azure import VNGenerator
 from nise.generators.gcp import ComputeEngineGenerator
 from nise.generators.gcp import GCP_REPORT_COLUMNS
+from nise.generators.gcp import JSONLComputeEngineGenerator
+from nise.generators.gcp import JSONLProjectGenerator
 from nise.generators.gcp import ProjectGenerator
 from nise.generators.ocp import OCP_NAMESPACE_LABEL
 from nise.generators.ocp import OCP_NODE_LABEL
@@ -92,6 +94,16 @@ def _write_csv(output_file, data, header):
         writer.writeheader()
         for row in data:
             writer.writerow(row)
+
+
+def _write_jsonl(output_file, data):
+    """Output JSON Lines file data for bigquery."""
+    LOG.info(f"Writing to {output_file.split('/')[-1]}")
+    with open(output_file, "w") as file:
+        for row in data:
+            json.dump(row, file)
+            # each dictionary "row" is its own line in a JSONL file
+            file.write("\n")
 
 
 def _remove_files(file_list):
@@ -762,6 +774,23 @@ def write_gcp_file(start_date, end_date, data, options):
     return local_file_path, output_file_name
 
 
+def write_gcp_file_jsonl(start_date, end_date, data, options):
+    """Write GCP data to a file."""
+    report_prefix = options.get("gcp_report_prefix")
+    etag = options.get("gcp_etag") if options.get("gcp_etag") else str(uuid4())
+    if not report_prefix:
+        invoice_month = start_date.strftime("%Y%m")
+        scan_start = start_date.date()
+        scan_end = end_date.date()
+        file_name = f"{invoice_month}_{etag}_{scan_start}:{scan_end}.json"
+    else:
+        file_name = report_prefix + ".json"
+    local_file_path = "{}/{}".format(os.getcwd(), file_name)
+    output_file_name = f"{etag}/{file_name}"
+    _write_jsonl(local_file_path, data)
+    return local_file_path, output_file_name
+
+
 def gcp_create_report(options):  # noqa: C901
     """Create a GCP cost usage report file."""
     fake = Faker()
@@ -777,6 +806,16 @@ def gcp_create_report(options):  # noqa: C901
         generators = _get_generators(static_report_data.get("generators"))
         projects = static_report_data.get("projects")
 
+    elif gcp_dataset_name:
+        # if the file is supposed to be uploaded to a bigquery table, it needs the JSONL version of the generators
+        generators = [
+            # {"generator": CloudStorageGenerator, "attributes": None},
+            {"generator": JSONLComputeEngineGenerator, "attributes": None}
+        ]
+        account = "{}-{}".format(fake.word(), fake.word())
+
+        project_generator = JSONLProjectGenerator(account)
+        projects = project_generator.generate_projects()
     else:
         generators = [
             # {"generator": CloudStorageGenerator, "attributes": None},
@@ -815,23 +854,38 @@ def gcp_create_report(options):  # noqa: C901
 
     monthly_files = []
     data_t = []
-    for day, daily_data in data.items():
-        if daily_format:
-            scan_day = day.strftime("%Y-%m-%d")
-            local_file_path, output_file_name = write_gcp_file(scan_day, scan_day, daily_data, options)
-        else:
-            data_t += daily_data
+    if not gcp_dataset_name:
+        # if it is not going to a bigquery table, behave like normal
+        for day, daily_data in data.items():
+            if daily_format:
+                scan_day = day.strftime("%Y-%m-%d")
+                local_file_path, output_file_name = write_gcp_file(scan_day, scan_day, daily_data, options)
+            else:
+                data_t += daily_data
 
-    if not daily_format:
-        local_file_path, output_file_name = write_gcp_file(start_date, end_date, data_t, options)
-        monthly_files.append(local_file_path)
+        if not daily_format:
+            local_file_path, output_file_name = write_gcp_file(start_date, end_date, data_t, options)
+            monthly_files.append(local_file_path)
+    else:
+        # else use the jsonl gcp writer
+        for day, daily_data in data.items():
+            if daily_format:
+                scan_day = day.strftime("%Y-%m-%d")
+                local_file_path, output_file_name = write_gcp_file_jsonl(scan_day, scan_day, daily_data, options)
+            else:
+                data_t += daily_data
+
+        if not daily_format:
+            local_file_path, output_file_name = write_gcp_file_jsonl(start_date, end_date, data_t, options)
+            monthly_files.append(local_file_path)
 
     if gcp_bucket_name:
         gcp_route_file(gcp_bucket_name, local_file_path, output_file_name)
 
     if gcp_dataset_name:
         if not gcp_table_name:
-            gcp_table_name = f"gcp_billing_export_{fake.word()}"
+            etag = options.get("gcp_etag") if options.get("gcp_etag") else str(uuid4())
+            gcp_table_name = f"gcp_billing_export_{etag}"
         gcp_bucket_to_dataset(gcp_bucket_name, output_file_name, gcp_dataset_name, gcp_table_name)
 
     write_monthly = options.get("write_monthly", False)

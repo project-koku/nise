@@ -36,6 +36,26 @@ GCP_REPORT_COLUMNS = (
     "cost_type",
 )
 
+GCP_REPORT_COLUMNS_JSONL = (
+    "billing_account_id",
+    "service",
+    "sku",
+    "usage_start_time",
+    "usage_end_time",
+    "project",
+    "labels",
+    "system_labels",
+    "location",
+    "export_time",
+    "cost",
+    "currency",
+    "currency_conversion_rate",
+    "usage",
+    "credits",
+    "invoice",
+    "cost_type",
+)
+
 
 class GCPGenerator(AbstractGenerator):
     """Abstract class for GCP generators."""
