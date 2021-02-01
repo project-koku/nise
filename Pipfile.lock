@@ -673,11 +673,10 @@
         },
         "importlib-resources": {
             "hashes": [
-                "sha256:7b51f0106c8ec564b1bef3d9c588bc694ce2b92125bbb6278f4f2f5b54ec3592",
-                "sha256:a3d34a8464ce1d5d7c92b0ea4e921e696d86f2aa212e684451cb1482c8d84ed5"
+                "sha256:885b8eae589179f661c909d699a546cf10d83692553e34dca1bf5eb06f7f6217",
+                "sha256:bfdad047bce441405a49cf8eb48ddce5e56c696e185f59147a8b79e75e9e6380"
             ],
-            "index": "pypi",
-            "version": "==3.3.0"
+            "version": "==5.1.0"
         },
         "keyring": {
             "hashes": [
