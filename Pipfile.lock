@@ -172,11 +172,10 @@
         },
         "faker": {
             "hashes": [
-                "sha256:6afc461ab3f779c9c16e299fc731d775e39ea7e8e063b3053ee359ae198a15ca",
-                "sha256:ce1c38823eb0f927567cde5bf2e7c8ca565c7a70316139342050ce2ca74b4026"
+                "sha256:0783729c61501d52efea2967aff6e6fcb8370f0f6b5a558f2a81233642ae529a",
+                "sha256:6b2995ffff6c2b02bc5daad96f8c24c021e5bd491d9d53d31bcbd66f348181d4"
             ],
-            "index": "pypi",
-            "version": "==4.14.2"
+            "version": "==5.8.0"
         },
         "google-api-core": {
             "hashes": [
