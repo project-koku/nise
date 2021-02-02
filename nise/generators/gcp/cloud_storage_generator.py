@@ -33,8 +33,7 @@ class CloudStorageGenerator(GCPGenerator):
 
     SKU_MAPPING = {
         "Cloud Storage": (  # (ID, Description, Usage Unit, Pricing Unit)
-            ("8AE7-5BBD-8F38", "Multi-Region Standard Class B Operations", "requests", "count"),
-            ("22EB-AAE8-FBCD", "Download Worldwide Destinations (excluding Asia & Australia)", "bytes", "gibibyte"),
+            ("E5F0-6A5D-7BAD", "Standard Storage US Regional", "byte-seconds", "gibibyte month"),
         )
     }
 
