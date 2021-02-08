@@ -908,11 +908,10 @@
         },
         "secretstorage": {
             "hashes": [
-                "sha256:46305c3847ee3f7252b284e0eee5590fa6341c891104a2fd2313f8798c615a82",
-                "sha256:ed5279d788af258e4676fa26b6efb6d335a31f1f9f529b6f1e200f388fac33e1"
+                "sha256:30cfdef28829dad64d6ea1ed08f8eff6aa115a77068926bcc9f5225d5a3246aa",
+                "sha256:5c36f6537a523ec5f969ef9fad61c98eb9e017bc601d811e53aa25bece64892f"
             ],
-            "markers": "sys_platform == 'linux'",
-            "version": "==3.2.0"
+            "version": "==3.3.0"
         },
         "six": {
             "hashes": [
