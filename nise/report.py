@@ -52,6 +52,7 @@ from nise.generators.azure import SQLGenerator
 from nise.generators.azure import StorageGenerator
 from nise.generators.azure import VMGenerator
 from nise.generators.azure import VNGenerator
+from nise.generators.gcp import CloudStorageGenerator
 from nise.generators.gcp import ComputeEngineGenerator
 from nise.generators.gcp import GCP_REPORT_COLUMNS
 from nise.generators.gcp import JSONLComputeEngineGenerator
@@ -818,8 +819,8 @@ def gcp_create_report(options):  # noqa: C901
         projects = project_generator.generate_projects()
     else:
         generators = [
-            # {"generator": CloudStorageGenerator, "attributes": None},
-            {"generator": ComputeEngineGenerator, "attributes": None}
+            {"generator": CloudStorageGenerator, "attributes": None},
+            {"generator": ComputeEngineGenerator, "attributes": None},
         ]
         account = "{}-{}".format(fake.word(), fake.word())
 
