@@ -55,6 +55,7 @@ from nise.generators.azure import VNGenerator
 from nise.generators.gcp import CloudStorageGenerator
 from nise.generators.gcp import ComputeEngineGenerator
 from nise.generators.gcp import GCP_REPORT_COLUMNS
+from nise.generators.gcp import JSONLCloudStorageGenerator
 from nise.generators.gcp import JSONLComputeEngineGenerator
 from nise.generators.gcp import JSONLProjectGenerator
 from nise.generators.gcp import ProjectGenerator
@@ -368,6 +369,22 @@ def _get_generators(generator_list):
         for item in generator_list:
             for generator_cls, attributes in item.items():
                 generator_obj = {"generator": getattr(importlib.import_module(__name__), generator_cls)}
+                if attributes.get("start_date"):
+                    attributes["start_date"] = parser.parse(attributes.get("start_date"))
+                if attributes.get("end_date"):
+                    attributes["end_date"] = parser.parse(attributes.get("end_date"))
+                generator_obj["attributes"] = attributes
+                generators.append(generator_obj)
+    return generators
+
+
+def _get_jsonl_generators(generator_list):
+    """Collect a list of report generators for use in GCP for bigquery uploads."""
+    generators = []
+    if generator_list:
+        for item in generator_list:
+            for generator_cls, attributes in item.items():
+                generator_obj = {"generator": getattr(importlib.import_module(__name__), "JSONL" + generator_cls)}
                 if attributes.get("start_date"):
                     attributes["start_date"] = parser.parse(attributes.get("start_date"))
                 if attributes.get("end_date"):
@@ -803,20 +820,50 @@ def gcp_create_report(options):  # noqa: C901
     end_date = options.get("end_date")
 
     static_report_data = options.get("static_report_data")
-    if static_report_data:
+
+    if gcp_dataset_name:
+        # if the file is supposed to be uploaded to a bigquery table, it needs the JSONL version of everything
+        if static_report_data:
+            generators = _get_jsonl_generators(static_report_data.get("generators"))
+            static_projects = static_report_data.get("projects")
+            projects = []
+            for static_dict in static_projects:
+                project = {}
+                project["name"] = static_dict.get("project.name", "")
+                project["id"] = static_dict.get("project.id", "")
+                # the k:v pairs are split by ; and the keys and values split by :
+                static_labels = static_dict.get("project.labels", [])
+                labels = []
+                for pair in static_labels.split(";"):
+                    key = pair.split(":")[0]
+                    value = pair.split(":")[1]
+                    labels.append({"key": key, "value": value})
+                project["labels"] = labels
+                location = {}
+                location["location"] = static_dict.get("location.location", "")
+                location["country"] = static_dict.get("location.country", "")
+                location["region"] = static_dict.get("location.region", "")
+                location["zone"] = static_dict.get("location.zone", "")
+                row = {
+                    "billing_account_id": static_dict.get("billing_account_id", ""),
+                    "project": project,
+                    "location": location,
+                }
+                projects.append(row)
+        else:
+            generators = [
+                {"generator": JSONLCloudStorageGenerator, "attributes": None},
+                {"generator": JSONLComputeEngineGenerator, "attributes": None},
+            ]
+            account = "{}-{}".format(fake.word(), fake.word())
+
+            project_generator = JSONLProjectGenerator(account)
+            projects = project_generator.generate_projects()
+
+    elif static_report_data:
         generators = _get_generators(static_report_data.get("generators"))
         projects = static_report_data.get("projects")
 
-    elif gcp_dataset_name:
-        # if the file is supposed to be uploaded to a bigquery table, it needs the JSONL version of the generators
-        generators = [
-            # {"generator": CloudStorageGenerator, "attributes": None},
-            {"generator": JSONLComputeEngineGenerator, "attributes": None}
-        ]
-        account = "{}-{}".format(fake.word(), fake.word())
-
-        project_generator = JSONLProjectGenerator(account)
-        projects = project_generator.generate_projects()
     else:
         generators = [
             {"generator": CloudStorageGenerator, "attributes": None},
