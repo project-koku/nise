@@ -35,8 +35,10 @@ from nise.report import _convert_bytes
 from nise.report import _create_month_list
 from nise.report import _generate_azure_filename
 from nise.report import _get_generators
+from nise.report import _get_jsonl_generators
 from nise.report import _remove_files
 from nise.report import _write_csv
+from nise.report import _write_jsonl
 from nise.report import _write_manifest
 from nise.report import aws_create_report
 from nise.report import azure_create_report
@@ -72,6 +74,14 @@ class MiscReportTestCase(TestCase):
         headers = ["col1", "col2"]
         data = [{"col1": "r1c1", "col2": "r1c2"}, {"col1": "r2c1", "col2": "r2c2"}]
         _write_csv(temp_file.name, data, headers)
+        self.assertTrue(os.path.exists(temp_file.name))
+        os.remove(temp_file.name)
+
+    def test_write_jsonl(self):
+        """Test the writing of the jsonl data."""
+        temp_file = NamedTemporaryFile(mode="w", delete=False)
+        data = [{"col1": "r1c1", "col2": "r1c2"}, {"col1": "r2c1", "col2": "r2c2"}]
+        _write_jsonl(temp_file.name, data)
         self.assertTrue(os.path.exists(temp_file.name))
         os.remove(temp_file.name)
 
@@ -144,6 +154,26 @@ class MiscReportTestCase(TestCase):
 
         generator_list = [{"EC2Generator": {"start_date": "2019-01-21", "end_date": "2019-01-22"}}]
         generators = _get_generators(generator_list)
+
+        self.assertIsNotNone(generators)
+        self.assertEqual(len(generators), 1)
+
+        self.assertIsInstance(generators[0].get("attributes").get("start_date"), datetime.datetime)
+        self.assertIsInstance(generators[0].get("attributes").get("end_date"), datetime.datetime)
+        self.assertEqual(generators[0].get("attributes").get("start_date").month, 1)
+        self.assertEqual(generators[0].get("attributes").get("start_date").day, 21)
+        self.assertEqual(generators[0].get("attributes").get("start_date").year, 2019)
+        self.assertEqual(generators[0].get("attributes").get("end_date").month, 1)
+        self.assertEqual(generators[0].get("attributes").get("end_date").day, 22)
+        self.assertEqual(generators[0].get("attributes").get("end_date").year, 2019)
+
+    def test_get_jsonl_generators(self):
+        """Test the _get_jsonl_generators helper function."""
+        generators = _get_jsonl_generators(None)
+        self.assertEqual(generators, [])
+
+        generator_list = [{"ComputeEngineGenerator": {"start_date": "2019-01-21", "end_date": "2019-01-22"}}]
+        generators = _get_jsonl_generators(generator_list)
 
         self.assertIsNotNone(generators)
         self.assertEqual(len(generators), 1)
@@ -1029,6 +1059,28 @@ class GCPReportTestCase(TestCase):
             {"start_date": yesterday, "end_date": now, "gcp_report_prefix": report_prefix, "write_monthly": True}
         )
         output_file_name = f"{report_prefix}.csv"
+        expected_output_file_path = "{}/{}".format(os.getcwd(), output_file_name)
+
+        self.assertTrue(os.path.isfile(expected_output_file_path))
+        os.remove(expected_output_file_path)
+
+    def test_gcp_create_report_with_dataset_name(self):
+        """Test the gcp report creation method where a dataset name is included."""
+        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
+        one_day = datetime.timedelta(days=1)
+        yesterday = now - one_day
+        report_prefix = "test_report"
+        dataset_name = "test_name"
+        gcp_create_report(
+            {
+                "start_date": yesterday,
+                "end_date": now,
+                "gcp_report_prefix": report_prefix,
+                "write_monthly": True,
+                "gcp_dataset_name": dataset_name,
+            }
+        )
+        output_file_name = f"{report_prefix}.json"
         expected_output_file_path = "{}/{}".format(os.getcwd(), output_file_name)
 
         self.assertTrue(os.path.isfile(expected_output_file_path))

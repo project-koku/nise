@@ -102,7 +102,7 @@ class JSONLCloudStorageGenerator(CloudStorageGenerator):
     SYSTEM_LABELS = (([]),)
 
     def __init__(self, start_date, end_date, project, attributes=None):
-        super().__init__(start_date, end_date, project)
+        super().__init__(start_date, end_date, project, attributes)
         self.column_labels = GCP_REPORT_COLUMNS_JSONL
 
     def _update_data(self, row):  # noqa: C901

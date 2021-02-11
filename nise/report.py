@@ -828,6 +828,7 @@ def gcp_create_report(options):  # noqa: C901
             static_projects = static_report_data.get("projects")
             projects = []
             for static_dict in static_projects:
+                # this lets the format of the YAML remain the same whether using the upload or local
                 project = {}
                 project["name"] = static_dict.get("project.name", "")
                 project["id"] = static_dict.get("project.id", "")

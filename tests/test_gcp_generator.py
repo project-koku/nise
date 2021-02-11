@@ -5,7 +5,11 @@ from unittest import TestCase
 from faker import Faker
 from nise.generators.gcp import CloudStorageGenerator
 from nise.generators.gcp import ComputeEngineGenerator
+from nise.generators.gcp import JSONLCloudStorageGenerator
+from nise.generators.gcp import JSONLComputeEngineGenerator
+from nise.generators.gcp import JSONLProjectGenerator
 from nise.generators.gcp import ProjectGenerator
+
 
 fake = Faker()
 
@@ -18,6 +22,8 @@ class TestGCPGenerator(TestCase):
         self.account = "{}-{}".format(fake.word(), fake.word())
         project_generator = ProjectGenerator(self.account)
         self.project = project_generator.generate_projects(num_projects=2)[0]
+        jsonl_project_generator = JSONLProjectGenerator(self.account)
+        self.jsonl_project = jsonl_project_generator
         self.attributes = {
             "cost": fake.pyint(),
             "currency": fake.currency_code(),
@@ -37,10 +43,24 @@ class TestGCPGenerator(TestCase):
         self.assertEqual(generated_data[self.yesterday][0]["cost"], self.attributes["cost"])
         self.assertEqual(generated_data[self.yesterday][0]["currency"], self.attributes["currency"])
 
+    def test_jsonl_cloud_storage_init_with_attributes(self):  # Cloud storage not currently implemented
+        """Test the init with attribute for JSONL Cloud Storage."""
+        generator = JSONLCloudStorageGenerator(self.yesterday, self.now, self.project, attributes=self.attributes)
+        generated_data = generator.generate_data()
+        self.assertEqual(generated_data[self.yesterday][0]["cost"], self.attributes["cost"])
+        self.assertEqual(generated_data[self.yesterday][0]["currency"], self.attributes["currency"])
+
     def test_compute_engine_init_with_attributes(self):
         """Test the init with attribute for Compute Engine."""
 
         generator = ComputeEngineGenerator(self.yesterday, self.now, self.project, attributes=self.attributes)
+        generated_data = generator.generate_data()
+        self.assertEqual(generated_data[self.yesterday][0]["cost"], self.attributes["cost"])
+        self.assertEqual(generated_data[self.yesterday][0]["currency"], self.attributes["currency"])
+
+    def test_jsonl_compute_engine_init_with_attributes(self):
+        """Test the init with attribute for JSONL Compute Engine."""
+        generator = JSONLComputeEngineGenerator(self.yesterday, self.now, self.project, attributes=self.attributes)
         generated_data = generator.generate_data()
         self.assertEqual(generated_data[self.yesterday][0]["cost"], self.attributes["cost"])
         self.assertEqual(generated_data[self.yesterday][0]["currency"], self.attributes["currency"])

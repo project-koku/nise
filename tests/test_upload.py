@@ -25,6 +25,7 @@ import faker
 from botocore.exceptions import ClientError
 from google.cloud.exceptions import GoogleCloudError
 from nise.upload import BlobServiceClient
+from nise.upload import gcp_bucket_to_dataset
 from nise.upload import upload_to_azure_container
 from nise.upload import upload_to_gcp_storage
 from nise.upload import upload_to_s3
@@ -127,5 +128,38 @@ class UploadTestCase(TestCase):
         local_path = fake.file_path()
         remote_path = fake.file_path()
         uploaded = upload_to_gcp_storage(bucket_name, local_path, remote_path)
+
+        self.assertFalse(uploaded)
+
+    @patch.dict(os.environ, {"GOOGLE_APPLICATION_CREDENTIALS": "/path/to/creds"})
+    @patch("nise.upload.bigquery")
+    def test_gcp_bucket_to_dataset(self, mock_bigquery):
+        """Test creation of bigquery dataset from file in gcp storage"""
+        bucket_name = fake.slug()
+        local_path = fake.file_path()
+        dataset_name = fake.slug()
+        table_name = fake.slug()
+
+        uploaded = gcp_bucket_to_dataset(bucket_name, local_path, dataset_name, table_name)
+
+        mock_client = mock_bigquery.Client.return_value
+        mock_job_config = mock_bigquery.LoadJobConfig.return_value
+
+        mock_client.create_dataset.assert_called_once()
+
+        uri = f"gs://{bucket_name}/{local_path}"
+        table_id = f"{mock_client.project}.{dataset_name}.{table_name}"
+        mock_client.load_table_from_uri.assert_called_with(uri, table_id, job_config=mock_job_config)
+
+        self.assertTrue(uploaded)
+
+    def test_gcp_dataset_fail_no_credentials(self):
+        """Test bucket_to_dataset method fails with no credentials."""
+        bucket_name = fake.slug()
+        local_path = fake.file_path()
+        dataset_name = fake.slug()
+        table_name = fake.slug()
+
+        uploaded = gcp_bucket_to_dataset(bucket_name, local_path, dataset_name, table_name)
 
         self.assertFalse(uploaded)

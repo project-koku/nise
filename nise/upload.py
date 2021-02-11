@@ -118,13 +118,13 @@ def upload_to_gcp_storage(bucket_name, source_file_name, destination_blob_name):
     return uploaded
 
 
-def gcp_bucket_to_dataset(gcp_bucket_name, csv_file_name, dataset_name, table_name):
+def gcp_bucket_to_dataset(gcp_bucket_name, file_name, dataset_name, table_name):
     """
     Create a gcp dataset from a file stored in a bucket.
 
     Args:
         gcp_bucket_name  (String): The container to upload file to
-        csv_file_name  (String): The name of the csv stored in GCP
+        file_name  (String): The name of the file stored in GCP
         dataset_name (String): name for the created dataset in GCP
         table_name (String): name for the created dataset in GCP
 
@@ -277,7 +277,7 @@ def gcp_bucket_to_dataset(gcp_bucket_name, csv_file_name, dataset_name, table_na
             ],
         )
 
-        uri = f"gs://{gcp_bucket_name}/{csv_file_name}"
+        uri = f"gs://{gcp_bucket_name}/{file_name}"
 
         load_job = bigquery_client.load_table_from_uri(uri, table_id, job_config=job_config)
 
