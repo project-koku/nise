@@ -32,7 +32,7 @@ class ComputeEngineGenerator(GCPGenerator):
         ("D0CC-50DF-59D2", "Network Inter Zone Ingress", "bytes", "gibibyte"),
         ("F449-33EC-A5EF", "E2 Instance Ram running in Americas", "byte-seconds", "gibibyte hour"),
         ("C054-7F72-A02E", "External IP Charge on a Standard VM", "seconds", "hour"),
-        ("CF4E-A0C7-E3BF", "E2 Instances Core running in Americas", "seconds", "hour"),
+        ("CF4E-A0C7-E3BF", "E2 Instance Core running in Americas", "seconds", "hour"),
         ("C0CF-3E3B-57FB", "Licensing Fee for Debian 10 Buster (CPU cost)", "seconds", "hour"),
         ("0C5C-D8E4-38C1", "Licensing Fee for Debian 10 Buster (CPU cost)", "seconds", "hour"),
         ("CD20-B4CA-0F7C", "Licensing Fee for Debian 10 Buster (RAM cost)", "byte-seconds", "gibiyte hour"),
