@@ -835,10 +835,11 @@ def gcp_create_report(options):  # noqa: C901
                 # the k:v pairs are split by ; and the keys and values split by :
                 static_labels = static_dict.get("project.labels", [])
                 labels = []
-                for pair in static_labels.split(";"):
-                    key = pair.split(":")[0]
-                    value = pair.split(":")[1]
-                    labels.append({"key": key, "value": value})
+                if static_labels:
+                    for pair in static_labels.split(";"):
+                        key = pair.split(":")[0]
+                        value = pair.split(":")[1]
+                        labels.append({"key": key, "value": value})
                 project["labels"] = labels
                 location = {}
                 location["location"] = static_dict.get("location.location", "")
