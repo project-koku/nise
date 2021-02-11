@@ -825,7 +825,7 @@ def gcp_create_report(options):  # noqa: C901
         # if the file is supposed to be uploaded to a bigquery table, it needs the JSONL version of everything
         if static_report_data:
             generators = _get_jsonl_generators(static_report_data.get("generators"))
-            static_projects = static_report_data.get("projects")
+            static_projects = static_report_data.get("projects", {})
             projects = []
             for static_dict in static_projects:
                 # this lets the format of the YAML remain the same whether using the upload or local

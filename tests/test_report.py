@@ -1086,6 +1086,30 @@ class GCPReportTestCase(TestCase):
         self.assertTrue(os.path.isfile(expected_output_file_path))
         os.remove(expected_output_file_path)
 
+    def test_gcp_create_report_with_dataset_name_no_report_prefix(self):
+        """Test the gcp report creation method where a dataset name is included but no report prefix is included."""
+        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
+        one_day = datetime.timedelta(days=1)
+        yesterday = now - one_day
+        dataset_name = "test_name"
+        etag = "test_tag"
+        gcp_create_report(
+            {
+                "start_date": yesterday,
+                "end_date": now,
+                "write_monthly": True,
+                "gcp_dataset_name": dataset_name,
+                "gcp_etag": etag,
+            }
+        )
+        invoice_month = yesterday.strftime("%Y%m")
+        scan_start = yesterday.date()
+        scan_end = now.date()
+        output_file_name = f"{invoice_month}_{etag}_{scan_start}:{scan_end}.json"
+        expected_output_file_path = "{}/{}".format(os.getcwd(), output_file_name)
+        self.assertTrue(os.path.isfile(expected_output_file_path))
+        os.remove(expected_output_file_path)
+
     @patch("nise.report.uuid4", side_effect=["nise"])
     def test_gcp_create_report_no_report_prefix(self, patch_etag):
         """Test the gcp report creation method."""
@@ -1137,3 +1161,45 @@ class GCPReportTestCase(TestCase):
         expected_output_file_path = "{}/{}".format(os.getcwd(), output_file_name)
 
         self.assertFalse(os.path.isfile(expected_output_file_path))
+
+    def test_gcp_create_report_with_dataset_name_static_data(self):
+        """Test the gcp report creation method where a dataset name is included and static data used."""
+        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
+        one_day = datetime.timedelta(days=1)
+        yesterday = now - one_day
+        report_prefix = "test_report"
+        dataset_name = "test_name"
+        cost = fake.pyint(min_value=10, max_value=1000)
+        static_gcp_data = {
+            "generators": [
+                {
+                    "ComputeEngineGenerator": {
+                        "start_date": str(yesterday.date()),
+                        "end_date": str(now.date()),
+                        "cost": cost,
+                    }
+                },
+                {
+                    "CloudStorageGenerator": {
+                        "start_date": str(yesterday.date()),
+                        "end_date": str(now.date()),
+                        "cost": cost,
+                    }
+                },
+            ]
+        }
+        gcp_create_report(
+            {
+                "start_date": yesterday,
+                "end_date": now,
+                "gcp_report_prefix": report_prefix,
+                "write_monthly": True,
+                "gcp_dataset_name": dataset_name,
+                "static_report_data": static_gcp_data,
+            }
+        )
+        output_file_name = f"{report_prefix}.json"
+        expected_output_file_path = "{}/{}".format(os.getcwd(), output_file_name)
+
+        self.assertTrue(os.path.isfile(expected_output_file_path))
+        os.remove(expected_output_file_path)
