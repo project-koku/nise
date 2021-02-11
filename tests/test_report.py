@@ -1186,7 +1186,19 @@ class GCPReportTestCase(TestCase):
                         "cost": cost,
                     }
                 },
-            ]
+            ],
+            "projects": [
+                {
+                    "billing_account_id": "example_account_id",
+                    "project.name": "billion-force-58425800",
+                    "project.id": "example-project-id",
+                    "project.labels": "step:chair;year:each",
+                    "location.location": "us-central1",
+                    "location.country": "US",
+                    "location.region": "us-central1",
+                    "location.zone": "",
+                }
+            ],
         }
         gcp_create_report(
             {
