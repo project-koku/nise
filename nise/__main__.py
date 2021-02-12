@@ -152,6 +152,20 @@ def add_gcp_parser_args(parser):
         help="GCP storage account to place the data.",
     )
     parser.add_argument(
+        "--gcp-dataset-name",
+        metavar="GCP_DATASET_NAME",
+        dest="gcp_dataset_name",
+        required=False,
+        help="GCP dataset name to create.",
+    )
+    parser.add_argument(
+        "--gcp-table-name",
+        metavar="GCP_TABLE_NAME",
+        dest="gcp_table_name",
+        required=False,
+        help="Table name to create in the GCP dataset.",
+    )
+    parser.add_argument(
         "--daily-report",
         # metavar= "GCP_DAILY_REPORT",
         action="store_true",

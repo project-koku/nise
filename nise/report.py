@@ -55,6 +55,9 @@ from nise.generators.azure import VNGenerator
 from nise.generators.gcp import CloudStorageGenerator
 from nise.generators.gcp import ComputeEngineGenerator
 from nise.generators.gcp import GCP_REPORT_COLUMNS
+from nise.generators.gcp import JSONLCloudStorageGenerator
+from nise.generators.gcp import JSONLComputeEngineGenerator
+from nise.generators.gcp import JSONLProjectGenerator
 from nise.generators.gcp import ProjectGenerator
 from nise.generators.ocp import OCP_NAMESPACE_LABEL
 from nise.generators.ocp import OCP_NODE_LABEL
@@ -64,6 +67,7 @@ from nise.generators.ocp import OCP_STORAGE_USAGE
 from nise.generators.ocp import OCPGenerator
 from nise.manifest import aws_generate_manifest
 from nise.manifest import ocp_generate_manifest
+from nise.upload import gcp_bucket_to_dataset
 from nise.upload import upload_to_azure_container
 from nise.upload import upload_to_gcp_storage
 from nise.upload import upload_to_s3
@@ -92,6 +96,16 @@ def _write_csv(output_file, data, header):
         writer.writeheader()
         for row in data:
             writer.writerow(row)
+
+
+def _write_jsonl(output_file, data):
+    """Output JSON Lines file data for bigquery."""
+    LOG.info(f"Writing to {output_file.split('/')[-1]}")
+    with open(output_file, "w") as file:
+        for row in data:
+            json.dump(row, file)
+            # each dictionary "row" is its own line in a JSONL file
+            file.write("\n")
 
 
 def _remove_files(file_list):
@@ -355,6 +369,22 @@ def _get_generators(generator_list):
         for item in generator_list:
             for generator_cls, attributes in item.items():
                 generator_obj = {"generator": getattr(importlib.import_module(__name__), generator_cls)}
+                if attributes.get("start_date"):
+                    attributes["start_date"] = parser.parse(attributes.get("start_date"))
+                if attributes.get("end_date"):
+                    attributes["end_date"] = parser.parse(attributes.get("end_date"))
+                generator_obj["attributes"] = attributes
+                generators.append(generator_obj)
+    return generators
+
+
+def _get_jsonl_generators(generator_list):
+    """Collect a list of report generators for use in GCP for bigquery uploads."""
+    generators = []
+    if generator_list:
+        for item in generator_list:
+            for generator_cls, attributes in item.items():
+                generator_obj = {"generator": getattr(importlib.import_module(__name__), "JSONL" + generator_cls)}
                 if attributes.get("start_date"):
                     attributes["start_date"] = parser.parse(attributes.get("start_date"))
                 if attributes.get("end_date"):
@@ -762,16 +792,77 @@ def write_gcp_file(start_date, end_date, data, options):
     return local_file_path, output_file_name
 
 
+def write_gcp_file_jsonl(start_date, end_date, data, options):
+    """Write GCP data to a file."""
+    report_prefix = options.get("gcp_report_prefix")
+    etag = options.get("gcp_etag") if options.get("gcp_etag") else str(uuid4())
+    if not report_prefix:
+        invoice_month = start_date.strftime("%Y%m")
+        scan_start = start_date.date()
+        scan_end = end_date.date()
+        file_name = f"{invoice_month}_{etag}_{scan_start}:{scan_end}.json"
+    else:
+        file_name = report_prefix + ".json"
+    local_file_path = "{}/{}".format(os.getcwd(), file_name)
+    output_file_name = f"{etag}/{file_name}"
+    _write_jsonl(local_file_path, data)
+    return local_file_path, output_file_name
+
+
 def gcp_create_report(options):  # noqa: C901
     """Create a GCP cost usage report file."""
     fake = Faker()
     gcp_bucket_name = options.get("gcp_bucket_name")
+    gcp_dataset_name = options.get("gcp_dataset_name")
+    gcp_table_name = options.get("gcp_table_name")
 
     start_date = options.get("start_date")
     end_date = options.get("end_date")
 
     static_report_data = options.get("static_report_data")
-    if static_report_data:
+
+    if gcp_dataset_name:
+        # if the file is supposed to be uploaded to a bigquery table, it needs the JSONL version of everything
+        if static_report_data:
+            generators = _get_jsonl_generators(static_report_data.get("generators"))
+            static_projects = static_report_data.get("projects", {})
+            projects = []
+            for static_dict in static_projects:
+                # this lets the format of the YAML remain the same whether using the upload or local
+                project = {}
+                project["name"] = static_dict.get("project.name", "")
+                project["id"] = static_dict.get("project.id", "")
+                # the k:v pairs are split by ; and the keys and values split by :
+                static_labels = static_dict.get("project.labels", [])
+                labels = []
+                if static_labels:
+                    for pair in static_labels.split(";"):
+                        key = pair.split(":")[0]
+                        value = pair.split(":")[1]
+                        labels.append({"key": key, "value": value})
+                project["labels"] = labels
+                location = {}
+                location["location"] = static_dict.get("location.location", "")
+                location["country"] = static_dict.get("location.country", "")
+                location["region"] = static_dict.get("location.region", "")
+                location["zone"] = static_dict.get("location.zone", "")
+                row = {
+                    "billing_account_id": static_dict.get("billing_account_id", ""),
+                    "project": project,
+                    "location": location,
+                }
+                projects.append(row)
+        else:
+            generators = [
+                {"generator": JSONLCloudStorageGenerator, "attributes": None},
+                {"generator": JSONLComputeEngineGenerator, "attributes": None},
+            ]
+            account = "{}-{}".format(fake.word(), fake.word())
+
+            project_generator = JSONLProjectGenerator(account)
+            projects = project_generator.generate_projects()
+
+    elif static_report_data:
         generators = _get_generators(static_report_data.get("generators"))
         projects = static_report_data.get("projects")
 
@@ -813,19 +904,39 @@ def gcp_create_report(options):  # noqa: C901
 
     monthly_files = []
     data_t = []
-    for day, daily_data in data.items():
-        if daily_format:
-            scan_day = day.strftime("%Y-%m-%d")
-            local_file_path, output_file_name = write_gcp_file(scan_day, scan_day, daily_data, options)
-        else:
-            data_t += daily_data
+    if not gcp_dataset_name:
+        # if it is not going to a bigquery table, behave like normal
+        for day, daily_data in data.items():
+            if daily_format:
+                scan_day = day.strftime("%Y-%m-%d")
+                local_file_path, output_file_name = write_gcp_file(scan_day, scan_day, daily_data, options)
+            else:
+                data_t += daily_data
 
-    if not daily_format:
-        local_file_path, output_file_name = write_gcp_file(start_date, end_date, data_t, options)
-        monthly_files.append(local_file_path)
+        if not daily_format:
+            local_file_path, output_file_name = write_gcp_file(start_date, end_date, data_t, options)
+            monthly_files.append(local_file_path)
+    else:
+        # else use the jsonl gcp writer
+        for day, daily_data in data.items():
+            if daily_format:
+                scan_day = day.strftime("%Y-%m-%d")
+                local_file_path, output_file_name = write_gcp_file_jsonl(scan_day, scan_day, daily_data, options)
+            else:
+                data_t += daily_data
+
+        if not daily_format:
+            local_file_path, output_file_name = write_gcp_file_jsonl(start_date, end_date, data_t, options)
+            monthly_files.append(local_file_path)
 
     if gcp_bucket_name:
         gcp_route_file(gcp_bucket_name, local_file_path, output_file_name)
+
+    if gcp_dataset_name:
+        if not gcp_table_name:
+            etag = options.get("gcp_etag") if options.get("gcp_etag") else str(uuid4())
+            gcp_table_name = f"gcp_billing_export_{etag}"
+        gcp_bucket_to_dataset(gcp_bucket_name, output_file_name, gcp_dataset_name, gcp_table_name)
 
     write_monthly = options.get("write_monthly", False)
     if not write_monthly:

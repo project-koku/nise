@@ -22,6 +22,7 @@ import traceback
 import boto3
 from azure.storage.blob import BlobServiceClient
 from botocore.exceptions import ClientError
+from google.cloud import bigquery
 from google.cloud import storage
 from google.cloud.exceptions import GoogleCloudError
 from msrestazure.azure_exceptions import ClientException
@@ -111,6 +112,179 @@ def upload_to_gcp_storage(bucket_name, source_file_name, destination_blob_name):
         blob.upload_from_filename(source_file_name)
 
         LOG.info(f"File {source_file_name} uploaded to GCP Storage {destination_blob_name}.")
+    except GoogleCloudError as upload_err:
+        LOG.error(upload_err)
+        uploaded = False
+    return uploaded
+
+
+def gcp_bucket_to_dataset(gcp_bucket_name, file_name, dataset_name, table_name):
+    """
+    Create a gcp dataset from a file stored in a bucket.
+
+    Args:
+        gcp_bucket_name  (String): The container to upload file to
+        file_name  (String): The name of the file stored in GCP
+        dataset_name (String): name for the created dataset in GCP
+        table_name (String): name for the created dataset in GCP
+
+    Returns:
+        (Boolean): True if the dataset was created
+
+    """
+    uploaded = True
+
+    if "GOOGLE_APPLICATION_CREDENTIALS" not in os.environ:
+        LOG.warning(
+            "Please set your GOOGLE_APPLICATION_CREDENTIALS "
+            "environment variable before attempting to create a dataset."
+        )
+        return False
+    try:
+        bigquery_client = bigquery.Client()
+
+        project_name = bigquery_client.project
+        dataset_id = f"{project_name}.{dataset_name}"
+        dataset = bigquery.Dataset(dataset_id)
+
+        # delete dataset (does not error if it doesn't exist) and create fresh one
+        bigquery_client.delete_dataset(dataset_id, delete_contents=True, not_found_ok=True)
+        dataset = bigquery_client.create_dataset(dataset)
+
+        table_id = f"{project_name}.{dataset_name}.{table_name}"
+
+        # creates the job config with specifics
+        job_config = bigquery.LoadJobConfig(
+            write_disposition=bigquery.WriteDisposition.WRITE_TRUNCATE,
+            source_format=bigquery.SourceFormat.NEWLINE_DELIMITED_JSON,
+            time_partitioning=bigquery.TimePartitioning(),
+            schema=[
+                {"name": "billing_account_id", "type": "STRING", "mode": "NULLABLE"},
+                {
+                    "name": "service",
+                    "type": "RECORD",
+                    "fields": [
+                        {"name": "id", "type": "STRING", "mode": "NULLABLE"},
+                        {"name": "description", "type": "STRING", "mode": "NULLABLE"},
+                    ],
+                    "mode": "NULLABLE",
+                },
+                {
+                    "name": "sku",
+                    "type": "RECORD",
+                    "fields": [
+                        {"name": "id", "type": "STRING", "mode": "NULLABLE"},
+                        {"name": "description", "type": "STRING", "mode": "NULLABLE"},
+                    ],
+                    "mode": "NULLABLE",
+                },
+                {"name": "usage_start_time", "type": "TIMESTAMP", "mode": "NULLABLE"},
+                {"name": "usage_end_time", "type": "TIMESTAMP", "mode": "NULLABLE"},
+                {
+                    "name": "project",
+                    "type": "RECORD",
+                    "fields": [
+                        {"name": "id", "type": "STRING", "mode": "NULLABLE"},
+                        {"name": "number", "type": "STRING", "mode": "NULLABLE"},
+                        {"name": "name", "type": "STRING", "mode": "NULLABLE"},
+                        {
+                            "name": "labels",
+                            "type": "RECORD",
+                            "fields": [
+                                {"name": "key", "type": "STRING", "mode": "NULLABLE"},
+                                {"name": "value", "type": "STRING", "mode": "NULLABLE"},
+                            ],
+                            "mode": "REPEATED",
+                        },
+                        {"name": "ancestry_numbers", "type": "STRING", "mode": "NULLABLE"},
+                    ],
+                    "mode": "NULLABLE",
+                },
+                {
+                    "name": "labels",
+                    "type": "RECORD",
+                    "fields": [
+                        {"name": "key", "type": "STRING", "mode": "NULLABLE"},
+                        {"name": "value", "type": "STRING", "mode": "NULLABLE"},
+                    ],
+                    "mode": "REPEATED",
+                },
+                {
+                    "name": "system_labels",
+                    "type": "RECORD",
+                    "fields": [
+                        {"name": "key", "type": "STRING", "mode": "NULLABLE"},
+                        {"name": "value", "type": "STRING", "mode": "NULLABLE"},
+                    ],
+                    "mode": "REPEATED",
+                },
+                {
+                    "name": "location",
+                    "type": "RECORD",
+                    "fields": [
+                        {"name": "location", "type": "STRING", "mode": "NULLABLE"},
+                        {"name": "country", "type": "STRING", "mode": "NULLABLE"},
+                        {"name": "region", "type": "STRING", "mode": "NULLABLE"},
+                        {"name": "zone", "type": "STRING", "mode": "NULLABLE"},
+                    ],
+                    "mode": "NULLABLE",
+                },
+                {"name": "export_time", "type": "TIMESTAMP", "mode": "NULLABLE"},
+                {"name": "cost", "type": "FLOAT", "mode": "NULLABLE"},
+                {"name": "currency", "type": "STRING", "mode": "NULLABLE"},
+                {"name": "currency_conversion_rate", "type": "FLOAT", "mode": "NULLABLE"},
+                {
+                    "name": "usage",
+                    "type": "RECORD",
+                    "fields": [
+                        {"name": "amount", "type": "FLOAT", "mode": "NULLABLE"},
+                        {"name": "unit", "type": "STRING", "mode": "NULLABLE"},
+                        {"name": "amount_in_pricing_units", "type": "FLOAT", "mode": "NULLABLE"},
+                        {"name": "pricing_unit", "type": "STRING", "mode": "NULLABLE"},
+                    ],
+                    "mode": "NULLABLE",
+                },
+                {
+                    "name": "credits",
+                    "type": "RECORD",
+                    "fields": [
+                        {"name": "name", "type": "STRING", "mode": "NULLABLE"},
+                        {"name": "amount", "type": "FLOAT", "mode": "NULLABLE"},
+                        {"name": "full_name", "type": "STRING", "mode": "NULLABLE"},
+                        {"name": "id", "type": "STRING", "mode": "NULLABLE"},
+                        {"name": "type", "type": "STRING", "mode": "NULLABLE"},
+                    ],
+                    "mode": "NULLABLE",
+                },
+                {
+                    "name": "invoice",
+                    "type": "RECORD",
+                    "fields": [{"name": "month", "type": "STRING", "mode": "NULLABLE"}],
+                    "mode": "NULLABLE",
+                },
+                {"name": "cost_type", "type": "STRING", "mode": "NULLABLE"},
+                {
+                    "name": "adjustment_info",
+                    "type": "RECORD",
+                    "fields": [
+                        {"name": "id", "type": "STRING", "mode": "NULLABLE"},
+                        {"name": "description", "type": "STRING", "mode": "NULLABLE"},
+                        {"name": "mode", "type": "STRING", "mode": "NULLABLE"},
+                        {"name": "type", "type": "STRING", "mode": "NULLABLE"},
+                    ],
+                    "mode": "NULLABLE",
+                },
+            ],
+        )
+
+        uri = f"gs://{gcp_bucket_name}/{file_name}"
+
+        load_job = bigquery_client.load_table_from_uri(uri, table_id, job_config=job_config)
+
+        # waits for the job to finish, will raise an exception if it doesnt work
+        load_job.result()
+
+        LOG.info(f"Dataset {dataset_name} created in GCP bigquery under the table name {table_name}.")
     except GoogleCloudError as upload_err:
         LOG.error(upload_err)
         uploaded = False
