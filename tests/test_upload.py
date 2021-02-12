@@ -133,7 +133,8 @@ class UploadTestCase(TestCase):
 
     @patch.dict(os.environ, {"GOOGLE_APPLICATION_CREDENTIALS": "/path/to/creds"})
     @patch("nise.upload.bigquery")
-    def test_gcp_bucket_to_dataset(self, mock_bigquery):
+    @patch("nise.upload.storage")
+    def test_gcp_bucket_to_dataset(self, mock_storage, mock_bigquery):
         """Test creation of bigquery dataset from file in gcp storage"""
         bucket_name = fake.slug()
         local_path = fake.file_path()
