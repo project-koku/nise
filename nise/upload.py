@@ -284,6 +284,12 @@ def gcp_bucket_to_dataset(gcp_bucket_name, file_name, dataset_name, table_name):
         # waits for the job to finish, will raise an exception if it doesnt work
         load_job.result()
 
+        # after the table is created, delete the file from the storage bucket
+        storage_client = storage.Client()
+        bucket = storage_client.bucket(gcp_bucket_name)
+        blob = bucket.blob(file_name)
+        blob.delete()
+
         LOG.info(f"Dataset {dataset_name} created in GCP bigquery under the table name {table_name}.")
     except GoogleCloudError as upload_err:
         LOG.error(upload_err)
