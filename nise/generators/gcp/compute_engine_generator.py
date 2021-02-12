@@ -15,6 +15,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """Module for gcp compute engine data generation."""
+from datetime import datetime
 from random import choice
 from random import uniform
 
@@ -184,7 +185,9 @@ class JSONLComputeEngineGenerator(ComputeEngineGenerator):
         row["currency"] = "USD"
         row["currency_conversion_rate"] = 1
         invoice = {}
-        invoice["month"] = f"{self.start_date.year}{self.start_date.strftime('%m')}"
+        year = datetime.strptime(row.get("usage_start_time"), "%Y-%m-%dT%H:%M:%S").year
+        month = datetime.strptime(row.get("usage_start_time"), "%Y-%m-%dT%H:%M:%S").month
+        invoice["month"] = f"{year}{month:02d}"
         row["invoice"] = invoice
 
         if self.attributes:
