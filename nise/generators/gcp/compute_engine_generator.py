@@ -76,7 +76,7 @@ class ComputeEngineGenerator(GCPGenerator):
 
         # All upper and lower bound values were estimated for each unit
         if usage_unit == "byte-seconds":
-            amount = self.fake.pyint(min_value=10000000000, max_value=10000000000000)
+            amount = self.fake.pyint(min_value=1000, max_value=100000)
             row["usage.amount"] = amount
             if pricing_unit == "gibibyte month":
                 row["usage.amount_in_pricing_units"] = amount * 0.00244752
@@ -162,7 +162,7 @@ class JSONLComputeEngineGenerator(ComputeEngineGenerator):
 
         # All upper and lower bound values were estimated for each unit
         if usage_unit == "byte-seconds":
-            amount = self.fake.pyint(min_value=10000000000, max_value=10000000000000)
+            amount = self.fake.pyint(min_value=1000, max_value=100000)
             usage["amount"] = amount
             if pricing_unit == "gibibyte month":
                 usage["amount_in_pricing_units"] = amount * 0.00244752

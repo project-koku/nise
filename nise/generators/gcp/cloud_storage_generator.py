@@ -17,7 +17,6 @@
 """Generator for GCP storage cost."""
 from datetime import datetime
 from random import choice
-from random import randint
 from random import uniform
 
 from nise.generators.gcp.gcp_generator import GCP_REPORT_COLUMNS_JSONL
@@ -62,16 +61,11 @@ class CloudStorageGenerator(GCPGenerator):
         row["usage.amount"] = 0
 
         # All upper and lower bound values were estimated for each unit
-        if usage_unit == "bytes":
-            amount = self.fake.pyint(min_value=1000, max_value=10000000)
+        if usage_unit == "byte-seconds":
+            amount = self.fake.pyint(min_value=1000, max_value=100000)
             row["usage.amount"] = amount
-            if pricing_unit == "gibibyte":
-                row["usage.amount_in_pricing_units"] = amount * (9.31323 * 10 ** -0)
-        elif usage_unit == "requests":
-            amount = randint(0, 10)
-            row["usage.amount"] = amount
-            row["usage.amount_in_pricing_units"] = amount
-
+            if pricing_unit == "gibibyte month":
+                row["usage.amount_in_pricing_units"] = amount * 0.00244752
         row["credits"] = "[]"
         row["cost_type"] = "regular"
         row["currency"] = "USD"
@@ -131,7 +125,7 @@ class JSONLCloudStorageGenerator(CloudStorageGenerator):
 
         # All upper and lower bound values were estimated for each unit
         if usage_unit == "byte-seconds":
-            amount = self.fake.pyint(min_value=10000000000, max_value=10000000000000)
+            amount = self.fake.pyint(min_value=1000, max_value=100000)
             usage["amount"] = amount
             if pricing_unit == "gibibyte month":
                 usage["amount_in_pricing_units"] = amount * 0.00244752
