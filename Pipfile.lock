@@ -172,14 +172,11 @@
             "version": "==6.1.1"
         },
         "google-api-core": {
-            "extras": [
-                "grpc"
-            ],
             "hashes": [
-                "sha256:0f1dee446db2685863c3c493a90fefa5fc7f4defaf8e1a320b50ccaddfb5d469",
-                "sha256:a7f5794446a22ff7d36764959ba5f319f37628faf4da04fdc0dedf1598b556c1"
+                "sha256:002e44c533299aecd9dd265d200f9eacd9957cddd2c72e2cd1cb5cea127e972d",
+                "sha256:4230ec764d48ca934fe69b85cc217e31e844e176f68df93e252acd55350e730b"
             ],
-            "version": "==1.24.1"
+            "version": "==1.26.0"
         },
         "google-auth": {
             "hashes": [
