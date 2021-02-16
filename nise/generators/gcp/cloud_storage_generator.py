@@ -61,11 +61,10 @@ class CloudStorageGenerator(GCPGenerator):
         row["usage.amount"] = 0
 
         # All upper and lower bound values were estimated for each unit
-        if usage_unit == "byte-seconds":
-            amount = self.fake.pyint(min_value=1000, max_value=100000)
-            row["usage.amount"] = amount
-            if pricing_unit == "gibibyte month":
-                row["usage.amount_in_pricing_units"] = amount * 0.00244752
+        # Currently our only usage unit & pricing unit is bytes-seconds & gibibyte month
+        amount = self.fake.pyint(min_value=1000, max_value=100000)
+        row["usage.amount"] = amount
+        row["usage.amount_in_pricing_units"] = amount * 0.00244752
         row["credits"] = "[]"
         row["cost_type"] = "regular"
         row["currency"] = "USD"
