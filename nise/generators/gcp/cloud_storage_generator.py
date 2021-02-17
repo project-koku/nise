@@ -62,7 +62,12 @@ class CloudStorageGenerator(GCPGenerator):
 
         # All upper and lower bound values were estimated for each unit
         # Currently our only usage unit & pricing unit is bytes-seconds & gibibyte month
-        amount = self.fake.pyint(min_value=1000, max_value=100000)
+        if self.attributes:
+            if self.attributes.get("usage.amount"):
+                amount = self.attributes.get("usage.amount")
+                amount_defined = True
+        if not amount_defined:
+            amount = self.fake.pyint(min_value=1000, max_value=100000)
         row["usage.amount"] = amount
         row["usage.amount_in_pricing_units"] = amount * 0.00244752
         row["credits"] = "[]"
@@ -120,26 +125,14 @@ class JSONLCloudStorageGenerator(CloudStorageGenerator):
         usage["pricing_unit"] = pricing_unit
         row["labels"] = choice(self.LABELS)
         row["system_labels"] = choice(self.SYSTEM_LABELS)
-        usage["amount"] = 0
-
-        # All upper and lower bound values were estimated for each unit
-        if usage_unit == "byte-seconds":
-            amount = self.fake.pyint(min_value=1000, max_value=100000)
-            usage["amount"] = amount
-            if pricing_unit == "gibibyte month":
-                usage["amount_in_pricing_units"] = amount * 0.00244752
-            elif pricing_unit == "gibibyte hour":
-                usage["amount_in_pricing_units"] = amount * (3.3528 * 10 ** -6)
-        elif usage_unit == "bytes":
-            amount = self.fake.pyint(min_value=1000, max_value=10000000)
-            usage["amount"] = amount
-            if pricing_unit == "gibibyte":
-                usage["amount_in_pricing_units"] = amount * (9.31323 * 10 ** -0)
-        elif usage_unit == "seconds":
-            amount = self.fake.pyfloat(max_value=3600, positive=True)
-            usage["amount"] = amount
-            if pricing_unit == "hour":
-                usage["amount_in_pricing_units"] = amount / 3600.00
+        if self.attributes:
+            if self.attributes.get("usage.amount"):
+                amount = self.attributes.get("usage.amount")
+                amount_defined = True
+            if not amount_defined:
+                amount = self.fake.pyint(min_value=1000, max_value=100000)
+        usage["amount"] = amount
+        usage["amount_in_pricing_units"] = amount * 0.00244752
 
         row["usage"] = usage
         row["credits"] = {}
