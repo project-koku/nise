@@ -75,7 +75,7 @@ class ComputeEngineGenerator(GCPGenerator):
         amount_defined = False
         if self.attributes:
             if self.attributes.get("usage.amount"):
-                amount = self.attributes.get("usage.amount")
+                amount = float(self.attributes.get("usage.amount"))
                 amount_defined = True
 
         # All upper and lower bound values were estimated for each unit
@@ -169,7 +169,7 @@ class JSONLComputeEngineGenerator(ComputeEngineGenerator):
         amount_defined = False
         if self.attributes:
             if self.attributes.get("usage.amount"):
-                amount = self.attributes.get("usage.amount")
+                amount = float(self.attributes.get("usage.amount"))
                 amount_defined = True
 
         # All upper and lower bound values were estimated for each unit

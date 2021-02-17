@@ -65,7 +65,7 @@ class CloudStorageGenerator(GCPGenerator):
         amount_defined = False
         if self.attributes:
             if self.attributes.get("usage.amount"):
-                amount = self.attributes.get("usage.amount")
+                amount = float(self.attributes.get("usage.amount"))
                 amount_defined = True
         if not amount_defined:
             amount = self.fake.pyint(min_value=1000, max_value=100000)
@@ -130,10 +130,10 @@ class JSONLCloudStorageGenerator(CloudStorageGenerator):
         amount_defined = False
         if self.attributes:
             if self.attributes.get("usage.amount"):
-                amount = self.attributes.get("usage.amount")
+                amount = float(self.attributes.get("usage.amount"))
                 amount_defined = True
-            if not amount_defined:
-                amount = self.fake.pyint(min_value=1000, max_value=100000)
+        if not amount_defined:
+            amount = self.fake.pyint(min_value=1000, max_value=100000)
         usage["amount"] = amount
         usage["amount_in_pricing_units"] = amount * 0.00244752
 
