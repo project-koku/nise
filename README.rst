@@ -70,7 +70,7 @@ Publishing
 
 Please remember to sync your updated dependecies to setup.py with ::
 
-    pipenv-setup sync
+    pipenv-setup sync -p
 
 After that, make sure to increment the version in setup.py. As soon as your PR is merged to master, a new koku-nise package will built, tagged, and deployed to PyPI.
 
