@@ -127,6 +127,7 @@ class JSONLCloudStorageGenerator(CloudStorageGenerator):
         usage["pricing_unit"] = pricing_unit
         row["labels"] = choice(self.LABELS)
         row["system_labels"] = choice(self.SYSTEM_LABELS)
+        amount_defined = False
         if self.attributes:
             if self.attributes.get("usage.amount"):
                 amount = self.attributes.get("usage.amount")
