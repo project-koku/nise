@@ -59,9 +59,10 @@ class CloudStorageGenerator(GCPGenerator):
         row["labels"] = choice(self.LABELS)
         row["system_labels"] = choice(self.SYSTEM_LABELS)
         row["usage.amount"] = 0
-        amount = self._gen_usage_unit_amount(usage_unit)
         if self.attributes and self.attributes.get("usage.amount"):
             amount = self.attributes.get("usage.amount")
+        else:
+            amount = self._gen_usage_unit_amount(usage_unit)
         row["usage.amount"] = amount
         row["usage.amount_in_pricing_units"] = self._gen_pricing_unit_amount(pricing_unit, amount)
         row["credits"] = "[]"
@@ -120,9 +121,10 @@ class JSONLCloudStorageGenerator(CloudStorageGenerator):
         usage["pricing_unit"] = pricing_unit
         row["labels"] = choice(self.LABELS)
         row["system_labels"] = choice(self.SYSTEM_LABELS)
-        amount = self._gen_usage_unit_amount(usage_unit)
         if self.attributes and self.attributes.get("usage.amount"):
             amount = self.attributes.get("usage.amount")
+        else:
+            amount = self._gen_usage_unit_amount(usage_unit)
         row["usage.amount"] = amount
         row["usage.amount_in_pricing_units"] = self._gen_pricing_unit_amount(pricing_unit, amount)
         row["usage"] = usage
