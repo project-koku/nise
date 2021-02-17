@@ -160,13 +160,13 @@ class GCPGenerator(AbstractGenerator):
     def _gen_pricing_unit_amount(self, pricing_unit, amount):
         """Generate the correct amount in pricing units."""
         if pricing_unit == "gibibyte month":
-            row["usage.amount_in_pricing_units"] = amount * 0.00244752
+            return amount * 0.00244752
         if pricing_unit == "gibibyte hour":
-            row["usage.amount_in_pricing_units"] = amount * (3.3528 * 10 ** -6)
+            return amount * (3.3528 * 10 ** -6)
         if pricing_unit == "gibibyte":
-            row["usage.amount_in_pricing_units"] = amount * (9.31323 * 10 ** -0)
+            return amount * (9.31323 * 10 ** -0)
         if pricing_unit == "hour":
-                row["usage.amount_in_pricing_units"] = amount / 3600.00
+            return amount / 3600.00
         return 0
 
 
