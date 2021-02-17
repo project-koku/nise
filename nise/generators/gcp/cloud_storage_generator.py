@@ -59,18 +59,11 @@ class CloudStorageGenerator(GCPGenerator):
         row["labels"] = choice(self.LABELS)
         row["system_labels"] = choice(self.SYSTEM_LABELS)
         row["usage.amount"] = 0
-
-        # All upper and lower bound values were estimated for each unit
-        # Currently our only usage unit & pricing unit is bytes-seconds & gibibyte month
-        amount_defined = False
-        if self.attributes:
-            if self.attributes.get("usage.amount"):
-                amount = float(self.attributes.get("usage.amount"))
-                amount_defined = True
-        if not amount_defined:
-            amount = self.fake.pyint(min_value=1000, max_value=100000)
+        amount = self._gen_usage_unit_amount(usage_unit)
+        if self.attributes and self.attributes.get("usage.amount"):
+            amount = self.attributes.get("usage.amount")
         row["usage.amount"] = amount
-        row["usage.amount_in_pricing_units"] = amount * 0.00244752
+        row["usage.amount_in_pricing_units"] = self._gen_pricing_unit_amount(pricing_unit, amount)
         row["credits"] = "[]"
         row["cost_type"] = "regular"
         row["currency"] = "USD"
@@ -127,16 +120,11 @@ class JSONLCloudStorageGenerator(CloudStorageGenerator):
         usage["pricing_unit"] = pricing_unit
         row["labels"] = choice(self.LABELS)
         row["system_labels"] = choice(self.SYSTEM_LABELS)
-        amount_defined = False
-        if self.attributes:
-            if self.attributes.get("usage.amount"):
-                amount = float(self.attributes.get("usage.amount"))
-                amount_defined = True
-        if not amount_defined:
-            amount = self.fake.pyint(min_value=1000, max_value=100000)
-        usage["amount"] = amount
-        usage["amount_in_pricing_units"] = amount * 0.00244752
-
+        amount = self._gen_usage_unit_amount(usage_unit)
+        if self.attributes and self.attributes.get("usage.amount"):
+            amount = self.attributes.get("usage.amount")
+        row["usage.amount"] = amount
+        row["usage.amount_in_pricing_units"] = self._gen_pricing_unit_amount(pricing_unit, amount)
         row["usage"] = usage
         row["credits"] = {}
         row["cost_type"] = "regular"

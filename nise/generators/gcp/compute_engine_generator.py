@@ -72,34 +72,11 @@ class ComputeEngineGenerator(GCPGenerator):
         row["usage.pricing_unit"] = pricing_unit
         row["labels"] = choice(self.LABELS)
         row["system_labels"] = choice(self.SYSTEM_LABELS)
-        amount_defined = False
-        if self.attributes:
-            if self.attributes.get("usage.amount"):
-                amount = float(self.attributes.get("usage.amount"))
-                amount_defined = True
-
-        # All upper and lower bound values were estimated for each unit
-        if usage_unit == "byte-seconds":
-            if not amount_defined:
-                amount = self.fake.pyint(min_value=1000, max_value=100000)
-            row["usage.amount"] = amount
-            if pricing_unit == "gibibyte month":
-                row["usage.amount_in_pricing_units"] = amount * 0.00244752
-            elif pricing_unit == "gibibyte hour":
-                row["usage.amount_in_pricing_units"] = amount * (3.3528 * 10 ** -6)
-        elif usage_unit == "bytes":
-            if not amount_defined:
-                amount = self.fake.pyint(min_value=1000, max_value=10000000)
-            row["usage.amount"] = amount
-            if pricing_unit == "gibibyte":
-                row["usage.amount_in_pricing_units"] = amount * (9.31323 * 10 ** -0)
-        elif usage_unit == "seconds":
-            if not amount_defined:
-                amount = self.fake.pyfloat(max_value=3600, positive=True)
-            row["usage.amount"] = amount
-            if pricing_unit == "hour":
-                row["usage.amount_in_pricing_units"] = amount / 3600.00
-
+        amount = self._gen_usage_unit_amount(usage_unit)
+        if self.attributes and self.attributes.get("usage.amount"):
+            amount = self.attributes.get("usage.amount")
+        row["usage.amount"] = amount
+        row["usage.amount_in_pricing_units"] = self._gen_pricing_unit_amount(pricing_unit, amount)
         row["credits"] = "[]"
         row["cost_type"] = "regular"
         row["currency"] = "USD"
@@ -166,34 +143,11 @@ class JSONLComputeEngineGenerator(ComputeEngineGenerator):
         usage["pricing_unit"] = pricing_unit
         row["labels"] = choice(self.LABELS)
         row["system_labels"] = choice(self.SYSTEM_LABELS)
-        amount_defined = False
-        if self.attributes:
-            if self.attributes.get("usage.amount"):
-                amount = float(self.attributes.get("usage.amount"))
-                amount_defined = True
-
-        # All upper and lower bound values were estimated for each unit
-        if usage_unit == "byte-seconds":
-            if not amount_defined:
-                amount = self.fake.pyint(min_value=1000, max_value=100000)
-            usage["amount"] = amount
-            if pricing_unit == "gibibyte month":
-                usage["amount_in_pricing_units"] = amount * 0.00244752
-            elif pricing_unit == "gibibyte hour":
-                usage["amount_in_pricing_units"] = amount * (3.3528 * 10 ** -6)
-        elif usage_unit == "bytes":
-            if not amount_defined:
-                amount = self.fake.pyint(min_value=1000, max_value=10000000)
-            usage["amount"] = amount
-            if pricing_unit == "gibibyte":
-                usage["amount_in_pricing_units"] = amount * (9.31323 * 10 ** -0)
-        elif usage_unit == "seconds":
-            if not amount_defined:
-                amount = self.fake.pyfloat(max_value=3600, positive=True)
-            usage["amount"] = amount
-            if pricing_unit == "hour":
-                usage["amount_in_pricing_units"] = amount / 3600.00
-
+        amount = self._gen_usage_unit_amount(usage_unit)
+        if self.attributes and self.attributes.get("usage.amount"):
+            amount = self.attributes.get("usage.amount")
+        usage["amount"] = amount
+        usage["amount_in_pricing_units"] = self._gen_pricing_unit_amount(pricing_unit, amount)
         row["usage"] = usage
         row["credits"] = {}
         row["cost_type"] = "regular"

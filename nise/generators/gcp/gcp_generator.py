@@ -146,6 +146,30 @@ class GCPGenerator(AbstractGenerator):
         row.update(self.project)
         return row
 
+    def _gen_usage_unit_amount(self, usage_unit):
+        """Generate the correct amount for usage unit."""
+        # All upper and lower bound values were estimated for each unit
+        if usage_unit == "byte-seconds":
+            return self.fake.pyint(min_value=1000, max_value=100000)
+        if usage_unit == "bytes":
+            return self.fake.pyint(min_value=1000, max_value=10000000)
+        if usage_unit == "seconds":
+            return self.fake.pyfloat(max_value=3600, positive=True)
+        return 0
+
+    def _gen_pricing_unit_amount(self, pricing_unit, amount):
+        """Generate the correct amount in pricing units."""
+        if pricing_unit == "gibibyte month":
+            row["usage.amount_in_pricing_units"] = amount * 0.00244752
+        if pricing_unit == "gibibyte hour":
+            row["usage.amount_in_pricing_units"] = amount * (3.3528 * 10 ** -6)
+        if pricing_unit == "gibibyte":
+            row["usage.amount_in_pricing_units"] = amount * (9.31323 * 10 ** -0)
+        if pricing_unit == "hour":
+                row["usage.amount_in_pricing_units"] = amount / 3600.00
+        return 0
+
+
     def _add_common_usage_info(self, row, start, end, **kwargs):
         """Not needed for GCP."""
 
