@@ -125,8 +125,8 @@ class JSONLCloudStorageGenerator(CloudStorageGenerator):
             amount = self.attributes.get("usage.amount")
         else:
             amount = self._gen_usage_unit_amount(usage_unit)
-        row["usage.amount"] = amount
-        row["usage.amount_in_pricing_units"] = self._gen_pricing_unit_amount(pricing_unit, amount)
+        usage["amount"] = amount
+        usage["amount_in_pricing_units"] = self._gen_pricing_unit_amount(pricing_unit, amount)
         row["usage"] = usage
         row["credits"] = {}
         row["cost_type"] = "regular"
