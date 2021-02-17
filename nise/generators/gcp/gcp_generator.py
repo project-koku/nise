@@ -169,7 +169,6 @@ class GCPGenerator(AbstractGenerator):
             return amount / 3600.00
         return 0
 
-
     def _add_common_usage_info(self, row, start, end, **kwargs):
         """Not needed for GCP."""
 

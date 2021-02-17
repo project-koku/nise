@@ -28,8 +28,6 @@ class TestGCPGenerator(TestCase):
             "cost": fake.pyint(),
             "currency": fake.currency_code(),
             "currency_conversion_rate": 1,
-            "usage.amount": fake.pydecimal(positive=True),
-            "usage.unit": fake.word(),
             "cost_type": "regular",
         }
         self.now = datetime.now().replace(microsecond=0, second=0, minute=0)
