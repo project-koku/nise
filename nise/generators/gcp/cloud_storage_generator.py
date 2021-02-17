@@ -62,6 +62,7 @@ class CloudStorageGenerator(GCPGenerator):
 
         # All upper and lower bound values were estimated for each unit
         # Currently our only usage unit & pricing unit is bytes-seconds & gibibyte month
+        amount_defined = False
         if self.attributes:
             if self.attributes.get("usage.amount"):
                 amount = self.attributes.get("usage.amount")
@@ -74,7 +75,8 @@ class CloudStorageGenerator(GCPGenerator):
         row["cost_type"] = "regular"
         row["currency"] = "USD"
         row["currency_conversion_rate"] = 1
-        row["invoice.month"] = f"{self.start_date.year}{self.start_date.month}"
+        usage_date = datetime.strptime(row.get("usage_start_time"), "%Y-%m-%dT%H:%M:%S")
+        row["invoice.month"] = f"{usage_date.year}{usage_date.month:02d}"
 
         if self.attributes:
             for key in self.attributes:
