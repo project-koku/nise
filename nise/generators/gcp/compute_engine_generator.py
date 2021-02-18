@@ -180,7 +180,7 @@ class JSONLComputeEngineGenerator(ComputeEngineGenerator):
             for key in self.attributes:
                 if key in self.column_labels:
                     row[key] = self.attributes[key]
-        if row["usage.pricing_unit"] == "hour":
+        if pricing_unit == "hour":
             row["system_labels"] = self.SYSTEM_LABELS[0]
         else:
             row["system_labels"] = self.SYSTEM_LABELS[1]
