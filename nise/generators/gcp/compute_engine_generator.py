@@ -29,13 +29,10 @@ class ComputeEngineGenerator(GCPGenerator):
     SERVICE = ("Compute Engine", "6F81-5844-456A")  # Service Description and Service ID
 
     SKU = (  # (ID, Description, Usage Unit, Pricing Unit)
-        ("C0CF-3E3B-57FB", "Licensing Fee for Debian 10 Buster (CPU cost)", "seconds", "hour"),
+        ("CF4E-A0C7-E3BF", "Instance Core running in Americas", "seconds", "hour"),
         ("D973-5D65-BAB2", "Storage PD Capacity", "byte-seconds", "gibibyte month"),
         ("D0CC-50DF-59D2", "Network Inter Zone Ingress", "bytes", "gibibyte"),
         ("F449-33EC-A5EF", "E2 Instance Ram running in Americas", "byte-seconds", "gibibyte hour"),
-        ("C054-7F72-A02E", "External IP Charge on a Standard VM", "seconds", "hour"),
-        ("CF4E-A0C7-E3BF", "E2 Instance Core running in Americas", "seconds", "hour"),
-        ("0C5C-D8E4-38C1", "Licensing Fee for Debian 10 Buster (CPU cost)", "seconds", "hour"),
         ("CD20-B4CA-0F7C", "Licensing Fee for Debian 10 Buster (RAM cost)", "byte-seconds", "gibiyte hour"),
         ("6B8F-E63D-832B", "Network Internet Egress from Americas to APAC", "bytes", "gibibyte"),
         ("DFA5-B5C6-36D6", "Network Internet Egress from Americas to EMEA", "bytes", "gibibyte"),
@@ -126,7 +123,7 @@ class JSONLComputeEngineGenerator(ComputeEngineGenerator):
 
     def _update_data(self, row):  # noqa: C901
         """Update a data row with compute values."""
-        row["system_labels"] = ([])
+        row["system_labels"] = []
         sku_choice = self._determine_sku()
         service = {}
         service["description"] = self.SERVICE[0]
@@ -166,7 +163,7 @@ class JSONLComputeEngineGenerator(ComputeEngineGenerator):
                     row[key] = self.attributes[key]
         if pricing_unit == "hour":
             instance_type = self.attributes.get("instance_type")
-            row["system_labels"] =  self.determine_system_labels(instance_type, return_list=True)
+            row["system_labels"] = self.determine_system_labels(instance_type, return_list=True)
         return row
 
     def generate_data(self, report_type=None):

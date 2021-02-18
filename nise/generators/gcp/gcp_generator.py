@@ -17,11 +17,10 @@
 """Abstract class for gcp data generation."""
 import datetime
 from abc import abstractmethod
+from random import choice
 from random import randint
 
 from nise.generators.generator import AbstractGenerator
-
-from random import choice
 
 GCP_REPORT_COLUMNS = (
     "billing_account_id",
@@ -74,12 +73,8 @@ GCP_REPORT_COLUMNS_JSONL = (
     "cost_type",
 )
 
-GCP_INSTANCE_TYPES = (
-    "e2-medium",
-    "n1-standard-4",
-    "m2-megamem-416",
-    "a2-highgpu-1g"
-)
+GCP_INSTANCE_TYPES = ("e2-medium", "n1-standard-4", "m2-megamem-416", "a2-highgpu-1g")
+
 
 class GCPGenerator(AbstractGenerator):
     """Abstract class for GCP generators."""
@@ -182,9 +177,9 @@ class GCPGenerator(AbstractGenerator):
         if not instance_type:
             instance_type = choice(GCP_INSTANCE_TYPES)
         system_label_format = [
-                {"key": "compute.googleapis.com/cores", "value": "2"},
-                {"key": "compute.googleapis.com/machine_spec", "value": instance_type},
-                {"key": "compute.googleapis.com/memory", "value": "4096"}
+            {"key": "compute.googleapis.com/cores", "value": "2"},
+            {"key": "compute.googleapis.com/machine_spec", "value": instance_type},
+            {"key": "compute.googleapis.com/memory", "value": "4096"},
         ]
         if return_list:
             return system_label_format
