@@ -51,14 +51,8 @@ class ComputeEngineGenerator(GCPGenerator):
 
     LABELS = (("[{'key': 'vm_key_proj2', 'value': 'vm_label_proj2'}]"), ("[]"))
 
-    SYSTEM_LABELS = (
-        (
-            """[{'key': 'compute.googleapis.com/cores', 'value': '2'}, {'key': 'compute.googleapis.com/machine_spec', 'value': 'e2-medium'}, {'key': 'compute.googleapis.com/memory', 'value': '4096'}]"""  # noqa: E501
-        ),
-        ("[]"),
-    )
-
     def _determine_sku(self):
+        """Determines which sku to use based on the pricing unit."""
         if self.attributes and self.attributes.get("usage.pricing_unit"):
             for sku in self.SKU:
                 if self.attributes.get("usage.pricing_unit") == sku[3]:
@@ -68,6 +62,7 @@ class ComputeEngineGenerator(GCPGenerator):
     def _update_data(self, row):  # noqa: C901
         """Update a data row with compute values."""
         sku = self._determine_sku()
+        row["system_labels"] = "[]"
         row["service.description"] = self.SERVICE[0]
         row["service.id"] = self.SERVICE[1]
         row["sku.id"] = sku[0]
@@ -95,9 +90,8 @@ class ComputeEngineGenerator(GCPGenerator):
                 if key in self.column_labels:
                     row[key] = self.attributes[key]
         if row["usage.pricing_unit"] == "hour":
-            row["system_labels"] = self.SYSTEM_LABELS[0]
-        else:
-            row["system_labels"] = self.SYSTEM_LABELS[1]
+            instance_type = self.attributes.get("instance_type")
+            row["system_labels"] = self.determine_system_labels(instance_type)
         return row
 
     def generate_data(self, report_type=None):
@@ -119,17 +113,6 @@ class JSONLComputeEngineGenerator(ComputeEngineGenerator):
 
     LABELS = (([{"key": "vm_key_proj2", "value": "vm_label_proj2"}]), ([]))
 
-    SYSTEM_LABELS = (
-        (
-            [
-                {"key": "compute.googleapis.com/cores", "value": "2"},
-                {"key": "compute.googleapis.com/machine_spec", "value": "e2-medium"},
-                {"key": "compute.googleapis.com/memory", "value": "4096"},
-            ]
-        ),
-        ([]),
-    )
-
     def __init__(self, start_date, end_date, project, attributes=None):
         super().__init__(start_date, end_date, project, attributes)
         self.column_labels = GCP_REPORT_COLUMNS_JSONL
@@ -143,6 +126,7 @@ class JSONLComputeEngineGenerator(ComputeEngineGenerator):
 
     def _update_data(self, row):  # noqa: C901
         """Update a data row with compute values."""
+        row["system_labels"] = ([])
         sku_choice = self._determine_sku()
         service = {}
         service["description"] = self.SERVICE[0]
@@ -181,9 +165,8 @@ class JSONLComputeEngineGenerator(ComputeEngineGenerator):
                 if key in self.column_labels:
                     row[key] = self.attributes[key]
         if pricing_unit == "hour":
-            row["system_labels"] = self.SYSTEM_LABELS[0]
-        else:
-            row["system_labels"] = self.SYSTEM_LABELS[1]
+            instance_type = self.attributes.get("instance_type")
+            row["system_labels"] =  self.determine_system_labels(instance_type, return_list=True)
         return row
 
     def generate_data(self, report_type=None):
