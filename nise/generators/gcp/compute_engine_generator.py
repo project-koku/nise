@@ -87,7 +87,9 @@ class ComputeEngineGenerator(GCPGenerator):
                 if key in self.column_labels:
                     row[key] = self.attributes[key]
         if row["usage.pricing_unit"] == "hour":
-            instance_type = self.attributes.get("instance_type")
+            instance_type = None
+            if self.attributes and self.attributes.get("instance_type"):
+                instance_type = self.attributes.get("instance_type")
             row["system_labels"] = self.determine_system_labels(instance_type)
         return row
 
@@ -162,7 +164,9 @@ class JSONLComputeEngineGenerator(ComputeEngineGenerator):
                 if key in self.column_labels:
                     row[key] = self.attributes[key]
         if pricing_unit == "hour":
-            instance_type = self.attributes.get("instance_type")
+            instance_type = None
+            if self.attributes and self.attributes.get("instance_type"):
+                instance_type = self.attributes.get("instance_type")
             row["system_labels"] = self.determine_system_labels(instance_type, return_list=True)
         return row
 
