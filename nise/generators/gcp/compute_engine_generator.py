@@ -29,12 +29,12 @@ class ComputeEngineGenerator(GCPGenerator):
     SERVICE = ("Compute Engine", "6F81-5844-456A")  # Service Description and Service ID
 
     SKU = (  # (ID, Description, Usage Unit, Pricing Unit)
+        ("C0CF-3E3B-57FB", "Licensing Fee for Debian 10 Buster (CPU cost)", "seconds", "hour"),
         ("D973-5D65-BAB2", "Storage PD Capacity", "byte-seconds", "gibibyte month"),
         ("D0CC-50DF-59D2", "Network Inter Zone Ingress", "bytes", "gibibyte"),
         ("F449-33EC-A5EF", "E2 Instance Ram running in Americas", "byte-seconds", "gibibyte hour"),
         ("C054-7F72-A02E", "External IP Charge on a Standard VM", "seconds", "hour"),
         ("CF4E-A0C7-E3BF", "E2 Instance Core running in Americas", "seconds", "hour"),
-        ("C0CF-3E3B-57FB", "Licensing Fee for Debian 10 Buster (CPU cost)", "seconds", "hour"),
         ("0C5C-D8E4-38C1", "Licensing Fee for Debian 10 Buster (CPU cost)", "seconds", "hour"),
         ("CD20-B4CA-0F7C", "Licensing Fee for Debian 10 Buster (RAM cost)", "byte-seconds", "gibiyte hour"),
         ("6B8F-E63D-832B", "Network Internet Egress from Americas to APAC", "bytes", "gibibyte"),
@@ -58,9 +58,16 @@ class ComputeEngineGenerator(GCPGenerator):
         ("[]"),
     )
 
+    def _determine_sku(self):
+        if self.attributes and self.attributes.get("usage.pricing_unit"):
+            for sku in self.SKU:
+                if self.attributes.get("usage.pricing_unit") == sku[3]:
+                    return sku
+        return choice(self.SKU)
+
     def _update_data(self, row):  # noqa: C901
         """Update a data row with compute values."""
-        sku = choice(self.SKU)
+        sku = self._determine_sku()
         row["service.description"] = self.SERVICE[0]
         row["service.id"] = self.SERVICE[1]
         row["sku.id"] = sku[0]
@@ -71,7 +78,6 @@ class ComputeEngineGenerator(GCPGenerator):
         row["usage.unit"] = usage_unit
         row["usage.pricing_unit"] = pricing_unit
         row["labels"] = choice(self.LABELS)
-        row["system_labels"] = choice(self.SYSTEM_LABELS)
         if self.attributes and self.attributes.get("usage.amount"):
             amount = self.attributes.get("usage.amount")
         else:
@@ -84,11 +90,14 @@ class ComputeEngineGenerator(GCPGenerator):
         row["currency_conversion_rate"] = 1
         usage_date = datetime.strptime(row.get("usage_start_time"), "%Y-%m-%dT%H:%M:%S")
         row["invoice.month"] = f"{usage_date.year}{usage_date.month:02d}"
-
         if self.attributes:
             for key in self.attributes:
                 if key in self.column_labels:
                     row[key] = self.attributes[key]
+        if row["usage.pricing_unit"] == "hour":
+            row["system_labels"] = self.SYSTEM_LABELS[0]
+        else:
+            row["system_labels"] = self.SYSTEM_LABELS[1]
         return row
 
     def generate_data(self, report_type=None):
@@ -125,9 +134,16 @@ class JSONLComputeEngineGenerator(ComputeEngineGenerator):
         super().__init__(start_date, end_date, project, attributes)
         self.column_labels = GCP_REPORT_COLUMNS_JSONL
 
+    def _determine_sku(self):
+        if self.attributes and self.attributes.get("usage.pricing_unit"):
+            for sku in self.SKU:
+                if self.attributes.get("usage.pricing_unit") == sku[3]:
+                    return sku
+        return choice(self.SKU)
+
     def _update_data(self, row):  # noqa: C901
         """Update a data row with compute values."""
-        sku_choice = choice(self.SKU)
+        sku_choice = self._determine_sku()
         service = {}
         service["description"] = self.SERVICE[0]
         service["id"] = self.SERVICE[1]
@@ -143,7 +159,6 @@ class JSONLComputeEngineGenerator(ComputeEngineGenerator):
         usage["unit"] = usage_unit
         usage["pricing_unit"] = pricing_unit
         row["labels"] = choice(self.LABELS)
-        row["system_labels"] = choice(self.SYSTEM_LABELS)
         if self.attributes and self.attributes.get("usage.amount"):
             amount = self.attributes.get("usage.amount")
         else:
@@ -165,6 +180,10 @@ class JSONLComputeEngineGenerator(ComputeEngineGenerator):
             for key in self.attributes:
                 if key in self.column_labels:
                     row[key] = self.attributes[key]
+        if row["usage.pricing_unit"] == "hour":
+            row["system_labels"] = self.SYSTEM_LABELS[0]
+        else:
+            row["system_labels"] = self.SYSTEM_LABELS[1]
         return row
 
     def generate_data(self, report_type=None):
