@@ -100,16 +100,7 @@ class ComputeEngineGenerator(GCPGenerator):
 
     def generate_data(self, report_type=None):
         """Generate GCP compute data for some days."""
-        days = self._create_days_list(self.start_date, self.end_date)
-        data = {}
-        for day in days:
-            rows = []
-            for _ in range(self.num_instances):
-                row = self._init_data_row(day["start"], day["end"])
-                row = self._update_data(row)
-                rows.append(row)
-            data[day["start"]] = rows
-        return data
+        return self._generate_hourly_data()
 
 
 class JSONLComputeEngineGenerator(ComputeEngineGenerator):
@@ -185,13 +176,4 @@ class JSONLComputeEngineGenerator(ComputeEngineGenerator):
 
     def generate_data(self, report_type=None):
         """Generate GCP compute data for some days."""
-        days = self._create_days_list(self.start_date, self.end_date)
-        data = {}
-        for day in days:
-            rows = []
-            for _ in range(self.num_instances):
-                row = self._init_data_row(day["start"], day["end"])
-                row = self._update_data(row)
-                rows.append(row)
-            data[day["start"]] = rows
-        return data
+        return self._generate_hourly_data()

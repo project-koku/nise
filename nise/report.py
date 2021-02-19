@@ -876,7 +876,7 @@ def gcp_create_report(options):  # noqa: C901
         project_generator = ProjectGenerator(account)
         projects = project_generator.generate_projects()
 
-    data = {}
+    data = []
     for project in projects:
         num_gens = len(generators)
         ten_percent = int(num_gens * 0.1) if num_gens > 50 else 5
@@ -889,45 +889,19 @@ def gcp_create_report(options):  # noqa: C901
 
             generator_cls = generator.get("generator")
             gen = generator_cls(start_date, end_date, project, attributes=attributes)
-            generated_data = gen.generate_data()
-            for key, item in generated_data.items():
-                if key in data:
-                    data[key] += item
-                else:
-                    data[key] = item
-
+            for hour in gen.generate_data():
+                data += [hour]
             count += 1
             if count % ten_percent == 0:
                 LOG.info(f"Done with {count} of {num_gens} generators.")
 
-    daily_format = options.get("daily_report")
-
     monthly_files = []
-    data_t = []
     if not gcp_dataset_name:
-        # if it is not going to a bigquery table, behave like normal
-        for day, daily_data in data.items():
-            if daily_format:
-                scan_day = day.strftime("%Y-%m-%d")
-                local_file_path, output_file_name = write_gcp_file(scan_day, scan_day, daily_data, options)
-            else:
-                data_t += daily_data
-
-        if not daily_format:
-            local_file_path, output_file_name = write_gcp_file(start_date, end_date, data_t, options)
-            monthly_files.append(local_file_path)
+        local_file_path, output_file_name = write_gcp_file(start_date, end_date, data, options)
+        monthly_files.append(local_file_path)
     else:
-        # else use the jsonl gcp writer
-        for day, daily_data in data.items():
-            if daily_format:
-                scan_day = day.strftime("%Y-%m-%d")
-                local_file_path, output_file_name = write_gcp_file_jsonl(scan_day, scan_day, daily_data, options)
-            else:
-                data_t += daily_data
-
-        if not daily_format:
-            local_file_path, output_file_name = write_gcp_file_jsonl(start_date, end_date, data_t, options)
-            monthly_files.append(local_file_path)
+        local_file_path, output_file_name = write_gcp_file_jsonl(start_date, end_date, data, options)
+        monthly_files.append(local_file_path)
 
     if gcp_bucket_name:
         gcp_route_file(gcp_bucket_name, local_file_path, output_file_name)

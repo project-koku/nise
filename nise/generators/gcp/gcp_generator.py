@@ -133,7 +133,7 @@ class GCPGenerator(AbstractGenerator):
 
         row = {}
         # Initialize the start and end time measured
-        time_bill_start = start + datetime.timedelta(hours=randint(1, 23))
+        time_bill_start = start
         time_bill_end = time_bill_start + datetime.timedelta(hours=1)
         for column in self.column_labels:
             row[column] = ""
@@ -195,3 +195,9 @@ class GCPGenerator(AbstractGenerator):
 
     def _generate_hourly_data(self, **kwargs):
         """Not needed for GCP."""
+        for hour in self.hours:
+            start = hour.get("start")
+            end = hour.get("end")
+            row = self._init_data_row(start, end)
+            row = self._update_data(row)
+            yield row
