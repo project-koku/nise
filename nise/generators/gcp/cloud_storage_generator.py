@@ -152,6 +152,9 @@ class JSONLCloudStorageGenerator(CloudStorageGenerator):
             for key in self.attributes:
                 if key in self.column_labels:
                     row[key] = self.attributes[key]
+                elif key.split(".")[0] in self.column_labels:
+                    outer_key, inner_key = key.split(".")
+                    row[outer_key][inner_key] = self.attributes[key]
         return row
 
     def generate_data(self, report_type=None):
