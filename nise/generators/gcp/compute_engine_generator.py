@@ -64,22 +64,27 @@ class ComputeEngineGenerator(GCPGenerator):
         row["service.id"] = self.SERVICE[1]
         row["sku.id"] = sku[0]
         row["sku.description"] = sku[1]
-        row["cost"] = round(uniform(0, 0.01), 7)
         usage_unit = sku[2]
         pricing_unit = sku[3]
         row["usage.unit"] = usage_unit
         row["usage.pricing_unit"] = pricing_unit
         row["labels"] = choice(self.LABELS)
-        if self.attributes and self.attributes.get("usage.amount"):
-            amount = self.attributes.get("usage.amount")
-        else:
-            amount = self._gen_usage_unit_amount(usage_unit)
-        row["usage.amount"] = amount
-        row["usage.amount_in_pricing_units"] = self._gen_pricing_unit_amount(pricing_unit, amount)
         row["credits"] = "[]"
         row["cost_type"] = "regular"
         row["currency"] = "USD"
         row["currency_conversion_rate"] = 1
+        if self.attributes and self.attributes.get("usage.amount"):
+            row["usage.amount"] = self.attributes.get("usage.amount")
+        else:
+            row["usage.amount"] = self._gen_usage_unit_amount(usage_unit)
+        if self.attributes and self.attributes.get("usage.amount_in_pricing_units"):
+            row["usage.amount_in_pricing_units"] = self.attributes.get("usage.amount_in_pricing_units")
+        else:
+            row["usage.amount_in_pricing_units"] = self._gen_pricing_unit_amount(pricing_unit, row["usage.amount"])
+        if self.attributes and self.attributes.get("price"):
+            row["cost"] = row["usage.amount_in_pricing_units"] * self.attributes.get("price")
+        else:
+            row["cost"] = round(uniform(0, 0.01), 7)
         usage_date = datetime.strptime(row.get("usage_start_time"), "%Y-%m-%dT%H:%M:%S")
         row["invoice.month"] = f"{usage_date.year}{usage_date.month:02d}"
         if self.attributes:
@@ -135,7 +140,6 @@ class JSONLComputeEngineGenerator(ComputeEngineGenerator):
         sku["id"] = sku_choice[0]
         sku["description"] = sku_choice[1]
         row["sku"] = sku
-        row["cost"] = round(uniform(0, 0.01), 7)
         usage_unit = sku_choice[2]
         pricing_unit = sku_choice[3]
         usage = {}
@@ -143,11 +147,17 @@ class JSONLComputeEngineGenerator(ComputeEngineGenerator):
         usage["pricing_unit"] = pricing_unit
         row["labels"] = choice(self.LABELS)
         if self.attributes and self.attributes.get("usage.amount"):
-            amount = self.attributes.get("usage.amount")
+            usage["amount"] = self.attributes.get("usage.amount")
         else:
-            amount = self._gen_usage_unit_amount(usage_unit)
-        usage["amount"] = amount
-        usage["amount_in_pricing_units"] = self._gen_pricing_unit_amount(pricing_unit, amount)
+            usage["amount"] = self._gen_usage_unit_amount(usage_unit)
+        if self.attributes and self.attributes.get("usage.amount_in_pricing_units"):
+            usage["amount_in_pricing_units"] = self.attributes.get("usage.amount_in_pricing_units")
+        else:
+            usage["amount_in_pricing_units"] = self._gen_pricing_unit_amount(pricing_unit, usage["amount"])
+        if self.attributes and self.attributes.get("price"):
+            row["cost"] = usage["amount_in_pricing_units"] * self.attributes.get("price")
+        else:
+            row["cost"] = round(uniform(0, 0.01), 7)
         row["usage"] = usage
         row["credits"] = {}
         row["cost_type"] = "regular"
