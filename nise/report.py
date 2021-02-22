@@ -857,8 +857,7 @@ def gcp_create_report(options):  # noqa: C901
                 {"generator": JSONLCloudStorageGenerator, "attributes": None},
                 {"generator": JSONLComputeEngineGenerator, "attributes": None},
             ]
-            account = "{}-{}".format(fake.word(), fake.word())
-
+            account = fake.word()
             project_generator = JSONLProjectGenerator(account)
             projects = project_generator.generate_projects()
 
@@ -871,7 +870,7 @@ def gcp_create_report(options):  # noqa: C901
             {"generator": CloudStorageGenerator, "attributes": None},
             {"generator": ComputeEngineGenerator, "attributes": None},
         ]
-        account = "{}-{}".format(fake.word(), fake.word())
+        account = fake.word()
 
         project_generator = ProjectGenerator(account)
         projects = project_generator.generate_projects()

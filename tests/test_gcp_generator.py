@@ -38,30 +38,34 @@ class TestGCPGenerator(TestCase):
 
         generator = CloudStorageGenerator(self.yesterday, self.now, self.project, attributes=self.attributes)
         generated_data = generator.generate_data()
-        self.assertEqual(generated_data[self.yesterday][0]["cost"], self.attributes["cost"])
-        self.assertEqual(generated_data[self.yesterday][0]["currency"], self.attributes["currency"])
+        list_data = list(generated_data)
+        self.assertEqual(list_data[0]["cost"], self.attributes["cost"])
+        self.assertEqual(list_data[0]["currency"], self.attributes["currency"])
 
     def test_jsonl_cloud_storage_init_with_attributes(self):  # Cloud storage not currently implemented
         """Test the init with attribute for JSONL Cloud Storage."""
         generator = JSONLCloudStorageGenerator(self.yesterday, self.now, self.project, attributes=self.attributes)
         generated_data = generator.generate_data()
-        self.assertEqual(generated_data[self.yesterday][0]["cost"], self.attributes["cost"])
-        self.assertEqual(generated_data[self.yesterday][0]["currency"], self.attributes["currency"])
+        list_data = list(generated_data)
+        self.assertEqual(list_data[0]["cost"], self.attributes["cost"])
+        self.assertEqual(list_data[0]["currency"], self.attributes["currency"])
 
     def test_compute_engine_init_with_attributes(self):
         """Test the init with attribute for Compute Engine."""
 
         generator = ComputeEngineGenerator(self.yesterday, self.now, self.project, attributes=self.attributes)
         generated_data = generator.generate_data()
-        self.assertEqual(generated_data[self.yesterday][0]["cost"], self.attributes["cost"])
-        self.assertEqual(generated_data[self.yesterday][0]["currency"], self.attributes["currency"])
+        list_data = list(generated_data)
+        self.assertEqual(list_data[0]["cost"], self.attributes["cost"])
+        self.assertEqual(list_data[0]["currency"], self.attributes["currency"])
 
     def test_jsonl_compute_engine_init_with_attributes(self):
         """Test the init with attribute for JSONL Compute Engine."""
         generator = JSONLComputeEngineGenerator(self.yesterday, self.now, self.project, attributes=self.attributes)
         generated_data = generator.generate_data()
-        self.assertEqual(generated_data[self.yesterday][0]["cost"], self.attributes["cost"])
-        self.assertEqual(generated_data[self.yesterday][0]["currency"], self.attributes["currency"])
+        list_data = list(generated_data)
+        self.assertEqual(list_data[0]["cost"], self.attributes["cost"])
+        self.assertEqual(list_data[0]["currency"], self.attributes["currency"])
 
     def test_set_hours_invalid_start(self):
         """Test that the start date must be a date object."""
