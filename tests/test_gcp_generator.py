@@ -30,10 +30,18 @@ class TestGCPGenerator(TestCase):
             "currency_conversion_rate": 1,
             "cost_type": "regular",
         }
+        self.usage_attributes = {
+            "currency": fake.currency_code(),
+            "currency_conversion_rate": 1,
+            "cost_type": "regular",
+            "usage.amount": 10,
+            "usage.amount_in_pricing_units": 10,
+            "price": 2,
+        }
         self.now = datetime.now().replace(microsecond=0, second=0, minute=0)
         self.yesterday = self.now - timedelta(days=1)
 
-    def test_cloud_storage_init_with_attributes(self):  # Cloud storage not currently implemented
+    def test_cloud_storage_init_with_attributes(self):
         """Test the init with attribute for Cloud Storage."""
 
         generator = CloudStorageGenerator(self.yesterday, self.now, self.project, attributes=self.attributes)
@@ -42,13 +50,31 @@ class TestGCPGenerator(TestCase):
         self.assertEqual(list_data[0]["cost"], self.attributes["cost"])
         self.assertEqual(list_data[0]["currency"], self.attributes["currency"])
 
-    def test_jsonl_cloud_storage_init_with_attributes(self):  # Cloud storage not currently implemented
+    def test_cloud_storage_init_with_usage_attributes(self):
+        """Test the init with usage attribute for Cloud Storage."""
+        generator = CloudStorageGenerator(self.yesterday, self.now, self.project, attributes=self.usage_attributes)
+        generated_data = generator.generate_data()
+        list_data = list(generated_data)
+        self.assertEqual(list_data[0]["cost"], self.usage_attributes["usage.amount"] * self.usage_attributes["price"])
+        self.assertEqual(list_data[0]["currency"], self.usage_attributes["currency"])
+
+    def test_jsonl_cloud_storage_init_with_attributes(self):
         """Test the init with attribute for JSONL Cloud Storage."""
         generator = JSONLCloudStorageGenerator(self.yesterday, self.now, self.project, attributes=self.attributes)
         generated_data = generator.generate_data()
         list_data = list(generated_data)
         self.assertEqual(list_data[0]["cost"], self.attributes["cost"])
         self.assertEqual(list_data[0]["currency"], self.attributes["currency"])
+
+    def test_jsonl_cloud_storage_init_with_usage_attributes(self):
+        """Test the init with usage attribute for JSONL Cloud Storage."""
+        generator = JSONLCloudStorageGenerator(
+            self.yesterday, self.now, self.project, attributes=self.usage_attributes
+        )
+        generated_data = generator.generate_data()
+        list_data = list(generated_data)
+        self.assertEqual(list_data[0]["cost"], self.usage_attributes["usage.amount"] * self.usage_attributes["price"])
+        self.assertEqual(list_data[0]["currency"], self.usage_attributes["currency"])
 
     def test_compute_engine_init_with_attributes(self):
         """Test the init with attribute for Compute Engine."""
@@ -59,6 +85,14 @@ class TestGCPGenerator(TestCase):
         self.assertEqual(list_data[0]["cost"], self.attributes["cost"])
         self.assertEqual(list_data[0]["currency"], self.attributes["currency"])
 
+    def test_compute_engine_init_with_usage_attributes(self):
+        """Test the init with usage attributes for Compute Engine."""
+        generator = ComputeEngineGenerator(self.yesterday, self.now, self.project, attributes=self.usage_attributes)
+        generated_data = generator.generate_data()
+        list_data = list(generated_data)
+        self.assertEqual(list_data[0]["cost"], self.usage_attributes["usage.amount"] * self.usage_attributes["price"])
+        self.assertEqual(list_data[0]["currency"], self.usage_attributes["currency"])
+
     def test_jsonl_compute_engine_init_with_attributes(self):
         """Test the init with attribute for JSONL Compute Engine."""
         generator = JSONLComputeEngineGenerator(self.yesterday, self.now, self.project, attributes=self.attributes)
@@ -66,6 +100,16 @@ class TestGCPGenerator(TestCase):
         list_data = list(generated_data)
         self.assertEqual(list_data[0]["cost"], self.attributes["cost"])
         self.assertEqual(list_data[0]["currency"], self.attributes["currency"])
+
+    def test_jsonl_compute_engine_init_with_usage_attributes(self):
+        """Test the init with attribute for JSONL Compute Engine."""
+        generator = JSONLComputeEngineGenerator(
+            self.yesterday, self.now, self.project, attributes=self.usage_attributes
+        )
+        generated_data = generator.generate_data()
+        list_data = list(generated_data)
+        self.assertEqual(list_data[0]["cost"], self.usage_attributes["usage.amount"] * self.usage_attributes["price"])
+        self.assertEqual(list_data[0]["currency"], self.usage_attributes["currency"])
 
     def test_set_hours_invalid_start(self):
         """Test that the start date must be a date object."""
