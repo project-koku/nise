@@ -51,25 +51,30 @@ class CloudStorageGenerator(GCPGenerator):
         row["service.id"] = service[1]
         row["sku.id"] = sku[0]
         row["sku.description"] = sku[1]
-        row["cost"] = round(uniform(0, 0.01), 7)
         usage_unit = sku[2]
         pricing_unit = sku[3]
         row["usage.unit"] = usage_unit
         row["usage.pricing_unit"] = pricing_unit
         row["labels"] = choice(self.LABELS)
         row["system_labels"] = choice(self.SYSTEM_LABELS)
-        row["usage.amount"] = 0
-
-        # All upper and lower bound values were estimated for each unit
-        # Currently our only usage unit & pricing unit is bytes-seconds & gibibyte month
-        amount = self.fake.pyint(min_value=1000, max_value=100000)
-        row["usage.amount"] = amount
-        row["usage.amount_in_pricing_units"] = amount * 0.00244752
         row["credits"] = "[]"
         row["cost_type"] = "regular"
         row["currency"] = "USD"
         row["currency_conversion_rate"] = 1
-        row["invoice.month"] = f"{self.start_date.year}{self.start_date.month}"
+        if self.attributes and self.attributes.get("usage.amount"):
+            row["usage.amount"] = self.attributes.get("usage.amount")
+        else:
+            row["usage.amount"] = self._gen_usage_unit_amount(usage_unit)
+        if self.attributes and self.attributes.get("usage.amount_in_pricing_units"):
+            row["usage.amount_in_pricing_units"] = self.attributes.get("usage.amount_in_pricing_units")
+        else:
+            row["usage.amount_in_pricing_units"] = self._gen_pricing_unit_amount(pricing_unit, row["usage.amount"])
+        if self.attributes and self.attributes.get("price"):
+            row["cost"] = row["usage.amount_in_pricing_units"] * self.attributes.get("price")
+        else:
+            row["cost"] = round(uniform(0, 0.01), 7)
+        usage_date = datetime.strptime(row.get("usage_start_time"), "%Y-%m-%dT%H:%M:%S")
+        row["invoice.month"] = f"{usage_date.year}{usage_date.month:02d}"
 
         if self.attributes:
             for key in self.attributes:
@@ -79,15 +84,7 @@ class CloudStorageGenerator(GCPGenerator):
 
     def generate_data(self, report_type=None):
         """Generate GCP compute data for some days."""
-        days = self._create_days_list(self.start_date, self.end_date)
-        data = {}
-        for day in days:
-            rows = []
-            row = self._init_data_row(day["start"], day["end"])
-            row = self._update_data(row)
-            rows.append(row)
-            data[day["start"]] = rows
-        return data
+        return self._generate_hourly_data()
 
 
 class JSONLCloudStorageGenerator(CloudStorageGenerator):
@@ -120,27 +117,18 @@ class JSONLCloudStorageGenerator(CloudStorageGenerator):
         usage["pricing_unit"] = pricing_unit
         row["labels"] = choice(self.LABELS)
         row["system_labels"] = choice(self.SYSTEM_LABELS)
-        usage["amount"] = 0
-
-        # All upper and lower bound values were estimated for each unit
-        if usage_unit == "byte-seconds":
-            amount = self.fake.pyint(min_value=1000, max_value=100000)
-            usage["amount"] = amount
-            if pricing_unit == "gibibyte month":
-                usage["amount_in_pricing_units"] = amount * 0.00244752
-            elif pricing_unit == "gibibyte hour":
-                usage["amount_in_pricing_units"] = amount * (3.3528 * 10 ** -6)
-        elif usage_unit == "bytes":
-            amount = self.fake.pyint(min_value=1000, max_value=10000000)
-            usage["amount"] = amount
-            if pricing_unit == "gibibyte":
-                usage["amount_in_pricing_units"] = amount * (9.31323 * 10 ** -0)
-        elif usage_unit == "seconds":
-            amount = self.fake.pyfloat(max_value=3600, positive=True)
-            usage["amount"] = amount
-            if pricing_unit == "hour":
-                usage["amount_in_pricing_units"] = amount / 3600.00
-
+        if self.attributes and self.attributes.get("usage.amount"):
+            usage["amount"] = self.attributes.get("usage.amount")
+        else:
+            usage["amount"] = self._gen_usage_unit_amount(usage_unit)
+        if self.attributes and self.attributes.get("usage.amount_in_pricing_units"):
+            usage["amount_in_pricing_units"] = self.attributes.get("usage.amount_in_pricing_units")
+        else:
+            usage["amount_in_pricing_units"] = self._gen_pricing_unit_amount(pricing_unit, usage["amount"])
+        if self.attributes and self.attributes.get("price"):
+            row["cost"] = usage["amount_in_pricing_units"] * self.attributes.get("price")
+        else:
+            row["cost"] = round(uniform(0, 0.01), 7)
         row["usage"] = usage
         row["credits"] = {}
         row["cost_type"] = "regular"
@@ -156,17 +144,11 @@ class JSONLCloudStorageGenerator(CloudStorageGenerator):
             for key in self.attributes:
                 if key in self.column_labels:
                     row[key] = self.attributes[key]
+                elif key.split(".")[0] in self.column_labels:
+                    outer_key, inner_key = key.split(".")
+                    row[outer_key][inner_key] = self.attributes[key]
         return row
 
     def generate_data(self, report_type=None):
         """Generate GCP compute data for some days."""
-        days = self._create_days_list(self.start_date, self.end_date)
-        data = {}
-        for day in days:
-            rows = []
-            for _ in range(self.num_instances):
-                row = self._init_data_row(day["start"], day["end"])
-                row = self._update_data(row)
-                rows.append(row)
-            data[day["start"]] = rows
-        return data
+        return self._generate_hourly_data()

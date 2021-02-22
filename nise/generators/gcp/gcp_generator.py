@@ -17,6 +17,7 @@
 """Abstract class for gcp data generation."""
 import datetime
 from abc import abstractmethod
+from random import choice
 from random import randint
 
 from nise.generators.generator import AbstractGenerator
@@ -71,6 +72,8 @@ GCP_REPORT_COLUMNS_JSONL = (
     "invoice",
     "cost_type",
 )
+
+GCP_INSTANCE_TYPES = ("e2-medium", "n1-standard-4", "m2-megamem-416", "a2-highgpu-1g")
 
 
 class GCPGenerator(AbstractGenerator):
@@ -130,7 +133,7 @@ class GCPGenerator(AbstractGenerator):
 
         row = {}
         # Initialize the start and end time measured
-        time_bill_start = start + datetime.timedelta(hours=randint(1, 23))
+        time_bill_start = start
         time_bill_end = time_bill_start + datetime.timedelta(hours=1)
         for column in self.column_labels:
             row[column] = ""
@@ -146,6 +149,43 @@ class GCPGenerator(AbstractGenerator):
         row.update(self.project)
         return row
 
+    def _gen_usage_unit_amount(self, usage_unit):
+        """Generate the correct amount for usage unit."""
+        # All upper and lower bound values were estimated for each unit
+        if usage_unit == "byte-seconds":
+            return self.fake.pyint(min_value=1000, max_value=100000)
+        if usage_unit == "bytes":
+            return self.fake.pyint(min_value=1000, max_value=10000000)
+        if usage_unit == "seconds":
+            return self.fake.pyfloat(max_value=3600, positive=True)
+        return 0
+
+    def _gen_pricing_unit_amount(self, pricing_unit, amount):
+        """Generate the correct amount in pricing units."""
+        if pricing_unit == "gibibyte month":
+            return amount * 0.00244752
+        if pricing_unit == "gibibyte hour":
+            return amount * (3.3528 * 10 ** -6)
+        if pricing_unit == "gibibyte":
+            return amount * (9.31323 * 10 ** -0)
+        if pricing_unit == "hour":
+            return amount / 3600.00
+        return 0
+
+    def determine_system_labels(self, instance_type, return_list=False):
+        """Determine the system labels if instance-type exists."""
+        if not instance_type:
+            instance_type = choice(GCP_INSTANCE_TYPES)
+        system_label_format = [
+            {"key": "compute.googleapis.com/cores", "value": "2"},
+            {"key": "compute.googleapis.com/machine_spec", "value": instance_type},
+            {"key": "compute.googleapis.com/memory", "value": "4096"},
+        ]
+        if return_list:
+            return system_label_format
+        else:
+            return str(system_label_format)
+
     def _add_common_usage_info(self, row, start, end, **kwargs):
         """Not needed for GCP."""
 
@@ -155,3 +195,9 @@ class GCPGenerator(AbstractGenerator):
 
     def _generate_hourly_data(self, **kwargs):
         """Not needed for GCP."""
+        for hour in self.hours:
+            start = hour.get("start")
+            end = hour.get("end")
+            row = self._init_data_row(start, end)
+            row = self._update_data(row)
+            yield row
