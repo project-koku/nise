@@ -28,7 +28,7 @@ class GCPDatabaseGenerator(GCPGenerator):
 
     # Service Description and Service ID
     SERVICE = (
-        ("SQL", "66AB-BA17-351C"),
+        ("Cloud SQL", "66AB-BA17-351C"),
         ("Spanner", "S3LS-JE3X-DR2Z"),
         ("Bigtable", "SLKD-3XKD-34SX-AL3C"),
         ("Firestore", "SLW3-CNSL-23SD"),
