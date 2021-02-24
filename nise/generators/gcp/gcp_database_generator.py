@@ -19,9 +19,8 @@ from datetime import datetime
 from random import choice
 from random import uniform
 
+from nise.generators.gcp.gcp_generator import GCP_REPORT_COLUMNS_JSONL
 from nise.generators.gcp.gcp_generator import GCPGenerator
-
-# from nise.generators.gcp.gcp_generator import GCP_REPORT_COLUMNS_JSONL
 
 
 class GCPDatabaseGenerator(GCPGenerator):
@@ -79,6 +78,71 @@ class GCPDatabaseGenerator(GCPGenerator):
             for key in self.attributes:
                 if key in self.column_labels:
                     row[key] = self.attributes[key]
+        return row
+
+    def generate_data(self, report_type=None):
+        """Generate GCP compute data for some days."""
+        return self._generate_hourly_data()
+
+
+class JSONLGCPDatabaseGenerator(GCPDatabaseGenerator):
+    """Generator for GCP Database data."""
+
+    LABELS = (([{"key": "vm_key_proj2", "value": "vm_label_proj2"}]), ([]))
+
+    def __init__(self, start_date, end_date, project, attributes=None):
+        super().__init__(start_date, end_date, project, attributes)
+        self.column_labels = GCP_REPORT_COLUMNS_JSONL
+
+    def _update_data(self, row):  # noqa: C901
+        """Update a data row with compute values."""
+        service_choice = choice(self.SERVICE)
+        sku_choice = choice(self.SKU)
+        row["system_labels"] = []
+        service = {}
+        service["description"] = service_choice[0]
+        service["id"] = service_choice[1]
+        row["service"] = service
+        sku = {}
+        sku["id"] = sku_choice[0]
+        sku["description"] = sku_choice[1]
+        row["sku"] = sku
+        usage_unit = sku_choice[2]
+        pricing_unit = sku_choice[3]
+        usage = {}
+        usage["unit"] = usage_unit
+        usage["pricing_unit"] = pricing_unit
+        row["labels"] = choice(self.LABELS)
+        row["credits"] = {}
+        row["cost_type"] = "regular"
+        row["currency"] = "USD"
+        row["currency_conversion_rate"] = 1
+        if self.attributes and self.attributes.get("usage.amount"):
+            usage["amount"] = self.attributes.get("usage.amount")
+        else:
+            usage["amount"] = self._gen_usage_unit_amount(usage_unit)
+        if self.attributes and self.attributes.get("usage.amount_in_pricing_units"):
+            usage["amount_in_pricing_units"] = self.attributes.get("usage.amount_in_pricing_units")
+        else:
+            usage["amount_in_pricing_units"] = self._gen_pricing_unit_amount(pricing_unit, usage["amount"])
+        if self.attributes and self.attributes.get("price"):
+            row["cost"] = usage["amount_in_pricing_units"] * self.attributes.get("price")
+        else:
+            row["cost"] = round(uniform(0, 0.01), 7)
+        row["usage"] = usage
+        usage_date = datetime.strptime(row.get("usage_start_time"), "%Y-%m-%dT%H:%M:%S")
+        invoice = {}
+        usage_date = datetime.strptime(row.get("usage_start_time"), "%Y-%m-%dT%H:%M:%S")
+        invoice["month"] = f"{usage_date.year}{usage_date.month:02d}"
+        row["invoice"] = invoice
+
+        if self.attributes:
+            for key in self.attributes:
+                if key in self.column_labels:
+                    row[key] = self.attributes[key]
+                elif key.split(".")[0] in self.column_labels:
+                    outer_key, inner_key = key.split(".")
+                    row[outer_key][inner_key] = self.attributes[key]
         return row
 
     def generate_data(self, report_type=None):
