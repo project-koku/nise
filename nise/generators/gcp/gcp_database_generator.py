@@ -42,9 +42,17 @@ class GCPDatabaseGenerator(GCPGenerator):
 
     LABELS = (("[{'key': 'vm_key_proj2', 'value': 'vm_label_proj2'}]"), ("[]"))
 
+    def _determine_service(self):
+        """Determines which service to use."""
+        if self.attributes and self.attributes.get("service.description"):
+            for service in self.SERVICE:
+                if self.attributes.get("service.description") == service[0]:
+                    return service
+        return choice(self.SERVICE)
+
     def _update_data(self, row):  # noqa: C901
         """Update a data row with compute values."""
-        service = choice(self.SERVICE)
+        service = self._determine_service()
         sku = choice(self.SKU)
         row["system_labels"] = "[]"
         row["service.description"] = service[0]
@@ -94,9 +102,17 @@ class JSONLGCPDatabaseGenerator(GCPDatabaseGenerator):
         super().__init__(start_date, end_date, project, attributes)
         self.column_labels = GCP_REPORT_COLUMNS_JSONL
 
+    def _determine_service(self):
+        """Determines which service to use."""
+        if self.attributes and self.attributes.get("service.description"):
+            for service in self.SERVICE:
+                if self.attributes.get("service.description") == service[0]:
+                    return service
+        return choice(self.SERVICE)
+
     def _update_data(self, row):  # noqa: C901
         """Update a data row with compute values."""
-        service_choice = choice(self.SERVICE)
+        service_choice = self._determine_service()
         sku_choice = choice(self.SKU)
         row["system_labels"] = []
         service = {}
