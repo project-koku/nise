@@ -19,8 +19,9 @@ from datetime import datetime
 from random import choice
 from random import uniform
 
-from nise.generators.gcp.gcp_generator import GCP_REPORT_COLUMNS_JSONL
 from nise.generators.gcp.gcp_generator import GCPGenerator
+
+# from nise.generators.gcp.gcp_generator import GCP_REPORT_COLUMNS_JSONL
 
 
 class GCPDatabaseGenerator(GCPGenerator):
@@ -32,15 +33,13 @@ class GCPDatabaseGenerator(GCPGenerator):
         ("Spanner", "S3LS-JE3X-DR2Z"),
         ("Bigtable", "SLKD-3XKD-34SX-AL3C"),
         ("Firestore", "SLW3-CNSL-23SD"),
-        ("Firebase" , "SLK2-CJ23-823X"),
+        ("Firebase", "SLK2-CJ23-823X"),
         ("Memorystore", "DJW3-482X-DHEC"),
         ("MongoDB", "2XL2-DJ23-ZL3S"),
     )
 
     # (ID, Description, Usage Unit, Pricing Unit)
-    SKU = (
-        ("66AB-BA17-351C", "Storage PD Snapshot", "byte-seconds", "gibibyte month"),
-    )
+    SKU = (("66AB-BA17-351C", "Storage PD Snapshot", "byte-seconds", "gibibyte month"),)
 
     LABELS = (("[{'key': 'vm_key_proj2', 'value': 'vm_label_proj2'}]"), ("[]"))
 

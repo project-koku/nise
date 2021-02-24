@@ -19,8 +19,9 @@ from datetime import datetime
 from random import choice
 from random import uniform
 
-from nise.generators.gcp.gcp_generator import GCP_REPORT_COLUMNS_JSONL
 from nise.generators.gcp.gcp_generator import GCPGenerator
+
+# from nise.generators.gcp.gcp_generator import GCP_REPORT_COLUMNS_JSONL
 
 
 class GCPNetworkGenerator(GCPGenerator):
@@ -33,14 +34,14 @@ class GCPNetworkGenerator(GCPGenerator):
         ("Firewall", "LSKD-23RD-23RS"),
         ("Route", "2NF2-342K-SD3C"),
         ("IP", "23KD-SL3N-SLK3"),
-        ("DNS", "8C22-6FC3-D478"), # Real service id
+        ("DNS", "8C22-6FC3-D478"),  # Real service id
         ("CDN", "SWL2-234S-DK2D"),
         ("NAT", "SL2D-SLJ3-IYV3"),
         ("Traffic Director", "SL2C-FNMW-3CI2"),
         ("Service Discovery", "23NS-FNA3-GM3C"),
         ("Cloud Domains", "2J34-SM34-SMD3"),
         ("Private Service Connect", "JFJH-34J3-SM5D"),
-        ("Cloud Armor", "234L-FJ56-SJ35")
+        ("Cloud Armor", "234L-FJ56-SJ35"),
     )
 
     # (ID, Description, Usage Unit, Pricing Unit)
