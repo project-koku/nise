@@ -5,8 +5,12 @@ from unittest import TestCase
 from faker import Faker
 from nise.generators.gcp import CloudStorageGenerator
 from nise.generators.gcp import ComputeEngineGenerator
+from nise.generators.gcp import GCPDatabaseGenerator
+from nise.generators.gcp import GCPNetworkGenerator
 from nise.generators.gcp import JSONLCloudStorageGenerator
 from nise.generators.gcp import JSONLComputeEngineGenerator
+from nise.generators.gcp import JSONLGCPDatabaseGenerator
+from nise.generators.gcp import JSONLGCPNetworkGenerator
 from nise.generators.gcp import JSONLProjectGenerator
 from nise.generators.gcp import ProjectGenerator
 
@@ -106,6 +110,70 @@ class TestGCPGenerator(TestCase):
         generator = JSONLComputeEngineGenerator(
             self.yesterday, self.now, self.project, attributes=self.usage_attributes
         )
+        generated_data = generator.generate_data()
+        list_data = list(generated_data)
+        self.assertEqual(list_data[0]["cost"], self.usage_attributes["usage.amount"] * self.usage_attributes["price"])
+        self.assertEqual(list_data[0]["currency"], self.usage_attributes["currency"])
+
+    def test_network_generator_init_with_attributes(self):
+        """Test the init with attribute for GCP Network Generator."""
+        generator = GCPNetworkGenerator(self.yesterday, self.now, self.project, attributes=self.attributes)
+        generated_data = generator.generate_data()
+        list_data = list(generated_data)
+        self.assertEqual(list_data[0]["cost"], self.attributes["cost"])
+        self.assertEqual(list_data[0]["currency"], self.attributes["currency"])
+
+    def test_network_generator_init_with_usage_attributes(self):
+        """Test the init with usage attributes for GCP Network Generator."""
+        generator = GCPNetworkGenerator(self.yesterday, self.now, self.project, attributes=self.usage_attributes)
+        generated_data = generator.generate_data()
+        list_data = list(generated_data)
+        self.assertEqual(list_data[0]["cost"], self.usage_attributes["usage.amount"] * self.usage_attributes["price"])
+        self.assertEqual(list_data[0]["currency"], self.usage_attributes["currency"])
+
+    def test_jsonl_network_generator_init_with_attributes(self):
+        """Test the init with attribute for JSONL GCP Network Generator."""
+        generator = JSONLGCPNetworkGenerator(self.yesterday, self.now, self.project, attributes=self.attributes)
+        generated_data = generator.generate_data()
+        list_data = list(generated_data)
+        self.assertEqual(list_data[0]["cost"], self.attributes["cost"])
+        self.assertEqual(list_data[0]["currency"], self.attributes["currency"])
+
+    def test_jsonl_network_generator_init_with_usage_attributes(self):
+        """Test the init with attribute for JSONL GCP Network Generator."""
+        generator = JSONLGCPNetworkGenerator(self.yesterday, self.now, self.project, attributes=self.usage_attributes)
+        generated_data = generator.generate_data()
+        list_data = list(generated_data)
+        self.assertEqual(list_data[0]["cost"], self.usage_attributes["usage.amount"] * self.usage_attributes["price"])
+        self.assertEqual(list_data[0]["currency"], self.usage_attributes["currency"])
+
+    def test_database_generator_init_with_attributes(self):
+        """Test the init with attribute for GCP Database Generator."""
+        generator = GCPDatabaseGenerator(self.yesterday, self.now, self.project, attributes=self.attributes)
+        generated_data = generator.generate_data()
+        list_data = list(generated_data)
+        self.assertEqual(list_data[0]["cost"], self.attributes["cost"])
+        self.assertEqual(list_data[0]["currency"], self.attributes["currency"])
+
+    def test_database_generator_init_with_usage_attributes(self):
+        """Test the init with usage attributes for GCP Database Generator."""
+        generator = GCPDatabaseGenerator(self.yesterday, self.now, self.project, attributes=self.usage_attributes)
+        generated_data = generator.generate_data()
+        list_data = list(generated_data)
+        self.assertEqual(list_data[0]["cost"], self.usage_attributes["usage.amount"] * self.usage_attributes["price"])
+        self.assertEqual(list_data[0]["currency"], self.usage_attributes["currency"])
+
+    def test_jsonl_database_generator_init_with_attributes(self):
+        """Test the init with attribute for JSONL GCP Database Generator."""
+        generator = JSONLGCPDatabaseGenerator(self.yesterday, self.now, self.project, attributes=self.attributes)
+        generated_data = generator.generate_data()
+        list_data = list(generated_data)
+        self.assertEqual(list_data[0]["cost"], self.attributes["cost"])
+        self.assertEqual(list_data[0]["currency"], self.attributes["currency"])
+
+    def test_jsonl_database_generator_init_with_usage_attributes(self):
+        """Test the init with attribute for JSONL GCP Database Generator."""
+        generator = JSONLGCPDatabaseGenerator(self.yesterday, self.now, self.project, attributes=self.usage_attributes)
         generated_data = generator.generate_data()
         list_data = list(generated_data)
         self.assertEqual(list_data[0]["cost"], self.usage_attributes["usage.amount"] * self.usage_attributes["price"])
