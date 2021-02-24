@@ -55,6 +55,8 @@ from nise.generators.azure import VNGenerator
 from nise.generators.gcp import CloudStorageGenerator
 from nise.generators.gcp import ComputeEngineGenerator
 from nise.generators.gcp import GCP_REPORT_COLUMNS
+from nise.generators.gcp import GCPDatabaseGenerator
+from nise.generators.gcp import GCPNetworkGenerator
 from nise.generators.gcp import JSONLCloudStorageGenerator
 from nise.generators.gcp import JSONLComputeEngineGenerator
 from nise.generators.gcp import JSONLProjectGenerator
@@ -869,6 +871,8 @@ def gcp_create_report(options):  # noqa: C901
         generators = [
             {"generator": CloudStorageGenerator, "attributes": None},
             {"generator": ComputeEngineGenerator, "attributes": None},
+            {"generator": GCPNetworkGenerator, "attributes": None},
+            {"generator": GCPDatabaseGenerator, "attributes": None},
         ]
         account = fake.word()
 
