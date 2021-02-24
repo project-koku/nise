@@ -55,8 +55,12 @@ from nise.generators.azure import VNGenerator
 from nise.generators.gcp import CloudStorageGenerator
 from nise.generators.gcp import ComputeEngineGenerator
 from nise.generators.gcp import GCP_REPORT_COLUMNS
+from nise.generators.gcp import GCPDatabaseGenerator
+from nise.generators.gcp import GCPNetworkGenerator
 from nise.generators.gcp import JSONLCloudStorageGenerator
 from nise.generators.gcp import JSONLComputeEngineGenerator
+from nise.generators.gcp import JSONLGCPDatabaseGenerator
+from nise.generators.gcp import JSONLGCPNetworkGenerator
 from nise.generators.gcp import JSONLProjectGenerator
 from nise.generators.gcp import ProjectGenerator
 from nise.generators.ocp import OCP_NAMESPACE_LABEL
@@ -856,6 +860,8 @@ def gcp_create_report(options):  # noqa: C901
             generators = [
                 {"generator": JSONLCloudStorageGenerator, "attributes": None},
                 {"generator": JSONLComputeEngineGenerator, "attributes": None},
+                {"generator": JSONLGCPNetworkGenerator, "attributes": None},
+                {"generator": JSONLGCPDatabaseGenerator, "attributes": None},
             ]
             account = fake.word()
             project_generator = JSONLProjectGenerator(account)
@@ -869,6 +875,8 @@ def gcp_create_report(options):  # noqa: C901
         generators = [
             {"generator": CloudStorageGenerator, "attributes": None},
             {"generator": ComputeEngineGenerator, "attributes": None},
+            {"generator": GCPNetworkGenerator, "attributes": None},
+            {"generator": GCPDatabaseGenerator, "attributes": None},
         ]
         account = fake.word()
 
