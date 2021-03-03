@@ -17,7 +17,6 @@
 """Generator for GCP storage cost."""
 from datetime import datetime
 from random import choice
-from random import uniform
 
 from nise.generators.gcp.gcp_generator import GCP_REPORT_COLUMNS_JSONL
 from nise.generators.gcp.gcp_generator import GCPGenerator
@@ -42,6 +41,19 @@ class CloudStorageGenerator(GCPGenerator):
 
     SYSTEM_LABELS = (("[]"),)
 
+    def __init__(self, start_date, end_date, project, attributes=None):
+        """Initialize the cloud storage generator."""
+        super().__init__(start_date, end_date, project, attributes)
+        if self.attributes:
+            if self.attributes.get("tags"):
+                self._tags = self.attributes.get("tags")
+            if self.attributes.get("usage.amount"):
+                self._usage_amount = self.attributes.get("usage.amount")
+            if self.attributes.get("usage.amount_in_pricing_units"):
+                self._pricing_amount = self.attributes.get("usage.amount_in_pricing_units")
+            if self.attributes.get("price"):
+                self._price = self.attributes.get("price")
+
     def _update_data(self, row):  # noqa: C901
         """Update a data row with compute values."""
         service = choice(self.SERVICES)
@@ -55,24 +67,15 @@ class CloudStorageGenerator(GCPGenerator):
         pricing_unit = sku[3]
         row["usage.unit"] = usage_unit
         row["usage.pricing_unit"] = pricing_unit
-        row["labels"] = choice(self.LABELS)
+        row["labels"] = self.determine_labels(self.LABELS)
         row["system_labels"] = choice(self.SYSTEM_LABELS)
         row["credits"] = "[]"
         row["cost_type"] = "regular"
         row["currency"] = "USD"
         row["currency_conversion_rate"] = 1
-        if self.attributes and self.attributes.get("usage.amount"):
-            row["usage.amount"] = self.attributes.get("usage.amount")
-        else:
-            row["usage.amount"] = self._gen_usage_unit_amount(usage_unit)
-        if self.attributes and self.attributes.get("usage.amount_in_pricing_units"):
-            row["usage.amount_in_pricing_units"] = self.attributes.get("usage.amount_in_pricing_units")
-        else:
-            row["usage.amount_in_pricing_units"] = self._gen_pricing_unit_amount(pricing_unit, row["usage.amount"])
-        if self.attributes and self.attributes.get("price"):
-            row["cost"] = row["usage.amount_in_pricing_units"] * self.attributes.get("price")
-        else:
-            row["cost"] = round(uniform(0, 0.01), 7)
+        row["usage.amount"] = self._gen_usage_unit_amount(usage_unit)
+        row["usage.amount_in_pricing_units"] = self._gen_pricing_unit_amount(pricing_unit, row["usage.amount"])
+        row["cost"] = self._gen_cost(row["usage.amount_in_pricing_units"])
         usage_date = datetime.strptime(row.get("usage_start_time"), "%Y-%m-%dT%H:%M:%S")
         row["invoice.month"] = f"{usage_date.year}{usage_date.month:02d}"
 
@@ -95,6 +98,7 @@ class JSONLCloudStorageGenerator(CloudStorageGenerator):
     def __init__(self, start_date, end_date, project, attributes=None):
         super().__init__(start_date, end_date, project, attributes)
         self.column_labels = GCP_REPORT_COLUMNS_JSONL
+        self.return_list = True
 
     def _update_data(self, row):  # noqa: C901
         """Update a data row with compute values."""
@@ -109,26 +113,16 @@ class JSONLCloudStorageGenerator(CloudStorageGenerator):
         sku["id"] = sku_choice[0]
         sku["description"] = sku_choice[1]
         row["sku"] = sku
-        row["cost"] = round(uniform(0, 0.01), 7)
         usage_unit = sku_choice[2]
         pricing_unit = sku_choice[3]
         usage = {}
         usage["unit"] = usage_unit
         usage["pricing_unit"] = pricing_unit
-        row["labels"] = choice(self.LABELS)
+        row["labels"] = self.determine_labels(self.LABELS)
         row["system_labels"] = choice(self.SYSTEM_LABELS)
-        if self.attributes and self.attributes.get("usage.amount"):
-            usage["amount"] = self.attributes.get("usage.amount")
-        else:
-            usage["amount"] = self._gen_usage_unit_amount(usage_unit)
-        if self.attributes and self.attributes.get("usage.amount_in_pricing_units"):
-            usage["amount_in_pricing_units"] = self.attributes.get("usage.amount_in_pricing_units")
-        else:
-            usage["amount_in_pricing_units"] = self._gen_pricing_unit_amount(pricing_unit, usage["amount"])
-        if self.attributes and self.attributes.get("price"):
-            row["cost"] = usage["amount_in_pricing_units"] * self.attributes.get("price")
-        else:
-            row["cost"] = round(uniform(0, 0.01), 7)
+        usage["amount"] = self._gen_usage_unit_amount(usage_unit)
+        usage["amount_in_pricing_units"] = self._gen_pricing_unit_amount(pricing_unit, usage["amount"])
+        row["cost"] = self._gen_cost(usage["amount_in_pricing_units"])
         row["usage"] = usage
         row["credits"] = {}
         row["cost_type"] = "regular"

@@ -19,6 +19,7 @@ import datetime
 from abc import abstractmethod
 from random import choice
 from random import randint
+from random import uniform
 
 from nise.generators.generator import AbstractGenerator
 
@@ -86,10 +87,7 @@ class GCPGenerator(AbstractGenerator):
         Args:
             start_date (datetime): Day to start generating reports from.
             end_date (datetime): Last day to generate reports for.
-            account (string): Name of the account
-            project_number (int): GCP project number
             project_id (string): GCP project id
-            num_instances (int): number of instances to generate fake data for.
 
         """
         super().__init__(start_date, end_date)
@@ -97,6 +95,15 @@ class GCPGenerator(AbstractGenerator):
         self.num_instances = 1 if attributes else randint(2, 60)
         self.attributes = attributes
         self.column_labels = GCP_REPORT_COLUMNS
+        self.return_list = False
+        # class vars to be set by the child classes based off attributes.
+        self._tags = None
+        self._usage_amount = None
+        self._pricing_amount = None
+        self._price = None
+        self._sku = None
+        self._instance_type = choice(GCP_INSTANCE_TYPES)
+        self._service = None
 
     @staticmethod
     def _create_days_list(start_date, end_date):
@@ -152,6 +159,8 @@ class GCPGenerator(AbstractGenerator):
     def _gen_usage_unit_amount(self, usage_unit):
         """Generate the correct amount for usage unit."""
         # All upper and lower bound values were estimated for each unit
+        if self._usage_amount:
+            return self._usage_amount
         if usage_unit == "byte-seconds":
             return self.fake.pyint(min_value=1000, max_value=100000)
         if usage_unit == "bytes":
@@ -162,6 +171,8 @@ class GCPGenerator(AbstractGenerator):
 
     def _gen_pricing_unit_amount(self, pricing_unit, amount):
         """Generate the correct amount in pricing units."""
+        if self._pricing_amount:
+            return self._pricing_amount
         if pricing_unit == "gibibyte month":
             return amount * 0.00244752
         if pricing_unit == "gibibyte hour":
@@ -172,19 +183,42 @@ class GCPGenerator(AbstractGenerator):
             return amount / 3600.00
         return 0
 
-    def determine_system_labels(self, instance_type, return_list=False):
+    def _gen_cost(self, pricing_amount):
+        """Generate the cost based off the pricing amount."""
+        if self._price:
+            return pricing_amount * self._price
+        else:
+            return round(uniform(0, 0.01), 7)
+
+    def determine_system_labels(self, pricing_unit):
         """Determine the system labels if instance-type exists."""
-        if not instance_type:
-            instance_type = choice(GCP_INSTANCE_TYPES)
+        # We only want to set the instance-type if the pricing unit is hourly.
+        if pricing_unit != "hour":
+            if self.return_list:
+                return []
+            return "[]"
         system_label_format = [
             {"key": "compute.googleapis.com/cores", "value": "2"},
-            {"key": "compute.googleapis.com/machine_spec", "value": instance_type},
+            {"key": "compute.googleapis.com/machine_spec", "value": self._instance_type},
             {"key": "compute.googleapis.com/memory", "value": "4096"},
         ]
-        if return_list:
+        if self.return_list:
             return system_label_format
         else:
             return str(system_label_format)
+
+    def determine_labels(self, labels):
+        """Determine the labels based on tags param."""
+        if not self._tags:
+            return choice(labels)
+        label_format = []
+        for tag_key, tag_val in self._tags.items():
+            dict_format = {"key": tag_key, "value": tag_val}
+            label_format.append(dict_format)
+        if self.return_list:
+            return label_format
+        else:
+            return str(label_format)
 
     def _add_common_usage_info(self, row, start, end, **kwargs):
         """Not needed for GCP."""
