@@ -144,7 +144,7 @@ class JSONLComputeEngineGenerator(ComputeEngineGenerator):
         month = datetime.strptime(row.get("usage_start_time"), "%Y-%m-%dT%H:%M:%S").month
         invoice["month"] = f"{year}{month:02d}"
         row["invoice"] = invoice
-        row["system_labels"] = self.determine_system_labels(sku[3])
+        row["system_labels"] = self.determine_system_labels(sku_choice[3])
         if self.attributes:
             for key in self.attributes:
                 if key in self.column_labels:
