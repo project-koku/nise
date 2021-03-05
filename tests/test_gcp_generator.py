@@ -33,8 +33,8 @@ class TestGCPGenerator(TestCase):
             "currency": fake.currency_code(),
             "currency_conversion_rate": 1,
             "cost_type": "regular",
-            "tags": {"cody":"test"},
-            "instance-type": "test"
+            "tags": {"cody": "test"},
+            "instance-type": "test",
         }
         self.usage_attributes = {
             "currency": fake.currency_code(),
