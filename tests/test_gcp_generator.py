@@ -33,6 +33,8 @@ class TestGCPGenerator(TestCase):
             "currency": fake.currency_code(),
             "currency_conversion_rate": 1,
             "cost_type": "regular",
+            "tags": {"cody": "test"},
+            "instance-type": "test",
         }
         self.usage_attributes = {
             "currency": fake.currency_code(),
@@ -41,6 +43,7 @@ class TestGCPGenerator(TestCase):
             "usage.amount": 10,
             "usage.amount_in_pricing_units": 10,
             "price": 2,
+            "usage.pricing_unit": "hour",
         }
         self.now = datetime.now().replace(microsecond=0, second=0, minute=0)
         self.yesterday = self.now - timedelta(days=1)

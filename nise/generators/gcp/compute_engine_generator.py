@@ -17,7 +17,6 @@
 """Module for gcp compute engine data generation."""
 from datetime import datetime
 from random import choice
-from random import uniform
 
 from nise.generators.gcp.gcp_generator import GCP_REPORT_COLUMNS_JSONL
 from nise.generators.gcp.gcp_generator import GCPGenerator
@@ -48,17 +47,30 @@ class ComputeEngineGenerator(GCPGenerator):
 
     LABELS = (("[{'key': 'vm_key_proj2', 'value': 'vm_label_proj2'}]"), ("[]"))
 
-    def _determine_sku(self):
-        """Determines which sku to use based on the pricing unit."""
-        if self.attributes and self.attributes.get("usage.pricing_unit"):
-            for sku in self.SKU:
-                if self.attributes.get("usage.pricing_unit") == sku[3]:
-                    return sku
-        return choice(self.SKU)
+    def __init__(self, start_date, end_date, project, attributes=None):
+        """Initialize the cloud storage generator."""
+        super().__init__(start_date, end_date, project, attributes)
+        if self.attributes:
+            if self.attributes.get("tags"):
+                self._tags = self.attributes.get("tags")
+            if self.attributes.get("usage.amount"):
+                self._usage_amount = self.attributes.get("usage.amount")
+            if self.attributes.get("usage.amount_in_pricing_units"):
+                self._pricing_amount = self.attributes.get("usage.amount_in_pricing_units")
+            if self.attributes.get("price"):
+                self._price = self.attributes.get("price")
+            if self.attributes.get("usage.pricing_unit"):
+                for sku in self.SKU:
+                    if self.attributes.get("usage.pricing_unit") == sku[3]:
+                        self._sku = sku
+            if self.attributes.get("instance_type"):
+                self._instance_type = self.attributes.get("instance_type")
 
     def _update_data(self, row):  # noqa: C901
         """Update a data row with compute values."""
-        sku = self._determine_sku()
+        sku = choice(self.SKU)
+        if self._sku:
+            sku = self._sku
         row["system_labels"] = "[]"
         row["service.description"] = self.SERVICE[0]
         row["service.id"] = self.SERVICE[1]
@@ -68,34 +80,21 @@ class ComputeEngineGenerator(GCPGenerator):
         pricing_unit = sku[3]
         row["usage.unit"] = usage_unit
         row["usage.pricing_unit"] = pricing_unit
-        row["labels"] = choice(self.LABELS)
+        row["labels"] = self.determine_labels(self.LABELS)
         row["credits"] = "[]"
         row["cost_type"] = "regular"
         row["currency"] = "USD"
         row["currency_conversion_rate"] = 1
-        if self.attributes and self.attributes.get("usage.amount"):
-            row["usage.amount"] = self.attributes.get("usage.amount")
-        else:
-            row["usage.amount"] = self._gen_usage_unit_amount(usage_unit)
-        if self.attributes and self.attributes.get("usage.amount_in_pricing_units"):
-            row["usage.amount_in_pricing_units"] = self.attributes.get("usage.amount_in_pricing_units")
-        else:
-            row["usage.amount_in_pricing_units"] = self._gen_pricing_unit_amount(pricing_unit, row["usage.amount"])
-        if self.attributes and self.attributes.get("price"):
-            row["cost"] = row["usage.amount_in_pricing_units"] * self.attributes.get("price")
-        else:
-            row["cost"] = round(uniform(0, 0.01), 7)
+        row["usage.amount"] = self._gen_usage_unit_amount(usage_unit)
+        row["usage.amount_in_pricing_units"] = self._gen_pricing_unit_amount(pricing_unit, row["usage.amount"])
+        row["cost"] = self._gen_cost(row["usage.amount_in_pricing_units"])
         usage_date = datetime.strptime(row.get("usage_start_time"), "%Y-%m-%dT%H:%M:%S")
         row["invoice.month"] = f"{usage_date.year}{usage_date.month:02d}"
+        row["system_labels"] = self.determine_system_labels(sku[3])
         if self.attributes:
             for key in self.attributes:
                 if key in self.column_labels:
                     row[key] = self.attributes[key]
-        if row["usage.pricing_unit"] == "hour":
-            instance_type = None
-            if self.attributes and self.attributes.get("instance_type"):
-                instance_type = self.attributes.get("instance_type")
-            row["system_labels"] = self.determine_system_labels(instance_type)
         return row
 
     def generate_data(self, report_type=None):
@@ -111,18 +110,13 @@ class JSONLComputeEngineGenerator(ComputeEngineGenerator):
     def __init__(self, start_date, end_date, project, attributes=None):
         super().__init__(start_date, end_date, project, attributes)
         self.column_labels = GCP_REPORT_COLUMNS_JSONL
-
-    def _determine_sku(self):
-        if self.attributes and self.attributes.get("usage.pricing_unit"):
-            for sku in self.SKU:
-                if self.attributes.get("usage.pricing_unit") == sku[3]:
-                    return sku
-        return choice(self.SKU)
+        self.return_list = True
 
     def _update_data(self, row):  # noqa: C901
         """Update a data row with compute values."""
-        row["system_labels"] = []
-        sku_choice = self._determine_sku()
+        sku_choice = choice(self.SKU)
+        if self._sku:
+            sku_choice = self._sku
         service = {}
         service["description"] = self.SERVICE[0]
         service["id"] = self.SERVICE[1]
@@ -136,19 +130,10 @@ class JSONLComputeEngineGenerator(ComputeEngineGenerator):
         usage = {}
         usage["unit"] = usage_unit
         usage["pricing_unit"] = pricing_unit
-        row["labels"] = choice(self.LABELS)
-        if self.attributes and self.attributes.get("usage.amount"):
-            usage["amount"] = self.attributes.get("usage.amount")
-        else:
-            usage["amount"] = self._gen_usage_unit_amount(usage_unit)
-        if self.attributes and self.attributes.get("usage.amount_in_pricing_units"):
-            usage["amount_in_pricing_units"] = self.attributes.get("usage.amount_in_pricing_units")
-        else:
-            usage["amount_in_pricing_units"] = self._gen_pricing_unit_amount(pricing_unit, usage["amount"])
-        if self.attributes and self.attributes.get("price"):
-            row["cost"] = usage["amount_in_pricing_units"] * self.attributes.get("price")
-        else:
-            row["cost"] = round(uniform(0, 0.01), 7)
+        row["labels"] = self.determine_labels(self.LABELS)
+        usage["amount"] = self._gen_usage_unit_amount(usage_unit)
+        usage["amount_in_pricing_units"] = self._gen_pricing_unit_amount(pricing_unit, usage["amount"])
+        row["cost"] = self._gen_cost(usage["amount_in_pricing_units"])
         row["usage"] = usage
         row["credits"] = {}
         row["cost_type"] = "regular"
@@ -159,7 +144,7 @@ class JSONLComputeEngineGenerator(ComputeEngineGenerator):
         month = datetime.strptime(row.get("usage_start_time"), "%Y-%m-%dT%H:%M:%S").month
         invoice["month"] = f"{year}{month:02d}"
         row["invoice"] = invoice
-
+        row["system_labels"] = self.determine_system_labels(sku_choice[3])
         if self.attributes:
             for key in self.attributes:
                 if key in self.column_labels:
@@ -167,11 +152,6 @@ class JSONLComputeEngineGenerator(ComputeEngineGenerator):
                 elif key.split(".")[0] in self.column_labels:
                     outer_key, inner_key = key.split(".")
                     row[outer_key][inner_key] = self.attributes[key]
-        if pricing_unit == "hour":
-            instance_type = None
-            if self.attributes and self.attributes.get("instance_type"):
-                instance_type = self.attributes.get("instance_type")
-            row["system_labels"] = self.determine_system_labels(instance_type, return_list=True)
         return row
 
     def generate_data(self, report_type=None):
