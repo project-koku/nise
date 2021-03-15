@@ -186,11 +186,10 @@
         },
         "google-cloud-bigquery": {
             "hashes": [
-                "sha256:ba0827a75a0f524a69cc1a6d4d788fae23c39ee01bd2ce8d4e14d9585ce2fb6e",
-                "sha256:c4c43f7f440d6e5bb2895d21122af5de65b487ea2c69cea466a516bb826ab921"
+                "sha256:5c47ea06ff0fd0dba6fdab7838fe9a037b117cca22a49dec98005642ee47a580",
+                "sha256:d8f8464188e3eb03925a4f4acbf4e8fbfbde84a06145bd8a52c6b736113713ae"
             ],
-            "index": "pypi",
-            "version": "==2.8.0"
+            "version": "==2.11.0"
         },
         "google-cloud-core": {
             "hashes": [
