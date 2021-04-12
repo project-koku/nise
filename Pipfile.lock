@@ -205,11 +205,10 @@
         },
         "google-cloud-storage": {
             "hashes": [
-                "sha256:0880af3c8706a52785ee2c6dc6856e33aa8bf951083b145a889137344a7201ad",
-                "sha256:9517e26cadb4e52fcd11e83cd1b4051e72351a2e518078102ad2f1b9f4d704bc"
+                "sha256:63a9dab155bf81c51354db3d11f3e83a1db7d58eff453f1ce51ffa565d32617b",
+                "sha256:e06a4797c87ac73c4a74801539fdf0a91761c3014281ff58b7b29f15b34c206e"
             ],
-            "index": "pypi",
-            "version": "==1.36.0"
+            "version": "==1.37.1"
         },
         "google-crc32c": {
             "hashes": [
