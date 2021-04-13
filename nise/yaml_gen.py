@@ -23,6 +23,7 @@ from dateutil.parser import parse
 from dateutil.relativedelta import relativedelta
 from nise.yaml_generators.aws.generator import AWSGenerator
 from nise.yaml_generators.azure.generator import AzureGenerator
+from nise.yaml_generators.gcp.generator import GCPGenerator
 from nise.yaml_generators.ocp.generator import OCPGenerator
 from nise.yaml_generators.ocp_on_cloud.generator import OCPonCloudGenerator
 
@@ -34,6 +35,7 @@ GENERATOR_MAP = {
     "OCP": OCPGenerator(),
     "AZURE": AzureGenerator(),
     "OCP-ON-CLOUD": OCPonCloudGenerator(),
+    "GCP": GCPGenerator(),
 }
 
 
@@ -153,6 +155,9 @@ def add_yaml_parser_args(yaml_parser):
     ocp_parser = yaml_subparser.add_parser(
         "ocp", parents=[parent_parser], add_help=False, description="The OCP parser", help="create the OCP yamls"
     )
+    gcp_parser = yaml_subparser.add_parser(
+        "gcp", parents=[parent_parser], add_help=False, description="The GCP parser", help="create the GCP yamls"
+    )
     ocp_on_cloud_parser = yaml_subparser.add_parser(
         "ocp-on-cloud",
         parents=[parent_parser],
@@ -161,9 +166,9 @@ def add_yaml_parser_args(yaml_parser):
         help="create the OCP-on-Cloud yamls",
         conflict_handler="resolve",
     )
-
     add_aws_args(aws_parser)
     add_azure_args(azure_parser)
+    add_gcp_args(gcp_parser)
     add_ocp_args(ocp_parser)
     add_ocp_on_cloud_args(ocp_on_cloud_parser)
 

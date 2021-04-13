@@ -1,0 +1,37 @@
+---
+generators:
+{% for compute in generator.compute_gens %}  - ComputeEngineGenerator:
+      start_date: {{ compute.start_date }}
+      end_date: {{ compute.end_date }}
+      cost: {{ compute.cost }}
+      currency: {{ compute.currency }}
+      tags: {{ compute.tags }}
+{% endfor %}
+{% for storage in generator.storage_gens %}  - CloudStorageGenerator:
+      start_date: {{ storage.start_date }}
+      end_date: {{ storage.end_date }}
+      cost: {{ storage.cost }}
+      currency: {{ storage.currency }}
+      tags: {{ storage.tags }}
+{% endfor %}
+{% for network in generator.network_gens %}  - GCPNetworkGenerator:
+      start_date: {{ network.start_date }}
+      end_date: {{ network.end_date }}
+      cost: {{ network.cost }}
+      currency: {{ network.currency }}
+      tags: {{ network.tags }}
+{% endfor %}
+{% for db in generator.database_gens %}  - GCPDatabaseGenerator:
+      start_date: {{ db.start_date }}
+      end_date: {{ db.end_date }}
+      cost: {{ db.cost }}
+      currency: {{ db.currency }}
+      tags: {{ db.tags }}
+{% endfor %}
+
+# project info
+projects:
+  -
+    billing_account_id: {{ generator.account_id }}
+    project.name: {{ generator.project_name }}
+    project.id: {{ generator.project_id }}
