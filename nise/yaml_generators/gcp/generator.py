@@ -52,17 +52,16 @@ def generate_tags(key, config):
     tags = dicta()
     if not config.get("tags"):
         keys = TAG_KEYS.get(key)
-        for key in keys:
-            tags[key] = FAKER.word()
+        for k in keys:
+            tags[k] = FAKER.word()
     else:
-        tag_key = random.choice(list(config.tags.keys()))
-        tag_key_list = random.choice(config.tags.get(tag_key))
+        tag_key_list = random.choice(config.tags.get(key))
         SEEN_KEYS = set()
         tags = {}
-        for key, value in tag_key_list.items():
-            if key not in SEEN_KEYS:
-                tags[key] = value
-                SEEN_KEYS.update(key)
+        for k, v in tag_key_list.items():
+            if k not in SEEN_KEYS:
+                tags[k] = v
+                SEEN_KEYS.update(k)
     return tags
 
 
