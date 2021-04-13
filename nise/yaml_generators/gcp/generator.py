@@ -48,6 +48,7 @@ def generate_gcp_dicta(config, key):
 
 
 def generate_tags(key, config):
+    """generates the tags dictionary for gcp tags"""
     tags = dicta()
     if not config.get("tags"):
         keys = TAG_KEYS.get(key)
@@ -57,11 +58,11 @@ def generate_tags(key, config):
         tag_key = random.choice(list(config.tags.keys()))
         tag_key_list = random.choice(config.tags.get(tag_key))
         SEEN_KEYS = set()
-        tags = []
-        for key, value in tag_key_list:
+        tags = {}
+        for key, value in tag_key_list.items():
             if key not in SEEN_KEYS:
-                tags.append(dicta(key=key, v=value))
-                SEEN_KEYS.update([key])
+                tags[key] = value
+                SEEN_KEYS.update(key)
     return tags
 
 

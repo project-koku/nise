@@ -61,7 +61,7 @@ class GCPGeneratorTestCase(TestCase):
 
     def test_generate_tags(self):
         """
-        Test label string generator
+        Test tag generator
         """
         dc = self.yg.default_config()
         for key in self.module.TAG_KEYS.keys():
@@ -70,6 +70,21 @@ class GCPGeneratorTestCase(TestCase):
                 self.assertEqual(len(tags), len(self.module.TAG_KEYS[key]))
                 for k in tags.keys():
                     self.assertTrue(k in self.module.TAG_KEYS[key])
+
+    def test_generate_tags_with_config(self):
+        """
+        Test tag generator with tags in the config
+        """
+        dc = self.yg.default_config()
+        t = {
+            "compute": [{"toast": "sandwich"}, {"eggs": "omelette"}],
+            "storage": [{"butter": "waffle"}, {"syrup": "pancake"}],
+        }
+        dc["tags"] = t
+        for key in t:
+            with self.subTest(key=key):
+                tags = self.module.generate_tags(key, dc)
+                self.assertTrue(tags in t[key])
 
     def test_build_data(self):  # noqa: C901
         """
