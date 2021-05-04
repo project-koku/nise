@@ -234,25 +234,32 @@ def post_payload_to_ingest_service(insights_upload, local_path):
     insights_org_id = os.environ.get("INSIGHTS_ORG_ID")
     insights_user = os.environ.get("INSIGHTS_USER")
     insights_password = os.environ.get("INSIGHTS_PASSWORD")
+    content_type = "application/vnd.redhat.hccm.tar+tgz"
     if os.path.isfile(local_path):
         file_info = os.stat(local_path)
         filesize = _convert_bytes(file_info.st_size)
     LOG.info(f"Upload File: ({local_path}) filesize is {filesize}.")
     with open(local_path, "rb") as upload_file:
         if insights_account_id and insights_org_id:
-            header = {"identity": {"account_number": insights_account_id, "internal": {"org_id": insights_org_id}}}
+            header = {
+                "identity": {
+                    "account_number": insights_account_id,
+                    "internal": {"org_id": insights_org_id},
+                    "type": content_type,
+                }
+            }
             headers = {"x-rh-identity": base64.b64encode(json.dumps(header).encode("UTF-8"))}
             return requests.post(
                 insights_upload,
                 data={},
-                files={"file": ("payload.tar.gz", upload_file, "application/vnd.redhat.hccm.tar+tgz")},
+                files={"file": ("payload.tar.gz", upload_file, content_type)},
                 headers=headers,
             )
 
         return requests.post(
             insights_upload,
             data={},
-            files={"file": ("payload.tar.gz", upload_file, "application/vnd.redhat.hccm.tar+tgz")},
+            files={"file": ("payload.tar.gz", upload_file, content_type)},
             auth=(insights_user, insights_password),
             verify=False,
         )

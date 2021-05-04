@@ -193,6 +193,7 @@ class MiscReportTestCase(TestCase):
         """Test that the identity header path is taken."""
         insights_account_id = os.environ.get("INSIGHTS_ACCOUNT_ID")
         insights_org_id = os.environ.get("INSIGHTS_ORG_ID")
+        content_type = "application/vnd.redhat.hccm.tar+tgz"
 
         temp_file = NamedTemporaryFile(mode="w", delete=False)
         headers = ["col1", "col2"]
@@ -200,7 +201,13 @@ class MiscReportTestCase(TestCase):
         _write_csv(temp_file.name, data, headers)
 
         insights_upload = {}
-        header = {"identity": {"account_number": insights_account_id, "internal": {"org_id": insights_org_id}}}
+        header = {
+            "identity": {
+                "account_number": insights_account_id,
+                "internal": {"org_id": insights_org_id},
+                "type": content_type,
+            }
+        }
         headers = {"x-rh-identity": base64.b64encode(json.dumps(header).encode("UTF-8"))}
 
         post_payload_to_ingest_service(insights_upload, temp_file.name)
