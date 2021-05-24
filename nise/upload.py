@@ -254,7 +254,7 @@ def gcp_bucket_to_dataset(gcp_bucket_name, file_name, dataset_name, table_name):
                         {"name": "id", "type": "STRING", "mode": "NULLABLE"},
                         {"name": "type", "type": "STRING", "mode": "NULLABLE"},
                     ],
-                    "mode": "NULLABLE",
+                    "mode": "REPEATED",
                 },
                 {
                     "name": "invoice",
