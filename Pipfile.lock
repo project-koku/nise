@@ -819,11 +819,10 @@
         },
         "importlib-resources": {
             "hashes": [
-                "sha256:885b8eae589179f661c909d699a546cf10d83692553e34dca1bf5eb06f7f6217",
-                "sha256:bfdad047bce441405a49cf8eb48ddce5e56c696e185f59147a8b79e75e9e6380"
+                "sha256:54161657e8ffc76596c4ede7080ca68cb02962a2e074a2586b695a93a925d36e",
+                "sha256:e962bff7440364183203d179d7ae9ad90cb1f2b74dcb84300e88ecc42dca3351"
             ],
-            "index": "pypi",
-            "version": "==5.1.0"
+            "version": "==5.1.4"
         },
         "jeepney": {
             "hashes": [
