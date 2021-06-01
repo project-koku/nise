@@ -26,6 +26,8 @@ class VPCGenerator(AWSGenerator):
         super().__init__(start_date, end_date, payer_account, usage_accounts, attributes, tag_cols)
         self._resource_id = "vpn-{}".format(self.fake.ean8())
         self._product_sku = self.fake.pystr(min_chars=12, max_chars=12).upper()
+        self._rate = None
+        self._cost = None
         if self.attributes:
             if self.attributes.get("resource_id"):
                 self._resource_id = "vpn-{}".format(self.attributes.get("resource_id"))
@@ -33,17 +35,17 @@ class VPCGenerator(AWSGenerator):
                 self._product_sku = self.attributes.get("product_sku")
             if self.attributes.get("tags"):
                 self._tags = self.attributes.get("tags")
-            if attributes.get("cost"):
-                self._cost = float(attributes.get("cost"))
-            if attributes.get("rate"):
-                self._rate = float(attributes.get("rate"))
+            if self.attributes.get("cost"):
+                self._cost = self.attributes.get("cost")
+            if self.attributes.get("rate"):
+                self._rate = self.attributes.get("rate")
 
     def _update_data(self, row, start, end, **kwargs):
         """Update data with generator specific data."""
         default_cost = 0.05
         default_rate = 0.05
-        rate = self._rate if self._rate else default_rate
-        cost = self._cost if self._cost else default_cost
+        rate = float(self._rate) if self._rate else default_rate
+        cost = float(self._cost) if self._cost else default_cost
         location, aws_region, avail_zone, _ = self._get_location()
         row = self._add_common_usage_info(row, start, end)
         region_short_code = self._generate_region_short_code(aws_region)
