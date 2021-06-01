@@ -33,11 +33,17 @@ class VPCGenerator(AWSGenerator):
                 self._product_sku = self.attributes.get("product_sku")
             if self.attributes.get("tags"):
                 self._tags = self.attributes.get("tags")
+            if attributes.get("cost"):
+                self._cost = float(attributes.get("cost"))
+            if attributes.get("rate"):
+                self._rate = float(attributes.get("rate"))
 
     def _update_data(self, row, start, end, **kwargs):
         """Update data with generator specific data."""
-        cost = 0.05
-        rate = 0.05
+        default_cost = 0.05
+        default_rate = 0.05
+        rate = self._rate if self._rate else default_rate
+        cost = self._cost if self._cost else default_cost
         location, aws_region, avail_zone, _ = self._get_location()
         row = self._add_common_usage_info(row, start, end)
         region_short_code = self._generate_region_short_code(aws_region)
@@ -54,7 +60,7 @@ class VPCGenerator(AWSGenerator):
         row["lineItem/UnblendedCost"] = cost
         row["lineItem/BlendedRate"] = rate
         row["lineItem/BlendedCost"] = cost
-        row["lineItem/LineItemDescription"] = "$0.05 per VPN Connection-Hour"
+        row["lineItem/LineItemDescription"] = f"${self._rate} per VPN Connection-Hour"
         row["product/ProductName"] = "Amazon Virtual Private Cloud"
         row["product/clockSpeed"] = ""
         row["product/currentGeneration"] = ""
