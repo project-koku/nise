@@ -184,10 +184,10 @@
         },
         "google-auth": {
             "hashes": [
-                "sha256:9bd436d19ab047001a1340720d2b629eb96dd503258c524921ec2af3ee88a80e",
-                "sha256:dcaba3aa9d4e0e96fd945bf25a86b6f878fcb05770b67adbeb50a63ca4d28a5e"
+                "sha256:044d81b1e58012f8ebc71cc134e191c1fa312f543f1fbc99973afe28c25e3228",
+                "sha256:b3ca7a8ff9ab3bdefee3ad5aefb11fc6485423767eee016f5942d8e606ca23fb"
             ],
-            "version": "==1.28.0"
+            "version": "==1.30.1"
         },
         "google-cloud-bigquery": {
             "hashes": [
