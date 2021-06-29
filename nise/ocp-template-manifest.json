@@ -1,6 +1,9 @@
 {
-    "files": ["{{ files }}"],
-    "date": "{{ report_datetime }}",
     "uuid": "{{ ocp_assembly_id }}",
-    "cluster_id": "{{ ocp_cluster_id }}"
+    "cluster_id": "{{ ocp_cluster_id }}",
+    "version": "{{ version }}",
+    "date": "{{ report_datetime }}",
+    "files": ["{{ files }}"],
+    "start": "{{ start }}",
+    "end": "{{ end }}"
 }
