@@ -35,6 +35,8 @@ class Route53Generator(AWSGenerator):
         self._product_sku = self.fake.pystr(min_chars=12, max_chars=12).upper()
         self._product_family = None
         self._resource_id = self.fake.ean8()
+        self._rate = None
+        self._cost = None
         if self.attributes:
             if self.attributes.get("product_family"):
                 self._product_family = self.attributes.get("product_family")
@@ -44,6 +46,10 @@ class Route53Generator(AWSGenerator):
                 self._resource_id = self.attributes.get("resource_id")
             if self.attributes.get("tags"):
                 self._tags = self.attributes.get("tags")
+            if self.attributes.get("cost"):
+                self._cost = self.attributes.get("cost")
+            if self.attributes.get("rate"):
+                self._rate = self.attributes.get("rate")
 
     def _get_arn(self):
         """Create an amazon resource name."""
@@ -52,9 +58,13 @@ class Route53Generator(AWSGenerator):
     def _update_data(self, row, start, end, **kwargs):
         """Update data with generator specific data."""
         if self._product_family:
-            product_family, usage_type, rate, cost = ROUTE_53_PRODUCTS_DICT.get(self._product_family)
+            product_family, usage_type, default_rate, default_cost = ROUTE_53_PRODUCTS_DICT.get(self._product_family)
         else:
-            product_family, usage_type, rate, cost = choices(ROUTE_53_PRODUCTS, weights=[1, 10])[0]
+            product_family, usage_type, default_rate, default_cost = choices(ROUTE_53_PRODUCTS, weights=[1, 10])[0]
+
+        rate = float(self._rate) if self._rate else default_rate
+        cost = float(self._cost) if self._cost else default_cost
+
         operation = self.fake.pystr(min_chars=1, max_chars=6).upper()
         if usage_type == "HostedZone":
             operation = usage_type
