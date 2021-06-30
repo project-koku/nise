@@ -38,6 +38,7 @@ import requests
 from dateutil import parser
 from dateutil.relativedelta import relativedelta
 from faker import Faker
+from nise import __version__
 from nise.copy import copy_to_local_dir
 from nise.extract import extract_payload
 from nise.generators.aws import DataTransferGenerator
@@ -766,6 +767,9 @@ def ocp_create_report(options):  # noqa: C901
                 "ocp_assembly_id": ocp_assembly_id,
                 "report_datetime": report_datetime,
                 "files": manifest_file_names[1:-1],
+                "start": gen_start_date,
+                "end": gen_end_date,
+                "version": __version__,
             }
             manifest_data = ocp_generate_manifest(manifest_values)
             temp_manifest = _write_manifest(manifest_data)
@@ -894,7 +898,7 @@ def gcp_create_report(options):  # noqa: C901
     for project in projects:
         num_gens = len(generators)
         ten_percent = int(num_gens * 0.1) if num_gens > 50 else 5
-        LOG.info(f"Producing data for {num_gens} generators for {'INSERT SOMETHING FOR GCP'}.")
+        LOG.info(f"Producing data for {num_gens} generators for start: {start_date} and end: {end_date}.")
         for count, generator in enumerate(generators):
             attributes = generator.get("attributes", {})
             if attributes:
