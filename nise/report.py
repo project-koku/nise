@@ -898,7 +898,7 @@ def gcp_create_report(options):  # noqa: C901
     for project in projects:
         num_gens = len(generators)
         ten_percent = int(num_gens * 0.1) if num_gens > 50 else 5
-        LOG.info(f"Producing data for {num_gens} generators for {'INSERT SOMETHING FOR GCP'}.")
+        LOG.info(f"Producing data for {num_gens} generators for start: {start_date} and end: {end_date}.")
         for count, generator in enumerate(generators):
             attributes = generator.get("attributes", {})
             if attributes:
