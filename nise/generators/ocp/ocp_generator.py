@@ -328,7 +328,7 @@ class OCPGenerator(AbstractGenerator):
 
     def _gen_volumes(self, namespaces, namespace2pods):  # noqa: R0914,C901
         """Create volumes on specific namespaces and keep relationship."""
-        volumes = {}
+        volumes = []
         for namespace, node in namespaces.items():
             storage_class_default = choice(("gp2", "fast", "slow", "gold"))
             if node.get("namespaces"):
@@ -362,14 +362,18 @@ class OCPGenerator(AbstractGenerator):
                             "volume_claim_usage_gig": usage_gig,
                         }
                         total_claims += claim_capacity
-                    volumes[volume] = {
-                        "namespace": namespace,
-                        "volume": volume,
-                        "storage_class": specified_volume.get("storage_class", storage_class_default),
-                        "volume_request": volume_request,
-                        "labels": specified_volume.get("labels", None),
-                        "volume_claims": volume_claims,
-                    }
+                    volumes.append(
+                        {
+                            volume: {
+                                "namespace": namespace,
+                                "volume": volume,
+                                "storage_class": specified_volume.get("storage_class", storage_class_default),
+                                "volume_request": volume_request,
+                                "labels": specified_volume.get("labels", None),
+                                "volume_claims": volume_claims,
+                            }
+                        }
+                    )
             else:
                 num_volumes = randint(1, 3)
                 num_vol_claims = randint(1, 2)
@@ -394,14 +398,18 @@ class OCPGenerator(AbstractGenerator):
                             "pod": pod,
                         }
                         total_claims += claim_capacity
-                    volumes[volume] = {
-                        "namespace": namespace,
-                        "volume": volume,
-                        "storage_class": choice(("gp2", "fast", "slow", "gold")),
-                        "volume_request": vol_request,
-                        "labels": self._gen_openshift_labels(),
-                        "volume_claims": volume_claims,
-                    }
+                    volumes.append(
+                        {
+                            volume: {
+                                "namespace": namespace,
+                                "volume": volume,
+                                "storage_class": choice(("gp2", "fast", "slow", "gold")),
+                                "volume_request": vol_request,
+                                "labels": self._gen_openshift_labels(),
+                                "volume_claims": volume_claims,
+                            }
+                        }
+                    )
         return volumes
 
     def _init_data_row(self, start, end, **kwargs):  # noqa: C901
@@ -567,35 +575,36 @@ class OCPGenerator(AbstractGenerator):
         for hour in self.hours:
             start = hour.get("start")
             end = hour.get("end")
-            for volume_name, volume in self.volumes.items():
-                namespace = volume.get("namespace", None)
-                storage_class = volume.get("storage_class", None)
-                volume_request = volume.get("volume_request", None)
-                vol_labels = volume.get("labels", None)
-                volume_claims = volume.get("volume_claims", [])
-                for vc_name, volume_claim in volume_claims.items():
-                    pod = volume_claim.get("pod")
-                    vc_labels = volume_claim.get("labels")
-                    capacity = volume_claim.get("capacity")
-                    volume_claim_usage_gig = volume_claim.get("volume_claim_usage_gig", None)
-                    row = self._init_data_row(start, end, **kwargs)
-                    row = self._update_data(
-                        row,
-                        start,
-                        end,
-                        volume_claim=vc_name,
-                        pod=pod,
-                        volume_claim_labels=vc_labels,
-                        vc_capacity=capacity,
-                        volume_claim_usage_gig=volume_claim_usage_gig,
-                        storage_class=storage_class,
-                        volume_name=volume_name,
-                        volume_request=volume_request,
-                        volume_labels=vol_labels,
-                        namespace=namespace,
-                        **kwargs,
-                    )
-                    yield row
+            for volume_dict in self.volumes:
+                for volume_name, volume in volume_dict.items():
+                    namespace = volume.get("namespace", None)
+                    storage_class = volume.get("storage_class", None)
+                    volume_request = volume.get("volume_request", None)
+                    vol_labels = volume.get("labels", None)
+                    volume_claims = volume.get("volume_claims", [])
+                    for vc_name, volume_claim in volume_claims.items():
+                        pod = volume_claim.get("pod")
+                        vc_labels = volume_claim.get("labels")
+                        capacity = volume_claim.get("capacity")
+                        volume_claim_usage_gig = volume_claim.get("volume_claim_usage_gig", None)
+                        row = self._init_data_row(start, end, **kwargs)
+                        row = self._update_data(
+                            row,
+                            start,
+                            end,
+                            volume_claim=vc_name,
+                            pod=pod,
+                            volume_claim_labels=vc_labels,
+                            vc_capacity=capacity,
+                            volume_claim_usage_gig=volume_claim_usage_gig,
+                            storage_class=storage_class,
+                            volume_name=volume_name,
+                            volume_request=volume_request,
+                            volume_labels=vol_labels,
+                            namespace=namespace,
+                            **kwargs,
+                        )
+                        yield row
 
     def _gen_hourly_node_label_usage(self, **kwargs):
         """Create hourly data for nodel label report."""
