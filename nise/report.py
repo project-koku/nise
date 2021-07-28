@@ -894,6 +894,55 @@ def gcp_create_report(options):  # noqa: C901
         project_generator = ProjectGenerator(account)
         projects = project_generator.generate_projects()
 
+    if gcp_dataset_name:
+        monthly_files = _gcp_bigquery_process(
+            start_date, end_date, projects, generators, options, gcp_bucket_name, gcp_dataset_name, gcp_table_name
+        )
+    else:
+        months = _create_month_list(start_date, end_date)
+        monthly_files = []
+        output_files = []
+        for month in months:
+            data = []
+            gen_start_date = month.get("start")
+            gen_end_date = month.get("end")
+            for project in projects:
+                num_gens = len(generators)
+                ten_percent = int(num_gens * 0.1) if num_gens > 50 else 5
+                LOG.info(
+                    f"Producing data for {num_gens} generators for start: {gen_start_date} and end: {gen_end_date}."
+                )
+                for count, generator in enumerate(generators):
+                    attributes = generator.get("attributes", {})
+                    if attributes:
+                        start_date = attributes.get("start_date")
+                        end_date = attributes.get("end_date")
+                    if gen_end_date > end_date:
+                        gen_end_date = end_date
+
+                    generator_cls = generator.get("generator")
+                    gen = generator_cls(gen_start_date, gen_end_date, project, attributes=attributes)
+                    for hour in gen.generate_data():
+                        data += [hour]
+                    count += 1
+                    if count % ten_percent == 0:
+                        LOG.info(f"Done with {count} of {num_gens} generators.")
+            local_file_path, output_file_name = write_gcp_file(gen_start_date, gen_end_date, data, options)
+            output_files.append(output_file_name)
+            monthly_files.append(local_file_path)
+
+        for index, month_file in enumerate(monthly_files):
+            if gcp_bucket_name:
+                gcp_route_file(gcp_bucket_name, month_file, output_files[index])
+
+    write_monthly = options.get("write_monthly", False)
+    if not write_monthly:
+        _remove_files(monthly_files)
+
+
+def _gcp_bigquery_process(
+    start_date, end_date, projects, generators, options, gcp_bucket_name, gcp_dataset_name, gcp_table_name
+):
     data = []
     for project in projects:
         num_gens = len(generators)
@@ -914,22 +963,15 @@ def gcp_create_report(options):  # noqa: C901
                 LOG.info(f"Done with {count} of {num_gens} generators.")
 
     monthly_files = []
-    if not gcp_dataset_name:
-        local_file_path, output_file_name = write_gcp_file(start_date, end_date, data, options)
-        monthly_files.append(local_file_path)
-    else:
-        local_file_path, output_file_name = write_gcp_file_jsonl(start_date, end_date, data, options)
-        monthly_files.append(local_file_path)
+    local_file_path, output_file_name = write_gcp_file_jsonl(start_date, end_date, data, options)
+    monthly_files.append(local_file_path)
 
     if gcp_bucket_name:
         gcp_route_file(gcp_bucket_name, local_file_path, output_file_name)
 
-    if gcp_dataset_name:
-        if not gcp_table_name:
-            etag = options.get("gcp_etag") if options.get("gcp_etag") else str(uuid4())
-            gcp_table_name = f"gcp_billing_export_{etag}"
-        gcp_bucket_to_dataset(gcp_bucket_name, output_file_name, gcp_dataset_name, gcp_table_name)
+    if not gcp_table_name:
+        etag = options.get("gcp_etag") if options.get("gcp_etag") else str(uuid4())
+        gcp_table_name = f"gcp_billing_export_{etag}"
+    gcp_bucket_to_dataset(gcp_bucket_name, output_file_name, gcp_dataset_name, gcp_table_name)
 
-    write_monthly = options.get("write_monthly", False)
-    if not write_monthly:
-        _remove_files(monthly_files)
+    return monthly_files
