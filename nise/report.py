@@ -917,6 +917,8 @@ def gcp_create_report(options):  # noqa: C901
                     if attributes:
                         start_date = attributes.get("start_date")
                         end_date = attributes.get("end_date")
+                    if gen_end_date > end_date:
+                        gen_end_date = end_date
 
                     generator_cls = generator.get("generator")
                     gen = generator_cls(gen_start_date, gen_end_date, project, attributes=attributes)
