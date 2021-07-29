@@ -178,6 +178,22 @@ class MiscReportTestCase(TestCase):
                     },
                 ],
             },
+            {
+                "start_date": datetime.datetime(year=2021, month=6, day=1),
+                "end_date": datetime.datetime(year=2021, month=7, day=29),
+                "expected_list": [
+                    {
+                        "name": "June",
+                        "start": datetime.datetime(year=2021, month=6, day=1),
+                        "end": datetime.datetime(year=2021, month=7, day=1, hour=0, minute=0),
+                    },
+                    {
+                        "name": "July",
+                        "start": datetime.datetime(year=2021, month=7, day=1),
+                        "end": datetime.datetime(year=2021, month=7, day=29, hour=23, minute=59),
+                    },
+                ],
+            },
         ]
 
         for test_case in test_matrix:
