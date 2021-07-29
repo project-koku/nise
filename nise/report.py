@@ -410,7 +410,7 @@ def _create_generator_dates_from_yaml(attributes, month):
     """Calculate generator start and end dates based on yaml and current month."""
     gen_start_date = None
     gen_end_date = None
-    
+
     # Generator range is larger then current month on both start and end
     if attributes.get("start_date") < month.get("start") and attributes.get("end_date") > month.get("end").replace(
         hour=23, minute=59, second=59
