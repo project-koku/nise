@@ -762,6 +762,43 @@ def ocp_create_report(options):  # noqa: C901
                 temp_files[temp_filename] = temp_usage_file
 
             manifest_file_names = ", ".join(f'"{w}"' for w in temp_files)
+            cr_status = {
+                "clusterID": "4e009161-4f40-42c8-877c-3e59f6baea3d",
+                "clusterVersion": "stable-4.6",
+                "api_url": "https://cloud.redhat.com",
+                "authentication": {
+                    "type": "token"
+                },
+                "packaging": {
+                    "max_reports_to_store": 30,
+                    "max_size_MB": 100
+                },
+                "upload": {
+                    "ingress_path": "/api/ingress/v1/upload",
+                    "upload": True,
+                    "upload_wait": 27,
+                    "upload_cycle": 360,
+                },
+                "operator_commit": __version__,
+                "prometheus": {
+                    "prometheus_configured": True,
+                    "prometheus_connected": True,
+                    "last_query_start_time": "2021-07-28T12:22:37Z",
+                    "last_query_success_time": "2021-07-28T12:22:37Z",
+                    "service_address": "https://thanos-querier.openshift-monitoring.svc:9091",
+                },
+                "reports": {
+                    "report_month": "07",
+                    "last_hour_queried": "2021-07-28 11:00:00 - 2021-07-28 11:59:59",
+                    "data_collected": True
+                },
+                "source": {
+                    "sources_path": "/api/sources/v1.0/",
+                    "name": "INSERT-SOURCE-NAME",
+                    "create_source": False,
+                    "check_cycle": 1440
+                },
+            }
             manifest_values = {
                 "ocp_cluster_id": cluster_id,
                 "ocp_assembly_id": ocp_assembly_id,
@@ -770,6 +807,8 @@ def ocp_create_report(options):  # noqa: C901
                 "start": gen_start_date,
                 "end": gen_end_date,
                 "version": __version__,
+                "certified": False,
+                "cr_status": cr_status
             }
             manifest_data = ocp_generate_manifest(manifest_values)
             temp_manifest = _write_manifest(manifest_data)
