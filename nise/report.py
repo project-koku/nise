@@ -766,13 +766,8 @@ def ocp_create_report(options):  # noqa: C901
                 "clusterID": "4e009161-4f40-42c8-877c-3e59f6baea3d",
                 "clusterVersion": "stable-4.6",
                 "api_url": "https://cloud.redhat.com",
-                "authentication": {
-                    "type": "token"
-                },
-                "packaging": {
-                    "max_reports_to_store": 30,
-                    "max_size_MB": 100
-                },
+                "authentication": {"type": "token"},
+                "packaging": {"max_reports_to_store": 30, "max_size_MB": 100},
                 "upload": {
                     "ingress_path": "/api/ingress/v1/upload",
                     "upload": True,
@@ -790,13 +785,13 @@ def ocp_create_report(options):  # noqa: C901
                 "reports": {
                     "report_month": "07",
                     "last_hour_queried": "2021-07-28 11:00:00 - 2021-07-28 11:59:59",
-                    "data_collected": True
+                    "data_collected": True,
                 },
                 "source": {
                     "sources_path": "/api/sources/v1.0/",
                     "name": "INSERT-SOURCE-NAME",
                     "create_source": False,
-                    "check_cycle": 1440
+                    "check_cycle": 1440,
                 },
             }
             manifest_values = {
@@ -808,7 +803,7 @@ def ocp_create_report(options):  # noqa: C901
                 "end": gen_end_date,
                 "version": __version__,
                 "certified": False,
-                "cr_status": cr_status
+                "cr_status": cr_status,
             }
             manifest_data = ocp_generate_manifest(manifest_values)
             temp_manifest = _write_manifest(manifest_data)
