@@ -285,6 +285,8 @@ def _create_month_list(start_date, end_date):
         if current.month == start_date.month:
             # First month start with start_date
             month["start"] = start_date
+        if current.month < end_date.month:
+            month["end"] = (month.get("end") + relativedelta(days=1)).replace(hour=0, minute=0)
         if current.month == end_date.month:
             # Last month ends with end_date
             month["end"] = end_date.replace(hour=23, minute=59)
@@ -416,7 +418,7 @@ def _create_generator_dates_from_yaml(attributes, month):
         hour=23, minute=59, second=59
     ):
         gen_start_date = month.get("start")
-        gen_end_date = month.get("end") + relativedelta(days=1)
+        gen_end_date = month.get("end")
 
     # Generator starts before month start and ends within month
     if attributes.get("start_date") <= month.get("start") and attributes.get("end_date") <= month.get("end").replace(
@@ -437,7 +439,7 @@ def _create_generator_dates_from_yaml(attributes, month):
         hour=23, minute=59, second=59
     ):
         gen_start_date = attributes.get("start_date")
-        gen_end_date = month.get("end") + relativedelta(days=1)
+        gen_end_date = month.get("end")
 
     return gen_start_date, gen_end_date
 
