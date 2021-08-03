@@ -32,6 +32,7 @@ import faker
 from dateutil.relativedelta import relativedelta
 from nise.generators.ocp.ocp_generator import OCP_REPORT_TYPE_TO_COLS
 from nise.report import _convert_bytes
+from nise.report import _create_generator_dates_from_yaml
 from nise.report import _create_month_list
 from nise.report import _generate_azure_filename
 from nise.report import _get_generators
@@ -106,6 +107,42 @@ class MiscReportTestCase(TestCase):
         self.assertTrue(os.path.exists(manifest_path))
         os.remove(manifest_path)
 
+    def test_create_generator_for_dates_from_yaml(self):
+        """Test helper function for generating dates."""
+        month = {
+            "name": "June",
+            "start": datetime.datetime(2021, 6, 30, 0, 0),
+            "end": datetime.datetime(2021, 6, 30, 23, 59),
+        }
+
+        attributes = {
+            "start_date": datetime.datetime(2021, 6, 30, 0, 0),
+            "end_date": datetime.datetime(2021, 7, 29, 15, 0),
+        }
+
+        start_date, end_date = _create_generator_dates_from_yaml(attributes, month)
+
+        self.assertEqual(start_date, datetime.datetime(2021, 6, 30, 0, 0))
+        self.assertEqual(end_date, datetime.datetime(2021, 6, 30, 23, 59))
+
+    def test_create_generator_for_dates_from_yaml_middle_month(self):
+        """Test helper function for generating dates verifying the middle month in a 3 month range."""
+        month = {
+            "name": "June",
+            "start": datetime.datetime(2021, 6, 30, 0, 0),
+            "end": datetime.datetime(2021, 6, 30, 23, 59),
+        }
+
+        attributes = {
+            "start_date": datetime.datetime(2021, 5, 31, 0, 0),
+            "end_date": datetime.datetime(2021, 7, 29, 15, 0),
+        }
+
+        start_date, end_date = _create_generator_dates_from_yaml(attributes, month)
+
+        self.assertEqual(start_date, datetime.datetime(2021, 6, 30, 0, 0))
+        self.assertEqual(end_date, datetime.datetime(2021, 6, 30, 23, 59))
+
     def test_create_month_list(self):
         """Test to create month lists."""
         test_matrix = [
@@ -138,6 +175,22 @@ class MiscReportTestCase(TestCase):
                         "name": "January",
                         "start": datetime.datetime(year=2019, month=1, day=1),
                         "end": datetime.datetime(year=2019, month=1, day=5, hour=23, minute=59),
+                    },
+                ],
+            },
+            {
+                "start_date": datetime.datetime(year=2021, month=6, day=1),
+                "end_date": datetime.datetime(year=2021, month=7, day=29),
+                "expected_list": [
+                    {
+                        "name": "June",
+                        "start": datetime.datetime(year=2021, month=6, day=1),
+                        "end": datetime.datetime(year=2021, month=7, day=1, hour=0, minute=0),
+                    },
+                    {
+                        "name": "July",
+                        "start": datetime.datetime(year=2021, month=7, day=1),
+                        "end": datetime.datetime(year=2021, month=7, day=29, hour=23, minute=59),
                     },
                 ],
             },
