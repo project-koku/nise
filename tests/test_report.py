@@ -1322,7 +1322,7 @@ class GCPReportTestCase(TestCase):
                 "static_report_data": static_gcp_data,
             }
         )
-        output_file_name = f"{report_prefix}.json"
+        output_file_name = f"{report_prefix}.csv"
         expected_output_file_path = "{}/{}".format(os.getcwd(), output_file_name)
 
         self.assertTrue(os.path.isfile(expected_output_file_path))
