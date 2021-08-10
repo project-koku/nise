@@ -16,6 +16,7 @@
 #
 """Abstract class for gcp data generation."""
 import datetime
+import json
 from abc import abstractmethod
 from random import choice
 from random import randint
@@ -97,7 +98,7 @@ class GCPGenerator(AbstractGenerator):
         self.column_labels = GCP_REPORT_COLUMNS
         self.return_list = False
         # class vars to be set by the child classes based off attributes.
-        self._tags = None
+        self._labels = None
         self._usage_amount = None
         self._pricing_amount = None
         self._price = None
@@ -205,20 +206,24 @@ class GCPGenerator(AbstractGenerator):
         if self.return_list:
             return system_label_format
         else:
-            return str(system_label_format)
+            return json.dumps(system_label_format)
 
     def determine_labels(self, labels):
         """Determine the labels based on tags param."""
-        if not self._tags:
-            return choice(labels)
+        if not self._labels:
+            return json.dumps(choice(labels))
         label_format = []
-        for tag_key, tag_val in self._tags.items():
-            dict_format = {"key": tag_key, "value": tag_val}
-            label_format.append(dict_format)
+        for label in self._labels:
+            if "key" not in label and "value" not in label:
+                for tag_key, tag_val in label.items():
+                    dict_format = {"key": tag_key, "value": tag_val}
+                    label_format.append(dict_format)
+            else:
+                label_format.append(label)
         if self.return_list:
             return label_format
         else:
-            return str(label_format)
+            return json.dumps(label_format)
 
     def _add_common_usage_info(self, row, start, end, **kwargs):
         """Not needed for GCP."""
