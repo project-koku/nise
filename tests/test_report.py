@@ -1275,3 +1275,55 @@ class GCPReportTestCase(TestCase):
 
         self.assertTrue(os.path.isfile(expected_output_file_path))
         os.remove(expected_output_file_path)
+
+    def test_gcp_create_report_static_data(self):
+        """Test the gcp report creation method where a dataset name is included and static data used."""
+        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
+        one_day = datetime.timedelta(days=1)
+        yesterday = now - one_day
+        report_prefix = "test_report"
+        cost = fake.pyint(min_value=10, max_value=1000)
+        static_gcp_data = {
+            "generators": [
+                {
+                    "ComputeEngineGenerator": {
+                        "start_date": str(yesterday.date()),
+                        "end_date": str(now.date()),
+                        "cost": cost,
+                    }
+                },
+                {
+                    "CloudStorageGenerator": {
+                        "start_date": str(yesterday.date()),
+                        "end_date": str(now.date()),
+                        "cost": cost,
+                    }
+                },
+            ],
+            "projects": [
+                {
+                    "billing_account_id": "example_account_id",
+                    "project.name": "billion-force-58425800",
+                    "project.id": "example-project-id",
+                    "project.labels": "step:chair;year:each",
+                    "location.location": "us-central1",
+                    "location.country": "US",
+                    "location.region": "us-central1",
+                    "location.zone": "",
+                }
+            ],
+        }
+        gcp_create_report(
+            {
+                "start_date": yesterday,
+                "end_date": now,
+                "gcp_report_prefix": report_prefix,
+                "write_monthly": True,
+                "static_report_data": static_gcp_data,
+            }
+        )
+        output_file_name = f"{report_prefix}.json"
+        expected_output_file_path = "{}/{}".format(os.getcwd(), output_file_name)
+
+        self.assertTrue(os.path.isfile(expected_output_file_path))
+        os.remove(expected_output_file_path)
