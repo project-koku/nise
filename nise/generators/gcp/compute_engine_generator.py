@@ -45,14 +45,14 @@ class ComputeEngineGenerator(GCPGenerator):
         ("92CB-C25F-B1D1", "Network Google Egress from Americas to Americas", "bytes", "gibibyte"),  # Left off at 125
     )
 
-    LABELS = (("[{'key': 'vm_key_proj2', 'value': 'vm_label_proj2'}]"), ("[]"))
+    LABELS = (([{"key": "vm_key_proj2", "value": "vm_label_proj2"}]), ([]))
 
     def __init__(self, start_date, end_date, project, attributes=None):
         """Initialize the cloud storage generator."""
         super().__init__(start_date, end_date, project, attributes)
         if self.attributes:
-            if self.attributes.get("tags"):
-                self._tags = self.attributes.get("tags")
+            if self.attributes.get("labels"):
+                self._labels = self.attributes.get("labels")
             if self.attributes.get("usage.amount"):
                 self._usage_amount = self.attributes.get("usage.amount")
             if self.attributes.get("usage.amount_in_pricing_units"):
@@ -71,7 +71,6 @@ class ComputeEngineGenerator(GCPGenerator):
         sku = choice(self.SKU)
         if self._sku:
             sku = self._sku
-        row["system_labels"] = "[]"
         row["service.description"] = self.SERVICE[0]
         row["service.id"] = self.SERVICE[1]
         row["sku.id"] = sku[0]
@@ -80,7 +79,6 @@ class ComputeEngineGenerator(GCPGenerator):
         pricing_unit = sku[3]
         row["usage.unit"] = usage_unit
         row["usage.pricing_unit"] = pricing_unit
-        row["labels"] = self.determine_labels(self.LABELS)
         row["credits"] = "[]"
         row["cost_type"] = "regular"
         row["currency"] = "USD"
@@ -90,11 +88,15 @@ class ComputeEngineGenerator(GCPGenerator):
         row["cost"] = self._gen_cost(row["usage.amount_in_pricing_units"])
         usage_date = datetime.strptime(row.get("usage_start_time"), "%Y-%m-%dT%H:%M:%S")
         row["invoice.month"] = f"{usage_date.year}{usage_date.month:02d}"
-        row["system_labels"] = self.determine_system_labels(sku[3])
+
         if self.attributes:
             for key in self.attributes:
                 if key in self.column_labels:
                     row[key] = self.attributes[key]
+
+        row["labels"] = self.determine_labels(self.LABELS)
+        row["system_labels"] = self.determine_system_labels(sku[3])
+
         return row
 
     def generate_data(self, report_type=None):
@@ -130,7 +132,6 @@ class JSONLComputeEngineGenerator(ComputeEngineGenerator):
         usage = {}
         usage["unit"] = usage_unit
         usage["pricing_unit"] = pricing_unit
-        row["labels"] = self.determine_labels(self.LABELS)
         usage["amount"] = self._gen_usage_unit_amount(usage_unit)
         usage["amount_in_pricing_units"] = self._gen_pricing_unit_amount(pricing_unit, usage["amount"])
         row["cost"] = self._gen_cost(usage["amount_in_pricing_units"])
@@ -144,7 +145,7 @@ class JSONLComputeEngineGenerator(ComputeEngineGenerator):
         month = datetime.strptime(row.get("usage_start_time"), "%Y-%m-%dT%H:%M:%S").month
         invoice["month"] = f"{year}{month:02d}"
         row["invoice"] = invoice
-        row["system_labels"] = self.determine_system_labels(sku_choice[3])
+
         if self.attributes:
             for key in self.attributes:
                 if key in self.column_labels:
@@ -152,6 +153,10 @@ class JSONLComputeEngineGenerator(ComputeEngineGenerator):
                 elif key.split(".")[0] in self.column_labels:
                     outer_key, inner_key = key.split(".")
                     row[outer_key][inner_key] = self.attributes[key]
+
+        row["labels"] = self.determine_labels(self.LABELS)
+        row["system_labels"] = self.determine_system_labels(sku_choice[3])
+
         return row
 
     def generate_data(self, report_type=None):

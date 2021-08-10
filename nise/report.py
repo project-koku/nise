@@ -917,6 +917,17 @@ def gcp_create_report(options):  # noqa: C901
     elif static_report_data:
         generators = _get_generators(static_report_data.get("generators"))
         projects = static_report_data.get("projects")
+        processed_projects = copy.deepcopy(projects)
+        for i, project in enumerate(projects):
+            labels = []
+            static_labels = project.get("project.labels", [])
+            if static_labels:
+                for pair in static_labels.split(";"):
+                    key = pair.split(":")[0]
+                    value = pair.split(":")[1]
+                    labels.append({"key": key, "value": value})
+                processed_projects[i]["project.labels"] = json.dumps(labels)
+        projects = processed_projects
 
     else:
         generators = [

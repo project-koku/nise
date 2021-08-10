@@ -37,7 +37,7 @@ class CloudStorageGenerator(GCPGenerator):
         )
     }
 
-    LABELS = (("[{'key': 'test_storage_key', 'value': 'test_storage_label'}]"), ("[]"))
+    LABELS = (([{"key": "test_storage_key", "value": "test_storage_label"}]), ([]))
 
     SYSTEM_LABELS = (("[]"),)
 
@@ -45,8 +45,8 @@ class CloudStorageGenerator(GCPGenerator):
         """Initialize the cloud storage generator."""
         super().__init__(start_date, end_date, project, attributes)
         if self.attributes:
-            if self.attributes.get("tags"):
-                self._tags = self.attributes.get("tags")
+            if self.attributes.get("labels"):
+                self._labels = self.attributes.get("labels")
             if self.attributes.get("usage.amount"):
                 self._usage_amount = self.attributes.get("usage.amount")
             if self.attributes.get("usage.amount_in_pricing_units"):
@@ -56,6 +56,7 @@ class CloudStorageGenerator(GCPGenerator):
 
     def _update_data(self, row):  # noqa: C901
         """Update a data row with compute values."""
+
         service = choice(self.SERVICES)
         sku_options = self.SKU_MAPPING[service[0]]
         sku = choice(sku_options)
@@ -67,8 +68,6 @@ class CloudStorageGenerator(GCPGenerator):
         pricing_unit = sku[3]
         row["usage.unit"] = usage_unit
         row["usage.pricing_unit"] = pricing_unit
-        row["labels"] = self.determine_labels(self.LABELS)
-        row["system_labels"] = choice(self.SYSTEM_LABELS)
         row["credits"] = "[]"
         row["cost_type"] = "regular"
         row["currency"] = "USD"
@@ -83,6 +82,10 @@ class CloudStorageGenerator(GCPGenerator):
             for key in self.attributes:
                 if key in self.column_labels:
                     row[key] = self.attributes[key]
+
+        row["labels"] = self.determine_labels(self.LABELS)
+        row["system_labels"] = choice(self.SYSTEM_LABELS)
+
         return row
 
     def generate_data(self, report_type=None):
@@ -118,8 +121,6 @@ class JSONLCloudStorageGenerator(CloudStorageGenerator):
         usage = {}
         usage["unit"] = usage_unit
         usage["pricing_unit"] = pricing_unit
-        row["labels"] = self.determine_labels(self.LABELS)
-        row["system_labels"] = choice(self.SYSTEM_LABELS)
         usage["amount"] = self._gen_usage_unit_amount(usage_unit)
         usage["amount_in_pricing_units"] = self._gen_pricing_unit_amount(pricing_unit, usage["amount"])
         row["cost"] = self._gen_cost(usage["amount_in_pricing_units"])
@@ -141,6 +142,10 @@ class JSONLCloudStorageGenerator(CloudStorageGenerator):
                 elif key.split(".")[0] in self.column_labels:
                     outer_key, inner_key = key.split(".")
                     row[outer_key][inner_key] = self.attributes[key]
+
+        row["labels"] = self.determine_labels(self.LABELS)
+        row["system_labels"] = choice(self.SYSTEM_LABELS)
+
         return row
 
     def generate_data(self, report_type=None):
