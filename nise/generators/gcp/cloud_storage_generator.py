@@ -37,7 +37,7 @@ class CloudStorageGenerator(GCPGenerator):
         )
     }
 
-    LABELS = (("[{'key': 'test_storage_key', 'value': 'test_storage_label'}]"), ("[]"))
+    LABELS = (([{"key": "test_storage_key", "value": "test_storage_label"}]), ([]))
 
     SYSTEM_LABELS = (("[]"),)
 
@@ -45,8 +45,8 @@ class CloudStorageGenerator(GCPGenerator):
         """Initialize the cloud storage generator."""
         super().__init__(start_date, end_date, project, attributes)
         if self.attributes:
-            if self.attributes.get("tags"):
-                self._tags = self.attributes.get("tags")
+            if self.attributes.get("labels"):
+                self._labels = self.attributes.get("labels")
             if self.attributes.get("usage.amount"):
                 self._usage_amount = self.attributes.get("usage.amount")
             if self.attributes.get("usage.amount_in_pricing_units"):
@@ -56,6 +56,11 @@ class CloudStorageGenerator(GCPGenerator):
 
     def _update_data(self, row):  # noqa: C901
         """Update a data row with compute values."""
+        if self.attributes:
+            for key in self.attributes:
+                if key in self.column_labels:
+                    row[key] = self.attributes[key]
+
         service = choice(self.SERVICES)
         sku_options = self.SKU_MAPPING[service[0]]
         sku = choice(sku_options)
@@ -79,10 +84,6 @@ class CloudStorageGenerator(GCPGenerator):
         usage_date = datetime.strptime(row.get("usage_start_time"), "%Y-%m-%dT%H:%M:%S")
         row["invoice.month"] = f"{usage_date.year}{usage_date.month:02d}"
 
-        if self.attributes:
-            for key in self.attributes:
-                if key in self.column_labels:
-                    row[key] = self.attributes[key]
         return row
 
     def generate_data(self, report_type=None):
@@ -102,6 +103,14 @@ class JSONLCloudStorageGenerator(CloudStorageGenerator):
 
     def _update_data(self, row):  # noqa: C901
         """Update a data row with compute values."""
+        if self.attributes:
+            for key in self.attributes:
+                if key in self.column_labels:
+                    row[key] = self.attributes[key]
+                elif key.split(".")[0] in self.column_labels:
+                    outer_key, inner_key = key.split(".")
+                    row[outer_key][inner_key] = self.attributes[key]
+
         service_choice = choice(self.SERVICES)
         sku_options = self.SKU_MAPPING[service_choice[0]]
         sku_choice = choice(sku_options)
@@ -134,13 +143,6 @@ class JSONLCloudStorageGenerator(CloudStorageGenerator):
         invoice["month"] = f"{year}{month:02d}"
         row["invoice"] = invoice
 
-        if self.attributes:
-            for key in self.attributes:
-                if key in self.column_labels:
-                    row[key] = self.attributes[key]
-                elif key.split(".")[0] in self.column_labels:
-                    outer_key, inner_key = key.split(".")
-                    row[outer_key][inner_key] = self.attributes[key]
         return row
 
     def generate_data(self, report_type=None):

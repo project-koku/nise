@@ -39,14 +39,14 @@ class GCPDatabaseGenerator(GCPGenerator):
     # (ID, Description, Usage Unit, Pricing Unit)
     SKU = (("66AB-BA17-351C", "Storage PD Snapshot", "byte-seconds", "gibibyte month"),)
 
-    LABELS = (("[{'key': 'vm_key_proj2', 'value': 'vm_label_proj2'}]"), ("[]"))
+    LABELS = (([{"key": "vm_key_proj2", "value": "vm_label_proj2"}]), ([]))
 
     def __init__(self, start_date, end_date, project, attributes=None):
         """Initialize the cloud storage generator."""
         super().__init__(start_date, end_date, project, attributes)
         if self.attributes:
-            if self.attributes.get("tags"):
-                self._tags = self.attributes.get("tags")
+            if self.attributes.get("labels"):
+                self._labels = self.attributes.get("labels")
             if self.attributes.get("usage.amount"):
                 self._usage_amount = self.attributes.get("usage.amount")
             if self.attributes.get("usage.amount_in_pricing_units"):
@@ -60,6 +60,11 @@ class GCPDatabaseGenerator(GCPGenerator):
 
     def _update_data(self, row):  # noqa: C901
         """Update a data row with compute values."""
+        if self.attributes:
+            for key in self.attributes:
+                if key in self.column_labels:
+                    row[key] = self.attributes[key]
+
         service = choice(self.SERVICE)
         if self._service:
             service = self._service
@@ -83,10 +88,6 @@ class GCPDatabaseGenerator(GCPGenerator):
         row["cost"] = self._gen_cost(row["usage.amount_in_pricing_units"])
         usage_date = datetime.strptime(row.get("usage_start_time"), "%Y-%m-%dT%H:%M:%S")
         row["invoice.month"] = f"{usage_date.year}{usage_date.month:02d}"
-        if self.attributes:
-            for key in self.attributes:
-                if key in self.column_labels:
-                    row[key] = self.attributes[key]
         return row
 
     def generate_data(self, report_type=None):
@@ -106,6 +107,14 @@ class JSONLGCPDatabaseGenerator(GCPDatabaseGenerator):
 
     def _update_data(self, row):  # noqa: C901
         """Update a data row with compute values."""
+        if self.attributes:
+            for key in self.attributes:
+                if key in self.column_labels:
+                    row[key] = self.attributes[key]
+                elif key.split(".")[0] in self.column_labels:
+                    outer_key, inner_key = key.split(".")
+                    row[outer_key][inner_key] = self.attributes[key]
+
         service_choice = choice(self.SERVICE)
         if self._service:
             service_choice = self._service
@@ -139,13 +148,6 @@ class JSONLGCPDatabaseGenerator(GCPDatabaseGenerator):
         invoice["month"] = f"{usage_date.year}{usage_date.month:02d}"
         row["invoice"] = invoice
 
-        if self.attributes:
-            for key in self.attributes:
-                if key in self.column_labels:
-                    row[key] = self.attributes[key]
-                elif key.split(".")[0] in self.column_labels:
-                    outer_key, inner_key = key.split(".")
-                    row[outer_key][inner_key] = self.attributes[key]
         return row
 
     def generate_data(self, report_type=None):
