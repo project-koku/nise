@@ -56,10 +56,6 @@ class CloudStorageGenerator(GCPGenerator):
 
     def _update_data(self, row):  # noqa: C901
         """Update a data row with compute values."""
-        if self.attributes:
-            for key in self.attributes:
-                if key in self.column_labels:
-                    row[key] = self.attributes[key]
 
         service = choice(self.SERVICES)
         sku_options = self.SKU_MAPPING[service[0]]
@@ -72,8 +68,6 @@ class CloudStorageGenerator(GCPGenerator):
         pricing_unit = sku[3]
         row["usage.unit"] = usage_unit
         row["usage.pricing_unit"] = pricing_unit
-        row["labels"] = self.determine_labels(self.LABELS)
-        row["system_labels"] = choice(self.SYSTEM_LABELS)
         row["credits"] = "[]"
         row["cost_type"] = "regular"
         row["currency"] = "USD"
@@ -83,6 +77,14 @@ class CloudStorageGenerator(GCPGenerator):
         row["cost"] = self._gen_cost(row["usage.amount_in_pricing_units"])
         usage_date = datetime.strptime(row.get("usage_start_time"), "%Y-%m-%dT%H:%M:%S")
         row["invoice.month"] = f"{usage_date.year}{usage_date.month:02d}"
+
+        if self.attributes:
+            for key in self.attributes:
+                if key in self.column_labels:
+                    row[key] = self.attributes[key]
+
+        row["labels"] = self.determine_labels(self.LABELS)
+        row["system_labels"] = choice(self.SYSTEM_LABELS)
 
         return row
 
@@ -103,14 +105,6 @@ class JSONLCloudStorageGenerator(CloudStorageGenerator):
 
     def _update_data(self, row):  # noqa: C901
         """Update a data row with compute values."""
-        if self.attributes:
-            for key in self.attributes:
-                if key in self.column_labels:
-                    row[key] = self.attributes[key]
-                elif key.split(".")[0] in self.column_labels:
-                    outer_key, inner_key = key.split(".")
-                    row[outer_key][inner_key] = self.attributes[key]
-
         service_choice = choice(self.SERVICES)
         sku_options = self.SKU_MAPPING[service_choice[0]]
         sku_choice = choice(sku_options)
@@ -127,8 +121,6 @@ class JSONLCloudStorageGenerator(CloudStorageGenerator):
         usage = {}
         usage["unit"] = usage_unit
         usage["pricing_unit"] = pricing_unit
-        row["labels"] = self.determine_labels(self.LABELS)
-        row["system_labels"] = choice(self.SYSTEM_LABELS)
         usage["amount"] = self._gen_usage_unit_amount(usage_unit)
         usage["amount_in_pricing_units"] = self._gen_pricing_unit_amount(pricing_unit, usage["amount"])
         row["cost"] = self._gen_cost(usage["amount_in_pricing_units"])
@@ -142,6 +134,17 @@ class JSONLCloudStorageGenerator(CloudStorageGenerator):
         month = datetime.strptime(row.get("usage_start_time"), "%Y-%m-%dT%H:%M:%S").month
         invoice["month"] = f"{year}{month:02d}"
         row["invoice"] = invoice
+
+        if self.attributes:
+            for key in self.attributes:
+                if key in self.column_labels:
+                    row[key] = self.attributes[key]
+                elif key.split(".")[0] in self.column_labels:
+                    outer_key, inner_key = key.split(".")
+                    row[outer_key][inner_key] = self.attributes[key]
+
+        row["labels"] = self.determine_labels(self.LABELS)
+        row["system_labels"] = choice(self.SYSTEM_LABELS)
 
         return row
 

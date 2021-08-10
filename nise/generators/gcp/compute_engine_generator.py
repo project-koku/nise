@@ -68,11 +68,6 @@ class ComputeEngineGenerator(GCPGenerator):
 
     def _update_data(self, row):  # noqa: C901
         """Update a data row with compute values."""
-        if self.attributes:
-            for key in self.attributes:
-                if key in self.column_labels:
-                    row[key] = self.attributes[key]
-
         sku = choice(self.SKU)
         if self._sku:
             sku = self._sku
@@ -84,7 +79,6 @@ class ComputeEngineGenerator(GCPGenerator):
         pricing_unit = sku[3]
         row["usage.unit"] = usage_unit
         row["usage.pricing_unit"] = pricing_unit
-        row["labels"] = self.determine_labels(self.LABELS)
         row["credits"] = "[]"
         row["cost_type"] = "regular"
         row["currency"] = "USD"
@@ -94,7 +88,15 @@ class ComputeEngineGenerator(GCPGenerator):
         row["cost"] = self._gen_cost(row["usage.amount_in_pricing_units"])
         usage_date = datetime.strptime(row.get("usage_start_time"), "%Y-%m-%dT%H:%M:%S")
         row["invoice.month"] = f"{usage_date.year}{usage_date.month:02d}"
+
+        if self.attributes:
+            for key in self.attributes:
+                if key in self.column_labels:
+                    row[key] = self.attributes[key]
+
+        row["labels"] = self.determine_labels(self.LABELS)
         row["system_labels"] = self.determine_system_labels(sku[3])
+
         return row
 
     def generate_data(self, report_type=None):
@@ -114,14 +116,6 @@ class JSONLComputeEngineGenerator(ComputeEngineGenerator):
 
     def _update_data(self, row):  # noqa: C901
         """Update a data row with compute values."""
-        if self.attributes:
-            for key in self.attributes:
-                if key in self.column_labels:
-                    row[key] = self.attributes[key]
-                elif key.split(".")[0] in self.column_labels:
-                    outer_key, inner_key = key.split(".")
-                    row[outer_key][inner_key] = self.attributes[key]
-
         sku_choice = choice(self.SKU)
         if self._sku:
             sku_choice = self._sku
@@ -138,7 +132,6 @@ class JSONLComputeEngineGenerator(ComputeEngineGenerator):
         usage = {}
         usage["unit"] = usage_unit
         usage["pricing_unit"] = pricing_unit
-        row["labels"] = self.determine_labels(self.LABELS)
         usage["amount"] = self._gen_usage_unit_amount(usage_unit)
         usage["amount_in_pricing_units"] = self._gen_pricing_unit_amount(pricing_unit, usage["amount"])
         row["cost"] = self._gen_cost(usage["amount_in_pricing_units"])
@@ -152,6 +145,16 @@ class JSONLComputeEngineGenerator(ComputeEngineGenerator):
         month = datetime.strptime(row.get("usage_start_time"), "%Y-%m-%dT%H:%M:%S").month
         invoice["month"] = f"{year}{month:02d}"
         row["invoice"] = invoice
+
+        if self.attributes:
+            for key in self.attributes:
+                if key in self.column_labels:
+                    row[key] = self.attributes[key]
+                elif key.split(".")[0] in self.column_labels:
+                    outer_key, inner_key = key.split(".")
+                    row[outer_key][inner_key] = self.attributes[key]
+
+        row["labels"] = self.determine_labels(self.LABELS)
         row["system_labels"] = self.determine_system_labels(sku_choice[3])
 
         return row

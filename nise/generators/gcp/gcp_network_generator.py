@@ -66,11 +66,6 @@ class GCPNetworkGenerator(GCPGenerator):
 
     def _update_data(self, row):  # noqa: C901
         """Update a data row with compute values."""
-        if self.attributes:
-            for key in self.attributes:
-                if key in self.column_labels:
-                    row[key] = self.attributes[key]
-
         service = choice(self.SERVICE)
         if self._service:
             service = self._service
@@ -84,7 +79,6 @@ class GCPNetworkGenerator(GCPGenerator):
         pricing_unit = sku[3]
         row["usage.unit"] = usage_unit
         row["usage.pricing_unit"] = pricing_unit
-        row["labels"] = self.determine_labels(self.LABELS)
         row["credits"] = "[]"
         row["cost_type"] = "regular"
         row["currency"] = "USD"
@@ -94,6 +88,14 @@ class GCPNetworkGenerator(GCPGenerator):
         row["cost"] = self._gen_cost(row["usage.amount_in_pricing_units"])
         usage_date = datetime.strptime(row.get("usage_start_time"), "%Y-%m-%dT%H:%M:%S")
         row["invoice.month"] = f"{usage_date.year}{usage_date.month:02d}"
+
+        if self.attributes:
+            for key in self.attributes:
+                if key in self.column_labels:
+                    row[key] = self.attributes[key]
+
+        row["labels"] = self.determine_labels(self.LABELS)
+
         return row
 
     def generate_data(self, report_type=None):
@@ -113,14 +115,6 @@ class JSONLGCPNetworkGenerator(GCPNetworkGenerator):
 
     def _update_data(self, row):  # noqa: C901
         """Update a data row with compute values."""
-        if self.attributes:
-            for key in self.attributes:
-                if key in self.column_labels:
-                    row[key] = self.attributes[key]
-                elif key.split(".")[0] in self.column_labels:
-                    outer_key, inner_key = key.split(".")
-                    row[outer_key][inner_key] = self.attributes[key]
-
         service_choice = choice(self.SERVICE)
         if self._service:
             service_choice = self._service
@@ -139,7 +133,6 @@ class JSONLGCPNetworkGenerator(GCPNetworkGenerator):
         usage = {}
         usage["unit"] = usage_unit
         usage["pricing_unit"] = pricing_unit
-        row["labels"] = self.determine_labels(self.LABELS)
         row["credits"] = {}
         row["cost_type"] = "regular"
         row["currency"] = "USD"
@@ -153,6 +146,16 @@ class JSONLGCPNetworkGenerator(GCPNetworkGenerator):
         usage_date = datetime.strptime(row.get("usage_start_time"), "%Y-%m-%dT%H:%M:%S")
         invoice["month"] = f"{usage_date.year}{usage_date.month:02d}"
         row["invoice"] = invoice
+
+        if self.attributes:
+            for key in self.attributes:
+                if key in self.column_labels:
+                    row[key] = self.attributes[key]
+                elif key.split(".")[0] in self.column_labels:
+                    outer_key, inner_key = key.split(".")
+                    row[outer_key][inner_key] = self.attributes[key]
+
+        row["labels"] = self.determine_labels(self.LABELS)
 
         return row
 
