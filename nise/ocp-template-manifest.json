@@ -5,5 +5,7 @@
     "date": "{{ report_datetime }}",
     "files": ["{{ files }}"],
     "start": "{{ start }}",
-    "end": "{{ end }}"
+    "end": "{{ end }}",
+    "certified": "{{ certified }}",
+    "cr_status": "{{ cr_status }}"
 }
