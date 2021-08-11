@@ -7,5 +7,5 @@
     "start": "{{ start }}",
     "end": "{{ end }}",
     "certified": "{{ certified }}",
-    "cr_status": "{{ cr_status }}"
+    "cr_status": {{ cr_status }}
 }
