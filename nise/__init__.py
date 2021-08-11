@@ -1,2 +1,2 @@
-__version__ = "2.4.11"
+__version__ = "2.4.12"
 VERSION = __version__.split(".")
