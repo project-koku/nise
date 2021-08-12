@@ -211,7 +211,10 @@ class GCPGenerator(AbstractGenerator):
     def determine_labels(self, labels):
         """Determine the labels based on tags param."""
         if not self._labels:
-            return json.dumps(choice(labels))
+            if self.return_list:
+                return choice(labels)
+            else:
+                return json.dumps(choice(labels))
         label_format = []
         for label in self._labels:
             if "key" not in label and "value" not in label:
