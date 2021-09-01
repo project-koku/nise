@@ -163,6 +163,22 @@ RESERVE_COLS = (
     "reservation/TotalReservedUnits",
     "reservation/UnitsPerReservation",
 )
+SAVINGS_COLS = (
+    "savingsPlan/AmortizedUpfrontCommitmentForBillingPeriod",
+    "savingsPlan/EndTime",
+    "savingsPlan/InstanceTypeFamily",
+    "savingsPlan/OfferingType",
+    "savingsPlan/PaymentOption",
+    "savingsPlan/PurchaseTerm",
+    "savingsPlan/RecurringCommitmentForBillingPeriod",
+    "savingsPlan/Region",
+    "savingsPlan/SavingsPlanArn",
+    "savingsPlan/SavingsPlanEffectiveCost",
+    "savingsPlan/SavingsPlanRate",
+    "savingsPlan/StartTime",
+    "savingsPlan/TotalCommitmentToDate",
+    "savingsPlan/UsedCommitment",
+)
 
 
 class AWSGenerator(AbstractGenerator):
@@ -184,6 +200,7 @@ class AWSGenerator(AbstractGenerator):
         + PRODUCT_COLS
         + PRICING_COLS
         + RESERVE_COLS
+        + SAVINGS_COLS 
         + tuple(RESOURCE_TAG_COLS)
     )
     REGIONS = (

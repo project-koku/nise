@@ -34,6 +34,7 @@ class DataTransferGenerator(AWSGenerator):
         super().__init__(start_date, end_date, payer_account, usage_accounts, attributes, tag_cols)
         self._amount = None
         self._rate = None
+        self._saving = None
         self._product_sku = None
         self._resource_id = None
         self._product_code = "AmazonEC2"
@@ -53,6 +54,8 @@ class DataTransferGenerator(AWSGenerator):
                 self._product_sku = attributes.get("product_sku")
             if attributes.get("tags"):
                 self._tags = attributes.get("tags")
+            if attributes.get("saving"):
+                self._saving = float(attributes.get("saving"))
 
     def _get_data_transfer(self, rate):
         """Get data transfer info."""
@@ -77,6 +80,7 @@ class DataTransferGenerator(AWSGenerator):
 
         resource_id = self._resource_id if self._resource_id else self.fake.ean8()
         rate = self._rate if self._rate else round(uniform(0.12, 0.19), 3)
+        saving = self._saving if self._saving else round(uniform(0.12, 0.19), 3)
         amount = self._amount if self._amount else uniform(0.000002, 0.09)
         cost = amount * rate
         trans_desc, operation, description, location1, location2, trans_type, aws_region = self._get_data_transfer(
@@ -109,6 +113,7 @@ class DataTransferGenerator(AWSGenerator):
         row["pricing/publicOnDemandRate"] = str(rate)
         row["pricing/term"] = "OnDemand"
         row["pricing/unit"] = "GB"
+        row["savingsPlan/SavingsPlanEffectiveCost"] = str(saving)
         self._add_tag_data(row)
         return row
 
