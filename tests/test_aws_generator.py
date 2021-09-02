@@ -342,6 +342,7 @@ class TestEC2Generator(AWSGeneratorTestCase):
             "rate": "1",
             "saving": "1",
         }
+        self.attributes["instance_type"] = self.instance_type
 
         generator = EC2Generator(
             self.two_hours_ago, self.now, self.payer_account, self.usage_accounts, self.attributes
