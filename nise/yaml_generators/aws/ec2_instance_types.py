@@ -52,7 +52,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.051000",
         "rate": "0.051000",
-        "saving":"0.025000",
+        "saving": "0.025000",
     },
     {
         "family": "General Purpose",
@@ -118,7 +118,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.520000",
         "rate": "0.520000",
-        "saving": "0.260000"
+        "saving": "0.260000",
     },
     {
         "family": "Compute Optimized",
