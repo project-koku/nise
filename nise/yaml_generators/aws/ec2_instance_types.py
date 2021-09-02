@@ -30,6 +30,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.204000",
         "rate": "0.204000",
+        "saving": "0.102000",
     },
     {
         "family": "General Purpose",
@@ -40,6 +41,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.408000",
         "rate": "0.408000",
+        "saving": "0.204000",
     },
     {
         "family": "General Purpose",
@@ -50,6 +52,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.051000",
         "rate": "0.051000",
+        "saving":"0.025000",
     },
     {
         "family": "General Purpose",
@@ -60,6 +63,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.025500",
         "rate": "0.025500",
+        "saving": "0.012600",
     },
     {
         "family": "General Purpose",
@@ -70,6 +74,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.408000",
         "rate": "0.408000",
+        "saving": "0.204000",
     },
     {
         "family": "General Purpose",
@@ -80,6 +85,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.102000",
         "rate": "0.102000",
+        "saving": "0.051000",
     },
     {
         "family": "Compute Optimized",
@@ -90,6 +96,7 @@ INSTANCE_TYPES = [
         "processor_arch": "32-bit",
         "cost": "0.130000",
         "rate": "0.130000",
+        "saving": "0.070000",
     },
     {
         "family": "Compute Optimized",
@@ -100,6 +107,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.130000",
         "rate": "0.130000",
+        "saving": "0.070000",
     },
     {
         "family": "Compute Optimized",
@@ -110,6 +118,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.520000",
         "rate": "0.520000",
+        "saving": "0.260000"
     },
     {
         "family": "Compute Optimized",
@@ -120,6 +129,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.420000",
         "rate": "0.420000",
+        "saving": "0.210000",
     },
     {
         "family": "Compute Optimized",
@@ -130,6 +140,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.840000",
         "rate": "0.840000",
+        "saving": "0.420000",
     },
     {
         "family": "Compute Optimized",
@@ -140,6 +151,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "1.680000",
         "rate": "1.680000",
+        "saving": "0.840000",
     },
     {
         "family": "Compute Optimized",
@@ -150,6 +162,7 @@ INSTANCE_TYPES = [
         "processor_arch": "32-bit",
         "cost": "0.105000",
         "rate": "0.105000",
+        "saving": "0.052500",
     },
     {
         "family": "Compute Optimized",
@@ -160,6 +173,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.105000",
         "rate": "0.105000",
+        "saving": "0.052500",
     },
     {
         "family": "Compute Optimized",
@@ -170,6 +184,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.210000",
         "rate": "0.210000",
+        "saving": "0.105000",
     },
     {
         "family": "Compute Optimized",
@@ -180,6 +195,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.398000",
         "rate": "0.398000",
+        "saving": "0.199000",
     },
     {
         "family": "Compute Optimized",
@@ -190,6 +206,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.796000",
         "rate": "0.796000",
+        "saving": "0.199000",
     },
     {
         "family": "Compute Optimized",
@@ -200,6 +217,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "1.591000",
         "rate": "1.591000",
+        "saving": "0.199000",
     },
     {
         "family": "Compute Optimized",
@@ -210,6 +228,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.100000",
         "rate": "0.100000",
+        "saving": "0.199000",
     },
     {
         "family": "Compute Optimized",
@@ -220,6 +239,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.199000",
         "rate": "0.199000",
+        "saving": "0.199000",
     },
     {
         "family": "Compute Optimized",
@@ -230,6 +250,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "2.040000",
         "rate": "2.040000",
+        "saving": "0.199000",
     },
     {
         "family": "Compute Optimized",
@@ -240,6 +261,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "3.060000",
         "rate": "3.060000",
+        "saving": "0.199000",
     },
     {
         "family": "Compute Optimized",
@@ -250,6 +272,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "4.080000",
         "rate": "4.080000",
+        "saving": "0.199000",
     },
     {
         "family": "Compute Optimized",
@@ -260,6 +283,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.340000",
         "rate": "0.340000",
+        "saving": "0.199000",
     },
     {
         "family": "Compute Optimized",
@@ -270,6 +294,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.680000",
         "rate": "0.680000",
+        "saving": "0.199000",
     },
     {
         "family": "Compute Optimized",
@@ -280,6 +305,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "1.530000",
         "rate": "1.530000",
+        "saving": "0.199000",
     },
     {
         "family": "Compute Optimized",
@@ -290,6 +316,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.085000",
         "rate": "0.085000",
+        "saving": "0.199000",
     },
     {
         "family": "Compute Optimized",
@@ -300,6 +327,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "4.080000",
         "rate": "4.080000",
+        "saving": "0.199000",
     },
     {
         "family": "Compute Optimized",
@@ -310,6 +338,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.170000",
         "rate": "0.170000",
+        "saving": "0.199000",
     },
     {
         "family": "Compute Optimized",
@@ -320,6 +349,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "2.304000",
         "rate": "2.304000",
+        "saving": "0.199000",
     },
     {
         "family": "Compute Optimized",
@@ -330,6 +360,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "3.456000",
         "rate": "3.456000",
+        "saving": "0.199000",
     },
     {
         "family": "Compute Optimized",
@@ -340,6 +371,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "4.608000",
         "rate": "4.608000",
+        "saving": "0.199000",
     },
     {
         "family": "Compute Optimized",
@@ -350,6 +382,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.384000",
         "rate": "0.384000",
+        "saving": "0.199000",
     },
     {
         "family": "Compute Optimized",
@@ -360,6 +393,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.768000",
         "rate": "0.768000",
+        "saving": "0.199000",
     },
     {
         "family": "Compute Optimized",
@@ -370,6 +404,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "1.728000",
         "rate": "1.728000",
+        "saving": "0.199000",
     },
     {
         "family": "Compute Optimized",
@@ -380,6 +415,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.096000",
         "rate": "0.096000",
+        "saving": "0.199000",
     },
     {
         "family": "Compute Optimized",
@@ -390,6 +426,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "4.608000",
         "rate": "4.608000",
+        "saving": "0.199000",
     },
     {
         "family": "Compute Optimized",
@@ -400,6 +437,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.192000",
         "rate": "0.192000",
+        "saving": "0.199000",
     },
     {
         "family": "Compute Optimized",
@@ -410,6 +448,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "3.888000",
         "rate": "3.888000",
+        "saving": "0.199000",
     },
     {
         "family": "Compute Optimized",
@@ -420,6 +459,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.432000",
         "rate": "0.432000",
+        "saving": "0.199000",
     },
     {
         "family": "Compute Optimized",
@@ -430,6 +470,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.864000",
         "rate": "0.864000",
+        "saving": "0.199000",
     },
     {
         "family": "Compute Optimized",
@@ -440,6 +481,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "1.944000",
         "rate": "1.944000",
+        "saving": "0.199000",
     },
     {
         "family": "Compute Optimized",
@@ -450,6 +492,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.108000",
         "rate": "0.108000",
+        "saving": "0.199000",
     },
     {
         "family": "Compute Optimized",
@@ -460,6 +503,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "3.888000",
         "rate": "3.888000",
+        "saving": "0.199000",
     },
     {
         "family": "Compute Optimized",
@@ -470,6 +514,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.216000",
         "rate": "0.216000",
+        "saving": "0.199000",
     },
     {
         "family": "Storage Optimized",
@@ -480,6 +525,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "1.380000",
         "rate": "1.380000",
+        "saving": "0.199000",
     },
     {
         "family": "Storage Optimized",
@@ -490,6 +536,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "2.760000",
         "rate": "2.760000",
+        "saving": "0.199000",
     },
     {
         "family": "Storage Optimized",
@@ -500,6 +547,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "5.520000",
         "rate": "5.520000",
+        "saving": "0.199000",
     },
     {
         "family": "Storage Optimized",
@@ -510,6 +558,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.690000",
         "rate": "0.690000",
+        "saving": "0.199000",
     },
     {
         "family": "Accelerated Computing",
@@ -520,6 +569,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "13.200000",
         "rate": "13.200000",
+        "saving": "0.199000",
     },
     {
         "family": "Accelerated Computing",
@@ -530,6 +580,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "1.650000",
         "rate": "1.650000",
+        "saving": "0.199000",
     },
     {
         "family": "Accelerated Computing",
@@ -540,6 +591,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "3.300000",
         "rate": "3.300000",
+        "saving": "0.199000",
     },
     {
         "family": "Accelerated Computing",
@@ -550,6 +602,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "4.560000",
         "rate": "4.560000",
+        "saving": "0.199000",
     },
     {
         "family": "Accelerated Computing",
@@ -560,6 +613,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "1.140000",
         "rate": "1.140000",
+        "saving": "0.199000",
     },
     {
         "family": "Accelerated Computing",
@@ -570,6 +624,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "2.280000",
         "rate": "2.280000",
+        "saving": "0.199000",
     },
     {
         "family": "Accelerated Computing",
@@ -580,6 +635,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.750000",
         "rate": "0.750000",
+        "saving": "0.199000",
     },
     {
         "family": "Accelerated Computing",
@@ -590,6 +646,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "3.912000",
         "rate": "3.912000",
+        "saving": "0.199000",
     },
     {
         "family": "Accelerated Computing",
@@ -600,6 +657,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "4.352000",
         "rate": "4.352000",
+        "saving": "0.199000",
     },
     {
         "family": "Accelerated Computing",
@@ -610,6 +668,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.752000",
         "rate": "0.752000",
+        "saving": "0.199000",
     },
     {
         "family": "Accelerated Computing",
@@ -620,6 +679,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "1.204000",
         "rate": "1.204000",
+        "saving": "0.199000",
     },
     {
         "family": "Accelerated Computing",
@@ -630,6 +690,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "2.176000",
         "rate": "2.176000",
+        "saving": "0.199000",
     },
     {
         "family": "Accelerated Computing",
@@ -640,6 +701,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.526000",
         "rate": "0.526000",
+        "saving": "0.199000",
     },
     {
         "family": "Storage Optimized",
@@ -650,6 +712,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "3.744000",
         "rate": "3.744000",
+        "saving": "0.199000",
     },
     {
         "family": "Storage Optimized",
@@ -660,6 +723,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.468000",
         "rate": "0.468000",
+        "saving": "0.199000",
     },
     {
         "family": "Storage Optimized",
@@ -670,6 +734,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.936000",
         "rate": "0.936000",
+        "saving": "0.199000",
     },
     {
         "family": "Storage Optimized",
@@ -680,6 +745,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "1.872000",
         "rate": "1.872000",
+        "saving": "0.199000",
     },
     {
         "family": "Storage Optimized",
@@ -690,6 +756,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "4.992000",
         "rate": "4.992000",
+        "saving": "0.199000",
     },
     {
         "family": "Storage Optimized",
@@ -700,6 +767,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.624000",
         "rate": "0.624000",
+        "saving": "0.199000",
     },
     {
         "family": "Storage Optimized",
@@ -710,6 +778,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "1.248000",
         "rate": "1.248000",
+        "saving": "0.199000",
     },
     {
         "family": "Storage Optimized",
@@ -720,6 +789,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "2.496000",
         "rate": "2.496000",
+        "saving": "0.199000",
     },
     {
         "family": "Storage Optimized",
@@ -730,6 +800,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.156000",
         "rate": "0.156000",
+        "saving": "0.199000",
     },
     {
         "family": "Storage Optimized",
@@ -740,6 +811,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "4.992000",
         "rate": "4.992000",
+        "saving": "0.199000",
     },
     {
         "family": "Storage Optimized",
@@ -750,6 +822,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.312000",
         "rate": "0.312000",
+        "saving": "0.199000",
     },
     {
         "family": "Storage Optimized",
@@ -760,6 +833,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "5.424000",
         "rate": "5.424000",
+        "saving": "0.199000",
     },
     {
         "family": "Storage Optimized",
@@ -770,6 +844,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "10.848000",
         "rate": "10.848000",
+        "saving": "0.199000",
     },
     {
         "family": "Storage Optimized",
@@ -780,6 +855,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.904000",
         "rate": "0.904000",
+        "saving": "0.199000",
     },
     {
         "family": "Storage Optimized",
@@ -790,6 +866,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "1.356000",
         "rate": "1.356000",
+        "saving": "0.199000",
     },
     {
         "family": "Storage Optimized",
@@ -800,6 +877,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "2.712000",
         "rate": "2.712000",
+        "saving": "0.199000",
     },
     {
         "family": "Storage Optimized",
@@ -810,6 +888,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.226000",
         "rate": "0.226000",
+        "saving": "0.199000",
     },
     {
         "family": "Storage Optimized",
@@ -820,6 +899,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "10.848000",
         "rate": "10.848000",
+        "saving": "0.199000",
     },
     {
         "family": "Storage Optimized",
@@ -830,6 +910,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.452000",
         "rate": "0.452000",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -840,6 +921,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "2.000000",
         "rate": "2.000000",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -850,6 +932,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "3.200000",
         "rate": "3.200000",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -860,6 +943,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.400000",
         "rate": "0.400000",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -870,6 +954,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.800000",
         "rate": "0.800000",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -880,6 +965,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.100000",
         "rate": "0.100000",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -890,6 +976,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.200000",
         "rate": "0.200000",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -900,6 +987,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "2.304000",
         "rate": "2.304000",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -910,6 +998,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "3.072000",
         "rate": "3.072000",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -920,6 +1009,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "4.608000",
         "rate": "4.608000",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -930,6 +1020,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.384000",
         "rate": "0.384000",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -940,6 +1031,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.768000",
         "rate": "0.768000",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -950,6 +1042,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "1.536000",
         "rate": "1.536000",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -960,6 +1053,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.096000",
         "rate": "0.096000",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -970,6 +1064,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "4.608000",
         "rate": "4.608000",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -980,6 +1075,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.192000",
         "rate": "0.192000",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -990,6 +1086,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "2.064000",
         "rate": "2.064000",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -1000,6 +1097,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "2.752000",
         "rate": "2.752000",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -1010,6 +1108,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "4.128000",
         "rate": "4.128000",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -1020,6 +1119,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.344000",
         "rate": "0.344000",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -1030,6 +1130,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.688000",
         "rate": "0.688000",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -1040,6 +1141,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "1.376000",
         "rate": "1.376000",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -1050,6 +1152,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.086000",
         "rate": "0.086000",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -1060,6 +1163,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.172000",
         "rate": "0.172000",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -1070,6 +1174,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "2.472000",
         "rate": "2.472000",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -1080,6 +1185,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "4.944000",
         "rate": "4.944000",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -1090,6 +1196,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.412000",
         "rate": "0.412000",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -1100,6 +1207,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.824000",
         "rate": "0.824000",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -1110,6 +1218,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.103000",
         "rate": "0.103000",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -1120,6 +1229,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.206000",
         "rate": "0.206000",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -1130,6 +1240,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "2.712000",
         "rate": "2.712000",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -1140,6 +1251,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "3.616000",
         "rate": "3.616000",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -1150,6 +1262,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "5.424000",
         "rate": "5.424000",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -1160,6 +1273,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.452000",
         "rate": "0.452000",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -1170,6 +1284,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.904000",
         "rate": "0.904000",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -1180,6 +1295,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "1.808000",
         "rate": "1.808000",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -1190,6 +1306,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.113000",
         "rate": "0.113000",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -1200,6 +1317,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "5.424000",
         "rate": "5.424000",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -1210,6 +1328,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.226000",
         "rate": "0.226000",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -1220,6 +1339,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "3.264000",
         "rate": "3.264000",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -1230,6 +1350,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "4.352000",
         "rate": "4.352000",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -1240,6 +1361,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "6.528000",
         "rate": "6.528000",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -1250,6 +1372,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.544000",
         "rate": "0.544000",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -1260,6 +1383,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "1.088000",
         "rate": "1.088000",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -1270,6 +1394,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "2.176000",
         "rate": "2.176000",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -1280,6 +1405,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.136000",
         "rate": "0.136000",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -1290,6 +1416,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.272000",
         "rate": "0.272000",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -1300,6 +1427,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "2.856000",
         "rate": "2.856000",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -1310,6 +1438,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "3.808000",
         "rate": "3.808000",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -1320,6 +1449,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "5.712000",
         "rate": "5.712000",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -1330,6 +1460,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.476000",
         "rate": "0.476000",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -1340,6 +1471,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.952000",
         "rate": "0.952000",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -1350,6 +1482,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "1.904000",
         "rate": "1.904000",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -1360,6 +1493,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.119000",
         "rate": "0.119000",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -1370,6 +1504,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.238000",
         "rate": "0.238000",
+        "saving": "0.199000",
     },
     {
         "family": "Accelerated Computing",
@@ -1380,6 +1515,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "14.400000",
         "rate": "14.400000",
+        "saving": "0.199000",
     },
     {
         "family": "Accelerated Computing",
@@ -1390,6 +1526,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "7.200000",
         "rate": "7.200000",
+        "saving": "0.199000",
     },
     {
         "family": "Accelerated Computing",
@@ -1400,6 +1537,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.900000",
         "rate": "0.900000",
+        "saving": "0.199000",
     },
     {
         "family": "Accelerated Computing",
@@ -1410,6 +1548,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "24.480000",
         "rate": "24.480000",
+        "saving": "0.199000",
     },
     {
         "family": "Accelerated Computing",
@@ -1420,6 +1559,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "3.060000",
         "rate": "3.060000",
+        "saving": "0.199000",
     },
     {
         "family": "Accelerated Computing",
@@ -1430,6 +1570,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "12.240000",
         "rate": "12.240000",
+        "saving": "0.199000",
     },
     {
         "family": "Accelerated Computing",
@@ -1440,6 +1581,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "31.212000",
         "rate": "31.212000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -1450,6 +1592,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.665000",
         "rate": "0.665000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -1460,6 +1603,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "1.330000",
         "rate": "1.330000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -1470,6 +1614,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "2.660000",
         "rate": "2.660000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -1480,6 +1625,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.166000",
         "rate": "0.166000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -1490,6 +1636,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.333000",
         "rate": "0.333000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -1500,6 +1647,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "4.256000",
         "rate": "4.256000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -1510,6 +1658,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.532000",
         "rate": "0.532000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -1520,6 +1669,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "1.064000",
         "rate": "1.064000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -1530,6 +1680,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "2.128000",
         "rate": "2.128000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -1540,6 +1691,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.133000",
         "rate": "0.133000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -1550,6 +1702,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.266000",
         "rate": "0.266000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -1560,6 +1713,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "3.024000",
         "rate": "3.024000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -1570,6 +1724,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "4.032000",
         "rate": "4.032000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -1580,6 +1735,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "6.048000",
         "rate": "6.048000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -1590,6 +1746,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.504000",
         "rate": "0.504000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -1600,6 +1757,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "1.008000",
         "rate": "1.008000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -1610,6 +1768,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "2.016000",
         "rate": "2.016000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -1620,6 +1779,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.126000",
         "rate": "0.126000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -1630,6 +1790,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "6.048000",
         "rate": "6.048000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -1640,6 +1801,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.252000",
         "rate": "0.252000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -1650,6 +1812,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "2.712000",
         "rate": "2.712000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -1660,6 +1823,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "3.616000",
         "rate": "3.616000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -1670,6 +1834,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "5.424000",
         "rate": "5.424000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -1680,6 +1845,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.452000",
         "rate": "0.452000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -1690,6 +1856,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.904000",
         "rate": "0.904000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -1700,6 +1867,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "1.808000",
         "rate": "1.808000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -1710,6 +1878,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.113000",
         "rate": "0.113000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -1720,6 +1889,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.226000",
         "rate": "0.226000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -1730,6 +1900,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "3.144000",
         "rate": "3.144000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -1740,6 +1911,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "6.288000",
         "rate": "6.288000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -1750,6 +1922,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.524000",
         "rate": "0.524000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -1760,6 +1933,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "1.048000",
         "rate": "1.048000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -1770,6 +1944,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.131000",
         "rate": "0.131000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -1780,6 +1955,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.262000",
         "rate": "0.262000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -1790,6 +1966,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "3.456000",
         "rate": "3.456000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -1800,6 +1977,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "4.608000",
         "rate": "4.608000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -1810,6 +1988,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "6.912000",
         "rate": "6.912000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -1820,6 +1999,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.576000",
         "rate": "0.576000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -1830,6 +2010,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "1.152000",
         "rate": "1.152000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -1840,6 +2021,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "2.304000",
         "rate": "2.304000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -1850,6 +2032,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.144000",
         "rate": "0.144000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -1860,6 +2043,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "6.912000",
         "rate": "6.912000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -1870,6 +2054,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.288000",
         "rate": "0.288000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -1880,6 +2065,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "4.008000",
         "rate": "4.008000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -1890,6 +2076,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "5.344000",
         "rate": "5.344000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -1900,6 +2087,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "8.016000",
         "rate": "8.016000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -1910,6 +2098,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.668000",
         "rate": "0.668000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -1920,6 +2109,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "1.336000",
         "rate": "1.336000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -1930,6 +2120,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "2.672000",
         "rate": "2.672000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -1940,6 +2131,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.167000",
         "rate": "0.167000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -1950,6 +2142,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.334000",
         "rate": "0.334000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -1960,6 +2153,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "3.576000",
         "rate": "3.576000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -1970,6 +2164,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "4.768000",
         "rate": "4.768000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -1980,6 +2175,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "7.152000",
         "rate": "7.152000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -1990,6 +2186,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.596000",
         "rate": "0.596000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -2000,6 +2197,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "1.192000",
         "rate": "1.192000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -2010,6 +2208,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "2.384000",
         "rate": "2.384000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -2020,6 +2219,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.149000",
         "rate": "0.149000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -2030,6 +2230,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.298000",
         "rate": "0.298000",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -2040,6 +2241,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.371200",
         "rate": "0.371200",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -2050,6 +2252,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.092800",
         "rate": "0.092800",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -2060,6 +2263,7 @@ INSTANCE_TYPES = [
         "processor_arch": "32-bit",
         "cost": "0.046400",
         "rate": "0.046400",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -2070,6 +2274,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.046400",
         "rate": "0.046400",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -2080,6 +2285,7 @@ INSTANCE_TYPES = [
         "processor_arch": "32-bit",
         "cost": "0.011600",
         "rate": "0.011600",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -2090,6 +2296,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.011600",
         "rate": "0.011600",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -2100,6 +2307,7 @@ INSTANCE_TYPES = [
         "processor_arch": "32-bit",
         "cost": "0.023000",
         "rate": "0.023000",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -2110,6 +2318,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.023000",
         "rate": "0.023000",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -2120,6 +2329,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.185600",
         "rate": "0.185600",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -2130,6 +2340,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.332800",
         "rate": "0.332800",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -2140,6 +2351,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.083200",
         "rate": "0.083200",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -2150,6 +2362,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.041600",
         "rate": "0.041600",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -2160,6 +2373,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.010400",
         "rate": "0.010400",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -2170,6 +2384,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.020800",
         "rate": "0.020800",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -2180,6 +2395,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.166400",
         "rate": "0.166400",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -2190,6 +2406,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.300800",
         "rate": "0.300800",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -2200,6 +2417,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.075200",
         "rate": "0.075200",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -2210,6 +2428,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.037600",
         "rate": "0.037600",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -2220,6 +2439,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.009400",
         "rate": "0.009400",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -2230,6 +2450,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.018800",
         "rate": "0.018800",
+        "saving": "0.199000",
     },
     {
         "family": "General Purpose",
@@ -2240,6 +2461,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.150400",
         "rate": "0.150400",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -2250,6 +2472,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "6.669000",
         "rate": "6.669000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -2260,6 +2483,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "13.338000",
         "rate": "13.338000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -2270,6 +2494,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "13.344000",
         "rate": "13.344000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -2280,6 +2505,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "1.668000",
         "rate": "1.668000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -2290,6 +2516,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "3.336000",
         "rate": "3.336000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -2300,6 +2527,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "6.672000",
         "rate": "6.672000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -2310,6 +2538,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.834000",
         "rate": "0.834000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -2320,6 +2549,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "4.464000",
         "rate": "4.464000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -2330,6 +2560,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.744000",
         "rate": "0.744000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -2340,6 +2571,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "1.116000",
         "rate": "1.116000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -2350,6 +2582,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "2.232000",
         "rate": "2.232000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -2360,6 +2593,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.186000",
         "rate": "0.186000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -2370,6 +2604,7 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "4.464000",
         "rate": "4.464000",
+        "saving": "0.199000",
     },
     {
         "family": "Memory Optimized",
@@ -2380,5 +2615,6 @@ INSTANCE_TYPES = [
         "processor_arch": "64-bit",
         "cost": "0.372000",
         "rate": "0.372000",
+        "saving": "0.199000",
     },
 ]

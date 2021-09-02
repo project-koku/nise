@@ -200,7 +200,7 @@ class AWSGenerator(AbstractGenerator):
         + PRODUCT_COLS
         + PRICING_COLS
         + RESERVE_COLS
-        + SAVINGS_COLS 
+        + SAVINGS_COLS
         + tuple(RESOURCE_TAG_COLS)
     )
     REGIONS = (
