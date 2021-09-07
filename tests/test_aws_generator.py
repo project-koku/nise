@@ -187,6 +187,7 @@ class AWSGeneratorTestCase(TestCase):
         self.resource_id = "12345"
         self.amount = 1
         self.rate = 0.1
+        self.saving = 0.1
         self.attributes = {
             "product_sku": self.product_sku,
             "tags": self.tags,
@@ -196,6 +197,7 @@ class AWSGeneratorTestCase(TestCase):
             "resource_id": self.resource_id,
             "amount": self.amount,
             "rate": self.rate,
+            "saving": self.saving,
             "product_family": self.product_family,
         }
         self.two_hours_ago = (self.now - self.one_hour) - self.one_hour
@@ -295,7 +297,6 @@ class TestEBSGenerator(AWSGeneratorTestCase):
 
     def test_init_with_attributes(self):
         """Test the unique init options for Data Transfer."""
-
         generator = EBSGenerator(
             self.two_hours_ago, self.now, self.payer_account, self.usage_accounts, self.attributes
         )
@@ -331,6 +332,17 @@ class TestEC2Generator(AWSGeneratorTestCase):
 
     def test_init_with_attributes(self):
         """Test the unique init options for Data Transfer."""
+        self.instance_type = {
+            "inst_type": "1",
+            "vcpu": "1",
+            "memory": "1",
+            "storage": "1",
+            "family": "1",
+            "cost": "1",
+            "rate": "1",
+            "saving": "1",
+        }
+        self.attributes["instance_type"] = self.instance_type
 
         generator = EC2Generator(
             self.two_hours_ago, self.now, self.payer_account, self.usage_accounts, self.attributes

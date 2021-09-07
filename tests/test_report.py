@@ -456,6 +456,7 @@ class AWSReportTestCase(TestCase):
                             "family": "General Purpose",
                             "cost": 1.0,
                             "rate": 0.5,
+                            "saving": 0.25,
                         },
                     }
                 },
@@ -568,6 +569,7 @@ class AWSReportTestCase(TestCase):
                             "family": "General Purpose",
                             "cost": 1.0,
                             "rate": 0.5,
+                            "saving": 0.25,
                         },
                     }
                 },

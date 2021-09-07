@@ -32,6 +32,7 @@ class EC2Generator(AWSGenerator):
             "General Purpose",
             "0.096",
             "0.096",
+            "0.045",
             "${} per On Demand Linux {} Instance Hour",
         ),
         (
@@ -42,6 +43,7 @@ class EC2Generator(AWSGenerator):
             "Compute Optimized",
             "0.34",
             "0.34",
+            "0.17",
             "${} per On Demand Linux {} Instance Hour",
         ),
         (
@@ -52,6 +54,7 @@ class EC2Generator(AWSGenerator):
             "Compute Optimized",
             "0.199",
             "0.199",
+            "0.099",
             "${} per On Demand Linux {} Instance Hour",
         ),
         (
@@ -62,6 +65,7 @@ class EC2Generator(AWSGenerator):
             "Memory Optimized",
             "0.133",
             "0.133",
+            "0.067",
             "${} per On Demand Linux {} Instance Hour",
         ),
     )
@@ -94,12 +98,13 @@ class EC2Generator(AWSGenerator):
                     instance_type.get("family"),
                     instance_type.get("cost"),
                     instance_type.get("rate"),
+                    instance_type.get("saving"),
                     "${} per On Demand Linux {} Instance Hour",
                 )
 
     def _update_data(self, row, start, end, **kwargs):
         """Update data with generator specific data."""
-        inst_type, vcpu, memory, storage, family, cost, rate, description = self._instance_type
+        inst_type, vcpu, memory, storage, family, cost, rate, saving, description = self._instance_type
         inst_description = description.format(cost, inst_type)
         location, aws_region, avail_zone, _ = self._get_location()
         row = self._add_common_usage_info(row, start, end)
@@ -146,6 +151,7 @@ class EC2Generator(AWSGenerator):
         row["pricing/publicOnDemandRate"] = rate
         row["pricing/term"] = "OnDemand"
         row["pricing/unit"] = "Hrs"
+        row["savingsPlan/SavingsPlanEffectiveCost"] = saving
         self._add_tag_data(row)
 
         return row
