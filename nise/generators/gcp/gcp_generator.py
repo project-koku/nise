@@ -213,7 +213,7 @@ class GCPGenerator(AbstractGenerator):
             credit_dict = {
                 "name": credit_name,
                 "amount": mock_credit,
-                "full_name": None,
+                "full_name": "",
                 "id": credit_name,
                 "type": "PROMOTION",
             }
