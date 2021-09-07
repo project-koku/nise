@@ -195,33 +195,27 @@ class GCPGenerator(AbstractGenerator):
     def _gen_credit(self, cost, credit_distributed, credit_amount, json_return=False):
         """Generate the credit based off the cost amount."""
         if json_return:
-            default_dict = {
-                'name': '',
-                'amount': 0,
-                'full_name': '',
-                'id': '',
-                'type': ''
-            }
+            default_dict = {"name": "", "amount": 0, "full_name": "", "id": "", "type": ""}
             empty_return = [default_dict, None]
         else:
-            empty_return = ['[]', None]
+            empty_return = ["[]", None]
         if not credit_amount or credit_distributed is None:
-            return  empty_return
+            return empty_return
         if credit_amount < credit_distributed <= 0:
-            mock_credit = uniform(0, credit_amount/2)
+            mock_credit = uniform(0, credit_amount / 2)
             if abs(mock_credit) > cost:
                 mock_credit = uniform(0, (0 - cost))
             if (credit_distributed - abs(mock_credit)) < credit_amount:
                 remaining_credit = abs(credit_amount) - abs(credit_distributed)
                 mock_credit = 0 - remaining_credit
             credit_distributed = credit_distributed - abs(mock_credit)
-            credit_name = 'FreeTrial'
+            credit_name = "FreeTrial"
             credit_dict = {
-                'name': credit_name,
-                'amount': mock_credit,
-                'full_name': None,
-                'id': credit_name,
-                'type': 'PROMOTION'
+                "name": credit_name,
+                "amount": mock_credit,
+                "full_name": None,
+                "id": credit_name,
+                "type": "PROMOTION",
             }
             if json_return:
                 return [credit_dict, credit_distributed]
