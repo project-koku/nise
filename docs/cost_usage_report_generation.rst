@@ -102,7 +102,7 @@ GCP reports
 
 ``--gcp-bucket-name`` could be an local file name or a bucket. When ``--gcp-bucket-name`` matches a file on disk,
 the generated reports will be written to that file. If ``--gcp-bucket-name`` does not match a file on disk,
-nise will attempt to upload the gnerated report to a bucket with that name. When this is the case
+nise will attempt to upload the generated report to a bucket with that name. When this is the case
 the ``GOOGLE_APPLICATION_CREDENTIALS`` environment variable must be set, and the given bucket-name must match
 and existing bucket that is accessable by the service account indicated in ``GOOGLE_APPLICATION_CREDENTIALS``.
 
