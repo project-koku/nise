@@ -53,6 +53,7 @@ GCP_REPORT_COLUMNS = (
     "credits",
     "invoice.month",
     "cost_type",
+    "partition_date"
 )
 
 GCP_REPORT_COLUMNS_JSONL = (
@@ -155,6 +156,8 @@ class GCPGenerator(AbstractGenerator):
                     hours=randint(1, 5), minutes=randint(1, 59), seconds=randint(1, 59)
                 )
                 row[column] = GCPGenerator.timestamp(export_time)
+            elif column == "partition_date":
+                row[column] = GCPGenerator.timestamp(time_bill_start)
         row.update(self.project)
         return row
 
