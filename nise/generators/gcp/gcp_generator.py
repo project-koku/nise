@@ -53,7 +53,7 @@ GCP_REPORT_COLUMNS = (
     "credits",
     "invoice.month",
     "cost_type",
-    "partition_date"
+    "partition_date",
 )
 
 GCP_REPORT_COLUMNS_JSONL = (
