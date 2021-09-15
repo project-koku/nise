@@ -1,3 +1,4 @@
+import json
 from datetime import datetime
 from datetime import timedelta
 from unittest import TestCase
@@ -205,3 +206,54 @@ class TestGCPGenerator(TestCase):
         with self.assertRaises(ValueError):
             generator = CloudStorageGenerator(self.now, None, self.project)
             generator.generate_data()
+
+    def test_gcp_generators_with_credit_attributes(self):
+        """Test generators with credit attributes."""
+        expected_credit_amount = -10
+        attributes = {
+            "currency": fake.currency_code(),
+            "currency_conversion_rate": 1,
+            "cost_type": "regular",
+            "usage.amount": 10,
+            "usage.amount_in_pricing_units": 10,
+            "price": 2,
+            "usage.pricing_unit": "hour",
+            "credit_amount": expected_credit_amount,
+        }
+        generators_list = [CloudStorageGenerator, ComputeEngineGenerator, GCPDatabaseGenerator, GCPNetworkGenerator]
+        for generator in generators_list:
+            gen_handler = generator(self.yesterday, self.now, self.project, attributes=attributes)
+            generated_data = gen_handler.generate_data()
+            list_data = list(generated_data)
+            credit_rows = []
+            for row in list_data:
+                if row.get("credits") != "[]":
+                    credit_dict = row.get("credits").replace("'", '"').strip("][")
+                    credit_dict = json.loads(credit_dict)
+                    credit_amount = credit_dict.get("amount", 0)
+                    credit_rows.append(credit_amount)
+            self.assertEqual(sum(credit_rows), expected_credit_amount)
+
+    def test_gcp_jsonl_generators_with_credit_attributes(self):
+        """Test json generators with credit attributes."""
+        expected_credit_amount = -10
+        attributes = {
+            "currency": fake.currency_code(),
+            "currency_conversion_rate": 1,
+            "cost_type": "regular",
+            "usage.amount": 10,
+            "usage.amount_in_pricing_units": 10,
+            "price": 2,
+            "usage.pricing_unit": "hour",
+            "credit_amount": expected_credit_amount,
+        }
+        generators_list = [JSONLCloudStorageGenerator, JSONLComputeEngineGenerator, JSONLGCPDatabaseGenerator]
+        for generator in generators_list:
+            gen_handler = generator(self.yesterday, self.now, self.project, attributes=attributes)
+            generated_data = gen_handler.generate_data()
+            list_data = list(generated_data)
+            credit_rows = []
+            for row in list_data:
+                credit_amount = row.get("credits", {}).get("amount", 0)
+                credit_rows.append(credit_amount)
+            self.assertEqual(sum(credit_rows), expected_credit_amount)

@@ -47,9 +47,10 @@ class ComputeEngineGenerator(GCPGenerator):
 
     LABELS = (([{"key": "vm_key_proj2", "value": "vm_label_proj2"}]), ([]))
 
-    def __init__(self, start_date, end_date, project, attributes=None):
+    def __init__(self, start_date, end_date, project, attributes=None):  # noqa: C901
         """Initialize the cloud storage generator."""
         super().__init__(start_date, end_date, project, attributes)
+        self.credit_total = 0
         if self.attributes:
             if self.attributes.get("labels"):
                 self._labels = self.attributes.get("labels")
@@ -65,6 +66,8 @@ class ComputeEngineGenerator(GCPGenerator):
                         self._sku = sku
             if self.attributes.get("instance_type"):
                 self._instance_type = self.attributes.get("instance_type")
+            if self.attributes.get("credit_amount"):
+                self._credit_amount = self.attributes.get("credit_amount")
 
     def _update_data(self, row):  # noqa: C901
         """Update a data row with compute values."""
@@ -79,13 +82,16 @@ class ComputeEngineGenerator(GCPGenerator):
         pricing_unit = sku[3]
         row["usage.unit"] = usage_unit
         row["usage.pricing_unit"] = pricing_unit
-        row["credits"] = "[]"
         row["cost_type"] = "regular"
         row["currency"] = "USD"
         row["currency_conversion_rate"] = 1
         row["usage.amount"] = self._gen_usage_unit_amount(usage_unit)
         row["usage.amount_in_pricing_units"] = self._gen_pricing_unit_amount(pricing_unit, row["usage.amount"])
-        row["cost"] = self._gen_cost(row["usage.amount_in_pricing_units"])
+        cost = self._gen_cost(row["usage.amount_in_pricing_units"])
+        row["cost"] = cost
+        credit, credit_total = self._gen_credit(cost, self.credit_total, self._credit_amount)
+        self.credit_total = credit_total
+        row["credits"] = credit
         usage_date = datetime.strptime(row.get("usage_start_time"), "%Y-%m-%dT%H:%M:%S")
         row["invoice.month"] = f"{usage_date.year}{usage_date.month:02d}"
 
@@ -134,9 +140,12 @@ class JSONLComputeEngineGenerator(ComputeEngineGenerator):
         usage["pricing_unit"] = pricing_unit
         usage["amount"] = self._gen_usage_unit_amount(usage_unit)
         usage["amount_in_pricing_units"] = self._gen_pricing_unit_amount(pricing_unit, usage["amount"])
-        row["cost"] = self._gen_cost(usage["amount_in_pricing_units"])
+        cost = self._gen_cost(usage["amount_in_pricing_units"])
+        row["cost"] = cost
         row["usage"] = usage
-        row["credits"] = {}
+        credit, credit_total = self._gen_credit(cost, self.credit_total, self._credit_amount, True)
+        self.credit_total = credit_total
+        row["credits"] = credit
         row["cost_type"] = "regular"
         row["currency"] = "USD"
         row["currency_conversion_rate"] = 1
