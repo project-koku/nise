@@ -89,7 +89,7 @@ class ComputeEngineGenerator(GCPGenerator):
         row["usage.amount_in_pricing_units"] = self._gen_pricing_unit_amount(pricing_unit, row["usage.amount"])
         cost = self._gen_cost(row["usage.amount_in_pricing_units"])
         row["cost"] = cost
-        credit, credit_total = self._gen_credit(cost, self.credit_total, self._credit_amount)
+        credit, credit_total = self._gen_credit(self.credit_total, self._credit_amount)
         self.credit_total = credit_total
         row["credits"] = credit
         usage_date = datetime.strptime(row.get("usage_start_time"), "%Y-%m-%dT%H:%M:%S")
@@ -143,7 +143,7 @@ class JSONLComputeEngineGenerator(ComputeEngineGenerator):
         cost = self._gen_cost(usage["amount_in_pricing_units"])
         row["cost"] = cost
         row["usage"] = usage
-        credit, credit_total = self._gen_credit(cost, self.credit_total, self._credit_amount, True)
+        credit, credit_total = self._gen_credit(self.credit_total, self._credit_amount, True)
         self.credit_total = credit_total
         row["credits"] = credit
         row["cost_type"] = "regular"
