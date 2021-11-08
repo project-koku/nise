@@ -195,7 +195,7 @@ class GCPGenerator(AbstractGenerator):
         else:
             return round(uniform(0, 0.01), 7)
 
-    def _gen_credit(self, cost, credit_distributed, credit_amount, json_return=False):
+    def _gen_credit(self, credit_distributed, credit_amount, json_return=False):
         """Generate the credit based off the cost amount."""
         if json_return:
             default_dict = {"name": "", "amount": 0, "full_name": "", "id": "", "type": ""}
@@ -204,13 +204,8 @@ class GCPGenerator(AbstractGenerator):
             empty_return = ["[]", None]
         if not credit_amount or credit_distributed is None:
             return empty_return
-        if credit_amount < credit_distributed <= 0:
-            mock_credit = uniform(0, credit_amount / 2)
-            if abs(mock_credit) > cost:
-                mock_credit = uniform(0, (0 - cost))
-            if (credit_distributed - abs(mock_credit)) < credit_amount:
-                remaining_credit = abs(credit_amount) - abs(credit_distributed)
-                mock_credit = 0 - remaining_credit
+        else:
+            mock_credit = credit_amount / len(self.hours)
             credit_distributed = credit_distributed - abs(mock_credit)
             credit_name = "FreeTrial"
             credit_dict = {
@@ -224,7 +219,6 @@ class GCPGenerator(AbstractGenerator):
                 return [credit_dict, credit_distributed]
             else:
                 return [str([credit_dict]), credit_distributed]
-        return empty_return
 
     def determine_system_labels(self, pricing_unit):
         """Determine the system labels if instance-type exists."""
