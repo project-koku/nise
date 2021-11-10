@@ -18,6 +18,7 @@
 import datetime
 import json
 from abc import abstractmethod
+from datetime import timedelta
 from random import choice
 from random import randint
 from random import uniform
@@ -195,9 +196,31 @@ class GCPGenerator(AbstractGenerator):
         else:
             return round(uniform(0, 0.01), 7)
 
+    def _gcp_find_invoice_months_in_date_range(self):
+        """Finds all the invoice months in a given date range.
+        GCP invoice month format is {year}{month}.
+        Ex. 202011
+        Returns:
+            List of invoice months.
+        """
+        # Add a little buffer to end date for beginning of the month
+        # searches for invoice_month for dates < end_date
+        end_range = self.end_date + timedelta(1)
+        invoice_months = []
+        for day in range((end_range - self.start_date).days):
+            invoice_month = (self.start_date + timedelta(day)).strftime("%Y%m")
+            if invoice_month not in invoice_months:
+                invoice_months.append(invoice_month)
+        return invoice_months
+
     def _gen_credit(self, credit_distributed, credit_amount, json_return=False):
         """Generate the credit based off the cost amount."""
         if json_return:
+            if credit_amount:
+                # When using the csv generator it runs per invoice month so this will equal that logic
+                invoice_months = self._gcp_find_invoice_months_in_date_range()
+                invoice_month_count = len(invoice_months)
+                credit_amount = credit_amount * invoice_month_count
             default_dict = {"name": "", "amount": 0, "full_name": "", "id": "", "type": ""}
             empty_return = [default_dict, None]
         else:
