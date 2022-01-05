@@ -270,6 +270,7 @@ def _create_month_list(start_date, end_date):
     """Create a list of months given the date range args."""
     months = []
     current = start_date.replace(day=1)
+    end_month_first_day = end_date.replace(day=1)
     while current <= end_date:
         month = {
             "name": calendar.month_name[current.month],
@@ -285,7 +286,8 @@ def _create_month_list(start_date, end_date):
         if current.month == start_date.month:
             # First month start with start_date
             month["start"] = start_date
-        if current.month < end_date.month:
+        if current < end_month_first_day:
+            # can not compare months in this case - January < December
             month["end"] = (month.get("end") + relativedelta(days=1)).replace(hour=0, minute=0)
         if current.month == end_date.month:
             # Last month ends with end_date

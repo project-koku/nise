@@ -164,12 +164,12 @@ class MiscReportTestCase(TestCase):
                     {
                         "name": "November",
                         "start": datetime.datetime(year=2018, month=11, day=15),
-                        "end": datetime.datetime(year=2018, month=11, day=30, hour=23, minute=59),
+                        "end": datetime.datetime(year=2018, month=12, day=1, hour=0, minute=0),
                     },
                     {
                         "name": "December",
                         "start": datetime.datetime(year=2018, month=12, day=1),
-                        "end": datetime.datetime(year=2018, month=12, day=31, hour=23, minute=59),
+                        "end": datetime.datetime(year=2019, month=1, day=1, hour=0, minute=0),
                     },
                     {
                         "name": "January",
