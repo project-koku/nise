@@ -465,12 +465,12 @@ class OCPGenerator(AbstractGenerator):
         cpu_usage = self._get_usage_for_date(kwargs.get("cpu_usage"), start)
         cpu = round(uniform(0.02, cpu_limit), 5)
         if cpu_usage:
-            cpu = min(cpu_limit, cpu_request, cpu_usage)
+            cpu = min(cpu_limit, cpu_usage)
 
         mem_usage_gig = self._get_usage_for_date(kwargs.get("mem_usage_gig"), start)
         mem = round(uniform(1, mem_limit_gig), 2)
         if mem_usage_gig:
-            mem = min(mem_limit_gig, mem_request_gig, mem_usage_gig)
+            mem = min(mem_limit_gig, mem_usage_gig)
 
         pod["pod_usage_cpu_core_seconds"] = pod_seconds * cpu
         pod["pod_request_cpu_core_seconds"] = pod_seconds * cpu_request
