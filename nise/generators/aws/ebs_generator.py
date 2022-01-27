@@ -29,9 +29,9 @@ class EBSGenerator(AWSGenerator):
         ("3000 for volumes <= 1 TiB", "10000", "160 MB/sec", "16 TiB", "SSD-backed", "General Purpose"),
     )
 
-    def __init__(self, start_date, end_date, payer_account, usage_accounts, attributes=None, tag_cols=None):
+    def __init__(self, start_date, end_date, payer_account, currency, usage_accounts, attributes=None, tag_cols=None):
         """Initialize the EBS generator."""
-        super().__init__(start_date, end_date, payer_account, usage_accounts, attributes, tag_cols)
+        super().__init__(start_date, end_date, payer_account, currency, usage_accounts, attributes, tag_cols)
         self._resource_id = "vol-{}".format(self.fake.ean8())
         self._amount = uniform(0.2, 300.99)
         self._rate = round(uniform(0.02, 0.16), 3)
@@ -69,7 +69,6 @@ class EBSGenerator(AWSGenerator):
         row["lineItem/Operation"] = "CreateVolume"
         row["lineItem/ResourceId"] = self._resource_id
         row["lineItem/UsageAmount"] = str(amount)
-        row["lineItem/CurrencyCode"] = "USD"
         row["lineItem/UnblendedRate"] = str(rate)
         row["lineItem/UnblendedCost"] = str(cost)
         row["lineItem/BlendedRate"] = str(rate)

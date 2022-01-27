@@ -21,9 +21,9 @@ from nise.generators.aws.aws_generator import AWSGenerator
 class VPCGenerator(AWSGenerator):
     """Generator for VPC data."""
 
-    def __init__(self, start_date, end_date, payer_account, usage_accounts, attributes=None, tag_cols=None):
+    def __init__(self, start_date, end_date, payer_account, currency, usage_accounts, attributes=None, tag_cols=None):
         """Initialize the VPC generator."""
-        super().__init__(start_date, end_date, payer_account, usage_accounts, attributes, tag_cols)
+        super().__init__(start_date, end_date, payer_account, currency, usage_accounts, attributes, tag_cols)
         self._resource_id = "vpn-{}".format(self.fake.ean8())
         self._product_sku = self.fake.pystr(min_chars=12, max_chars=12).upper()
         self._rate = None
@@ -39,6 +39,7 @@ class VPCGenerator(AWSGenerator):
                 self._cost = self.attributes.get("cost")
             if self.attributes.get("rate"):
                 self._rate = self.attributes.get("rate")
+
 
     def _update_data(self, row, start, end, **kwargs):
         """Update data with generator specific data."""
@@ -57,7 +58,6 @@ class VPCGenerator(AWSGenerator):
         row["lineItem/AvailabilityZone"] = avail_zone
         row["lineItem/ResourceId"] = self._resource_id
         row["lineItem/UsageAmount"] = "1"
-        row["lineItem/CurrencyCode"] = "USD"
         row["lineItem/UnblendedRate"] = rate
         row["lineItem/UnblendedCost"] = cost
         row["lineItem/BlendedRate"] = rate

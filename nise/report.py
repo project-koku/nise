@@ -476,6 +476,10 @@ def aws_create_report(options):  # noqa: C901
     data = []
     start_date = options.get("start_date")
     end_date = options.get("end_date")
+    if options.get("currency"):
+        currency_code = options.get("currency")
+    else:
+        currency_code = 'USD'
     aws_finalize_report = options.get("aws_finalize_report")
     static_report_data = options.get("static_report_data")
 
@@ -524,7 +528,7 @@ def aws_create_report(options):  # noqa: C901
                 gen_start_date, gen_end_date = _create_generator_dates_from_yaml(attributes, month)
 
             gen = generator_cls(
-                gen_start_date, gen_end_date, payer_account, usage_accounts, attributes, options.get("aws_tags")
+                gen_start_date, gen_end_date, payer_account, currency_code, usage_accounts, attributes, options.get("aws_tags")
             )
             num_instances = 1 if attributes else randint(2, 60)
             for _ in range(num_instances):

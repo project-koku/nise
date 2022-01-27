@@ -68,9 +68,9 @@ class RDSGenerator(AWSGenerator):
 
     ARCHS = ("32-bit", "64-bit")
 
-    def __init__(self, start_date, end_date, payer_account, usage_accounts, attributes=None, tag_cols=None):
+    def __init__(self, start_date, end_date, payer_account, currency, usage_accounts, attributes=None, tag_cols=None):
         """Initialize the RDS generator."""
-        super().__init__(start_date, end_date, payer_account, usage_accounts, attributes, tag_cols)
+        super().__init__(start_date, end_date, payer_account,currency,  usage_accounts, attributes, tag_cols)
         self._processor_arch = choice(self.ARCHS)
         self._product_sku = self.fake.pystr(min_chars=12, max_chars=12).upper()
         self._instance_type = choice(self.INSTANCE_TYPES)
@@ -115,7 +115,6 @@ class RDSGenerator(AWSGenerator):
         row["lineItem/AvailabilityZone"] = avail_zone
         row["lineItem/ResourceId"] = self._get_arn(avail_zone)
         row["lineItem/UsageAmount"] = "1"
-        row["lineItem/CurrencyCode"] = "USD"
         row["lineItem/UnblendedRate"] = rate
         row["lineItem/UnblendedCost"] = cost
         row["lineItem/BlendedRate"] = rate

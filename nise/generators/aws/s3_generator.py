@@ -23,9 +23,9 @@ from nise.generators.aws.aws_generator import AWSGenerator
 class S3Generator(AWSGenerator):
     """Generator for S3 data."""
 
-    def __init__(self, start_date, end_date, payer_account, usage_accounts, attributes=None, tag_cols=None):
+    def __init__(self, start_date, end_date, payer_account, currency, usage_accounts, attributes=None, tag_cols=None):
         """Initialize the S3 generator."""
-        super().__init__(start_date, end_date, payer_account, usage_accounts, attributes, tag_cols)
+        super().__init__(start_date, end_date, payer_account, currency,  usage_accounts, attributes, tag_cols)
         self._amount = uniform(0.2, 6000.99)
         self._rate = round(uniform(0.02, 0.06), 3)
         self._product_sku = self.fake.pystr(min_chars=12, max_chars=12).upper()
@@ -62,7 +62,6 @@ class S3Generator(AWSGenerator):
         row["lineItem/Operation"] = "GetObject"
         row["lineItem/ResourceId"] = amazon_resource_name
         row["lineItem/UsageAmount"] = str(amount)
-        row["lineItem/CurrencyCode"] = "USD"
         row["lineItem/UnblendedRate"] = str(rate)
         row["lineItem/UnblendedCost"] = str(cost)
         row["lineItem/BlendedRate"] = str(rate)
