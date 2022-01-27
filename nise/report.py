@@ -596,6 +596,7 @@ def azure_create_report(options):  # noqa: C901
     data = []
     start_date = options.get("start_date")
     end_date = options.get("end_date")
+    currency = options.get("currency")
     static_report_data = options.get("static_report_data")
     if static_report_data:
         generators = _get_generators(static_report_data.get("generators"))
@@ -649,7 +650,7 @@ def azure_create_report(options):  # noqa: C901
                 meter_cache.update(attributes.get("meter_cache"))  # needed so that meter_cache can be defined in yaml
             attributes["meter_cache"] = meter_cache
             attributes["version_two"] = version_two
-            gen = generator_cls(gen_start_date, gen_end_date, account_info, attributes)
+            gen = generator_cls(gen_start_date, gen_end_date, currency, account_info, attributes)
             azure_columns = gen.azure_columns
             data += gen.generate_data()
             meter_cache = gen.get_meter_cache()

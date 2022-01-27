@@ -35,7 +35,7 @@ class SQLGenerator(AzureGenerator):
     )
     ADDITIONAL_INFO = ({"ConsumptionMeter": "22222222-3333-4444-5555-666666666666"},)
 
-    def __init__(self, start_date, end_date, account_info, attributes=None):
+    def __init__(self, start_date, end_date, currency, account_info, attributes=None):
         """Initialize the data transfer generator."""
         self._service_name = "SQL Database"
-        super().__init__(start_date, end_date, account_info, attributes)
+        super().__init__(start_date, end_date, currency, account_info, attributes)
