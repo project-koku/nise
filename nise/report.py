@@ -596,7 +596,10 @@ def azure_create_report(options):  # noqa: C901
     data = []
     start_date = options.get("start_date")
     end_date = options.get("end_date")
-    currency = options.get("currency")
+    if options.get("currency"):
+        currency = options.get("currency")
+    else:
+        currency = 'USD'
     static_report_data = options.get("static_report_data")
     if static_report_data:
         generators = _get_generators(static_report_data.get("generators"))
@@ -851,7 +854,7 @@ def write_gcp_file(start_date, end_date, data, options):
     return local_file_path, output_file_name
 
 
-def write_gcp_file_jsonl(start_date, end_date, data, options):
+def write_gcp_file_jsonl(start_date, end_date, currency, data, options):
     """Write GCP data to a file."""
     report_prefix = options.get("gcp_report_prefix")
     etag = options.get("gcp_etag") if options.get("gcp_etag") else str(uuid4())
@@ -877,6 +880,10 @@ def gcp_create_report(options):  # noqa: C901
 
     start_date = options.get("start_date")
     end_date = options.get("end_date")
+    if options.get("currency"):
+        currency = options.get("currency")
+    else:
+        currency = 'USD'   
 
     static_report_data = options.get("static_report_data")
 
@@ -899,6 +906,7 @@ def gcp_create_report(options):  # noqa: C901
                         key = pair.split(":")[0]
                         value = pair.split(":")[1]
                         labels.append({"key": key, "value": value})
+                
                 project["labels"] = labels
                 location = {}
                 location["location"] = static_dict.get("location.location", "")
@@ -951,7 +959,7 @@ def gcp_create_report(options):  # noqa: C901
 
     if gcp_dataset_name:
         monthly_files = _gcp_bigquery_process(
-            start_date, end_date, projects, generators, options, gcp_bucket_name, gcp_dataset_name, gcp_table_name
+            start_date, end_date, currency, projects, generators, options, gcp_bucket_name, gcp_dataset_name, gcp_table_name
         )
     else:
         months = _create_month_list(start_date, end_date)
@@ -976,7 +984,7 @@ def gcp_create_report(options):  # noqa: C901
                         gen_end_date = end_date
 
                     generator_cls = generator.get("generator")
-                    gen = generator_cls(gen_start_date, gen_end_date, project, attributes=attributes)
+                    gen = generator_cls(gen_start_date, gen_end_date, currency, project, attributes=attributes)
                     for hour in gen.generate_data():
                         data += [hour]
                     count += 1
@@ -996,7 +1004,7 @@ def gcp_create_report(options):  # noqa: C901
 
 
 def _gcp_bigquery_process(
-    start_date, end_date, projects, generators, options, gcp_bucket_name, gcp_dataset_name, gcp_table_name
+    start_date, end_date, projects, currency, generators, options, gcp_bucket_name, gcp_dataset_name, gcp_table_name
 ):
     data = []
     for project in projects:
@@ -1018,7 +1026,7 @@ def _gcp_bigquery_process(
                 LOG.info(f"Done with {count} of {num_gens} generators.")
 
     monthly_files = []
-    local_file_path, output_file_name = write_gcp_file_jsonl(start_date, end_date, data, options)
+    local_file_path, output_file_name = write_gcp_file_jsonl(start_date, end_date, currency, data, options)
     monthly_files.append(local_file_path)
 
     if gcp_bucket_name:

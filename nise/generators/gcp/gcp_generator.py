@@ -83,7 +83,7 @@ GCP_INSTANCE_TYPES = ("e2-medium", "n1-standard-4", "m2-megamem-416", "a2-highgp
 class GCPGenerator(AbstractGenerator):
     """Abstract class for GCP generators."""
 
-    def __init__(self, start_date, end_date, project, attributes=None):
+    def __init__(self, start_date, end_date, currency, project, attributes=None):
         """
         Initialize the generator.
 
@@ -99,6 +99,7 @@ class GCPGenerator(AbstractGenerator):
         self.attributes = attributes
         self.column_labels = GCP_REPORT_COLUMNS
         self.return_list = False
+        self.currency = currency
         # class vars to be set by the child classes based off attributes.
         self._labels = None
         self._usage_amount = None
@@ -108,6 +109,7 @@ class GCPGenerator(AbstractGenerator):
         self._instance_type = choice(GCP_INSTANCE_TYPES)
         self._service = None
         self._credit_amount = None
+        self._currency = currency
 
     @staticmethod
     def _create_days_list(start_date, end_date):

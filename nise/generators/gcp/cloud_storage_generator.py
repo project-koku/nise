@@ -41,10 +41,11 @@ class CloudStorageGenerator(GCPGenerator):
 
     SYSTEM_LABELS = (("[]"),)
 
-    def __init__(self, start_date, end_date, project, attributes=None):
+    def __init__(self, start_date, end_date, currency, project, attributes=None):
         """Initialize the cloud storage generator."""
-        super().__init__(start_date, end_date, project, attributes)
+        super().__init__(start_date, end_date, currency, project, attributes)
         self.credit_total = 0
+        self._currency = currency 
         if self.attributes:
             if self.attributes.get("labels"):
                 self._labels = self.attributes.get("labels")
@@ -72,12 +73,12 @@ class CloudStorageGenerator(GCPGenerator):
         row["usage.unit"] = usage_unit
         row["usage.pricing_unit"] = pricing_unit
         row["cost_type"] = "regular"
-        row["currency"] = "USD"
         row["currency_conversion_rate"] = 1
         row["usage.amount"] = self._gen_usage_unit_amount(usage_unit)
         row["usage.amount_in_pricing_units"] = self._gen_pricing_unit_amount(pricing_unit, row["usage.amount"])
         cost = self._gen_cost(row["usage.amount_in_pricing_units"])
         row["cost"] = cost
+        row["currency"] = self._currency
         credit, credit_total = self._gen_credit(self.credit_total, self._credit_amount)
         self.credit_total = credit_total
         row["credits"] = credit
@@ -136,7 +137,6 @@ class JSONLCloudStorageGenerator(CloudStorageGenerator):
         self.credit_total = credit_total
         row["credits"] = credit
         row["cost_type"] = "regular"
-        row["currency"] = "USD"
         row["currency_conversion_rate"] = 1
         invoice = {}
         year = datetime.strptime(row.get("usage_start_time"), "%Y-%m-%dT%H:%M:%S").year
