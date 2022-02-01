@@ -52,6 +52,7 @@ LINE_ITEM_COLS = (
     "lineItem/BlendedCost",
     "lineItem/LineItemDescription",
     "lineItem/TaxType",
+    "lineItem/LegalEntity",
 )
 PRODUCT_COLS = (
     "product/ProductName",
@@ -145,6 +146,25 @@ PRODUCT_COLS = (
     "product/virtualInterfaceType",
     "product/volumeType",
     "product/whoCanOpenCases",
+    "product/fromRegionCode",
+    "product/capacitystatus",
+    "product/instanceTypeFamily",
+    "product/classicnetworkingsupport",
+    "product/toRegionCode",
+    "product/marketoption",
+    "product/intelAvx2Available",
+    "product/availabilityZone",
+    "product/normalizationSizeFactor",
+    "product/regionCode",
+    "product/vpcnetworkingsupport",
+    "product/intelTurboAvailable",
+    "product/subscriptionType",
+    "product/servicename",
+    "product/platovolumetype",
+    "product/volumeApiName",
+    "product/intelAvxAvailable",
+    "product/platousagetype",
+    "product/edition",
 )
 PRICING_COLS = (
     "pricing/LeaseContractLength",
@@ -153,6 +173,9 @@ PRICING_COLS = (
     "pricing/publicOnDemandRate",
     "pricing/term",
     "pricing/unit",
+    "pricing/currency",
+    "pricing/RateCode",
+    "pricing/RateId",
 )
 RESERVE_COLS = (
     "reservation/AvailabilityZone",
@@ -162,6 +185,19 @@ RESERVE_COLS = (
     "reservation/TotalReservedNormalizedUnits",
     "reservation/TotalReservedUnits",
     "reservation/UnitsPerReservation",
+    "reservation/ModificationStatus",
+    "reservation/EndTime",
+    "reservation/AmortizedUpfrontCostForUsage",
+    "reservation/SubscriptionId",
+    "reservation/AmortizedUpfrontFeeForBillingPeriod",
+    "reservation/EffectiveCost",
+    "reservation/RecurringFeeForUsage",
+    "reservation/UnusedAmortizedUpfrontFeeForBillingPeriod",
+    "reservation/UpfrontValue",
+    "reservation/StartTime",
+    "reservation/UnusedNormalizedUnitQuantity",
+    "reservation/UnusedQuantity",
+    "reservation/UnusedRecurringFee",
 )
 SAVINGS_COLS = (
     "savingsPlan/AmortizedUpfrontCommitmentForBillingPeriod",
@@ -178,11 +214,12 @@ SAVINGS_COLS = (
     "savingsPlan/StartTime",
     "savingsPlan/TotalCommitmentToDate",
     "savingsPlan/UsedCommitment",
+    "savingsPlan/SavingsPlanARN",
 )
 
 
 class AWSGenerator(AbstractGenerator):
-    """Defines a abstract class for generators."""
+    """Defines an abstract class for generators."""
 
     RESOURCE_TAG_COLS = {
         "resourceTags/user:environment",
@@ -192,6 +229,8 @@ class AWSGenerator(AbstractGenerator):
         "resourceTags/user:openshift_cluster",
         "resourceTags/user:openshift_project",
         "resourceTags/user:openshift_node",
+        "resourceTags/user: insights_project",
+        "resourceTags/aws: createdBy",
     }
     AWS_COLUMNS = set(
         IDENTITY_COLS

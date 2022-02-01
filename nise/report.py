@@ -471,6 +471,28 @@ def write_aws_file(
     return full_file_name
 
 
+def aws_create_marketplace_report(options):  # noqa: C901
+    """Create a marketplace usage report file."""
+    static_report_data = options.get("static_report_data")
+
+    if static_report_data:
+        aws_create_report(options)
+    else:
+        start = options.get("start_date").strftime("%Y%m%d")
+        end = options.get("end_date").strftime("%Y%m%d")
+        generators = {"generators": [{"MarketplaceGenerator": {"start_date": start, "end_date": end}}]}
+
+        if not options.get("aws_report_name"):
+            options["aws_report_name"] = "marketplace"
+        else:
+            options["aws_report_name"] = options.get("aws_report_name") + "marketplace"
+
+        options["static_report_data"] = generators
+        options["accounts_list"] = None
+
+        aws_create_report(options)
+
+
 def aws_create_report(options):  # noqa: C901
     """Create a cost usage report file."""
     data = []
