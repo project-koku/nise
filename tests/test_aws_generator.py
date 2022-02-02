@@ -149,7 +149,7 @@ class AbstractGeneratorTestCase(TestCase):
 
         attributes = {}
         attributes["region"] = "us-west-1a"
-        generator = TestGenerator(two_hours_ago, self.now, self.payer_account, self.usage_accounts, attributes)
+        generator = TestGenerator(two_hours_ago, self.now, self.payer_account, self.currency, self.usage_accounts, attributes)
         location = generator._get_location()
         self.assertIn("us-west-1", location)
 
@@ -239,7 +239,7 @@ class TestRDSGenerator(AWSGeneratorTestCase):
     def test_init_with_attributes(self):
         """Test the unique init options for RDS."""
         generator = RDSGenerator(
-            self.two_hours_ago, self.now, self.payer_account, self.usage_accounts, self.attributes
+            self.two_hours_ago, self.now, self.payer_account, self.currency, self.usage_accounts, self.attributes
         )
         self.assertEqual(generator._product_sku, self.product_sku)
         self.assertEqual(generator._resource_id, "i-" + self.resource_id)
@@ -274,7 +274,7 @@ class TestDataTransferGenerator(AWSGeneratorTestCase):
         """Test the unique init options for Data Transfer."""
 
         generator = DataTransferGenerator(
-            self.two_hours_ago, self.now, self.payer_account, self.usage_accounts, self.attributes
+            self.two_hours_ago, self.now, self.payer_account, self.currency, self.usage_accounts, self.attributes
         )
         self.assertEqual(generator._product_code, self.product_code)
         self.assertEqual(generator._tags, self.tags)
@@ -300,7 +300,7 @@ class TestEBSGenerator(AWSGeneratorTestCase):
     def test_init_with_attributes(self):
         """Test the unique init options for Data Transfer."""
         generator = EBSGenerator(
-            self.two_hours_ago, self.now, self.payer_account, self.usage_accounts, self.attributes
+            self.two_hours_ago, self.now, self.payer_account, self.currency, self.usage_accounts, self.attributes
         )
         self.assertEqual(generator._product_sku, self.product_sku)
         self.assertEqual(generator._tags, self.tags)
@@ -347,7 +347,7 @@ class TestEC2Generator(AWSGeneratorTestCase):
         self.attributes["instance_type"] = self.instance_type
 
         generator = EC2Generator(
-            self.two_hours_ago, self.now, self.payer_account, self.usage_accounts, self.attributes
+            self.two_hours_ago, self.now, self.payer_account, self.currency, self.usage_accounts, self.attributes
         )
         self.assertEqual(generator._product_sku, self.product_sku)
         self.assertEqual(generator._tags, self.tags)
@@ -382,7 +382,7 @@ class TestRoute53Generator(AWSGeneratorTestCase):
         """Test the unique init options for Data Transfer."""
 
         generator = Route53Generator(
-            self.two_hours_ago, self.now, self.payer_account, self.usage_accounts, self.attributes
+            self.two_hours_ago, self.now, self.payer_account, self.currency, self.usage_accounts, self.attributes
         )
         self.assertEqual(generator._product_sku, self.product_sku)
         self.assertEqual(generator._tags, self.tags)
@@ -415,7 +415,7 @@ class TestS3Generator(AWSGeneratorTestCase):
     def test_init_with_attributes(self):
         """Test the unique init options for Data Transfer."""
 
-        generator = S3Generator(self.two_hours_ago, self.now, self.payer_account, self.usage_accounts, self.attributes)
+        generator = S3Generator(self.two_hours_ago, self.now, self.payer_account, self.currency, self.usage_accounts, self.attributes)
         self.assertEqual(generator._product_sku, self.product_sku)
         self.assertEqual(generator._tags, self.tags)
         self.assertEqual(generator._amount, self.amount)
