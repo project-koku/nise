@@ -48,11 +48,12 @@ class TestGCPGenerator(TestCase):
         }
         self.now = datetime.now().replace(microsecond=0, second=0, minute=0)
         self.yesterday = self.now - timedelta(days=1)
+        self.currency = 'USD'
 
     def test_cloud_storage_init_with_attributes(self):
         """Test the init with attribute for Cloud Storage."""
 
-        generator = CloudStorageGenerator(self.yesterday, self.now, self.project, attributes=self.attributes)
+        generator = CloudStorageGenerator(self.yesterday, self.now, self.currency, self.project, attributes=self.attributes)
         generated_data = generator.generate_data()
         list_data = list(generated_data)
         self.assertEqual(list_data[0]["cost"], self.attributes["cost"])
@@ -60,7 +61,7 @@ class TestGCPGenerator(TestCase):
 
     def test_cloud_storage_init_with_usage_attributes(self):
         """Test the init with usage attribute for Cloud Storage."""
-        generator = CloudStorageGenerator(self.yesterday, self.now, self.project, attributes=self.usage_attributes)
+        generator = CloudStorageGenerator(self.yesterday, self.now, self.currency, self.project, attributes=self.usage_attributes)
         generated_data = generator.generate_data()
         list_data = list(generated_data)
         self.assertEqual(list_data[0]["cost"], self.usage_attributes["usage.amount"] * self.usage_attributes["price"])
