@@ -47,6 +47,7 @@ class AbstractGeneratorTestCase(TestCase):
         self.now = datetime.now().replace(microsecond=0, second=0, minute=0)
         self.one_hour = timedelta(minutes=60)
         self.payer_account = self.fake.ean(length=13)
+        self.currency = 'USD'
         self.usage_accounts = (
             self.payer_account,
             self.fake.ean(length=13),
@@ -58,33 +59,33 @@ class AbstractGeneratorTestCase(TestCase):
     def test_set_hours_invalid_start(self):
         """Test that the start date must be a date object."""
         with self.assertRaises(ValueError):
-            TestGenerator("invalid", self.now, self.payer_account, self.usage_accounts)
+            TestGenerator("invalid", self.now, self.payer_account, self.currency, self.usage_accounts)
 
     def test_set_hours_invalid_end(self):
         """Test that the end date must be a date object."""
         with self.assertRaises(ValueError):
-            TestGenerator(self.now, "invalid", self.payer_account, self.usage_accounts)
+            TestGenerator(self.now, "invalid", self.payer_account, self.currency, self.usage_accounts)
 
     def test_set_hours_none_start(self):
         """Test that the start date is not None."""
         with self.assertRaises(ValueError):
-            TestGenerator(None, self.now, self.payer_account, self.usage_accounts)
+            TestGenerator(None, self.now, self.payer_account, self.currency, self.usage_accounts)
 
     def test_set_hours_none_end(self):
         """Test that the end date is not None."""
         with self.assertRaises(ValueError):
-            TestGenerator(self.now, None, self.payer_account, self.usage_accounts)
+            TestGenerator(self.now, None, self.payer_account, self.currency, self.usage_accounts)
 
     def test_set_hours_compared_dates(self):
         """Test that the start date must be less than the end date."""
         hour_ago = self.now - self.one_hour
         with self.assertRaises(ValueError):
-            TestGenerator(self.now, hour_ago, self.payer_account, self.usage_accounts)
+            TestGenerator(self.now, hour_ago, self.payer_account, self.currency, self.usage_accounts)
 
     def test_set_hours(self):
         """Test that a valid list of hours are returned."""
         two_hours_ago = (self.now - self.one_hour) - self.one_hour
-        generator = TestGenerator(two_hours_ago, self.now, self.payer_account, self.usage_accounts)
+        generator = TestGenerator(two_hours_ago, self.now, self.payer_account, self.currency, self.usage_accounts)
         expected = [
             {"start": two_hours_ago, "end": two_hours_ago + self.one_hour},
             {"start": two_hours_ago + self.one_hour, "end": two_hours_ago + self.one_hour + self.one_hour},
@@ -104,7 +105,7 @@ class AbstractGeneratorTestCase(TestCase):
     def test_init_data_row(self):
         """Test the init data row method."""
         two_hours_ago = (self.now - self.one_hour) - self.one_hour
-        generator = TestGenerator(two_hours_ago, self.now, self.payer_account, self.usage_accounts)
+        generator = TestGenerator(two_hours_ago, self.now, self.payer_account, self.currency, self.usage_accounts)
         a_row = generator._init_data_row(two_hours_ago, self.now)
         self.assertIsInstance(a_row, dict)
         for col in generator.AWS_COLUMNS:
@@ -113,35 +114,35 @@ class AbstractGeneratorTestCase(TestCase):
     def test_init_data_row_start_none(self):
         """Test the init data row method none start date."""
         two_hours_ago = (self.now - self.one_hour) - self.one_hour
-        generator = TestGenerator(two_hours_ago, self.now, self.payer_account, self.usage_accounts)
+        generator = TestGenerator(two_hours_ago, self.now, self.payer_account, self.currency, self.usage_accounts)
         with self.assertRaises(ValueError):
             generator._init_data_row(None, self.now)
 
     def test_init_data_row_end_none(self):
         """Test the init data row method none end date."""
         two_hours_ago = (self.now - self.one_hour) - self.one_hour
-        generator = TestGenerator(two_hours_ago, self.now, self.payer_account, self.usage_accounts)
+        generator = TestGenerator(two_hours_ago, self.now, self.payer_account, self.currency, self.usage_accounts)
         with self.assertRaises(ValueError):
             generator._init_data_row(two_hours_ago, None)
 
     def test_init_data_row_start_invalid(self):
         """Test the init data row method invalid start date."""
         two_hours_ago = (self.now - self.one_hour) - self.one_hour
-        generator = TestGenerator(two_hours_ago, self.now, self.payer_account, self.usage_accounts)
+        generator = TestGenerator(two_hours_ago, self.now, self.payer_account, self.currency, self.usage_accounts)
         with self.assertRaises(ValueError):
             generator._init_data_row("invalid", self.now)
 
     def test_init_data_row_end_invalid(self):
         """Test the init data row method invalid end date."""
         two_hours_ago = (self.now - self.one_hour) - self.one_hour
-        generator = TestGenerator(two_hours_ago, self.now, self.payer_account, self.usage_accounts)
+        generator = TestGenerator(two_hours_ago, self.now, self.payer_account, self.currency, self.usage_accounts)
         with self.assertRaises(ValueError):
             generator._init_data_row(two_hours_ago, "invalid")
 
     def test_get_location(self):
         """Test the _get_location method."""
         two_hours_ago = (self.now - self.one_hour) - self.one_hour
-        generator = TestGenerator(two_hours_ago, self.now, self.payer_account, self.usage_accounts)
+        generator = TestGenerator(two_hours_ago, self.now, self.payer_account, self.currency, self.usage_accounts)
         location = generator._get_location()
 
         self.assertIsInstance(location, tuple)
@@ -188,6 +189,7 @@ class AWSGeneratorTestCase(TestCase):
         self.amount = 1
         self.rate = 0.1
         self.saving = 0.1
+        self.currency = 'USD'
         self.attributes = {
             "product_sku": self.product_sku,
             "tags": self.tags,
@@ -207,7 +209,7 @@ class AWSGeneratorTestCase(TestCase):
         key = "resourceTags/user:new-key"
         tag_cols = {key}
         two_hours_ago = (self.now - self.one_hour) - self.one_hour
-        generator = TestGenerator(two_hours_ago, self.now, self.payer_account, self.usage_accounts, tag_cols=tag_cols)
+        generator = TestGenerator(two_hours_ago, self.now, self.payer_account, self.currency, self.usage_accounts, tag_cols=tag_cols)
         self.assertIn(key, generator.AWS_COLUMNS)
         self.assertNotIn("key-that-has-not-been-added", generator.AWS_COLUMNS)
 
@@ -217,7 +219,7 @@ class AWSGeneratorTestCase(TestCase):
         key = "resourceTags/user:new-key"
         tag_cols = {key}
         two_hours_ago = (self.now - self.one_hour) - self.one_hour
-        generator = TestGenerator(two_hours_ago, self.now, self.payer_account, self.usage_accounts, tag_cols=tag_cols)
+        generator = TestGenerator(two_hours_ago, self.now, self.payer_account, self.currency, self.usage_accounts, tag_cols=tag_cols)
         self.assertIn(key, generator.AWS_COLUMNS)
         self.assertNotIn("key-that-has-not-been-added", generator.AWS_COLUMNS)
 
@@ -228,7 +230,7 @@ class TestRDSGenerator(AWSGeneratorTestCase):
     def test_init_no_attributes(self):
         """Test the init wihout attributes."""
         generator = RDSGenerator(
-            self.two_hours_ago, self.now, self.payer_account, self.usage_accounts, attributes={"empty": "dictionary"}
+            self.two_hours_ago, self.now, self.payer_account, self.currency, self.usage_accounts, attributes={"empty": "dictionary"}
         )
         self.assertIsNotNone(generator._product_sku)
         self.assertIsNotNone(generator._resource_id)
@@ -247,7 +249,7 @@ class TestRDSGenerator(AWSGeneratorTestCase):
     def test_update_data(self):
         """Test RDS specific update data method."""
         generator = RDSGenerator(
-            self.two_hours_ago, self.now, self.payer_account, self.usage_accounts, self.attributes
+            self.two_hours_ago, self.now, self.payer_account, self.currency, self.usage_accounts, self.attributes
         )
         start_row = {}
         row = generator._update_data(start_row, self.two_hours_ago, self.now)
@@ -283,7 +285,7 @@ class TestDataTransferGenerator(AWSGeneratorTestCase):
     def test_update_data(self):
         """Test Data Transfer specific update data method."""
         generator = DataTransferGenerator(
-            self.two_hours_ago, self.now, self.payer_account, self.usage_accounts, self.attributes
+            self.two_hours_ago, self.now, self.payer_account, self.currency, self.usage_accounts, self.attributes
         )
         start_row = {}
         row = generator._update_data(start_row, self.two_hours_ago, self.now)
@@ -309,7 +311,7 @@ class TestEBSGenerator(AWSGeneratorTestCase):
     def test_update_data(self):
         """Test EBS specific update data method."""
         generator = EBSGenerator(
-            self.two_hours_ago, self.now, self.payer_account, self.usage_accounts, self.attributes
+            self.two_hours_ago, self.now, self.payer_account, self.currency, self.usage_accounts, self.attributes
         )
         start_row = {}
         row = generator._update_data(start_row, self.two_hours_ago, self.now)
@@ -355,7 +357,7 @@ class TestEC2Generator(AWSGeneratorTestCase):
     def test_update_data(self):
         """Test EBS specific update data method."""
         generator = EC2Generator(
-            self.two_hours_ago, self.now, self.payer_account, self.usage_accounts, self.attributes
+            self.two_hours_ago, self.now, self.payer_account, self.currency, self.usage_accounts, self.attributes
         )
         start_row = {}
         row = generator._update_data(start_row, self.two_hours_ago, self.now)
@@ -389,7 +391,7 @@ class TestRoute53Generator(AWSGeneratorTestCase):
     def test_update_data(self):
         """Test Route53 specific update data method."""
         generator = Route53Generator(
-            self.two_hours_ago, self.now, self.payer_account, self.usage_accounts, self.attributes
+            self.two_hours_ago, self.now, self.payer_account, self.currency, self.usage_accounts, self.attributes
         )
         start_row = {}
         row = generator._update_data(start_row, self.two_hours_ago, self.now)
@@ -421,7 +423,7 @@ class TestS3Generator(AWSGeneratorTestCase):
 
     def test_update_data(self):
         """Test S3 specific update data method."""
-        generator = S3Generator(self.two_hours_ago, self.now, self.payer_account, self.usage_accounts, self.attributes)
+        generator = S3Generator(self.two_hours_ago, self.now, self.payer_account, self.currency, self.usage_accounts, self.attributes)
         start_row = {}
         row = generator._update_data(start_row, self.two_hours_ago, self.now)
 
@@ -443,7 +445,7 @@ class TestVPCGenerator(AWSGeneratorTestCase):
         """Test the unique init options for Data Transfer."""
 
         generator = VPCGenerator(
-            self.two_hours_ago, self.now, self.payer_account, self.usage_accounts, self.attributes
+            self.two_hours_ago, self.now, self.payer_account, self.currency, self.usage_accounts, self.attributes
         )
         self.assertEqual(generator._product_sku, self.product_sku)
         self.assertEqual(generator._tags, self.tags)
@@ -452,7 +454,7 @@ class TestVPCGenerator(AWSGeneratorTestCase):
     def test_update_data(self):
         """Test VPC specific update data method."""
         generator = VPCGenerator(
-            self.two_hours_ago, self.now, self.payer_account, self.usage_accounts, self.attributes
+            self.two_hours_ago, self.now, self.payer_account, self.currency, self.usage_accounts, self.attributes
         )
         start_row = {}
         row = generator._update_data(start_row, self.two_hours_ago, self.now)
