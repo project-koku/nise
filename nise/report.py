@@ -384,7 +384,11 @@ def _get_generators(generator_list):
     if generator_list:
         for item in generator_list:
             for generator_cls, attributes in item.items():
-                generator_obj = {"generator": getattr(importlib.import_module(__name__), generator_cls)}
+                if generator_cls.__contains__("."):
+                    gen_mod, _, gen_cls = generator_cls.rpartition(".")
+                    generator_obj = {"generator": getattr(importlib.import_module(gen_mod), gen_cls)}
+                else:
+                    generator_obj = {"generator": getattr(importlib.import_module(__name__), generator_cls)}
                 if attributes.get("start_date"):
                     attributes["start_date"] = parser.parse(attributes.get("start_date"))
                 if attributes.get("end_date"):
@@ -480,7 +484,9 @@ def aws_create_marketplace_report(options):  # noqa: C901
     else:
         start = options.get("start_date").strftime("%Y%m%d")
         end = options.get("end_date").strftime("%Y%m%d")
-        generators = {"generators": [{"MarketplaceGenerator": {"start_date": start, "end_date": end}}]}
+        generators = {
+            "generators": [{"nise.generators.aws.MarketplaceGenerator": {"start_date": start, "end_date": end}}]
+        }
 
         if not options.get("aws_report_name"):
             options["aws_report_name"] = "marketplace"
