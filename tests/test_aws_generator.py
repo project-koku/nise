@@ -483,6 +483,8 @@ class TestMarketplaceGenerator(AWSGeneratorTestCase):
         self.assertEqual(generator._product_sku, self.product_sku)
         self.assertEqual(generator._tags, self.tags)
         self.assertEqual(generator._resource_id, self.resource_id)
+        self.assertEqual(generator._amount, self.amount)
+        self.assertEqual(generator._rate, self.rate)
 
     def test_update_data(self):
         """Test Marketplace specific update data method."""
