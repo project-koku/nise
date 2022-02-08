@@ -146,25 +146,6 @@ PRODUCT_COLS = (
     "product/virtualInterfaceType",
     "product/volumeType",
     "product/whoCanOpenCases",
-    "product/fromRegionCode",
-    "product/capacitystatus",
-    "product/instanceTypeFamily",
-    "product/classicnetworkingsupport",
-    "product/toRegionCode",
-    "product/marketoption",
-    "product/intelAvx2Available",
-    "product/availabilityZone",
-    "product/normalizationSizeFactor",
-    "product/regionCode",
-    "product/vpcnetworkingsupport",
-    "product/intelTurboAvailable",
-    "product/subscriptionType",
-    "product/servicename",
-    "product/platovolumetype",
-    "product/volumeApiName",
-    "product/intelAvxAvailable",
-    "product/platousagetype",
-    "product/edition",
 )
 PRICING_COLS = (
     "pricing/LeaseContractLength",
@@ -185,19 +166,7 @@ RESERVE_COLS = (
     "reservation/TotalReservedNormalizedUnits",
     "reservation/TotalReservedUnits",
     "reservation/UnitsPerReservation",
-    "reservation/ModificationStatus",
-    "reservation/EndTime",
-    "reservation/AmortizedUpfrontCostForUsage",
     "reservation/SubscriptionId",
-    "reservation/AmortizedUpfrontFeeForBillingPeriod",
-    "reservation/EffectiveCost",
-    "reservation/RecurringFeeForUsage",
-    "reservation/UnusedAmortizedUpfrontFeeForBillingPeriod",
-    "reservation/UpfrontValue",
-    "reservation/StartTime",
-    "reservation/UnusedNormalizedUnitQuantity",
-    "reservation/UnusedQuantity",
-    "reservation/UnusedRecurringFee",
 )
 SAVINGS_COLS = (
     "savingsPlan/AmortizedUpfrontCommitmentForBillingPeriod",
@@ -214,7 +183,6 @@ SAVINGS_COLS = (
     "savingsPlan/StartTime",
     "savingsPlan/TotalCommitmentToDate",
     "savingsPlan/UsedCommitment",
-    "savingsPlan/SavingsPlanARN",
 )
 
 
@@ -229,7 +197,6 @@ class AWSGenerator(AbstractGenerator):
         "resourceTags/user:openshift_cluster",
         "resourceTags/user:openshift_project",
         "resourceTags/user:openshift_node",
-        "resourceTags/user: insights_project",
         "resourceTags/aws: createdBy",
     }
     AWS_COLUMNS = set(
@@ -369,6 +336,24 @@ class AWSGenerator(AbstractGenerator):
         row["lineItem/LineItemType"] = "Usage"
         row["lineItem/UsageStartDate"] = start
         row["lineItem/UsageEndDate"] = end
+        return row
+
+    def _add_common_pricing_info(
+        self,
+        row,
+        cost,
+        currency="USD",
+        rate="4981658079",
+        rate_code="VDHYUHU8G2Z5AZY3.4799GE89SK.6YS6EN2CT7",
+        term="OnDemand",
+        **kwargs
+    ):
+        """Add common pricing information."""
+        row["pricing/RateCode"] = str(rate_code)
+        row["pricing/RateId"] = str(rate)
+        row["pricing/currency"] = str(currency)
+        row["pricing/publicOnDemandCost"] = str(cost)
+        row["pricing/term"] = str(term)
         return row
 
     def _add_tag_data(self, row):
