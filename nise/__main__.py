@@ -52,6 +52,7 @@ def valid_date(date_string):
         raise argparse.ArgumentTypeError(msg)
     return valid
 
+
 def valid_currency(currency):
     """Validate the currency passed in."""
     valid_currencies = [
@@ -69,12 +70,13 @@ def valid_currency(currency):
         "sek",
         "sgd",
         "usd",
-        "zar"
+        "zar",
     ]
     if currency.lower() in valid_currencies:
         return currency.upper()
     msg = f"{currency} is an unsupported currency code."
     raise argparse.ArgumentTypeError(msg)
+
 
 def today():
     """Create the date of today."""

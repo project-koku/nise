@@ -40,7 +40,6 @@ class VPCGenerator(AWSGenerator):
             if self.attributes.get("rate"):
                 self._rate = self.attributes.get("rate")
 
-
     def _update_data(self, row, start, end, **kwargs):
         """Update data with generator specific data."""
         default_cost = 0.05

@@ -248,7 +248,7 @@ class AWSGenerator(AbstractGenerator):
         ("AWS GovCloud (US)", "us-gov-west-1", "us-gov-west-1a", "USGW1-EBS"),
     )
 
-    def __init__(self, start_date, end_date, payer_account, currency,  usage_accounts, attributes=None, tag_cols=None):
+    def __init__(self, start_date, end_date, payer_account, currency, usage_accounts, attributes=None, tag_cols=None):
         """Initialize the generator."""
         self.payer_account = payer_account
         self.currency = currency

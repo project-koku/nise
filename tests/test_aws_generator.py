@@ -47,7 +47,7 @@ class AbstractGeneratorTestCase(TestCase):
         self.now = datetime.now().replace(microsecond=0, second=0, minute=0)
         self.one_hour = timedelta(minutes=60)
         self.payer_account = self.fake.ean(length=13)
-        self.currency = 'USD'
+        self.currency = "USD"
         self.usage_accounts = (
             self.payer_account,
             self.fake.ean(length=13),
@@ -149,7 +149,9 @@ class AbstractGeneratorTestCase(TestCase):
 
         attributes = {}
         attributes["region"] = "us-west-1a"
-        generator = TestGenerator(two_hours_ago, self.now, self.payer_account, self.currency, self.usage_accounts, attributes)
+        generator = TestGenerator(
+            two_hours_ago, self.now, self.payer_account, self.currency, self.usage_accounts, attributes
+        )
         location = generator._get_location()
         self.assertIn("us-west-1", location)
 
@@ -189,7 +191,7 @@ class AWSGeneratorTestCase(TestCase):
         self.amount = 1
         self.rate = 0.1
         self.saving = 0.1
-        self.currency = 'USD'
+        self.currency = "USD"
         self.attributes = {
             "product_sku": self.product_sku,
             "tags": self.tags,
@@ -209,7 +211,9 @@ class AWSGeneratorTestCase(TestCase):
         key = "resourceTags/user:new-key"
         tag_cols = {key}
         two_hours_ago = (self.now - self.one_hour) - self.one_hour
-        generator = TestGenerator(two_hours_ago, self.now, self.payer_account, self.currency, self.usage_accounts, tag_cols=tag_cols)
+        generator = TestGenerator(
+            two_hours_ago, self.now, self.payer_account, self.currency, self.usage_accounts, tag_cols=tag_cols
+        )
         self.assertIn(key, generator.AWS_COLUMNS)
         self.assertNotIn("key-that-has-not-been-added", generator.AWS_COLUMNS)
 
@@ -219,7 +223,9 @@ class AWSGeneratorTestCase(TestCase):
         key = "resourceTags/user:new-key"
         tag_cols = {key}
         two_hours_ago = (self.now - self.one_hour) - self.one_hour
-        generator = TestGenerator(two_hours_ago, self.now, self.payer_account, self.currency, self.usage_accounts, tag_cols=tag_cols)
+        generator = TestGenerator(
+            two_hours_ago, self.now, self.payer_account, self.currency, self.usage_accounts, tag_cols=tag_cols
+        )
         self.assertIn(key, generator.AWS_COLUMNS)
         self.assertNotIn("key-that-has-not-been-added", generator.AWS_COLUMNS)
 
@@ -230,7 +236,12 @@ class TestRDSGenerator(AWSGeneratorTestCase):
     def test_init_no_attributes(self):
         """Test the init wihout attributes."""
         generator = RDSGenerator(
-            self.two_hours_ago, self.now, self.payer_account, self.currency, self.usage_accounts, attributes={"empty": "dictionary"}
+            self.two_hours_ago,
+            self.now,
+            self.payer_account,
+            self.currency,
+            self.usage_accounts,
+            attributes={"empty": "dictionary"},
         )
         self.assertIsNotNone(generator._product_sku)
         self.assertIsNotNone(generator._resource_id)
@@ -415,7 +426,9 @@ class TestS3Generator(AWSGeneratorTestCase):
     def test_init_with_attributes(self):
         """Test the unique init options for Data Transfer."""
 
-        generator = S3Generator(self.two_hours_ago, self.now, self.payer_account, self.currency, self.usage_accounts, self.attributes)
+        generator = S3Generator(
+            self.two_hours_ago, self.now, self.payer_account, self.currency, self.usage_accounts, self.attributes
+        )
         self.assertEqual(generator._product_sku, self.product_sku)
         self.assertEqual(generator._tags, self.tags)
         self.assertEqual(generator._amount, self.amount)
@@ -423,7 +436,9 @@ class TestS3Generator(AWSGeneratorTestCase):
 
     def test_update_data(self):
         """Test S3 specific update data method."""
-        generator = S3Generator(self.two_hours_ago, self.now, self.payer_account, self.currency, self.usage_accounts, self.attributes)
+        generator = S3Generator(
+            self.two_hours_ago, self.now, self.payer_account, self.currency, self.usage_accounts, self.attributes
+        )
         start_row = {}
         row = generator._update_data(start_row, self.two_hours_ago, self.now)
 

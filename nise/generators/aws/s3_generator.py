@@ -25,7 +25,7 @@ class S3Generator(AWSGenerator):
 
     def __init__(self, start_date, end_date, payer_account, currency, usage_accounts, attributes=None, tag_cols=None):
         """Initialize the S3 generator."""
-        super().__init__(start_date, end_date, payer_account, currency,  usage_accounts, attributes, tag_cols)
+        super().__init__(start_date, end_date, payer_account, currency, usage_accounts, attributes, tag_cols)
         self._amount = uniform(0.2, 6000.99)
         self._rate = round(uniform(0.02, 0.06), 3)
         self._product_sku = self.fake.pystr(min_chars=12, max_chars=12).upper()

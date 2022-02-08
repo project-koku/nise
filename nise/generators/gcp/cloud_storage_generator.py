@@ -45,7 +45,7 @@ class CloudStorageGenerator(GCPGenerator):
         """Initialize the cloud storage generator."""
         super().__init__(start_date, end_date, currency, project, attributes)
         self.credit_total = 0
-        self._currency = currency 
+        self._currency = currency
         if self.attributes:
             if self.attributes.get("labels"):
                 self._labels = self.attributes.get("labels")

@@ -58,7 +58,7 @@ class AbstractGeneratorTestCase(TestCase):
         self.account_info = _generate_azure_account_info()
         self.payer_account = self.account_info.get("subscription_guid")
         self.version_two_attribute = {"version_two": True}
-        self.currency = 'USD'
+        self.currency = "USD"
 
     def test_set_hours_invalid_start(self):
         """Test that the start date must be a date object."""
@@ -192,7 +192,7 @@ class AzureGeneratorTestCase(TestCase):
         self.usage_quantity = 1
         self.resource_rate = 0.1
         self.pre_tax_cost = 20
-        self.currency = 'USD'
+        self.currency = "USD"
         self.attributes = {
             "tags": self.tags,
             "instance_id": self.instance_id,
@@ -298,7 +298,9 @@ class TestSQLGenerator(AzureGeneratorTestCase):
 
     def test_init_no_attributes(self):
         """Test the init wihout attributes."""
-        generator = SQLGenerator(self.two_hours_ago, self.now, self.currency, self.account_info, attributes={"empty": "dictionary"})
+        generator = SQLGenerator(
+            self.two_hours_ago, self.now, self.currency, self.account_info, attributes={"empty": "dictionary"}
+        )
         self.assertEqual(generator._service_name, "SQL Database")
         self.assertIsNone(generator._service_tier)
 
@@ -339,7 +341,9 @@ class TestVMGenerator(AzureGeneratorTestCase):
 
     def test_init_no_attributes(self):
         """Test the init wihout attributes."""
-        generator = VMGenerator(self.two_hours_ago, self.now, self.currency, self.account_info, attributes={"empty": "dictionary"})
+        generator = VMGenerator(
+            self.two_hours_ago, self.now, self.currency, self.account_info, attributes={"empty": "dictionary"}
+        )
         self.assertEqual(generator._service_name, "Virtual Machines")
         self.assertIsNone(generator._service_tier)
 
@@ -380,7 +384,9 @@ class TestVNGenerator(AzureGeneratorTestCase):
 
     def test_init_no_attributes(self):
         """Test the init wihout attributes."""
-        generator = VNGenerator(self.two_hours_ago, self.now, self.currency, self.account_info, attributes={"empty": "dictionary"})
+        generator = VNGenerator(
+            self.two_hours_ago, self.now, self.currency, self.account_info, attributes={"empty": "dictionary"}
+        )
         self.assertEqual(generator._service_name, "Virtual Network")
         self.assertIsNone(generator._service_tier)
 

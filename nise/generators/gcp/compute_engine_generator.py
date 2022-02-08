@@ -16,7 +16,6 @@
 #
 """Module for gcp compute engine data generation."""
 from datetime import datetime
-from locale import currency
 from random import choice
 
 from nise.generators.gcp.gcp_generator import GCP_REPORT_COLUMNS_JSONL

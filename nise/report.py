@@ -479,7 +479,7 @@ def aws_create_report(options):  # noqa: C901
     if options.get("currency"):
         currency_code = options.get("currency")
     else:
-        currency_code = 'USD'
+        currency_code = "USD"
     aws_finalize_report = options.get("aws_finalize_report")
     static_report_data = options.get("static_report_data")
 
@@ -528,7 +528,13 @@ def aws_create_report(options):  # noqa: C901
                 gen_start_date, gen_end_date = _create_generator_dates_from_yaml(attributes, month)
 
             gen = generator_cls(
-                gen_start_date, gen_end_date, payer_account, currency_code, usage_accounts, attributes, options.get("aws_tags")
+                gen_start_date,
+                gen_end_date,
+                payer_account,
+                currency_code,
+                usage_accounts,
+                attributes,
+                options.get("aws_tags"),
             )
             num_instances = 1 if attributes else randint(2, 60)
             for _ in range(num_instances):
@@ -599,7 +605,7 @@ def azure_create_report(options):  # noqa: C901
     if options.get("currency"):
         currency = options.get("currency")
     else:
-        currency = 'USD'
+        currency = "USD"
     static_report_data = options.get("static_report_data")
     if static_report_data:
         generators = _get_generators(static_report_data.get("generators"))
@@ -883,7 +889,7 @@ def gcp_create_report(options):  # noqa: C901
     if options.get("currency"):
         currency = options.get("currency")
     else:
-        currency = 'USD'   
+        currency = "USD"
 
     static_report_data = options.get("static_report_data")
 
@@ -906,7 +912,7 @@ def gcp_create_report(options):  # noqa: C901
                         key = pair.split(":")[0]
                         value = pair.split(":")[1]
                         labels.append({"key": key, "value": value})
-                
+
                 project["labels"] = labels
                 location = {}
                 location["location"] = static_dict.get("location.location", "")
@@ -959,7 +965,15 @@ def gcp_create_report(options):  # noqa: C901
 
     if gcp_dataset_name:
         monthly_files = _gcp_bigquery_process(
-            start_date, end_date, currency, projects, generators, options, gcp_bucket_name, gcp_dataset_name, gcp_table_name
+            start_date,
+            end_date,
+            currency,
+            projects,
+            generators,
+            options,
+            gcp_bucket_name,
+            gcp_dataset_name,
+            gcp_table_name,
         )
     else:
         months = _create_month_list(start_date, end_date)

@@ -53,7 +53,9 @@ class TestGCPGenerator(TestCase):
     def test_cloud_storage_init_with_attributes(self):
         """Test the init with attribute for Cloud Storage."""
 
-        generator = CloudStorageGenerator(self.yesterday, self.now, self.currency, self.project, attributes=self.attributes)
+        generator = CloudStorageGenerator(
+            self.yesterday, self.now, self.currency, self.project, attributes=self.attributes
+        )
         generated_data = generator.generate_data()
         list_data = list(generated_data)
         self.assertEqual(list_data[0]["cost"], self.attributes["cost"])
@@ -61,7 +63,9 @@ class TestGCPGenerator(TestCase):
 
     def test_cloud_storage_init_with_usage_attributes(self):
         """Test the init with usage attribute for Cloud Storage."""
-        generator = CloudStorageGenerator(self.yesterday, self.now, self.currency, self.project, attributes=self.usage_attributes)
+        generator = CloudStorageGenerator(
+            self.yesterday, self.now, self.currency, self.project, attributes=self.usage_attributes
+        )
         generated_data = generator.generate_data()
         list_data = list(generated_data)
         self.assertEqual(list_data[0]["cost"], self.usage_attributes["usage.amount"] * self.usage_attributes["price"])
@@ -69,7 +73,9 @@ class TestGCPGenerator(TestCase):
 
     def test_jsonl_cloud_storage_init_with_attributes(self):
         """Test the init with attribute for JSONL Cloud Storage."""
-        generator = JSONLCloudStorageGenerator(self.yesterday, self.now, self.project, self.currency, attributes=self.attributes)
+        generator = JSONLCloudStorageGenerator(
+            self.yesterday, self.now, self.project, self.currency, attributes=self.attributes
+        )
         generated_data = generator.generate_data()
         list_data = list(generated_data)
         self.assertEqual(list_data[0]["cost"], self.attributes["cost"])
@@ -88,7 +94,9 @@ class TestGCPGenerator(TestCase):
     def test_compute_engine_init_with_attributes(self):
         """Test the init with attribute for Compute Engine."""
 
-        generator = ComputeEngineGenerator(self.yesterday, self.now, self.currency, self.project, attributes=self.attributes)
+        generator = ComputeEngineGenerator(
+            self.yesterday, self.now, self.currency, self.project, attributes=self.attributes
+        )
         generated_data = generator.generate_data()
         list_data = list(generated_data)
         self.assertEqual(list_data[0]["cost"], self.attributes["cost"])
@@ -96,7 +104,9 @@ class TestGCPGenerator(TestCase):
 
     def test_compute_engine_init_with_usage_attributes(self):
         """Test the init with usage attributes for Compute Engine."""
-        generator = ComputeEngineGenerator(self.yesterday, self.now, self.currency, self.project, attributes=self.usage_attributes)
+        generator = ComputeEngineGenerator(
+            self.yesterday, self.now, self.currency, self.project, attributes=self.usage_attributes
+        )
         generated_data = generator.generate_data()
         list_data = list(generated_data)
         self.assertEqual(list_data[0]["cost"], self.usage_attributes["usage.amount"] * self.usage_attributes["price"])
@@ -104,7 +114,9 @@ class TestGCPGenerator(TestCase):
 
     def test_jsonl_compute_engine_init_with_attributes(self):
         """Test the init with attribute for JSONL Compute Engine."""
-        generator = JSONLComputeEngineGenerator(self.yesterday, self.now, self.currency, self.project, attributes=self.attributes)
+        generator = JSONLComputeEngineGenerator(
+            self.yesterday, self.now, self.currency, self.project, attributes=self.attributes
+        )
         generated_data = generator.generate_data()
         list_data = list(generated_data)
         self.assertEqual(list_data[0]["cost"], self.attributes["cost"])
@@ -122,7 +134,9 @@ class TestGCPGenerator(TestCase):
 
     def test_network_generator_init_with_attributes(self):
         """Test the init with attribute for GCP Network Generator."""
-        generator = GCPNetworkGenerator(self.yesterday, self.now, self.currency, self.project, attributes=self.attributes)
+        generator = GCPNetworkGenerator(
+            self.yesterday, self.now, self.currency, self.project, attributes=self.attributes
+        )
         generated_data = generator.generate_data()
         list_data = list(generated_data)
         self.assertEqual(list_data[0]["cost"], self.attributes["cost"])
@@ -130,7 +144,9 @@ class TestGCPGenerator(TestCase):
 
     def test_network_generator_init_with_usage_attributes(self):
         """Test the init with usage attributes for GCP Network Generator."""
-        generator = GCPNetworkGenerator(self.yesterday, self.now, self.currency, self.project, attributes=self.usage_attributes)
+        generator = GCPNetworkGenerator(
+            self.yesterday, self.now, self.currency, self.project, attributes=self.usage_attributes
+        )
         generated_data = generator.generate_data()
         list_data = list(generated_data)
         self.assertEqual(list_data[0]["cost"], self.usage_attributes["usage.amount"] * self.usage_attributes["price"])
@@ -154,7 +170,9 @@ class TestGCPGenerator(TestCase):
 
     def test_database_generator_init_with_attributes(self):
         """Test the init with attribute for GCP Database Generator."""
-        generator = GCPDatabaseGenerator(self.yesterday, self.now, self.currency, self.project, attributes=self.attributes)
+        generator = GCPDatabaseGenerator(
+            self.yesterday, self.now, self.currency, self.project, attributes=self.attributes
+        )
         generated_data = generator.generate_data()
         list_data = list(generated_data)
         self.assertEqual(list_data[0]["cost"], self.attributes["cost"])
@@ -162,7 +180,9 @@ class TestGCPGenerator(TestCase):
 
     def test_database_generator_init_with_usage_attributes(self):
         """Test the init with usage attributes for GCP Database Generator."""
-        generator = GCPDatabaseGenerator(self.yesterday, self.now, self.currency, self.project, attributes=self.usage_attributes)
+        generator = GCPDatabaseGenerator(
+            self.yesterday, self.now, self.currency, self.project, attributes=self.usage_attributes
+        )
         generated_data = generator.generate_data()
         list_data = list(generated_data)
         self.assertEqual(list_data[0]["cost"], self.usage_attributes["usage.amount"] * self.usage_attributes["price"])
@@ -170,7 +190,9 @@ class TestGCPGenerator(TestCase):
 
     def test_jsonl_database_generator_init_with_attributes(self):
         """Test the init with attribute for JSONL GCP Database Generator."""
-        generator = JSONLGCPDatabaseGenerator(self.yesterday, self.now, self.currency, self.project, attributes=self.attributes)
+        generator = JSONLGCPDatabaseGenerator(
+            self.yesterday, self.now, self.currency, self.project, attributes=self.attributes
+        )
         generated_data = generator.generate_data()
         list_data = list(generated_data)
         self.assertEqual(list_data[0]["cost"], self.attributes["cost"])
@@ -178,7 +200,9 @@ class TestGCPGenerator(TestCase):
 
     def test_jsonl_database_generator_init_with_usage_attributes(self):
         """Test the init with attribute for JSONL GCP Database Generator."""
-        generator = JSONLGCPDatabaseGenerator(self.yesterday, self.now, self.currency, self.project, attributes=self.usage_attributes)
+        generator = JSONLGCPDatabaseGenerator(
+            self.yesterday, self.now, self.currency, self.project, attributes=self.usage_attributes
+        )
         generated_data = generator.generate_data()
         list_data = list(generated_data)
         self.assertEqual(list_data[0]["cost"], self.usage_attributes["usage.amount"] * self.usage_attributes["price"])
