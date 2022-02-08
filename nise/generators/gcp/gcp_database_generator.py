@@ -109,7 +109,7 @@ class JSONLGCPDatabaseGenerator(GCPDatabaseGenerator):
 
     LABELS = (([{"key": "vm_key_proj2", "value": "vm_label_proj2"}]), ([]))
 
-    def __init__(self, start_date, end_date, project, attributes=None):
+    def __init__(self, start_date, end_date, currency, project, attributes=None):
         super().__init__(start_date, end_date, project, attributes)
         self.column_labels = GCP_REPORT_COLUMNS_JSONL
         self.return_list = True
