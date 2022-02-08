@@ -1018,7 +1018,7 @@ def _gcp_bigquery_process(
                 end_date = attributes.get("end_date")
 
             generator_cls = generator.get("generator")
-            gen = generator_cls(start_date, end_date, project, attributes=attributes)
+            gen = generator_cls(start_date, end_date, currency, project, attributes=attributes)
             for hour in gen.generate_data():
                 data += [hour]
             count += 1

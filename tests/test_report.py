@@ -19,6 +19,7 @@ import calendar
 import csv
 import datetime
 import json
+from locale import currency
 import os
 import re
 import shutil
@@ -1155,10 +1156,12 @@ class GCPReportTestCase(TestCase):
         yesterday = now - one_day
         dataset_name = "test_name"
         etag = "test_tag"
+        currency = 'USD'
         gcp_create_report(
             {
                 "start_date": yesterday,
                 "end_date": now,
+                "currency": currency,
                 "write_monthly": True,
                 "gcp_dataset_name": dataset_name,
                 "gcp_etag": etag,
@@ -1232,6 +1235,7 @@ class GCPReportTestCase(TestCase):
         report_prefix = "test_report"
         dataset_name = "test_name"
         cost = fake.pyint(min_value=10, max_value=1000)
+        currency = 'USD'
         static_gcp_data = {
             "generators": [
                 {
@@ -1266,6 +1270,7 @@ class GCPReportTestCase(TestCase):
             {
                 "start_date": yesterday,
                 "end_date": now,
+                "currency": currency,
                 "gcp_report_prefix": report_prefix,
                 "write_monthly": True,
                 "gcp_dataset_name": dataset_name,
@@ -1291,7 +1296,7 @@ class GCPReportTestCase(TestCase):
                     "ComputeEngineGenerator": {
                         "start_date": str(yesterday.date()),
                         "end_date": str(now.date()),
-                        "cost": cost,
+                        "cost": cost
                     }
                 },
                 {
