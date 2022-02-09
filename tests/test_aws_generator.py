@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
+import importlib
 from datetime import datetime
 from datetime import timedelta
 from unittest import TestCase
@@ -498,9 +499,34 @@ class TestMarketplaceGenerator(AWSGeneratorTestCase):
         self.assertEqual(row["product/ProductName"], "Red Hat OpenShift Service on AWS")
 
     def test_generate_data(self):
-        """Test that the VPC generate_data method works."""
+        """Test that the MarketplaceGenerator generate_data method works."""
         generator = MarketplaceGenerator(
             self.two_hours_ago, self.now, self.payer_account, self.usage_accounts, self.attributes
         )
         data = generator.generate_data()
         self.assertNotEqual(data, [])
+
+    def test_add_common_pricing_info(self):
+        """Test that add_common_pricing_info."""
+        test_generators = [
+            "MarketplaceGenerator",
+            "VPCGenerator",
+            "Route53Generator",
+            "EC2Generator",
+            "EBSGenerator",
+            "DataTransferGenerator",
+            "RDSGenerator",
+        ]
+        for generator in test_generators:
+            generator_obj = getattr(importlib.import_module(__name__), generator)
+
+            test_gen = generator_obj(
+                self.two_hours_ago, self.now, self.payer_account, self.usage_accounts, self.attributes
+            )
+            row = {}
+            row = test_gen._add_common_pricing_info(row)
+
+            self.assertEqual(row["pricing/currency"], "USD")
+            self.assertEqual(row["pricing/RateId"], "4981658079")
+            self.assertEqual(row["pricing/RateCode"], "VDHYUHU8G2Z5AZY3.4799GE89SK.6YS6EN2CT7")
+            self.assertEqual(row["pricing/term"], "OnDemand")
