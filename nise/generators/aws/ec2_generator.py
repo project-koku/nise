@@ -108,6 +108,7 @@ class EC2Generator(AWSGenerator):
         inst_description = description.format(cost, inst_type)
         location, aws_region, avail_zone, _ = self._get_location()
         row = self._add_common_usage_info(row, start, end)
+        row = self._add_common_pricing_info(row)
 
         row["lineItem/ProductCode"] = "AmazonEC2"
         row["lineItem/UsageType"] = f"BoxUsage:{inst_type}"
@@ -115,7 +116,6 @@ class EC2Generator(AWSGenerator):
         row["lineItem/AvailabilityZone"] = avail_zone
         row["lineItem/ResourceId"] = self._resource_id
         row["lineItem/UsageAmount"] = "1"
-        row["lineItem/CurrencyCode"] = "USD"
         row["lineItem/UnblendedRate"] = rate
         row["lineItem/UnblendedCost"] = cost
         row["lineItem/BlendedRate"] = rate
@@ -149,7 +149,6 @@ class EC2Generator(AWSGenerator):
         row["product/vcpu"] = vcpu
         row["pricing/publicOnDemandCost"] = cost
         row["pricing/publicOnDemandRate"] = rate
-        row["pricing/term"] = "OnDemand"
         row["pricing/unit"] = "Hrs"
         row["savingsPlan/SavingsPlanEffectiveCost"] = saving
         self._add_tag_data(row)

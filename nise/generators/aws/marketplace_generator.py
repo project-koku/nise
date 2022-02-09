@@ -57,7 +57,7 @@ class MarketplaceGenerator(AWSGenerator):
         description = "AWS Marketplace hourly software usage|us-east-1|m5.xlarge"
         amazon_resource_name = self._get_arn(avail_zone)
 
-        row = self._add_common_pricing_info(row, str(cost))
+        row = self._add_common_pricing_info(row)
 
         row["identity/LineItemId"] = "diygn5vanaqsvysz3prxwrekztiipfu7zywyauupnpmpi4fmd5dq"
         row["identity/TimeInterval"] = "2021-11-23T17:49:15Z/2021-12-01T00:00:00Z"
@@ -86,6 +86,7 @@ class MarketplaceGenerator(AWSGenerator):
         row["product/region"] = aws_region
         row["product/sku"] = self._product_sku
 
+        row["pricing/publicOnDemandCost"] = cost
         row["pricing/unit"] = "Hrs"
 
         row["reservation/SubscriptionId"] = "7592738291"

@@ -341,7 +341,6 @@ class AWSGenerator(AbstractGenerator):
     def _add_common_pricing_info(
         self,
         row,
-        cost,
         currency="USD",
         rate="4981658079",
         rate_code="VDHYUHU8G2Z5AZY3.4799GE89SK.6YS6EN2CT7",
@@ -349,11 +348,10 @@ class AWSGenerator(AbstractGenerator):
         **kwargs
     ):
         """Add common pricing information."""
-        row["pricing/RateCode"] = str(rate_code)
-        row["pricing/RateId"] = str(rate)
-        row["pricing/currency"] = str(currency)
-        row["pricing/publicOnDemandCost"] = str(cost)
-        row["pricing/term"] = str(term)
+        row["pricing/RateCode"] = rate_code
+        row["pricing/RateId"] = rate
+        row["pricing/currency"] = currency
+        row["pricing/term"] = term
         return row
 
     def _add_tag_data(self, row):

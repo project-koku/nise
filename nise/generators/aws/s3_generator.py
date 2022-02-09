@@ -57,6 +57,8 @@ class S3Generator(AWSGenerator):
         description = f"${rate} per GB-Month of snapshot data stored - {location}"
         amazon_resource_name = self._get_arn(avail_zone)
 
+        row = self._add_common_pricing_info(row)
+
         row["lineItem/ProductCode"] = "AmazonS3"
         row["lineItem/UsageType"] = "Requests-Tier2"
         row["lineItem/Operation"] = "GetObject"
@@ -79,7 +81,6 @@ class S3Generator(AWSGenerator):
         row["product/usagetype"] = "Requests-Tier2"
         row["pricing/publicOnDemandCost"] = str(cost)
         row["pricing/publicOnDemandRate"] = str(rate)
-        row["pricing/term"] = "OnDemand"
         row["pricing/unit"] = "GB-Mo"
         self._add_tag_data(row)
 
