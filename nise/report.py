@@ -491,7 +491,7 @@ def aws_create_marketplace_report(options):  # noqa: C901
         if not options.get("aws_report_name"):
             options["aws_report_name"] = "marketplace"
         else:
-            options["aws_report_name"] = options.get("aws_report_name") + "marketplace"
+            options["aws_report_name"] = options.get("aws_report_name") + "-marketplace"
 
         options["static_report_data"] = generators
         options["accounts_list"] = None
