@@ -120,6 +120,7 @@ nise is a command line tool::
                                                 will be generated with line counts not exceeding the ROW_LIMIT.
         --static-report-file YAML_NAME          optional, static report generation based on specified yaml file.
                                                 See example_[provider]_static_data.yml for examples.
+        --currency CURRENCY_CODE                optional, default is USD.
 
     AWS Report Options:
         --aws-s3-bucket-name BUCKET_NAME        optional, must include --aws-s3-report-name.
