@@ -1137,6 +1137,7 @@ class GCPReportTestCase(TestCase):
             {
                 "start_date": yesterday,
                 "end_date": now,
+                "currency": "USD",
                 "gcp_report_prefix": report_prefix,
                 "write_monthly": True,
                 "gcp_dataset_name": dataset_name,
@@ -1159,6 +1160,7 @@ class GCPReportTestCase(TestCase):
             {
                 "start_date": yesterday,
                 "end_date": now,
+                "currency": "USD",
                 "write_monthly": True,
                 "gcp_dataset_name": dataset_name,
                 "gcp_etag": etag,

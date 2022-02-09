@@ -154,7 +154,9 @@ class TestGCPGenerator(TestCase):
 
     def test_jsonl_network_generator_init_with_attributes(self):
         """Test the init with attribute for JSONL GCP Network Generator."""
-        generator = JSONLGCPNetworkGenerator(self.yesterday, self.now, self.project, attributes=self.attributes)
+        generator = JSONLGCPNetworkGenerator(
+            self.yesterday, self.now, self.currency, self.project, attributes=self.attributes
+        )
         generated_data = generator.generate_data()
         list_data = list(generated_data)
         self.assertEqual(list_data[0]["cost"], self.attributes["cost"])
@@ -162,7 +164,9 @@ class TestGCPGenerator(TestCase):
 
     def test_jsonl_network_generator_init_with_usage_attributes(self):
         """Test the init with attribute for JSONL GCP Network Generator."""
-        generator = JSONLGCPNetworkGenerator(self.yesterday, self.now, self.project, attributes=self.usage_attributes)
+        generator = JSONLGCPNetworkGenerator(
+            self.yesterday, self.now, self.currency, self.project, attributes=self.usage_attributes
+        )
         generated_data = generator.generate_data()
         list_data = list(generated_data)
         self.assertEqual(list_data[0]["cost"], self.usage_attributes["usage.amount"] * self.usage_attributes["price"])

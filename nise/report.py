@@ -967,8 +967,8 @@ def gcp_create_report(options):  # noqa: C901
         monthly_files = _gcp_bigquery_process(
             start_date,
             end_date,
-            currency,
             projects,
+            currency,
             generators,
             options,
             gcp_bucket_name,
