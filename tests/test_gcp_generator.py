@@ -74,7 +74,7 @@ class TestGCPGenerator(TestCase):
     def test_jsonl_cloud_storage_init_with_attributes(self):
         """Test the init with attribute for JSONL Cloud Storage."""
         generator = JSONLCloudStorageGenerator(
-            self.yesterday, self.now, self.project, self.currency, attributes=self.attributes
+            self.yesterday, self.now, self.currency, self.project, attributes=self.attributes
         )
         generated_data = generator.generate_data()
         list_data = list(generated_data)
