@@ -44,12 +44,12 @@ from nise.report import _write_jsonl
 from nise.report import _write_manifest
 from nise.report import aws_create_report
 from nise.report import azure_create_report
+from nise.report import default_currency
 from nise.report import gcp_create_report
 from nise.report import gcp_route_file
 from nise.report import ocp_create_report
 from nise.report import ocp_route_file
 from nise.report import post_payload_to_ingest_service
-from nise.report import default_currency
 
 
 fake = faker.Faker()
@@ -288,11 +288,12 @@ class MiscReportTestCase(TestCase):
         post_payload_to_ingest_service(insights_upload, temp_file.name)
         self.assertEqual(mock_post.call_args[1].get("auth"), auth)
         self.assertNotIn("headers", mock_post.call_args[1])
-    
+
     def test_defaulting_currency(self):
         currency = None
         updated_currency = default_currency(currency)
-        self.assertEqual(updated_currency, 'USD')
+        self.assertEqual(updated_currency, "USD")
+
 
 class AWSReportTestCase(TestCase):
     """

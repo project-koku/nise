@@ -470,11 +470,13 @@ def write_aws_file(
 
     return full_file_name
 
+
 def default_currency(currency):
     if currency:
         return currency
     else:
-        return 'USD'
+        return "USD"
+
 
 def aws_create_report(options):  # noqa: C901
     """Create a cost usage report file."""
