@@ -470,16 +470,18 @@ def write_aws_file(
 
     return full_file_name
 
+def default_currency(currency):
+    if currency:
+        return currency
+    else:
+        return 'USD'
 
 def aws_create_report(options):  # noqa: C901
     """Create a cost usage report file."""
     data = []
     start_date = options.get("start_date")
     end_date = options.get("end_date")
-    if options.get("currency"):
-        currency_code = options.get("currency")
-    else:
-        currency_code = "USD"
+    currency_code = default_currency(options.get("currency"))
     aws_finalize_report = options.get("aws_finalize_report")
     static_report_data = options.get("static_report_data")
 
@@ -602,10 +604,7 @@ def azure_create_report(options):  # noqa: C901
     data = []
     start_date = options.get("start_date")
     end_date = options.get("end_date")
-    if options.get("currency"):
-        currency = options.get("currency")
-    else:
-        currency = "USD"
+    currency = default_currency(options.get("currency"))
     static_report_data = options.get("static_report_data")
     if static_report_data:
         generators = _get_generators(static_report_data.get("generators"))
@@ -886,10 +885,7 @@ def gcp_create_report(options):  # noqa: C901
 
     start_date = options.get("start_date")
     end_date = options.get("end_date")
-    if options.get("currency"):
-        currency = options.get("currency")
-    else:
-        currency = "USD"
+    currency = default_currency(options.get("currency"))
 
     static_report_data = options.get("static_report_data")
 

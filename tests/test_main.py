@@ -28,7 +28,7 @@ from nise.__main__ import _validate_provider_inputs
 from nise.__main__ import create_parser
 from nise.__main__ import main
 from nise.__main__ import run
-from nise.__main__ import valid_date
+from nise.__main__ import valid_date, valid_currency
 from nise.util import load_yaml
 
 
@@ -86,6 +86,22 @@ class CommandLineTestCase(TestCase):
         """
         with self.assertRaises(SystemExit):
             self.parser.parse_args(["report", "ocp", "--start-date", "foo"])
+
+    def test_invalid_currency(self):
+        """
+        Test where user passes an invalid currency.
+        """
+        with self.assertRaises(SystemExit):
+            self.parser.parse_args([ "-c", "JPY", "report", "ocp", "--start-date", str(date.today())])
+    
+    def test_valid_currency(self):
+        """
+        Test where user passes an valid currency.
+        """
+        test_currency = "jpy"
+        out_currency = valid_currency(test_currency)
+        self.assertEqual(test_currency.upper(), out_currency)
+        
 
     def test_valid_s3_no_input(self):
         """

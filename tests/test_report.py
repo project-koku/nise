@@ -30,6 +30,7 @@ from unittest.mock import patch
 
 import faker
 from dateutil.relativedelta import relativedelta
+from nise.__main__ import valid_currency
 from nise.generators.ocp.ocp_generator import OCP_REPORT_TYPE_TO_COLS
 from nise.report import _convert_bytes
 from nise.report import _create_generator_dates_from_yaml
@@ -48,6 +49,7 @@ from nise.report import gcp_route_file
 from nise.report import ocp_create_report
 from nise.report import ocp_route_file
 from nise.report import post_payload_to_ingest_service
+from nise.report import default_currency
 
 
 fake = faker.Faker()
@@ -286,7 +288,11 @@ class MiscReportTestCase(TestCase):
         post_payload_to_ingest_service(insights_upload, temp_file.name)
         self.assertEqual(mock_post.call_args[1].get("auth"), auth)
         self.assertNotIn("headers", mock_post.call_args[1])
-
+    
+    def test_defaulting_currency(self):
+        currency = None
+        updated_currency = default_currency(currency)
+        self.assertEqual(updated_currency, 'USD')
 
 class AWSReportTestCase(TestCase):
     """
