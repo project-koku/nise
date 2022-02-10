@@ -30,7 +30,6 @@ from unittest.mock import patch
 
 import faker
 from dateutil.relativedelta import relativedelta
-from nise.__main__ import valid_currency
 from nise.generators.ocp.ocp_generator import OCP_REPORT_TYPE_TO_COLS
 from nise.report import _convert_bytes
 from nise.report import _create_generator_dates_from_yaml
