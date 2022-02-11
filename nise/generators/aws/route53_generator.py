@@ -69,7 +69,6 @@ class Route53Generator(AWSGenerator):
         if usage_type == "HostedZone":
             operation = usage_type
         row = self._add_common_usage_info(row, start, end)
-        row = self._add_common_pricing_info(row)
 
         row["lineItem/ProductCode"] = "AmazonRoute53"
         row["lineItem/UsageType"] = usage_type

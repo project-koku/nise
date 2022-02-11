@@ -338,21 +338,21 @@ class AWSGenerator(AbstractGenerator):
         row["lineItem/UsageEndDate"] = end
         return row
 
-    def _add_common_pricing_info(
-        self,
-        row,
-        currency="USD",
-        rate="4981658079",
-        rate_code="VDHYUHU8G2Z5AZY3.4799GE89SK.6YS6EN2CT7",
-        term="OnDemand",
-        **kwargs
-    ):
-        """Add common pricing information."""
-        row["pricing/RateCode"] = rate_code
-        row["pricing/RateId"] = rate
-        row["pricing/currency"] = currency
-        row["pricing/term"] = term
-        return row
+    # def _add_common_pricing_info(
+    #     self,
+    #     row,
+    #     currency="USD",
+    #     rate="4981658079",
+    #     rate_code="VDHYUHU8G2Z5AZY3.4799GE89SK.6YS6EN2CT7",
+    #     term="OnDemand",
+    #     **kwargs
+    # ):
+    #     """Add common pricing information."""
+    #     row["pricing/RateCode"] = rate_code
+    #     row["pricing/RateId"] = rate
+    #     row["pricing/currency"] = currency
+    #     row["pricing/term"] = term
+    #     return row
 
     def _add_tag_data(self, row):
         """Add tag data to the row."""

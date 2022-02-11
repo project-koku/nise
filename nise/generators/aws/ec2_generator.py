@@ -108,7 +108,6 @@ class EC2Generator(AWSGenerator):
         inst_description = description.format(cost, inst_type)
         location, aws_region, avail_zone, _ = self._get_location()
         row = self._add_common_usage_info(row, start, end)
-        row = self._add_common_pricing_info(row)
 
         row["lineItem/ProductCode"] = "AmazonEC2"
         row["lineItem/UsageType"] = f"BoxUsage:{inst_type}"

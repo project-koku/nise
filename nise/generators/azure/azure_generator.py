@@ -379,14 +379,14 @@ class AzureGenerator(AbstractGenerator):
 
         # NOTE: Commented out columns exist in the report, but we don't have enough
         # information to date to accurately simulate values.
-        service_family = choice(self.SERVICE_FAMILIES)
-        publisher_name = ""
-        publisher_type = "Azure"
-        # marketplace specific values
         if self._service_name == "Virtual Machines":
-            self.SERVICE_FAMILIES = self.SERVICE_FAMILIES + ("Azure Marketplace Services",)
+            service_family = choice(self.SERVICE_FAMILIES + ("Azure Marketplace Services",))
             publisher_name = "Red Hat Enterprise Linux"
             publisher_type = "Marketplace"
+        else:
+            service_family = choice(self.SERVICE_FAMILIES)
+            publisher_name = ""
+            publisher_type = "Azure"
 
         row["InvoiceSectionId"] = self._invoice_section_id if self._invoice_section_id else self.fake.ean(length=8)
         row["InvoiceSectionName"] = (

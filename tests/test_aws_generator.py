@@ -14,7 +14,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
-import importlib
 from datetime import datetime
 from datetime import timedelta
 from unittest import TestCase
@@ -507,26 +506,14 @@ class TestMarketplaceGenerator(AWSGeneratorTestCase):
         self.assertNotEqual(data, [])
 
     def test_add_common_pricing_info(self):
-        """Test that add_common_pricing_info."""
-        test_generators = [
-            "MarketplaceGenerator",
-            "VPCGenerator",
-            "Route53Generator",
-            "EC2Generator",
-            "EBSGenerator",
-            "DataTransferGenerator",
-            "RDSGenerator",
-        ]
-        for generator in test_generators:
-            generator_obj = getattr(importlib.import_module(__name__), generator)
+        generator = MarketplaceGenerator(
+            self.two_hours_ago, self.now, self.payer_account, self.usage_accounts, self.attributes
+        )
 
-            test_gen = generator_obj(
-                self.two_hours_ago, self.now, self.payer_account, self.usage_accounts, self.attributes
-            )
-            row = {}
-            row = test_gen._add_common_pricing_info(row)
+        row = {}
+        row = generator._update_data(row, self.two_hours_ago, self.now)
 
-            self.assertEqual(row["pricing/currency"], "USD")
-            self.assertEqual(row["pricing/RateId"], "4981658079")
-            self.assertEqual(row["pricing/RateCode"], "VDHYUHU8G2Z5AZY3.4799GE89SK.6YS6EN2CT7")
-            self.assertEqual(row["pricing/term"], "OnDemand")
+        self.assertEqual(row["pricing/currency"], "USD")
+        self.assertEqual(row["pricing/RateId"], "4981658079")
+        self.assertEqual(row["pricing/RateCode"], "VDHYUHU8G2Z5AZY3.4799GE89SK.6YS6EN2CT7")
+        self.assertEqual(row["pricing/term"], "OnDemand")

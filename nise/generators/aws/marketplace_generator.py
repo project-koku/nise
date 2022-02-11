@@ -14,10 +14,18 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
-"""Module for s3 data generation."""
+"""Module for marketplace data generation."""
 from random import uniform
 
 from nise.generators.aws.aws_generator import AWSGenerator
+
+MARKETPLACE_COLS = (
+    "lineItem/LegalEntity",
+    "pricing/currency",
+    "pricing/RateCode",
+    "pricing/RateId",
+    "reservation/SubscriptionId" "resourceTags/aws: createdBy",
+)
 
 
 class MarketplaceGenerator(AWSGenerator):
@@ -30,6 +38,8 @@ class MarketplaceGenerator(AWSGenerator):
         self._rate = round(uniform(0.02, 0.06), 3)
         self._product_sku = self.fake.pystr(min_chars=12, max_chars=12).upper()
         self._resource_id = self.fake.ean8()
+        self.AWS_COLUMNS.update(MARKETPLACE_COLS)
+
         if self.attributes:
             if self.attributes.get("amount"):
                 self._amount = float(self.attributes.get("amount"))
@@ -56,8 +66,6 @@ class MarketplaceGenerator(AWSGenerator):
         location, aws_region, avail_zone, _ = self._get_location()
         description = "AWS Marketplace hourly software usage|us-east-1|m5.xlarge"
         amazon_resource_name = self._get_arn(avail_zone)
-
-        row = self._add_common_pricing_info(row)
 
         row["identity/LineItemId"] = "diygn5vanaqsvysz3prxwrekztiipfu7zywyauupnpmpi4fmd5dq"
         row["identity/TimeInterval"] = "2021-11-23T17:49:15Z/2021-12-01T00:00:00Z"
@@ -88,6 +96,10 @@ class MarketplaceGenerator(AWSGenerator):
 
         row["pricing/publicOnDemandCost"] = cost
         row["pricing/unit"] = "Hrs"
+        row["pricing/RateCode"] = "VDHYUHU8G2Z5AZY3.4799GE89SK.6YS6EN2CT7"
+        row["pricing/RateId"] = "4981658079"
+        row["pricing/currency"] = "USD"
+        row["pricing/term"] = "OnDemand"
 
         row["reservation/SubscriptionId"] = "7592738291"
 

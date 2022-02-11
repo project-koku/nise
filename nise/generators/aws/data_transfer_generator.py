@@ -87,8 +87,6 @@ class DataTransferGenerator(AWSGenerator):
             rate
         )
 
-        row = self._add_common_pricing_info(row)
-
         row["lineItem/ProductCode"] = self._product_code
         row["lineItem/UsageType"] = trans_desc
         row["lineItem/Operation"] = operation

@@ -105,7 +105,6 @@ class RDSGenerator(AWSGenerator):
         inst_description = description.format(cost, inst_type)
         location, aws_region, avail_zone, _ = self._get_location()
         row = self._add_common_usage_info(row, start, end)
-        row = self._add_common_pricing_info(row)
 
         # split_region = aws_region.split('-')
         # region_short_code = aws_region[0:2].upper() + split_region[1][0].upper() + split_region[2]

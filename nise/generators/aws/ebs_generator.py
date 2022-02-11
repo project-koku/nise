@@ -64,8 +64,6 @@ class EBSGenerator(AWSGenerator):
         description = f"${rate} per GB-Month of snapshot data stored - {location}"
         burst, max_iops, max_thru, max_vol_size, vol_backed, vol_type = self._get_storage()
 
-        row = self._add_common_pricing_info(row)
-
         row["lineItem/ProductCode"] = "AmazonEC2"
         row["lineItem/UsageType"] = f"{storage_region}:VolumeUsage"
         row["lineItem/Operation"] = "CreateVolume"

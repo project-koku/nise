@@ -51,8 +51,6 @@ class VPCGenerator(AWSGenerator):
         region_short_code = self._generate_region_short_code(aws_region)
         usage_type = f"{region_short_code}-VPN-Usage-Hours:ipsec.1"
 
-        row = self._add_common_pricing_info(row)
-
         row["lineItem/ProductCode"] = "AmazonVPC"
         row["lineItem/UsageType"] = usage_type
         row["lineItem/Operation"] = "CreateVpnConnection"
