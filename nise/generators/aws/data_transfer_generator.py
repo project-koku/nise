@@ -92,6 +92,7 @@ class DataTransferGenerator(AWSGenerator):
         row["lineItem/Operation"] = operation
         row["lineItem/ResourceId"] = resource_id
         row["lineItem/UsageAmount"] = str(amount)
+        row["lineItem/CurrencyCode"] = "USD"
         row["lineItem/UnblendedRate"] = str(rate)
         row["lineItem/UnblendedCost"] = str(cost)
         row["lineItem/BlendedRate"] = str(rate)
@@ -110,6 +111,7 @@ class DataTransferGenerator(AWSGenerator):
         row["product/usagetype"] = trans_desc
         row["pricing/publicOnDemandCost"] = str(cost)
         row["pricing/publicOnDemandRate"] = str(rate)
+        row["pricing/term"] = "OnDemand"
         row["pricing/unit"] = "GB"
         row["savingsPlan/SavingsPlanEffectiveCost"] = str(saving)
         self._add_tag_data(row)

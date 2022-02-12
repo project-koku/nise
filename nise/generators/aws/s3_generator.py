@@ -79,6 +79,7 @@ class S3Generator(AWSGenerator):
         row["product/usagetype"] = "Requests-Tier2"
         row["pricing/publicOnDemandCost"] = str(cost)
         row["pricing/publicOnDemandRate"] = str(rate)
+        row["pricing/term"] = "OnDemand"
         row["pricing/unit"] = "GB-Mo"
         self._add_tag_data(row)
 

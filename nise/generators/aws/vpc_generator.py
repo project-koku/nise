@@ -91,6 +91,7 @@ class VPCGenerator(AWSGenerator):
         row["product/vcpu"] = ""
         row["pricing/publicOnDemandCost"] = cost
         row["pricing/publicOnDemandRate"] = rate
+        row["pricing/term"] = "OnDemand"
         row["pricing/unit"] = "Hrs"
         self._add_tag_data(row)
 

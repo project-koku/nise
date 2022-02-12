@@ -91,6 +91,7 @@ class EBSGenerator(AWSGenerator):
         row["product/volumeType"] = vol_type
         row["pricing/publicOnDemandCost"] = str(cost)
         row["pricing/publicOnDemandRate"] = str(rate)
+        row["pricing/term"] = "OnDemand"
         row["pricing/unit"] = "GB-Mo"
         self._add_tag_data(row)
 
