@@ -19,14 +19,6 @@ from random import uniform
 
 from nise.generators.aws.aws_generator import AWSGenerator
 
-MARKETPLACE_COLS = (
-    "lineItem/LegalEntity",
-    "pricing/currency",
-    "pricing/RateCode",
-    "pricing/RateId",
-    "reservation/SubscriptionId" "resourceTags/aws: createdBy",
-)
-
 
 class MarketplaceGenerator(AWSGenerator):
     """Generator for Marketplace data."""
@@ -38,7 +30,14 @@ class MarketplaceGenerator(AWSGenerator):
         self._rate = round(uniform(0.02, 0.06), 3)
         self._product_sku = self.fake.pystr(min_chars=12, max_chars=12).upper()
         self._resource_id = self.fake.ean8()
-        self.AWS_COLUMNS.update(MARKETPLACE_COLS)
+
+        # add AWS Marketplace specific columns
+        self.AWS_COLUMNS.add("lineItem/LegalEntity")
+        self.AWS_COLUMNS.add("pricing/currency")
+        self.AWS_COLUMNS.add("pricing/RateCode")
+        self.AWS_COLUMNS.add("pricing/RateId")
+        self.AWS_COLUMNS.add("reservation/SubscriptionId")
+        self.AWS_COLUMNS.add("resourceTags/aws: createdBy")
 
         if self.attributes:
             if self.attributes.get("amount"):

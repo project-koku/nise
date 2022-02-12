@@ -197,7 +197,6 @@ class AWSGenerator(AbstractGenerator):
         "resourceTags/user:openshift_cluster",
         "resourceTags/user:openshift_project",
         "resourceTags/user:openshift_node",
-        "resourceTags/aws: createdBy",
     }
     AWS_COLUMNS = set(
         IDENTITY_COLS
