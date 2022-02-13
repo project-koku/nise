@@ -32,12 +32,16 @@ class MarketplaceGenerator(AWSGenerator):
         self._resource_id = self.fake.ean8()
 
         # add AWS Marketplace specific columns
-        self.AWS_COLUMNS.add("lineItem/LegalEntity")
-        self.AWS_COLUMNS.add("pricing/currency")
-        self.AWS_COLUMNS.add("pricing/RateCode")
-        self.AWS_COLUMNS.add("pricing/RateId")
-        self.AWS_COLUMNS.add("reservation/SubscriptionId")
-        self.AWS_COLUMNS.add("resourceTags/aws: createdBy")
+        aws_marketplace_cols = {
+            "lineItem/LegalEntity",
+            "pricing/currency",
+            "pricing/RateCode",
+            "pricing/RateId",
+            "reservation/SubscriptionId",
+            "resourceTags/aws:createdBy",
+        }
+
+        self.AWS_COLUMNS.update(aws_marketplace_cols)
 
         if self.attributes:
             if self.attributes.get("amount"):
@@ -102,7 +106,7 @@ class MarketplaceGenerator(AWSGenerator):
 
         row["reservation/SubscriptionId"] = "7592738291"
 
-        row["resourceTags/aws: createdBy"] = "AssumedRole:AROAYSLL3JVQ6DYUNKWQJ:1637692740557658269"
+        row["resourceTags/aws:createdBy"] = "AssumedRole:AROAYSLL3JVQ6DYUNKWQJ:1637692740557658269"
 
         self._add_tag_data(row)
 
