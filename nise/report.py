@@ -477,6 +477,7 @@ def aws_create_marketplace_report(options):  # noqa: C901
     static_report_data = options.get("static_report_data")
     # added to keep import happy
     MarketplaceGenerator
+    options["manifest_generation"] = False
 
     if static_report_data:
         aws_create_report(options)
@@ -503,6 +504,7 @@ def aws_create_report(options):  # noqa: C901
     end_date = options.get("end_date")
     aws_finalize_report = options.get("aws_finalize_report")
     static_report_data = options.get("static_report_data")
+    manifest_gen = True if options.get("manifest_generation") is None else options.get("manifest_generation")
 
     if static_report_data:
         generators = _get_generators(static_report_data.get("generators"))
@@ -593,21 +595,32 @@ def aws_create_report(options):  # noqa: C901
             manifest_values["start_date"] = gen_start_date
             manifest_values["end_date"] = gen_end_date
             manifest_values["file_names"] = monthly_files
-            s3_cur_path, manifest_data = aws_generate_manifest(fake, manifest_values)
-            s3_month_path = os.path.dirname(s3_cur_path)
-            s3_month_manifest_path = s3_month_path + "/" + aws_report_name + "-Manifest.json"
-            s3_assembly_manifest_path = s3_cur_path + "/" + aws_report_name + "-Manifest.json"
 
-            temp_manifest = _write_manifest(manifest_data)
-            aws_route_file(aws_bucket_name, s3_month_manifest_path, temp_manifest)
-            aws_route_file(aws_bucket_name, s3_assembly_manifest_path, temp_manifest)
+            if not manifest_gen:
+                s3_cur_path, _ = aws_generate_manifest(fake, manifest_values)
+                for monthly_file in monthly_files:
+                    temp_cur_zip = _gzip_report(monthly_file)
+                    destination_file = "{}/{}.gz".format(s3_cur_path, os.path.basename(monthly_file))
+                    aws_route_file(aws_bucket_name, destination_file, temp_cur_zip)
+                    os.remove(temp_cur_zip)
+            else:
+                s3_cur_path, manifest_data = aws_generate_manifest(fake, manifest_values)
+                s3_month_path = os.path.dirname(s3_cur_path)
+                s3_month_manifest_path = s3_month_path + "/" + aws_report_name + "-Manifest.json"
+                s3_assembly_manifest_path = s3_cur_path + "/" + aws_report_name + "-Manifest.json"
 
-            for monthly_file in monthly_files:
-                temp_cur_zip = _gzip_report(monthly_file)
-                destination_file = "{}/{}.gz".format(s3_cur_path, os.path.basename(monthly_file))
-                aws_route_file(aws_bucket_name, destination_file, temp_cur_zip)
-                os.remove(temp_cur_zip)
-            os.remove(temp_manifest)
+                temp_manifest = _write_manifest(manifest_data)
+                aws_route_file(aws_bucket_name, s3_month_manifest_path, temp_manifest)
+                aws_route_file(aws_bucket_name, s3_assembly_manifest_path, temp_manifest)
+
+                for monthly_file in monthly_files:
+                    temp_cur_zip = _gzip_report(monthly_file)
+                    destination_file = "{}/{}.gz".format(s3_cur_path, os.path.basename(monthly_file))
+                    aws_route_file(aws_bucket_name, destination_file, temp_cur_zip)
+                    os.remove(temp_cur_zip)
+
+                os.remove(temp_manifest)
+
         if not write_monthly:
             _remove_files(monthly_files)
 
