@@ -23,6 +23,7 @@ from nise.generators.aws import AWSGenerator
 from nise.generators.aws import DataTransferGenerator
 from nise.generators.aws import EBSGenerator
 from nise.generators.aws import EC2Generator
+from nise.generators.aws import MarketplaceGenerator
 from nise.generators.aws import RDSGenerator
 from nise.generators.aws import Route53Generator
 from nise.generators.aws import S3Generator
@@ -468,3 +469,51 @@ class TestVPCGenerator(AWSGeneratorTestCase):
         )
         data = generator.generate_data()
         self.assertNotEqual(data, [])
+
+
+class TestMarketplaceGenerator(AWSGeneratorTestCase):
+    """Tests for the Marketplace Generator type."""
+
+    def test_init_with_attributes(self):
+        """Test the unique init options for Data Transfer."""
+
+        generator = MarketplaceGenerator(
+            self.two_hours_ago, self.now, self.payer_account, self.usage_accounts, self.attributes
+        )
+        self.assertEqual(generator._product_sku, self.product_sku)
+        self.assertEqual(generator._tags, self.tags)
+        self.assertEqual(generator._resource_id, self.resource_id)
+        self.assertEqual(generator._amount, self.amount)
+        self.assertEqual(generator._rate, self.rate)
+
+    def test_update_data(self):
+        """Test Marketplace specific update data method."""
+        generator = MarketplaceGenerator(
+            self.two_hours_ago, self.now, self.payer_account, self.usage_accounts, self.attributes
+        )
+        start_row = {}
+        row = generator._update_data(start_row, self.two_hours_ago, self.now)
+
+        self.assertEqual(row["bill/BillingEntity"], "AWS Marketplace")
+        self.assertEqual(row["product/ProductName"], "Red Hat OpenShift Service on AWS")
+
+    def test_generate_data(self):
+        """Test that the MarketplaceGenerator generate_data method works."""
+        generator = MarketplaceGenerator(
+            self.two_hours_ago, self.now, self.payer_account, self.usage_accounts, self.attributes
+        )
+        data = generator.generate_data()
+        self.assertNotEqual(data, [])
+
+    def test_add_common_pricing_info(self):
+        generator = MarketplaceGenerator(
+            self.two_hours_ago, self.now, self.payer_account, self.usage_accounts, self.attributes
+        )
+
+        row = {}
+        row = generator._update_data(row, self.two_hours_ago, self.now)
+
+        self.assertEqual(row["pricing/currency"], "USD")
+        self.assertEqual(row["pricing/RateId"], "4981658079")
+        self.assertEqual(row["pricing/RateCode"], "VDHYUHU8G2Z5AZY3.4799GE89SK.6YS6EN2CT7")
+        self.assertEqual(row["pricing/term"], "OnDemand")

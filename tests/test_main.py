@@ -165,6 +165,27 @@ class CommandLineTestCase(TestCase):
             args = ["report", "aws", "--start-date", str(date.today()), "--gcp-report-prefix", "gcp-report"]
             self.parser.parse_args(args)
 
+    def test_invalid_aws_marketplace_inputs(self):
+        """
+        Test where user passes an invalid aws-marketplace argument combination.
+        """
+        with self.assertRaises(SystemExit):
+            args = ["report", "aws-marketplace", "--start-date", str(date.today()), "--ocp-cluster-id", "123"]
+            self.parser.parse_args(args)
+        with self.assertRaises(SystemExit):
+            args = ["report", "aws-marketplace", "--start-date", str(date.today()), "--azure-container-name", "123"]
+            self.parser.parse_args(args)
+        with self.assertRaises(SystemExit):
+            args = [
+                "report",
+                "aws-marketplace",
+                "--start-date",
+                str(date.today()),
+                "--gcp-report-prefix",
+                "gcp-report",
+            ]
+            self.parser.parse_args(args)
+
     def test_invalid_azure_inputs(self):
         """
         Test where user passes an invalid azure argument combination.
@@ -446,6 +467,57 @@ class MainDateTest(TestCase):
             "aws_gen_last_first": {"start_date": datetime(2020, 5, 31, 0, 0), "end_date": datetime(2020, 6, 1, 0, 0)},
         }
         options = {"provider": "aws", "static_report_file": "fake-file"}
+        mock_load.return_value = static_report_data
+        _load_static_report_data(options)
+        for generator_dict in options.get("static_report_data").get("generators"):
+            for key, attributes in generator_dict.items():
+                with self.subTest(key=key):
+                    self.assertEqual(attributes.get("start_date"), str(expected.get(key).get("start_date")))
+                    self.assertEqual(attributes.get("end_date"), str(expected.get(key).get("end_date")))
+
+    @patch("nise.__main__.load_yaml")
+    def test_aws_market_dates(self, mock_load):
+        """Test that select static-data-file dates return correct dates."""
+        aws_mp_gens = [
+            {"aws_mp_gen_first": {"start_date": datetime(2020, 6, 1).date(), "end_date": datetime(2020, 6, 1).date()}},
+            {
+                "aws_mp_gen_first_second": {
+                    "start_date": datetime(2020, 6, 1).date(),
+                    "end_date": datetime(2020, 6, 2).date(),
+                }
+            },
+            {"aws_mp_gen_first_start": {"start_date": datetime(2020, 6, 1).date()}},
+            {
+                "aws_mp_gen_last": {
+                    "start_date": datetime(2020, 5, 31).date(),
+                    "end_date": datetime(2020, 5, 31).date(),
+                }
+            },
+            {
+                "aws_mp_gen_last_first": {
+                    "start_date": datetime(2020, 5, 31).date(),
+                    "end_date": datetime(2020, 6, 1).date(),
+                }
+            },
+        ]
+        static_report_data = {"generators": aws_mp_gens}
+        expected = {
+            "aws_mp_gen_first": {"start_date": datetime(2020, 6, 1, 0, 0), "end_date": datetime(2020, 6, 1, 0, 0)},
+            "aws_mp_gen_first_second": {
+                "start_date": datetime(2020, 6, 1, 0, 0),
+                "end_date": datetime(2020, 6, 2, 0, 0),
+            },
+            "aws_mp_gen_first_start": {
+                "start_date": datetime(2020, 6, 1, 0, 0),
+                "end_date": datetime.now().replace(minute=0, second=0, microsecond=0),
+            },
+            "aws_mp_gen_last": {"start_date": datetime(2020, 5, 31, 0, 0), "end_date": datetime(2020, 5, 31, 0, 0)},
+            "aws_mp_gen_last_first": {
+                "start_date": datetime(2020, 5, 31, 0, 0),
+                "end_date": datetime(2020, 6, 1, 0, 0),
+            },
+        }
+        options = {"provider": "aws-marketplace", "static_report_file": "fake-file"}
         mock_load.return_value = static_report_data
         _load_static_report_data(options)
         for generator_dict in options.get("static_report_data").get("generators"):

@@ -25,6 +25,7 @@ from pprint import pformat
 from dateutil import parser as date_parser
 from dateutil.relativedelta import relativedelta
 from nise import __version__
+from nise.report import aws_create_marketplace_report
 from nise.report import aws_create_report
 from nise.report import azure_create_report
 from nise.report import gcp_create_report
@@ -60,6 +61,42 @@ def today():
 
 def add_aws_parser_args(parser):
     """Add AWS sub-parser args."""
+    parser.add_argument(
+        "--aws-s3-bucket-name",
+        metavar="BUCKET_NAME",
+        dest="aws_bucket_name",
+        required=False,
+        help="AWS S3 bucket to place the data.",
+    )
+    parser.add_argument(
+        "--aws-s3-report-name",
+        metavar="COST_REPORT_NAME",
+        dest="aws_report_name",
+        required=False,
+        help="Directory path to store data in the S3 bucket.",
+    )
+    parser.add_argument(
+        "--aws-s3-report-prefix",
+        metavar="PREFIX_NAME",
+        dest="aws_prefix_name",
+        required=False,
+        help="Directory path to store data in the S3 bucket.",
+    )
+    parser.add_argument(
+        "--aws-finalize",
+        metavar="FINALIZE_REPORT",
+        dest="aws_finalize_report",
+        choices=["copy", "overwrite"],
+        required=False,
+        help="""Whether to generate finalized report data.
+                            Can be either \'copy\' to produce a second finalized file locally
+                            or \'overwrite\' to finalize the normal report files.
+                            """,
+    )
+
+
+def add_aws_marketplace_parser_args(parser):
+    """Add AWS Marketplace sub-parser args."""
     parser.add_argument(
         "--aws-s3-bucket-name",
         metavar="BUCKET_NAME",
@@ -250,6 +287,13 @@ def create_parser():
     aws_parser = report_subparser.add_parser(
         "aws", parents=[parent_parser], add_help=False, description="The AWS parser", help="create the AWS reports"
     )
+    aws_marketplace_parser = report_subparser.add_parser(
+        "aws-marketplace",
+        parents=[parent_parser],
+        add_help=False,
+        description="The AWS Marketplace parser",
+        help="create the AWS Marketplace report",
+    )
     azure_parser = report_subparser.add_parser(
         "azure",
         parents=[parent_parser],
@@ -265,6 +309,7 @@ def create_parser():
     )
 
     add_aws_parser_args(aws_parser)
+    add_aws_marketplace_parser_args(aws_marketplace_parser)
     add_azure_parser_args(azure_parser)
     add_gcp_parser_args(gcp_parser)
     add_ocp_parser_args(ocp_parser)
@@ -453,6 +498,7 @@ def _validate_provider_inputs(parser, options):
     provider_type = options.get("provider")
     VALIDATOR_MAP = {
         "aws": _validate_aws_arguments,
+        "aws-marketplace": _validate_aws_arguments,
         "azure": _validate_azure_arguments,
         "gcp": _validate_gcp_arguments,
         "ocp": _validate_ocp_arguments,
@@ -463,7 +509,7 @@ def _validate_provider_inputs(parser, options):
         valid_inputs = func(parser, options)
     else:
         msg = "One of {}, {}, {}, or {} must be supplied to generate a report."
-        msg = msg.format("aws", "azure", "ocp", "gcp")
+        msg = msg.format("aws", "aws-marketplace", "azure", "ocp", "gcp")
         parser.error(msg)
     return (valid_inputs, provider_type)
 
@@ -577,6 +623,8 @@ def run(provider_type, options):
     LOG.info("Creating reports...")
     if provider_type == "aws":
         aws_create_report(options)
+    elif provider_type == "aws-marketplace":
+        aws_create_marketplace_report(options)
     elif provider_type == "azure":
         azure_create_report(options)
     elif provider_type == "ocp":
