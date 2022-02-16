@@ -320,6 +320,7 @@ def _generate_accounts(static_report_data=None):
     if static_report_data:
         payer_account = static_report_data.get("payer")
         usage_accounts = tuple(static_report_data.get("user"))
+        currency_code = static_report_data.get("currency_code")
     else:
         fake = Faker()
         payer_account = fake.ean(length=13)
@@ -330,7 +331,8 @@ def _generate_accounts(static_report_data=None):
             fake.ean(length=13),
             fake.ean(length=13),
         )
-    return payer_account, usage_accounts
+        currency_code = "USD"
+    return payer_account, usage_accounts, currency_code
 
 
 def _generate_azure_account_info(static_report_data=None):
@@ -507,8 +509,8 @@ def aws_create_report(options):  # noqa: C901
 
     months = _create_month_list(start_date, end_date)
 
-    payer_account, usage_accounts = _generate_accounts(accounts_list)
-    currency_code = default_currency(options.get("currency"), accounts_list["currency_code"])
+    payer_account, usage_accounts, currency_code = _generate_accounts(accounts_list)
+    currency_code = default_currency(options.get("currency"), currency_code)
 
     aws_bucket_name = options.get("aws_bucket_name")
     aws_report_name = options.get("aws_report_name")
@@ -1004,6 +1006,8 @@ def gcp_create_report(options):  # noqa: C901
                         start_date = attributes.get("start_date")
                         end_date = attributes.get("end_date")
                         currency = default_currency(options.get("currency"), attributes.get("currency"))
+                    else:
+                        currency = default_currency(options.get("currency"), None)
                     if gen_end_date > end_date:
                         gen_end_date = end_date
 

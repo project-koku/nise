@@ -289,9 +289,25 @@ class MiscReportTestCase(TestCase):
         self.assertNotIn("headers", mock_post.call_args[1])
 
     def test_defaulting_currency(self):
+        """Test that if no currency is provide in options or static it defaults to USD."""
         currency = None
-        updated_currency = default_currency(currency)
+        static_currency = None
+        updated_currency = default_currency(currency, static_currency)
         self.assertEqual(updated_currency, "USD")
+
+    def test_defaulting_to_static_currency(self):
+        """Test that if no currency is provide in options it defaults to static."""
+        currency = None
+        static_currency = "NOK"
+        updated_currency = default_currency(currency, static_currency)
+        self.assertEqual(updated_currency, "NOK")
+
+    def test_currency_option(self):
+        """Test that if currency is provide in options it sets to that."""
+        currency = "AUD"
+        static_currency = "NOK"
+        updated_currency = default_currency(currency, static_currency)
+        self.assertEqual(updated_currency, "AUD")
 
 
 class AWSReportTestCase(TestCase):
