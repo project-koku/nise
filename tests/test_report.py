@@ -41,6 +41,7 @@ from nise.report import _remove_files
 from nise.report import _write_csv
 from nise.report import _write_jsonl
 from nise.report import _write_manifest
+from nise.report import aws_create_marketplace_report
 from nise.report import aws_create_report
 from nise.report import azure_create_report
 from nise.report import default_currency
@@ -650,6 +651,137 @@ class AWSReportTestCase(TestCase):
                 if regex.match(fname):
                     os.remove(fname)
         shutil.rmtree(local_bucket_path)
+
+
+class AWSMarketplaceReportTestCase(TestCase):
+    """
+    TestCase class for AWS Marketplace report functions.
+    """
+
+    def test_aws_marketplace_create_report_no_s3(self):
+        """Test the aws-marketplace report creation method no s3."""
+        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
+        one_day = datetime.timedelta(days=1)
+        yesterday = now - one_day
+        aws_create_marketplace_report(
+            {"start_date": yesterday, "end_date": now, "aws_report_name": "cur_report", "write_monthly": True}
+        )
+        month_output_file_name = "{}-{}-{}-{}".format(
+            calendar.month_name[now.month], now.year, "cur_report", "marketplace"
+        )
+        expected_month_output_file = "{}/{}.csv".format(os.getcwd(), month_output_file_name)
+
+        self.assertTrue(os.path.isfile(expected_month_output_file))
+        os.remove(expected_month_output_file)
+
+    @patch("nise.report.upload_to_s3")
+    def test_aws_marketplace_create_report_with_s3(self, mock_upload_to_s3):
+        """Test the aws-marketplace report creation method with s3."""
+        mock_upload_to_s3.return_value = None
+        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
+        one_day = datetime.timedelta(days=1)
+        yesterday = now - one_day
+        options = {
+            "start_date": yesterday,
+            "end_date": now,
+            "aws_bucket_name": "my_bucket",
+            "aws_report_name": "cur_report",
+            "write_monthly": True,
+        }
+        aws_create_marketplace_report(options)
+        month_output_file_name = "{}-{}-{}-{}".format(
+            calendar.month_name[now.month], now.year, "cur_report", "marketplace"
+        )
+        expected_month_output_file = "{}/{}.csv".format(os.getcwd(), month_output_file_name)
+
+        self.assertTrue(os.path.isfile(expected_month_output_file))
+        os.remove(expected_month_output_file)
+
+    def test_aws_marketplace_create_report_with_local_dir(self):
+        """Test the aws-marketplace report creation method with local directory."""
+        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
+        one_day = datetime.timedelta(days=1)
+        yesterday = now - one_day
+        local_bucket_path = mkdtemp()
+        options = {
+            "start_date": yesterday,
+            "end_date": now,
+            "aws_bucket_name": local_bucket_path,
+            "aws_report_name": "cur_report",
+            "write_monthly": True,
+        }
+        aws_create_marketplace_report(options)
+        month_output_file_name = "{}-{}-{}-{}".format(
+            calendar.month_name[now.month], now.year, "cur_report", "marketplace"
+        )
+        expected_month_output_file = "{}/{}.csv".format(os.getcwd(), month_output_file_name)
+
+        self.assertTrue(os.path.isfile(expected_month_output_file))
+        os.remove(expected_month_output_file)
+        shutil.rmtree(local_bucket_path)
+
+    def test_aws_marketplace_create_report_with_local_dir_report_prefix(self):
+        """Test the aws-marketplace report creation method with local directory and a report prefix."""
+        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
+        one_day = datetime.timedelta(days=1)
+        yesterday = now - one_day
+        local_bucket_path = mkdtemp()
+        options = {
+            "start_date": yesterday,
+            "end_date": now,
+            "aws_bucket_name": local_bucket_path,
+            "aws_report_name": "cur_report",
+            "aws_prefix_name": "my_prefix",
+            "write_monthly": True,
+        }
+        aws_create_marketplace_report(options)
+        month_output_file_name = "{}-{}-{}-{}".format(
+            calendar.month_name[now.month], now.year, "cur_report", "marketplace"
+        )
+        expected_month_output_file = "{}/{}.csv".format(os.getcwd(), month_output_file_name)
+        self.assertTrue(os.path.isfile(expected_month_output_file))
+        os.remove(expected_month_output_file)
+        shutil.rmtree(local_bucket_path)
+
+    def test_aws_marketplace_create_report_finalize_report_overwrite(self):
+        """Test that an aws report file has an invoice id."""
+        start_date = datetime.datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        end_date = datetime.datetime.now().replace(day=5, hour=0, minute=0, second=0, microsecond=0)
+        aws_create_marketplace_report(
+            {
+                "start_date": start_date,
+                "end_date": end_date,
+                "aws_report_name": "cur_report",
+                "aws_finalize_report": "overwrite",
+                "write_monthly": True,
+            }
+        )
+
+        month_output_file_name = "{}-{}-{}".format(
+            calendar.month_name[start_date.month], start_date.year, "cur_report"
+        )
+        expected_month_output_file = "{}/{}-{}.csv".format(os.getcwd(), month_output_file_name, "marketplace")
+        self.assertTrue(os.path.isfile(expected_month_output_file))
+
+        with open(expected_month_output_file, "r") as f:
+            reader = csv.DictReader(f)
+            row = next(reader)
+            self.assertNotEqual(row["bill/InvoiceId"], "")
+
+        os.remove(expected_month_output_file)
+
+    def test_aws_marketplace_create_report_without_write_monthly(self):
+        """Test that monthly file is not created by default."""
+        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
+        one_day = datetime.timedelta(days=1)
+        yesterday = now - one_day
+        aws_create_marketplace_report({"start_date": yesterday, "end_date": now, "aws_report_name": "cur_report"})
+
+        month_output_file_name = "{}-{}-{}-{}".format(
+            calendar.month_name[now.month], now.year, "cur_report", "marketplace"
+        )
+        expected_month_output_file = "{}/{}.csv".format(os.getcwd(), month_output_file_name)
+        self.assertFalse(os.path.isfile(expected_month_output_file))
 
 
 class OCPReportTestCase(TestCase):
