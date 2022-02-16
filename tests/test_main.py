@@ -611,3 +611,12 @@ class MainDateTest(TestCase):
                 with self.subTest(key=key):
                     self.assertEqual(attributes.get("start_date"), str(expected.get(key).get("start_date")))
                     self.assertEqual(attributes.get("end_date"), str(expected.get(key).get("end_date")))
+
+    def test_static_report_file_does_not_exist(self):
+        """
+        Test to load static report data form non existent file.
+        """
+        options = {"static_report_file": "tests/bogus_file"}
+
+        with self.assertRaises(SystemExit):
+            _load_static_report_data(options)
