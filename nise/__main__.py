@@ -522,7 +522,7 @@ def _load_static_report_data(options):
 
     static_file = options.get("static_report_file")
     if not os.path.exists(static_file):
-        LOG.error(f"static-report-file does not exist: {static_file}")
+        LOG.error(f"file does not exist: '{static_file}'")
         sys.exit()
 
     LOG.info("Loading static data...")
