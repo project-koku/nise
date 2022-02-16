@@ -47,8 +47,8 @@ class AbstractGeneratorTestCase(TestCase):
         self.fake = Faker()
         self.now = datetime.now().replace(microsecond=0, second=0, minute=0)
         self.one_hour = timedelta(minutes=60)
-        self.payer_account = self.fake.ean(length=13)
         self.currency = "USD"
+        self.payer_account = self.fake.ean(length=13)
         self.usage_accounts = (
             self.payer_account,
             self.fake.ean(length=13),
@@ -239,8 +239,8 @@ class TestRDSGenerator(AWSGeneratorTestCase):
         generator = RDSGenerator(
             self.two_hours_ago,
             self.now,
-            self.payer_account,
             self.currency,
+            self.payer_account,
             self.usage_accounts,
             attributes={"empty": "dictionary"},
         )
@@ -495,7 +495,7 @@ class TestMarketplaceGenerator(AWSGeneratorTestCase):
         """Test the unique init options for Data Transfer."""
 
         generator = MarketplaceGenerator(
-            self.two_hours_ago, self.now, self.payer_account, self.usage_accounts, self.attributes
+            self.two_hours_ago, self.now, self.currency, self.payer_account, self.usage_accounts, self.attributes
         )
         self.assertEqual(generator._product_sku, self.product_sku)
         self.assertEqual(generator._tags, self.tags)
@@ -506,7 +506,7 @@ class TestMarketplaceGenerator(AWSGeneratorTestCase):
     def test_update_data(self):
         """Test Marketplace specific update data method."""
         generator = MarketplaceGenerator(
-            self.two_hours_ago, self.now, self.payer_account, self.usage_accounts, self.attributes
+            self.two_hours_ago, self.now, self.currency, self.payer_account, self.usage_accounts, self.attributes
         )
         start_row = {}
         row = generator._update_data(start_row, self.two_hours_ago, self.now)
@@ -517,14 +517,14 @@ class TestMarketplaceGenerator(AWSGeneratorTestCase):
     def test_generate_data(self):
         """Test that the MarketplaceGenerator generate_data method works."""
         generator = MarketplaceGenerator(
-            self.two_hours_ago, self.now, self.payer_account, self.usage_accounts, self.attributes
+            self.two_hours_ago, self.now, self.currency, self.payer_account, self.usage_accounts, self.attributes
         )
         data = generator.generate_data()
         self.assertNotEqual(data, [])
 
     def test_add_common_pricing_info(self):
         generator = MarketplaceGenerator(
-            self.two_hours_ago, self.now, self.payer_account, self.usage_accounts, self.attributes
+            self.two_hours_ago, self.now, self.currency, self.payer_account, self.usage_accounts, self.attributes
         )
 
         row = {}

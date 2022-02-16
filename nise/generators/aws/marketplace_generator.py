@@ -182,7 +182,7 @@ class MarketplaceGenerator(AbstractGenerator):
         + tuple(RESOURCE_TAG_COLS)
     )
 
-    def __init__(self, start_date, end_date, payer_account, usage_accounts, attributes=None, tag_cols=None):
+    def __init__(self, start_date, end_date, currency, payer_account, usage_accounts, attributes=None, tag_cols=None):
         super().__init__(start_date, end_date)
         """Initialize the generator."""
         self.payer_account = payer_account
@@ -194,6 +194,7 @@ class MarketplaceGenerator(AbstractGenerator):
         self._rate = round(uniform(0.02, 0.06), 3)
         self._product_sku = self.fake.pystr(min_chars=12, max_chars=12).upper()
         self._resource_id = "i-{}".format(self.fake.ean8())
+        self._currency = currency
 
         if self.attributes:
             if self.attributes.get("amount"):
@@ -334,7 +335,7 @@ class MarketplaceGenerator(AbstractGenerator):
         row["lineItem/AvailabilityZone"] = avail_zone
         row["lineItem/ResourceId"] = amazon_resource_name
         row["lineItem/UsageAmount"] = "1"
-        row["lineItem/CurrencyCode"] = "USD"
+        row["lineItem/CurrencyCode"] = self._currency
         row["lineItem/UnblendedRate"] = rate
         row["lineItem/UnblendedCost"] = cost
         row["lineItem/BlendedRate"] = rate

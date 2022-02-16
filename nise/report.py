@@ -483,6 +483,8 @@ def default_currency(currency, static_currency):
         return static_currency
     else:
         return "USD"
+
+
 def aws_create_marketplace_report(options):  # noqa: C901
     """Create a marketplace usage report file."""
     static_report_data = options.get("static_report_data")
@@ -565,8 +567,8 @@ def aws_create_report(options):  # noqa: C901
             gen = generator_cls(
                 gen_start_date,
                 gen_end_date,
-                payer_account,
                 currency_code,
+                payer_account,
                 usage_accounts,
                 attributes,
                 options.get("aws_tags"),
@@ -899,7 +901,6 @@ def write_gcp_file(start_date, end_date, data, options):
         file_name = report_prefix + ".csv"
     local_file_path = "{}/{}".format(os.getcwd(), file_name)
     output_file_name = f"{etag}/{file_name}"
-    # data['currency'] = default_currency(options['currency'], data['currency'])
     _write_csv(local_file_path, data, GCP_REPORT_COLUMNS)
     return local_file_path, output_file_name
 

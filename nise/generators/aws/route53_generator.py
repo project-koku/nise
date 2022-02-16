@@ -29,9 +29,9 @@ ROUTE_53_PRODUCTS = list(ROUTE_53_PRODUCTS_DICT.values())
 class Route53Generator(AWSGenerator):
     """Generator for Route53 data."""
 
-    def __init__(self, start_date, end_date, payer_account, currency, usage_accounts, attributes=None, tag_cols=None):
+    def __init__(self, start_date, end_date, currency, payer_account, usage_accounts, attributes=None, tag_cols=None):
         """Initialize the Route53 generator."""
-        super().__init__(start_date, end_date, payer_account, currency, usage_accounts, attributes, tag_cols)
+        super().__init__(start_date, end_date, currency, payer_account, usage_accounts, attributes, tag_cols)
         self._product_sku = self.fake.pystr(min_chars=12, max_chars=12).upper()
         self._product_family = None
         self._resource_id = self.fake.ean8()
