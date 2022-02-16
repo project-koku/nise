@@ -83,7 +83,6 @@ class ComputeEngineGenerator(GCPGenerator):
         row["usage.unit"] = usage_unit
         row["usage.pricing_unit"] = pricing_unit
         row["cost_type"] = "regular"
-        row["currency"] = self._currency
         row["currency_conversion_rate"] = 1
         row["usage.amount"] = self._gen_usage_unit_amount(usage_unit)
         row["usage.amount_in_pricing_units"] = self._gen_pricing_unit_amount(pricing_unit, row["usage.amount"])
@@ -100,6 +99,7 @@ class ComputeEngineGenerator(GCPGenerator):
                 if key in self.column_labels:
                     row[key] = self.attributes[key]
 
+        row["currency"] = self._currency
         row["labels"] = self.determine_labels(self.LABELS)
         row["system_labels"] = self.determine_system_labels(sku[3])
 
@@ -115,8 +115,8 @@ class JSONLComputeEngineGenerator(ComputeEngineGenerator):
 
     LABELS = (([{"key": "vm_key_proj2", "value": "vm_label_proj2"}]), ([]))
 
-    def __init__(self, start_date, end_date, project, currency, attributes=None):
-        super().__init__(start_date, end_date, project, currency, attributes)
+    def __init__(self, start_date, end_date, currency, project, attributes=None):
+        super().__init__(start_date, end_date, currency, project, attributes)
         self.column_labels = GCP_REPORT_COLUMNS_JSONL
         self.return_list = True
         self._currency = currency
@@ -148,7 +148,6 @@ class JSONLComputeEngineGenerator(ComputeEngineGenerator):
         self.credit_total = credit_total
         row["credits"] = credit
         row["cost_type"] = "regular"
-        row["currency"] = self._currency
         row["currency_conversion_rate"] = 1
         invoice = {}
         year = datetime.strptime(row.get("usage_start_time"), "%Y-%m-%dT%H:%M:%S").year
@@ -164,6 +163,7 @@ class JSONLComputeEngineGenerator(ComputeEngineGenerator):
                     outer_key, inner_key = key.split(".")
                     row[outer_key][inner_key] = self.attributes[key]
 
+        row["currency"] = self._currency
         row["labels"] = self.determine_labels(self.LABELS)
         row["system_labels"] = self.determine_system_labels(sku_choice[3])
 

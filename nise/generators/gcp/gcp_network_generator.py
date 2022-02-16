@@ -164,6 +164,7 @@ class JSONLGCPNetworkGenerator(GCPNetworkGenerator):
                     outer_key, inner_key = key.split(".")
                     row[outer_key][inner_key] = self.attributes[key]
 
+        row["currency"] = self._currency
         row["labels"] = self.determine_labels(self.LABELS)
 
         return row

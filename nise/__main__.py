@@ -236,7 +236,6 @@ def create_parser():
         dest="currency",
         required=False,
         type=valid_currency,
-        default="USD",
         help="Sets the currency code on the reports",
     )
     parent_parser = argparse.ArgumentParser()

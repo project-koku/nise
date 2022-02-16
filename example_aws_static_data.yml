@@ -56,3 +56,4 @@
     payer: 9999999999999
     user:
       - 9999999999999
+    currency_code: USD #can be changed when testing with foreign currency codes

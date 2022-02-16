@@ -78,7 +78,6 @@ class CloudStorageGenerator(GCPGenerator):
         row["usage.amount_in_pricing_units"] = self._gen_pricing_unit_amount(pricing_unit, row["usage.amount"])
         cost = self._gen_cost(row["usage.amount_in_pricing_units"])
         row["cost"] = cost
-        row["currency"] = self._currency
         credit, credit_total = self._gen_credit(self.credit_total, self._credit_amount)
         self.credit_total = credit_total
         row["credits"] = credit
@@ -90,6 +89,7 @@ class CloudStorageGenerator(GCPGenerator):
                 if key in self.column_labels:
                     row[key] = self.attributes[key]
 
+        row["currency"] = self._currency
         row["labels"] = self.determine_labels(self.LABELS)
         row["system_labels"] = choice(self.SYSTEM_LABELS)
 
@@ -152,6 +152,7 @@ class JSONLCloudStorageGenerator(CloudStorageGenerator):
                     outer_key, inner_key = key.split(".")
                     row[outer_key][inner_key] = self.attributes[key]
 
+        row["currency"] = self._currency
         row["labels"] = self.determine_labels(self.LABELS)
         row["system_labels"] = choice(self.SYSTEM_LABELS)
 
