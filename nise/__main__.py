@@ -529,7 +529,7 @@ def _load_static_report_data(options):
     aws_tags = set()
     start_dates = []
     end_dates = []
-    static_report_data = load_yaml(options.get(static_file))
+    static_report_data = load_yaml(static_file)
     for generator_dict in static_report_data.get("generators"):
         for _, attributes in generator_dict.items():
             start_date = get_start_date(attributes, options)

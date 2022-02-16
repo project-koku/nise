@@ -466,7 +466,7 @@ class MainDateTest(TestCase):
             "aws_gen_last": {"start_date": datetime(2020, 5, 31, 0, 0), "end_date": datetime(2020, 5, 31, 0, 0)},
             "aws_gen_last_first": {"start_date": datetime(2020, 5, 31, 0, 0), "end_date": datetime(2020, 6, 1, 0, 0)},
         }
-        options = {"provider": "aws", "static_report_file": "fake-file"}
+        options = {"provider": "aws", "static_report_file": "tests/aws_static_report.yml"}
         mock_load.return_value = static_report_data
         _load_static_report_data(options)
         for generator_dict in options.get("static_report_data").get("generators"):
@@ -517,7 +517,7 @@ class MainDateTest(TestCase):
                 "end_date": datetime(2020, 6, 1, 0, 0),
             },
         }
-        options = {"provider": "aws-marketplace", "static_report_file": "fake-file"}
+        options = {"provider": "aws-marketplace", "static_report_file": "tests/aws_static_report.yml"}
         mock_load.return_value = static_report_data
         _load_static_report_data(options)
         for generator_dict in options.get("static_report_data").get("generators"):
@@ -557,7 +557,7 @@ class MainDateTest(TestCase):
             "ocp_gen_last": {"start_date": datetime(2020, 5, 31, 0, 0), "end_date": datetime(2020, 5, 31, 0, 0)},
             "ocp_gen_last_first": {"start_date": datetime(2020, 5, 31, 0, 0), "end_date": datetime(2020, 6, 1, 0, 0)},
         }
-        options = {"provider": "ocp", "static_report_file": "fake-file"}
+        options = {"provider": "ocp", "static_report_file": "tests/ocp_static_report.yml"}
         mock_load.return_value = static_report_data
         _load_static_report_data(options)
         for generator_dict in options.get("static_report_data").get("generators"):
@@ -603,7 +603,7 @@ class MainDateTest(TestCase):
                 "end_date": datetime(2020, 6, 2, 0, 0),
             },
         }
-        options = {"provider": "azure", "static_report_file": "fake-file"}
+        options = {"provider": "azure", "static_report_file": "tests/azure_static_report.yml"}
         mock_load.return_value = static_report_data
         _load_static_report_data(options)
         for generator_dict in options.get("static_report_data").get("generators"):
