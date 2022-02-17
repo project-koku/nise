@@ -274,7 +274,7 @@ def create_parser():
         dest="currency",
         required=False,
         type=valid_currency,
-        help="Sets the currency code on the reports",
+        help="Sets the currency code on the reports, this will also override any currency in static ymls",
     )
     parent_parser = argparse.ArgumentParser()
     parent_parser.add_argument(
