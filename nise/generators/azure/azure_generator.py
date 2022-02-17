@@ -167,7 +167,7 @@ class AzureGenerator(AbstractGenerator):
 
     INVOICE_SECTION_NAMES = ("IT Services",)
 
-    def __init__(self, start_date, end_date, account_info, attributes=None):  # noqa: C901
+    def __init__(self, start_date, end_date, currency, account_info, attributes=None):  # noqa: C901
         """Initialize the generator."""
         self.azure_columns = AZURE_COLUMNS
         self.subscription_guid = account_info.get("subscription_guid")
@@ -187,7 +187,7 @@ class AzureGenerator(AbstractGenerator):
         self._consumed = None
         self._resource_type = None
         self._meter_cache = {}
-        self._billing_currency = account_info.get("currency_code")
+        self._billing_currency = currency
         # Version 2 fields
         self._invoice_section_id = None
         self._invoice_section_name = None

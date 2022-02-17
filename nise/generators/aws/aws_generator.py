@@ -205,9 +205,10 @@ class AWSGenerator(AbstractGenerator):
         + tuple(RESOURCE_TAG_COLS)
     )
 
-    def __init__(self, start_date, end_date, payer_account, usage_accounts, attributes=None, tag_cols=None):
+    def __init__(self, start_date, end_date, currency, payer_account, usage_accounts, attributes=None, tag_cols=None):
         """Initialize the generator."""
         self.payer_account = payer_account
+        self.currency = currency
         self.usage_accounts = usage_accounts
         self.attributes = attributes
         self._tags = None
@@ -287,6 +288,7 @@ class AWSGenerator(AbstractGenerator):
         row["lineItem/LineItemType"] = "Usage"
         row["lineItem/UsageStartDate"] = start
         row["lineItem/UsageEndDate"] = end
+        row["lineItem/CurrencyCode"] = self.currency
         return row
 
     def _add_tag_data(self, row):

@@ -41,10 +41,11 @@ class CloudStorageGenerator(GCPGenerator):
 
     SYSTEM_LABELS = (("[]"),)
 
-    def __init__(self, start_date, end_date, project, attributes=None):
+    def __init__(self, start_date, end_date, currency, project, attributes=None):
         """Initialize the cloud storage generator."""
-        super().__init__(start_date, end_date, project, attributes)
+        super().__init__(start_date, end_date, currency, project, attributes)
         self.credit_total = 0
+        self._currency = currency
         if self.attributes:
             if self.attributes.get("labels"):
                 self._labels = self.attributes.get("labels")
@@ -72,7 +73,6 @@ class CloudStorageGenerator(GCPGenerator):
         row["usage.unit"] = usage_unit
         row["usage.pricing_unit"] = pricing_unit
         row["cost_type"] = "regular"
-        row["currency"] = "USD"
         row["currency_conversion_rate"] = 1
         row["usage.amount"] = self._gen_usage_unit_amount(usage_unit)
         row["usage.amount_in_pricing_units"] = self._gen_pricing_unit_amount(pricing_unit, row["usage.amount"])
@@ -89,6 +89,7 @@ class CloudStorageGenerator(GCPGenerator):
                 if key in self.column_labels:
                     row[key] = self.attributes[key]
 
+        row["currency"] = self._currency
         row["labels"] = self.determine_labels(self.LABELS)
         row["system_labels"] = choice(self.SYSTEM_LABELS)
 
@@ -104,8 +105,8 @@ class JSONLCloudStorageGenerator(CloudStorageGenerator):
 
     SYSTEM_LABELS = (([]),)
 
-    def __init__(self, start_date, end_date, project, attributes=None):
-        super().__init__(start_date, end_date, project, attributes)
+    def __init__(self, start_date, end_date, currency, project, attributes=None):
+        super().__init__(start_date, end_date, currency, project, attributes)
         self.column_labels = GCP_REPORT_COLUMNS_JSONL
         self.return_list = True
 
@@ -136,7 +137,6 @@ class JSONLCloudStorageGenerator(CloudStorageGenerator):
         self.credit_total = credit_total
         row["credits"] = credit
         row["cost_type"] = "regular"
-        row["currency"] = "USD"
         row["currency_conversion_rate"] = 1
         invoice = {}
         year = datetime.strptime(row.get("usage_start_time"), "%Y-%m-%dT%H:%M:%S").year
@@ -152,6 +152,7 @@ class JSONLCloudStorageGenerator(CloudStorageGenerator):
                     outer_key, inner_key = key.split(".")
                     row[outer_key][inner_key] = self.attributes[key]
 
+        row["currency"] = self._currency
         row["labels"] = self.determine_labels(self.LABELS)
         row["system_labels"] = choice(self.SYSTEM_LABELS)
 

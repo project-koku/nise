@@ -44,6 +44,7 @@ from nise.report import _write_manifest
 from nise.report import aws_create_marketplace_report
 from nise.report import aws_create_report
 from nise.report import azure_create_report
+from nise.report import default_currency
 from nise.report import gcp_create_report
 from nise.report import gcp_route_file
 from nise.report import ocp_create_report
@@ -287,6 +288,27 @@ class MiscReportTestCase(TestCase):
         post_payload_to_ingest_service(insights_upload, temp_file.name)
         self.assertEqual(mock_post.call_args[1].get("auth"), auth)
         self.assertNotIn("headers", mock_post.call_args[1])
+
+    def test_defaulting_currency(self):
+        """Test that if no currency is provide in options or static it defaults to USD."""
+        currency = None
+        static_currency = None
+        updated_currency = default_currency(currency, static_currency)
+        self.assertEqual(updated_currency, "USD")
+
+    def test_defaulting_to_static_currency(self):
+        """Test that if no currency is provide in options it defaults to static."""
+        currency = None
+        static_currency = "NOK"
+        updated_currency = default_currency(currency, static_currency)
+        self.assertEqual(updated_currency, "NOK")
+
+    def test_currency_option(self):
+        """Test that if currency is provide in options it sets to that."""
+        currency = "AUD"
+        static_currency = "NOK"
+        updated_currency = default_currency(currency, static_currency)
+        self.assertEqual(updated_currency, "AUD")
 
 
 class AWSReportTestCase(TestCase):
@@ -1269,6 +1291,7 @@ class GCPReportTestCase(TestCase):
             {
                 "start_date": yesterday,
                 "end_date": now,
+                "currency": "USD",
                 "gcp_report_prefix": report_prefix,
                 "write_monthly": True,
                 "gcp_dataset_name": dataset_name,
@@ -1291,6 +1314,7 @@ class GCPReportTestCase(TestCase):
             {
                 "start_date": yesterday,
                 "end_date": now,
+                "currency": "USD",
                 "write_monthly": True,
                 "gcp_dataset_name": dataset_name,
                 "gcp_etag": etag,

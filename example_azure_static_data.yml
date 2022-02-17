@@ -25,9 +25,9 @@ generators:
       additional_info: {"ConsumptionMeter": "1111aaaa-22bb-33cc-44dd-555555eeeeee"}
 
 
-
 # SubscriptionGuid
 accounts:
   payer: 38f1d748-3ac7-4b7f-a5ae-8b5ff16db82c
   user:
     - 38f1d748-3ac7-4b7f-a5ae-8b5ff16db82c
+  currency_code: USD #can be changed when testing with foreign currency codes

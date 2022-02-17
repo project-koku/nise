@@ -29,9 +29,9 @@ class DataTransferGenerator(AWSGenerator):
         ("{}-{}-AWS-Out-Bytes", "PublicIP-Out", "InterRegion Outbound"),
     )
 
-    def __init__(self, start_date, end_date, payer_account, usage_accounts, attributes=None, tag_cols=None):
+    def __init__(self, start_date, end_date, currency, payer_account, usage_accounts, attributes=None, tag_cols=None):
         """Initialize the data transfer generator."""
-        super().__init__(start_date, end_date, payer_account, usage_accounts, attributes, tag_cols)
+        super().__init__(start_date, end_date, currency, payer_account, usage_accounts, attributes, tag_cols)
         self._amount = None
         self._rate = None
         self._saving = None
@@ -92,7 +92,6 @@ class DataTransferGenerator(AWSGenerator):
         row["lineItem/Operation"] = operation
         row["lineItem/ResourceId"] = resource_id
         row["lineItem/UsageAmount"] = str(amount)
-        row["lineItem/CurrencyCode"] = "USD"
         row["lineItem/UnblendedRate"] = str(rate)
         row["lineItem/UnblendedCost"] = str(cost)
         row["lineItem/BlendedRate"] = str(rate)

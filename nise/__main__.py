@@ -55,6 +55,31 @@ def valid_date(date_string):
     return valid
 
 
+def valid_currency(currency):
+    """Validate the currency passed in."""
+    valid_currencies = [
+        "aud",
+        "cad",
+        "chf",
+        "cny",
+        "dkk",
+        "eur",
+        "gbp",
+        "hkd",
+        "jpy",
+        "nok",
+        "nzd",
+        "sek",
+        "sgd",
+        "usd",
+        "zar",
+    ]
+    if currency.lower() in valid_currencies:
+        return currency.upper()
+    msg = f"{currency} is an unsupported currency code."
+    raise argparse.ArgumentTypeError(msg)
+
+
 def today():
     """Create the date of today."""
     return datetime.datetime.now().replace(microsecond=0, second=0, minute=0)
@@ -243,7 +268,14 @@ def create_parser():
     yaml_parser = subparsers.add_parser("yaml", help="Generate a yaml for creating cost usage reports.")
 
     add_yaml_parser_args(yaml_parser)
-
+    report_parser.add_argument(
+        "-c",
+        "--currency",
+        dest="currency",
+        required=False,
+        type=valid_currency,
+        help="Sets the currency code on the reports, this will also override any currency in static ymls",
+    )
     parent_parser = argparse.ArgumentParser()
     parent_parser.add_argument(
         "-s",
