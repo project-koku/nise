@@ -1,7 +1,7 @@
 ---
   generators:
     - MarketplaceGenerator:
-        start_date: 2020-12-01
+        start_date: 2022-01-01
         processor_arch: 32-bit
         resource_id: 55555555
         product_sku: VEAJHRNKTJZQ
