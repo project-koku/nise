@@ -246,6 +246,7 @@ def post_payload_to_ingest_service(insights_upload, local_path):
             header = {
                 "identity": {
                     "account_number": insights_account_id,
+                    "org_id": insights_org_id,
                     "internal": {"org_id": insights_org_id},
                     "type": content_type,
                 }
