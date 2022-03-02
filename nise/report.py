@@ -490,7 +490,7 @@ def aws_create_marketplace_report(options):  # noqa: C901
     static_report_data = options.get("static_report_data")
     # added to keep import happy
     MarketplaceGenerator
-    options["manifest_generation"] = False
+    options["manifest_generation"] = True
 
     if static_report_data:
         aws_create_report(options)
