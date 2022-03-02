@@ -15,10 +15,12 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """Module for aws data generators."""
+from nise.generators.aws.aws_constants import REGIONS  # noqa: F401
 from nise.generators.aws.aws_generator import AWSGenerator  # noqa: F401
 from nise.generators.aws.data_transfer_generator import DataTransferGenerator  # noqa: F401
 from nise.generators.aws.ebs_generator import EBSGenerator  # noqa: F401
 from nise.generators.aws.ec2_generator import EC2Generator  # noqa: F401
+from nise.generators.aws.marketplace_generator import MarketplaceGenerator  # noqa: F401
 from nise.generators.aws.rds_generator import RDSGenerator  # noqa: F401
 from nise.generators.aws.route53_generator import Route53Generator  # noqa: F401
 from nise.generators.aws.s3_generator import S3Generator  # noqa: F401

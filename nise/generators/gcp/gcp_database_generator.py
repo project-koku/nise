@@ -39,14 +39,16 @@ class GCPDatabaseGenerator(GCPGenerator):
     # (ID, Description, Usage Unit, Pricing Unit)
     SKU = (("66AB-BA17-351C", "Storage PD Snapshot", "byte-seconds", "gibibyte month"),)
 
-    LABELS = (("[{'key': 'vm_key_proj2', 'value': 'vm_label_proj2'}]"), ("[]"))
+    LABELS = (([{"key": "vm_key_proj2", "value": "vm_label_proj2"}]), ([]))
 
-    def __init__(self, start_date, end_date, project, attributes=None):
+    def __init__(self, start_date, end_date, currency, project, attributes=None):
         """Initialize the cloud storage generator."""
-        super().__init__(start_date, end_date, project, attributes)
+        super().__init__(start_date, end_date, currency, project, attributes)
+        self.credit_total = 0
+        self._currency = currency
         if self.attributes:
-            if self.attributes.get("tags"):
-                self._tags = self.attributes.get("tags")
+            if self.attributes.get("labels"):
+                self._labels = self.attributes.get("labels")
             if self.attributes.get("usage.amount"):
                 self._usage_amount = self.attributes.get("usage.amount")
             if self.attributes.get("usage.amount_in_pricing_units"):
@@ -57,6 +59,8 @@ class GCPDatabaseGenerator(GCPGenerator):
                 for service in self.SERVICE:
                     if self.attributes.get("service.description").lower() == service[0].lower():
                         self._service = service
+            if self.attributes.get("credit_amount"):
+                self._credit_amount = self.attributes.get("credit_amount")
 
     def _update_data(self, row):  # noqa: C901
         """Update a data row with compute values."""
@@ -73,20 +77,26 @@ class GCPDatabaseGenerator(GCPGenerator):
         pricing_unit = sku[3]
         row["usage.unit"] = usage_unit
         row["usage.pricing_unit"] = pricing_unit
-        row["labels"] = self.determine_labels(self.LABELS)
-        row["credits"] = "[]"
         row["cost_type"] = "regular"
-        row["currency"] = "USD"
         row["currency_conversion_rate"] = 1
         row["usage.amount"] = self._gen_usage_unit_amount(usage_unit)
         row["usage.amount_in_pricing_units"] = self._gen_pricing_unit_amount(pricing_unit, row["usage.amount"])
-        row["cost"] = self._gen_cost(row["usage.amount_in_pricing_units"])
+        cost = self._gen_cost(row["usage.amount_in_pricing_units"])
+        row["cost"] = cost
+        credit, credit_total = self._gen_credit(self.credit_total, self._credit_amount)
+        self.credit_total = credit_total
+        row["credits"] = credit
         usage_date = datetime.strptime(row.get("usage_start_time"), "%Y-%m-%dT%H:%M:%S")
         row["invoice.month"] = f"{usage_date.year}{usage_date.month:02d}"
+
         if self.attributes:
             for key in self.attributes:
                 if key in self.column_labels:
                     row[key] = self.attributes[key]
+
+        row["currency"] = self._currency
+        row["labels"] = self.determine_labels(self.LABELS)
+
         return row
 
     def generate_data(self, report_type=None):
@@ -99,13 +109,14 @@ class JSONLGCPDatabaseGenerator(GCPDatabaseGenerator):
 
     LABELS = (([{"key": "vm_key_proj2", "value": "vm_label_proj2"}]), ([]))
 
-    def __init__(self, start_date, end_date, project, attributes=None):
-        super().__init__(start_date, end_date, project, attributes)
+    def __init__(self, start_date, end_date, currency, project, attributes=None):
+        super().__init__(start_date, end_date, currency, project, attributes)
         self.column_labels = GCP_REPORT_COLUMNS_JSONL
         self.return_list = True
 
     def _update_data(self, row):  # noqa: C901
         """Update a data row with compute values."""
+
         service_choice = choice(self.SERVICE)
         if self._service:
             service_choice = self._service
@@ -124,15 +135,16 @@ class JSONLGCPDatabaseGenerator(GCPDatabaseGenerator):
         usage = {}
         usage["unit"] = usage_unit
         usage["pricing_unit"] = pricing_unit
-        row["labels"] = self.determine_labels(self.LABELS)
-        row["credits"] = {}
         row["cost_type"] = "regular"
-        row["currency"] = "USD"
         row["currency_conversion_rate"] = 1
         usage["amount"] = self._gen_usage_unit_amount(usage_unit)
         usage["amount_in_pricing_units"] = self._gen_pricing_unit_amount(pricing_unit, usage["amount"])
-        row["cost"] = self._gen_cost(usage["amount_in_pricing_units"])
+        cost = self._gen_cost(usage["amount_in_pricing_units"])
+        row["cost"] = cost
         row["usage"] = usage
+        credit, credit_total = self._gen_credit(self.credit_total, self._credit_amount, True)
+        self.credit_total = credit_total
+        row["credits"] = credit
         usage_date = datetime.strptime(row.get("usage_start_time"), "%Y-%m-%dT%H:%M:%S")
         invoice = {}
         usage_date = datetime.strptime(row.get("usage_start_time"), "%Y-%m-%dT%H:%M:%S")
@@ -146,6 +158,10 @@ class JSONLGCPDatabaseGenerator(GCPDatabaseGenerator):
                 elif key.split(".")[0] in self.column_labels:
                     outer_key, inner_key = key.split(".")
                     row[outer_key][inner_key] = self.attributes[key]
+
+        row["currency"] = self._currency
+        row["labels"] = self.determine_labels(self.LABELS)
+
         return row
 
     def generate_data(self, report_type=None):

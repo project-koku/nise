@@ -16,7 +16,9 @@
 #
 """Abstract class for gcp data generation."""
 import datetime
+import json
 from abc import abstractmethod
+from datetime import timedelta
 from random import choice
 from random import randint
 from random import uniform
@@ -52,6 +54,7 @@ GCP_REPORT_COLUMNS = (
     "credits",
     "invoice.month",
     "cost_type",
+    "partition_date",
 )
 
 GCP_REPORT_COLUMNS_JSONL = (
@@ -80,7 +83,7 @@ GCP_INSTANCE_TYPES = ("e2-medium", "n1-standard-4", "m2-megamem-416", "a2-highgp
 class GCPGenerator(AbstractGenerator):
     """Abstract class for GCP generators."""
 
-    def __init__(self, start_date, end_date, project, attributes=None):
+    def __init__(self, start_date, end_date, currency, project, attributes=None):
         """
         Initialize the generator.
 
@@ -96,14 +99,17 @@ class GCPGenerator(AbstractGenerator):
         self.attributes = attributes
         self.column_labels = GCP_REPORT_COLUMNS
         self.return_list = False
+        self.currency = currency
         # class vars to be set by the child classes based off attributes.
-        self._tags = None
+        self._labels = None
         self._usage_amount = None
         self._pricing_amount = None
         self._price = None
         self._sku = None
         self._instance_type = choice(GCP_INSTANCE_TYPES)
         self._service = None
+        self._credit_amount = None
+        self._currency = currency
 
     @staticmethod
     def _create_days_list(start_date, end_date):
@@ -153,6 +159,8 @@ class GCPGenerator(AbstractGenerator):
                     hours=randint(1, 5), minutes=randint(1, 59), seconds=randint(1, 59)
                 )
                 row[column] = GCPGenerator.timestamp(export_time)
+            elif column == "partition_date":
+                row[column] = time_bill_start.strftime("%Y-%m-%d")
         row.update(self.project)
         return row
 
@@ -190,6 +198,53 @@ class GCPGenerator(AbstractGenerator):
         else:
             return round(uniform(0, 0.01), 7)
 
+    def _gcp_find_invoice_months_in_date_range(self):
+        """Finds all the invoice months in a given date range.
+        GCP invoice month format is {year}{month}.
+        Ex. 202011
+        Returns:
+            List of invoice months.
+        """
+        # Add a little buffer to end date for beginning of the month
+        # searches for invoice_month for dates < end_date
+        end_range = self.end_date + timedelta(1)
+        invoice_months = []
+        for day in range((end_range - self.start_date).days):
+            invoice_month = (self.start_date + timedelta(day)).strftime("%Y%m")
+            if invoice_month not in invoice_months:
+                invoice_months.append(invoice_month)
+        return invoice_months
+
+    def _gen_credit(self, credit_distributed, credit_amount, json_return=False):
+        """Generate the credit based off the cost amount."""
+        if json_return:
+            if credit_amount:
+                # When using the csv generator it runs per invoice month so this will equal that logic
+                invoice_months = self._gcp_find_invoice_months_in_date_range()
+                invoice_month_count = len(invoice_months)
+                credit_amount = credit_amount * invoice_month_count
+            default_dict = {"name": "", "amount": 0, "full_name": "", "id": "", "type": ""}
+            empty_return = [default_dict, None]
+        else:
+            empty_return = ["[]", None]
+        if not credit_amount or credit_distributed is None:
+            return empty_return
+        else:
+            mock_credit = credit_amount / len(self.hours)
+            credit_distributed = credit_distributed - abs(mock_credit)
+            credit_name = "FreeTrial"
+            credit_dict = {
+                "name": credit_name,
+                "amount": mock_credit,
+                "full_name": "",
+                "id": credit_name,
+                "type": "PROMOTION",
+            }
+            if json_return:
+                return [credit_dict, credit_distributed]
+            else:
+                return [str([credit_dict]), credit_distributed]
+
     def determine_system_labels(self, pricing_unit):
         """Determine the system labels if instance-type exists."""
         # We only want to set the instance-type if the pricing unit is hourly.
@@ -205,20 +260,27 @@ class GCPGenerator(AbstractGenerator):
         if self.return_list:
             return system_label_format
         else:
-            return str(system_label_format)
+            return json.dumps(system_label_format)
 
     def determine_labels(self, labels):
         """Determine the labels based on tags param."""
-        if not self._tags:
-            return choice(labels)
+        if not self._labels:
+            if self.return_list:
+                return choice(labels)
+            else:
+                return json.dumps(choice(labels))
         label_format = []
-        for tag_key, tag_val in self._tags.items():
-            dict_format = {"key": tag_key, "value": tag_val}
-            label_format.append(dict_format)
+        for label in self._labels:
+            if "key" not in label and "value" not in label:
+                for tag_key, tag_val in label.items():
+                    dict_format = {"key": tag_key, "value": tag_val}
+                    label_format.append(dict_format)
+            else:
+                label_format.append(label)
         if self.return_list:
             return label_format
         else:
-            return str(label_format)
+            return json.dumps(label_format)
 
     def _add_common_usage_info(self, row, start, end, **kwargs):
         """Not needed for GCP."""

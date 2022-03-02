@@ -14,15 +14,14 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
-"""Defines the abstract generator."""
+"""Module for marketplace data generation."""
 import datetime
-from abc import abstractmethod
 from random import choice
 from random import randint
+from random import uniform
 
 from nise.generators.aws.aws_constants import REGIONS
 from nise.generators.generator import AbstractGenerator
-
 
 IDENTITY_COLS = ("identity/LineItemId", "identity/TimeInterval")
 BILL_COLS = (
@@ -53,147 +52,125 @@ LINE_ITEM_COLS = (
     "lineItem/BlendedCost",
     "lineItem/LineItemDescription",
     "lineItem/TaxType",
+    "lineItem/LegalEntity",
 )
 PRODUCT_COLS = (
     "product/ProductName",
-    "product/accountAssistance",
-    "product/architecturalReview",
-    "product/architectureSupport",
     "product/availability",
-    "product/bestPractices",
-    "product/caseSeverityresponseTimes",
+    "product/availabilityZone",
+    "product/capacitystatus",
+    "product/classicnetworkingsupport",
     "product/clockSpeed",
-    "product/comments",
-    "product/contentType",
     "product/currentGeneration",
-    "product/customerServiceAndCommunities",
     "product/databaseEngine",
     "product/dedicatedEbsThroughput",
-    "product/deploymentOption",
     "product/description",
-    "product/directorySize",
-    "product/directoryType",
-    "product/directoryTypeDescription",
     "product/durability",
-    "product/ebsOptimized",
     "product/ecu",
+    "product/edition",
     "product/endpointType",
     "product/engineCode",
     "product/enhancedNetworkingSupported",
-    "product/feeCode",
-    "product/feeDescription",
     "product/fromLocation",
     "product/fromLocationType",
+    "product/fromRegionCode",
     "product/group",
     "product/groupDescription",
-    "product/includedServices",
     "product/instanceFamily",
     "product/instanceType",
-    "product/isshadow",
-    "product/iswebsocket",
-    "product/launchSupport",
+    "product/instanceTypeFamily",
+    "product/intelAvx2Available",
+    "product/intelAvxAvailable",
+    "product/intelTurboAvailable",
     "product/licenseModel",
     "product/location",
     "product/locationType",
+    "product/marketoption",
     "product/maxIopsBurstPerformance",
     "product/maxIopsvolume",
     "product/maxThroughputvolume",
     "product/maxVolumeSize",
     "product/memory",
-    "product/memoryGib",
-    "product/messageDeliveryFrequency",
-    "product/messageDeliveryOrder",
-    "product/minVolumeSize",
     "product/networkPerformance",
+    "product/normalizationSizeFactor",
     "product/operatingSystem",
     "product/operation",
-    "product/operationsSupport",
-    "product/origin",
     "product/physicalProcessor",
+    "product/platousagetype",
+    "product/platovolumetype",
     "product/preInstalledSw",
-    "product/proactiveGuidance",
     "product/processorArchitecture",
     "product/processorFeatures",
     "product/productFamily",
-    "product/programmaticCaseManagement",
-    "product/protocol",
     "product/provisioned",
-    "product/queueType",
-    "product/recipient",
     "product/region",
-    "product/requestDescription",
-    "product/requestType",
-    "product/resourceEndpoint",
+    "product/regionCode",
     "product/routingTarget",
     "product/routingType",
     "product/servicecode",
+    "product/servicename",
     "product/sku",
-    "product/softwareType",
     "product/storage",
     "product/storageClass",
     "product/storageMedia",
-    "product/storageType",
-    "product/technicalSupport",
+    "product/subscriptionType",
     "product/tenancy",
-    "product/thirdpartySoftwareSupport",
     "product/toLocation",
     "product/toLocationType",
-    "product/training",
+    "product/toRegionCode",
     "product/transferType",
     "product/usagetype",
     "product/vcpu",
     "product/version",
-    "product/virtualInterfaceType",
+    "product/volumeApiName",
     "product/volumeType",
-    "product/whoCanOpenCases",
+    "product/vpcnetworkingsupport",
 )
 PRICING_COLS = (
-    "pricing/LeaseContractLength",
-    "pricing/OfferingClass" "pricing/PurchaseOption",
+    "pricing/RateCode",
+    "pricing/RateId",
+    "pricing/currency",
     "pricing/publicOnDemandCost",
     "pricing/publicOnDemandRate",
     "pricing/term",
     "pricing/unit",
 )
 RESERVE_COLS = (
-    "reservation/AvailabilityZone",
+    "reservation/AmortizedUpfrontCostForUsage",
+    "reservation/AmortizedUpfrontFeeForBillingPeriod",
+    "reservation/EffectiveCost",
+    "reservation/EndTime",
+    "reservation/ModificationStatus",
     "reservation/NormalizedUnitsPerReservation",
     "reservation/NumberOfReservations",
-    "reservation/ReservationARN",
+    "reservation/RecurringFeeForUsage",
+    "reservation/StartTime",
+    "reservation/SubscriptionId",
     "reservation/TotalReservedNormalizedUnits",
     "reservation/TotalReservedUnits",
     "reservation/UnitsPerReservation",
+    "reservation/UnusedAmortizedUpfrontFeeForBillingPeriod",
+    "reservation/UnusedNormalizedUnitQuantity",
+    "reservation/UnusedQuantity",
+    "reservation/UnusedRecurringFee",
+    "reservation/UpfrontValue",
 )
 SAVINGS_COLS = (
-    "savingsPlan/AmortizedUpfrontCommitmentForBillingPeriod",
-    "savingsPlan/EndTime",
-    "savingsPlan/InstanceTypeFamily",
-    "savingsPlan/OfferingType",
-    "savingsPlan/PaymentOption",
-    "savingsPlan/PurchaseTerm",
-    "savingsPlan/RecurringCommitmentForBillingPeriod",
-    "savingsPlan/Region",
-    "savingsPlan/SavingsPlanArn",
-    "savingsPlan/SavingsPlanEffectiveCost",
-    "savingsPlan/SavingsPlanRate",
-    "savingsPlan/StartTime",
     "savingsPlan/TotalCommitmentToDate",
+    "savingsPlan/SavingsPlanARN",
+    "savingsPlan/SavingsPlanRate",
     "savingsPlan/UsedCommitment",
+    "savingsPlan/SavingsPlanEffectiveCost",
+    "savingsPlan/AmortizedUpfrontCommitmentForBillingPeriod",
+    "savingsPlan/RecurringCommitmentForBillingPeriod",
 )
 
 
-class AWSGenerator(AbstractGenerator):
-    """Defines a abstract class for generators."""
+class MarketplaceGenerator(AbstractGenerator):
+    """Defines a generator for AWS Marketplace"""
 
-    RESOURCE_TAG_COLS = {
-        "resourceTags/user:environment",
-        "resourceTags/user:app",
-        "resourceTags/user:version",
-        "resourceTags/user:storageclass",
-        "resourceTags/user:openshift_cluster",
-        "resourceTags/user:openshift_project",
-        "resourceTags/user:openshift_node",
-    }
+    RESOURCE_TAG_COLS = {"resourceTags/aws:createdBy", "resourceTags/user:insights_project"}
+
     AWS_COLUMNS = set(
         IDENTITY_COLS
         + BILL_COLS
@@ -206,17 +183,34 @@ class AWSGenerator(AbstractGenerator):
     )
 
     def __init__(self, start_date, end_date, currency, payer_account, usage_accounts, attributes=None, tag_cols=None):
+        super().__init__(start_date, end_date)
         """Initialize the generator."""
         self.payer_account = payer_account
-        self.currency = currency
         self.usage_accounts = usage_accounts
         self.attributes = attributes
         self._tags = None
         self.num_instances = 1 if attributes else randint(2, 60)
+        self._amount = uniform(0.2, 6000.99)
+        self._rate = round(uniform(0.02, 0.06), 3)
+        self._product_sku = self.fake.pystr(min_chars=12, max_chars=12).upper()
+        self._resource_id = "i-{}".format(self.fake.ean8())
+        self._currency = currency
+
+        if self.attributes:
+            if self.attributes.get("amount"):
+                self._amount = float(self.attributes.get("amount"))
+            if self.attributes.get("rate"):
+                self._rate = float(self.attributes.get("rate"))
+            if self.attributes.get("product_sku"):
+                self._product_sku = self.attributes.get("product_sku")
+            if self.attributes.get("resource_id"):
+                self._resource_id = self.attributes.get("resource_id")
+            if self.attributes.get("tags"):
+                self._tags = self.attributes.get("tags")
+
         if tag_cols:
             self.RESOURCE_TAG_COLS.update(tag_cols)
             self.AWS_COLUMNS.update(tag_cols)
-        super().__init__(start_date, end_date)
 
     @staticmethod
     def timestamp(in_date):
@@ -228,8 +222,8 @@ class AWSGenerator(AbstractGenerator):
     @staticmethod
     def time_interval(start, end):
         """Create a time interval string from input dates."""
-        start_str = AWSGenerator.timestamp(start)
-        end_str = AWSGenerator.timestamp(end)
+        start_str = MarketplaceGenerator.timestamp(start)
+        end_str = MarketplaceGenerator.timestamp(end)
         return str(start_str) + "/" + str(end_str)
 
     def _pick_tag(self, tag_key, options):
@@ -256,12 +250,12 @@ class AWSGenerator(AbstractGenerator):
         row = {}
         COL_MAP = {
             "identity/LineItemId": self.fake.sha1(raw_output=False),
-            "identity/TimeInterval": AWSGenerator.time_interval(start, end),
+            "identity/TimeInterval": MarketplaceGenerator.time_interval(start, end),
             "bill/BillingEntity": "AWS",
             "bill/BillType": "Anniversary",
             "bill/PayerAccountId": self.payer_account,
-            "bill/BillingPeriodStartDate": AWSGenerator.timestamp(bill_begin),
-            "bill/BillingPeriodEndDate": AWSGenerator.timestamp(bill_end),
+            "bill/BillingPeriodStartDate": MarketplaceGenerator.timestamp(bill_begin),
+            "bill/BillingPeriodEndDate": MarketplaceGenerator.timestamp(bill_end),
         }
         for column in self.AWS_COLUMNS:
             row[column] = ""
@@ -288,7 +282,6 @@ class AWSGenerator(AbstractGenerator):
         row["lineItem/LineItemType"] = "Usage"
         row["lineItem/UsageStartDate"] = start
         row["lineItem/UsageEndDate"] = end
-        row["lineItem/CurrencyCode"] = self.currency
         return row
 
     def _add_tag_data(self, row):
@@ -310,9 +303,63 @@ class AWSGenerator(AbstractGenerator):
         split_region = region.split("-")
         return split_region[0][0:2].upper() + split_region[1][0].upper() + split_region[2]
 
-    @abstractmethod
     def _update_data(self, row, start, end, **kwargs):
         """Update data with generator specific data."""
+        self.AWS_COLUMNS.update(self.AWS_COLUMNS)
+        row = self._add_common_usage_info(row, start, end)
+
+        rate = self._rate
+        amount = self._amount
+        cost = amount * rate
+        location, aws_region, avail_zone, _ = self._get_location()
+        description = "AWS Marketplace hourly software usage|us-east-1|m5.xlarge"
+        amazon_resource_name = f"arn:aws:ec2:{avail_zone}:{self.payer_account}:instance/i-{self._resource_id}"
+
+        row["identity/LineItemId"] = "diygn5vanaqsvysz3prxwrekztiipfu7zywyauupnpmpi4fmd5dq"
+        row["identity/TimeInterval"] = "2021-11-23T17:49:15Z/2021-12-01T00:00:00Z"
+
+        row["bill/InvoiceId"] = "2021-11-23T17:49:15Z/2021-12-01T00:00:00Z"
+        row["bill/BillingEntity"] = "AWS Marketplace"
+        row["bill/BillType"] = "Anniversary"
+        row["bill/PayerAccountId"] = "589173575009"
+        row["bill/BillingPeriodStartDate"] = "2021-11-01T00:00:00Z"
+        row["bill/BillingPeriodEndDate"] = "2021-12-01T00:00:00Z"
+
+        row["lineItem/UsageAccountId"] = choice(self.usage_accounts)
+        row["lineItem/LineItemType"] = "Usage"
+        row["lineItem/UsageStartDate"] = start
+        row["lineItem/UsageEndDate"] = end
+        row["lineItem/ProductCode"] = "5hnnev4d0v7mapf09j0v8of0o2"
+        row["lineItem/UsageType"] = "SoftwareUsage:m5.xlarge"
+        row["lineItem/Operation"] = "Hourly"
+        row["lineItem/AvailabilityZone"] = avail_zone
+        row["lineItem/ResourceId"] = amazon_resource_name
+        row["lineItem/UsageAmount"] = "1"
+        row["lineItem/CurrencyCode"] = self._currency
+        row["lineItem/UnblendedRate"] = rate
+        row["lineItem/UnblendedCost"] = cost
+        row["lineItem/BlendedRate"] = rate
+        row["lineItem/BlendedCost"] = cost
+        row["lineItem/LineItemDescription"] = description
+
+        row["product/ProductName"] = "Red Hat OpenShift Service on AWS"
+        row["product/region"] = aws_region
+        row["product/sku"] = self._product_sku
+
+        row["pricing/publicOnDemandCost"] = cost
+        row["pricing/unit"] = "Hrs"
+        row["pricing/RateCode"] = "VDHYUHU8G2Z5AZY3.4799GE89SK.6YS6EN2CT7"
+        row["pricing/RateId"] = "4981658079"
+        row["pricing/currency"] = "USD"
+        row["pricing/term"] = "OnDemand"
+
+        row["reservation/SubscriptionId"] = "7592738291"
+
+        row["resourceTags/aws:createdBy"] = "AssumedRole:AROAYSLL3JVQ6DYUNKWQJ:1637692740557658269"
+
+        self._add_tag_data(row)
+
+        return row
 
     def _generate_hourly_data(self, **kwargs):
         """Create hourly data."""
@@ -323,6 +370,6 @@ class AWSGenerator(AbstractGenerator):
             row = self._update_data(row, start, end)
             yield row
 
-    @abstractmethod
     def generate_data(self, report_type=None):
-        """Responsible for generating data."""
+        """Responsibile for generating data."""
+        return self._generate_hourly_data()

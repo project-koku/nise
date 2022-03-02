@@ -104,6 +104,26 @@ AZURE_COLUMNS_V2 = (
     "PayGPrice",
     "PlanName",
     "ServiceFamily",
+    "invoiceId",
+    "previousInvoiceId",
+    "resellerName",
+    "resellerMpnId",
+    "servicePeriodEndDate",
+    "servicePeriodStartDate",
+    "ProductId",
+    "product",
+    "publisherId",
+    "resourceGroupName",
+    "InstanceName",
+    "Location",
+    "billingCurrency",
+    "pricingCurrency",
+    "costInPricingCurrency",
+    "costInUsd",
+    "paygCostInBillingCurrency",
+    "paygCostInUsd",
+    "exchangeRatePricingToBilling",
+    "exchangeRateDate",
 )
 
 
@@ -147,7 +167,7 @@ class AzureGenerator(AbstractGenerator):
 
     INVOICE_SECTION_NAMES = ("IT Services",)
 
-    def __init__(self, start_date, end_date, account_info, attributes=None):  # noqa: C901
+    def __init__(self, start_date, end_date, currency, account_info, attributes=None):  # noqa: C901
         """Initialize the generator."""
         self.azure_columns = AZURE_COLUMNS
         self.subscription_guid = account_info.get("subscription_guid")
@@ -167,7 +187,7 @@ class AzureGenerator(AbstractGenerator):
         self._consumed = None
         self._resource_type = None
         self._meter_cache = {}
-        self._billing_currency = account_info.get("currency_code")
+        self._billing_currency = currency
         # Version 2 fields
         self._invoice_section_id = None
         self._invoice_section_name = None
@@ -357,8 +377,17 @@ class AzureGenerator(AbstractGenerator):
             resource_name = kwargs.get("instance_id").split("/")
             resource_name = resource_name[len(resource_name) - 1]
 
-        # NOTE: Commented out columns exist in the report but we don't have enough
-        # informaton to date to accurately simulate values.
+        # NOTE: Commented out columns exist in the report, but we don't have enough
+        # information to date to accurately simulate values.
+        if self._service_name == "Virtual Machines":
+            service_family = choice(self.SERVICE_FAMILIES + ("Azure Marketplace Services",))
+            publisher_name = "Red Hat Enterprise Linux"
+            publisher_type = "Marketplace"
+        else:
+            service_family = choice(self.SERVICE_FAMILIES)
+            publisher_name = ""
+            publisher_type = "Azure"
+
         row["InvoiceSectionId"] = self._invoice_section_id if self._invoice_section_id else self.fake.ean(length=8)
         row["InvoiceSectionName"] = (
             self._invoice_section_name if self._invoice_section_id else choice(self.INVOICE_SECTION_NAMES)
@@ -366,9 +395,9 @@ class AzureGenerator(AbstractGenerator):
         row["ProductName"] = ""
         row["ResourceName"] = resource_name
         row["IsAzureCreditEligible"] = "TRUE"
-        row["ServiceFamily"] = choice(self.SERVICE_FAMILIES)
+        row["ServiceFamily"] = service_family
         row["Frequency"] = "UsageBased"
-        row["PublisherType"] = "Azure"
+        row["PublisherType"] = publisher_type
         row["ChargeType"] = "Usage"
         row["PayGPrice"] = 0
         # row['PricingModel'] =
@@ -378,7 +407,7 @@ class AzureGenerator(AbstractGenerator):
         # row['ProductOrderName'] =
         # row['AvailabilityZone'] =
         # row['Term'] =
-        # row['PublisherName'] =
+        row["PublisherName"] = publisher_name
         # row['PlanName'] =
         # row['PartNumber'] =
         # row['CostCenter'] =

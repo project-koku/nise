@@ -133,7 +133,7 @@ class OCPGeneratorTestCase(TestCase):
                 attr = getattr(generator, attribute)
                 self.assertIsNotNone(attr)
 
-                if attribute == "nodes":
+                if attribute in ("nodes", "volumes"):
                     self.assertIsInstance(attr, list)
                     self.assertNotEqual(attr, [])
                 else:
@@ -149,7 +149,7 @@ class OCPGeneratorTestCase(TestCase):
                 attr = getattr(generator, attribute)
                 self.assertIsNotNone(attr)
 
-                if attribute == "nodes":
+                if attribute in ("nodes", "volumes"):
                     self.assertIsInstance(attr, list)
                     self.assertNotEqual(attr, [])
                 else:
@@ -400,12 +400,14 @@ class OCPGeneratorTestCase(TestCase):
 
         namespaces = self.attributes.get("nodes")[0].get("namespaces")
         volume_names = [vol.get("volume_name") for ns in namespaces for vol in namespaces.get(ns).get("volumes")]
-        self.assertEqual(list(out_volumes.keys()), volume_names)
+        for vol_dict in out_volumes:
+            self.assertEqual(list(vol_dict.keys()), volume_names)
 
         expected = ["namespace", "volume", "storage_class", "volume_request", "labels", "volume_claims"]
-        for vol in out_volumes.values():
-            with self.subTest(volume=vol):
-                self.assertEqual(list(vol.keys()), expected)
+        for vol_dict in out_volumes:
+            for vol in vol_dict.values():
+                with self.subTest(volume=vol):
+                    self.assertEqual(list(vol.keys()), expected)
 
     def test_gen_volumes_without_namespaces(self):
         """Test that gen_volumes arranges the output dict in the expected way.
@@ -422,9 +424,10 @@ class OCPGeneratorTestCase(TestCase):
         self.assertLessEqual(len(out_volumes), 6 * 12 * 3)
 
         expected = ["namespace", "volume", "storage_class", "volume_request", "labels", "volume_claims"]
-        for vol in out_volumes.values():
-            with self.subTest(volume=vol):
-                self.assertEqual(list(vol.keys()), expected)
+        for vol_dict in out_volumes:
+            for vol in vol_dict.values():
+                with self.subTest(volume=vol):
+                    self.assertEqual(list(vol.keys()), expected)
 
     def test_gen_volumes_usage_lt_capacity(self):
         """Test that gen_volumes generates requests and usage values which don't exceed capacity."""
@@ -433,18 +436,21 @@ class OCPGeneratorTestCase(TestCase):
                 generator = OCPGenerator(self.two_hours_ago, self.now, attributes)
                 # gen_volumes depends on the output formatting of gen_namespaces and gen_pods.
                 out_volumes = generator._gen_volumes(generator.namespaces, generator.namespace2pods)
-                for volume in out_volumes.values():
-                    with self.subTest(volume=volume):
-                        total_capacity = 0
-                        for claim in volume.get("volume_claims").values():
-                            with self.subTest(claim=claim):
-                                capacity = claim.get("capacity")
-                                total_capacity += capacity
+                for volume_dict in out_volumes:
+                    for volume in volume_dict.values():
+                        with self.subTest(volume=volume):
+                            total_capacity = 0
+                            for claim in volume.get("volume_claims").values():
+                                with self.subTest(claim=claim):
+                                    capacity = claim.get("capacity")
+                                    total_capacity += capacity
 
-                                if attributes:
-                                    for value in claim.get("volume_claim_usage_gig").values():
-                                        self.assertLessEqual(value * GIGABYTE, capacity)
-                        self.assertLessEqual(total_capacity, volume.get("volume_request_gig", MAX_VOL_GIGS * GIGABYTE))
+                                    if attributes:
+                                        for value in claim.get("volume_claim_usage_gig").values():
+                                            self.assertLessEqual(value * GIGABYTE, capacity)
+                            self.assertLessEqual(
+                                total_capacity, volume.get("volume_request_gig", MAX_VOL_GIGS * GIGABYTE)
+                            )
 
     def test_generate_hourly_data(self):
         """Test that generate_hourly_data calls the test method."""

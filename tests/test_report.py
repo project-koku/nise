@@ -32,6 +32,7 @@ import faker
 from dateutil.relativedelta import relativedelta
 from nise.generators.ocp.ocp_generator import OCP_REPORT_TYPE_TO_COLS
 from nise.report import _convert_bytes
+from nise.report import _create_generator_dates_from_yaml
 from nise.report import _create_month_list
 from nise.report import _generate_azure_filename
 from nise.report import _get_generators
@@ -40,8 +41,10 @@ from nise.report import _remove_files
 from nise.report import _write_csv
 from nise.report import _write_jsonl
 from nise.report import _write_manifest
+from nise.report import aws_create_marketplace_report
 from nise.report import aws_create_report
 from nise.report import azure_create_report
+from nise.report import default_currency
 from nise.report import gcp_create_report
 from nise.report import gcp_route_file
 from nise.report import ocp_create_report
@@ -106,6 +109,42 @@ class MiscReportTestCase(TestCase):
         self.assertTrue(os.path.exists(manifest_path))
         os.remove(manifest_path)
 
+    def test_create_generator_for_dates_from_yaml(self):
+        """Test helper function for generating dates."""
+        month = {
+            "name": "June",
+            "start": datetime.datetime(2021, 6, 30, 0, 0),
+            "end": datetime.datetime(2021, 6, 30, 23, 59),
+        }
+
+        attributes = {
+            "start_date": datetime.datetime(2021, 6, 30, 0, 0),
+            "end_date": datetime.datetime(2021, 7, 29, 15, 0),
+        }
+
+        start_date, end_date = _create_generator_dates_from_yaml(attributes, month)
+
+        self.assertEqual(start_date, datetime.datetime(2021, 6, 30, 0, 0))
+        self.assertEqual(end_date, datetime.datetime(2021, 6, 30, 23, 59))
+
+    def test_create_generator_for_dates_from_yaml_middle_month(self):
+        """Test helper function for generating dates verifying the middle month in a 3 month range."""
+        month = {
+            "name": "June",
+            "start": datetime.datetime(2021, 6, 30, 0, 0),
+            "end": datetime.datetime(2021, 6, 30, 23, 59),
+        }
+
+        attributes = {
+            "start_date": datetime.datetime(2021, 5, 31, 0, 0),
+            "end_date": datetime.datetime(2021, 7, 29, 15, 0),
+        }
+
+        start_date, end_date = _create_generator_dates_from_yaml(attributes, month)
+
+        self.assertEqual(start_date, datetime.datetime(2021, 6, 30, 0, 0))
+        self.assertEqual(end_date, datetime.datetime(2021, 6, 30, 23, 59))
+
     def test_create_month_list(self):
         """Test to create month lists."""
         test_matrix = [
@@ -127,17 +166,33 @@ class MiscReportTestCase(TestCase):
                     {
                         "name": "November",
                         "start": datetime.datetime(year=2018, month=11, day=15),
-                        "end": datetime.datetime(year=2018, month=11, day=30, hour=23, minute=59),
+                        "end": datetime.datetime(year=2018, month=12, day=1, hour=0, minute=0),
                     },
                     {
                         "name": "December",
                         "start": datetime.datetime(year=2018, month=12, day=1),
-                        "end": datetime.datetime(year=2018, month=12, day=31, hour=23, minute=59),
+                        "end": datetime.datetime(year=2019, month=1, day=1, hour=0, minute=0),
                     },
                     {
                         "name": "January",
                         "start": datetime.datetime(year=2019, month=1, day=1),
                         "end": datetime.datetime(year=2019, month=1, day=5, hour=23, minute=59),
+                    },
+                ],
+            },
+            {
+                "start_date": datetime.datetime(year=2021, month=6, day=1),
+                "end_date": datetime.datetime(year=2021, month=7, day=29),
+                "expected_list": [
+                    {
+                        "name": "June",
+                        "start": datetime.datetime(year=2021, month=6, day=1),
+                        "end": datetime.datetime(year=2021, month=7, day=1, hour=0, minute=0),
+                    },
+                    {
+                        "name": "July",
+                        "start": datetime.datetime(year=2021, month=7, day=1),
+                        "end": datetime.datetime(year=2021, month=7, day=29, hour=23, minute=59),
                     },
                 ],
             },
@@ -204,6 +259,7 @@ class MiscReportTestCase(TestCase):
         header = {
             "identity": {
                 "account_number": insights_account_id,
+                "org_id": insights_org_id,
                 "internal": {"org_id": insights_org_id},
                 "type": content_type,
             }
@@ -233,6 +289,27 @@ class MiscReportTestCase(TestCase):
         post_payload_to_ingest_service(insights_upload, temp_file.name)
         self.assertEqual(mock_post.call_args[1].get("auth"), auth)
         self.assertNotIn("headers", mock_post.call_args[1])
+
+    def test_defaulting_currency(self):
+        """Test that if no currency is provide in options or static it defaults to USD."""
+        currency = None
+        static_currency = None
+        updated_currency = default_currency(currency, static_currency)
+        self.assertEqual(updated_currency, "USD")
+
+    def test_defaulting_to_static_currency(self):
+        """Test that if no currency is provide in options it defaults to static."""
+        currency = None
+        static_currency = "NOK"
+        updated_currency = default_currency(currency, static_currency)
+        self.assertEqual(updated_currency, "NOK")
+
+    def test_currency_option(self):
+        """Test that if currency is provide in options it sets to that."""
+        currency = "AUD"
+        static_currency = "NOK"
+        updated_currency = default_currency(currency, static_currency)
+        self.assertEqual(updated_currency, "AUD")
 
 
 class AWSReportTestCase(TestCase):
@@ -403,6 +480,7 @@ class AWSReportTestCase(TestCase):
                             "family": "General Purpose",
                             "cost": 1.0,
                             "rate": 0.5,
+                            "saving": 0.25,
                         },
                     }
                 },
@@ -515,6 +593,7 @@ class AWSReportTestCase(TestCase):
                             "family": "General Purpose",
                             "cost": 1.0,
                             "rate": 0.5,
+                            "saving": 0.25,
                         },
                     }
                 },
@@ -573,6 +652,137 @@ class AWSReportTestCase(TestCase):
                 if regex.match(fname):
                     os.remove(fname)
         shutil.rmtree(local_bucket_path)
+
+
+class AWSMarketplaceReportTestCase(TestCase):
+    """
+    TestCase class for AWS Marketplace report functions.
+    """
+
+    def test_aws_marketplace_create_report_no_s3(self):
+        """Test the aws-marketplace report creation method no s3."""
+        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
+        one_day = datetime.timedelta(days=1)
+        yesterday = now - one_day
+        aws_create_marketplace_report(
+            {"start_date": yesterday, "end_date": now, "aws_report_name": "cur_report", "write_monthly": True}
+        )
+        month_output_file_name = "{}-{}-{}-{}".format(
+            calendar.month_name[now.month], now.year, "cur_report", "marketplace"
+        )
+        expected_month_output_file = "{}/{}.csv".format(os.getcwd(), month_output_file_name)
+
+        self.assertTrue(os.path.isfile(expected_month_output_file))
+        os.remove(expected_month_output_file)
+
+    @patch("nise.report.upload_to_s3")
+    def test_aws_marketplace_create_report_with_s3(self, mock_upload_to_s3):
+        """Test the aws-marketplace report creation method with s3."""
+        mock_upload_to_s3.return_value = None
+        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
+        one_day = datetime.timedelta(days=1)
+        yesterday = now - one_day
+        options = {
+            "start_date": yesterday,
+            "end_date": now,
+            "aws_bucket_name": "my_bucket",
+            "aws_report_name": "cur_report",
+            "write_monthly": True,
+        }
+        aws_create_marketplace_report(options)
+        month_output_file_name = "{}-{}-{}-{}".format(
+            calendar.month_name[now.month], now.year, "cur_report", "marketplace"
+        )
+        expected_month_output_file = "{}/{}.csv".format(os.getcwd(), month_output_file_name)
+
+        self.assertTrue(os.path.isfile(expected_month_output_file))
+        os.remove(expected_month_output_file)
+
+    def test_aws_marketplace_create_report_with_local_dir(self):
+        """Test the aws-marketplace report creation method with local directory."""
+        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
+        one_day = datetime.timedelta(days=1)
+        yesterday = now - one_day
+        local_bucket_path = mkdtemp()
+        options = {
+            "start_date": yesterday,
+            "end_date": now,
+            "aws_bucket_name": local_bucket_path,
+            "aws_report_name": "cur_report",
+            "write_monthly": True,
+        }
+        aws_create_marketplace_report(options)
+        month_output_file_name = "{}-{}-{}-{}".format(
+            calendar.month_name[now.month], now.year, "cur_report", "marketplace"
+        )
+        expected_month_output_file = "{}/{}.csv".format(os.getcwd(), month_output_file_name)
+
+        self.assertTrue(os.path.isfile(expected_month_output_file))
+        os.remove(expected_month_output_file)
+        shutil.rmtree(local_bucket_path)
+
+    def test_aws_marketplace_create_report_with_local_dir_report_prefix(self):
+        """Test the aws-marketplace report creation method with local directory and a report prefix."""
+        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
+        one_day = datetime.timedelta(days=1)
+        yesterday = now - one_day
+        local_bucket_path = mkdtemp()
+        options = {
+            "start_date": yesterday,
+            "end_date": now,
+            "aws_bucket_name": local_bucket_path,
+            "aws_report_name": "cur_report",
+            "aws_prefix_name": "my_prefix",
+            "write_monthly": True,
+        }
+        aws_create_marketplace_report(options)
+        month_output_file_name = "{}-{}-{}-{}".format(
+            calendar.month_name[now.month], now.year, "cur_report", "marketplace"
+        )
+        expected_month_output_file = "{}/{}.csv".format(os.getcwd(), month_output_file_name)
+        self.assertTrue(os.path.isfile(expected_month_output_file))
+        os.remove(expected_month_output_file)
+        shutil.rmtree(local_bucket_path)
+
+    def test_aws_marketplace_create_report_finalize_report_overwrite(self):
+        """Test that an aws report file has an invoice id."""
+        start_date = datetime.datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        end_date = datetime.datetime.now().replace(day=5, hour=0, minute=0, second=0, microsecond=0)
+        aws_create_marketplace_report(
+            {
+                "start_date": start_date,
+                "end_date": end_date,
+                "aws_report_name": "cur_report",
+                "aws_finalize_report": "overwrite",
+                "write_monthly": True,
+            }
+        )
+
+        month_output_file_name = "{}-{}-{}".format(
+            calendar.month_name[start_date.month], start_date.year, "cur_report"
+        )
+        expected_month_output_file = "{}/{}-{}.csv".format(os.getcwd(), month_output_file_name, "marketplace")
+        self.assertTrue(os.path.isfile(expected_month_output_file))
+
+        with open(expected_month_output_file, "r") as f:
+            reader = csv.DictReader(f)
+            row = next(reader)
+            self.assertNotEqual(row["bill/InvoiceId"], "")
+
+        os.remove(expected_month_output_file)
+
+    def test_aws_marketplace_create_report_without_write_monthly(self):
+        """Test that monthly file is not created by default."""
+        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
+        one_day = datetime.timedelta(days=1)
+        yesterday = now - one_day
+        aws_create_marketplace_report({"start_date": yesterday, "end_date": now, "aws_report_name": "cur_report"})
+
+        month_output_file_name = "{}-{}-{}-{}".format(
+            calendar.month_name[now.month], now.year, "cur_report", "marketplace"
+        )
+        expected_month_output_file = "{}/{}.csv".format(os.getcwd(), month_output_file_name)
+        self.assertFalse(os.path.isfile(expected_month_output_file))
 
 
 class OCPReportTestCase(TestCase):
@@ -1082,6 +1292,7 @@ class GCPReportTestCase(TestCase):
             {
                 "start_date": yesterday,
                 "end_date": now,
+                "currency": "USD",
                 "gcp_report_prefix": report_prefix,
                 "write_monthly": True,
                 "gcp_dataset_name": dataset_name,
@@ -1104,6 +1315,7 @@ class GCPReportTestCase(TestCase):
             {
                 "start_date": yesterday,
                 "end_date": now,
+                "currency": "USD",
                 "write_monthly": True,
                 "gcp_dataset_name": dataset_name,
                 "gcp_etag": etag,
@@ -1218,6 +1430,58 @@ class GCPReportTestCase(TestCase):
             }
         )
         output_file_name = f"{report_prefix}.json"
+        expected_output_file_path = "{}/{}".format(os.getcwd(), output_file_name)
+
+        self.assertTrue(os.path.isfile(expected_output_file_path))
+        os.remove(expected_output_file_path)
+
+    def test_gcp_create_report_static_data(self):
+        """Test the gcp report creation method where a dataset name is included and static data used."""
+        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
+        one_day = datetime.timedelta(days=1)
+        yesterday = now - one_day
+        report_prefix = "test_report"
+        cost = fake.pyint(min_value=10, max_value=1000)
+        static_gcp_data = {
+            "generators": [
+                {
+                    "ComputeEngineGenerator": {
+                        "start_date": str(yesterday.date()),
+                        "end_date": str(now.date()),
+                        "cost": cost,
+                    }
+                },
+                {
+                    "CloudStorageGenerator": {
+                        "start_date": str(yesterday.date()),
+                        "end_date": str(now.date()),
+                        "cost": cost,
+                    }
+                },
+            ],
+            "projects": [
+                {
+                    "billing_account_id": "example_account_id",
+                    "project.name": "billion-force-58425800",
+                    "project.id": "example-project-id",
+                    "project.labels": "step:chair;year:each",
+                    "location.location": "us-central1",
+                    "location.country": "US",
+                    "location.region": "us-central1",
+                    "location.zone": "",
+                }
+            ],
+        }
+        gcp_create_report(
+            {
+                "start_date": yesterday,
+                "end_date": now,
+                "gcp_report_prefix": report_prefix,
+                "write_monthly": True,
+                "static_report_data": static_gcp_data,
+            }
+        )
+        output_file_name = f"{report_prefix}.csv"
         expected_output_file_path = "{}/{}".format(os.getcwd(), output_file_name)
 
         self.assertTrue(os.path.isfile(expected_output_file_path))

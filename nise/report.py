@@ -44,6 +44,7 @@ from nise.extract import extract_payload
 from nise.generators.aws import DataTransferGenerator
 from nise.generators.aws import EBSGenerator
 from nise.generators.aws import EC2Generator
+from nise.generators.aws import MarketplaceGenerator
 from nise.generators.aws import RDSGenerator
 from nise.generators.aws import Route53Generator
 from nise.generators.aws import S3Generator
@@ -245,6 +246,7 @@ def post_payload_to_ingest_service(insights_upload, local_path):
             header = {
                 "identity": {
                     "account_number": insights_account_id,
+                    "org_id": insights_org_id,
                     "internal": {"org_id": insights_org_id},
                     "type": content_type,
                 }
@@ -270,6 +272,7 @@ def _create_month_list(start_date, end_date):
     """Create a list of months given the date range args."""
     months = []
     current = start_date.replace(day=1)
+    end_month_first_day = end_date.replace(day=1)
     while current <= end_date:
         month = {
             "name": calendar.month_name[current.month],
@@ -285,6 +288,9 @@ def _create_month_list(start_date, end_date):
         if current.month == start_date.month:
             # First month start with start_date
             month["start"] = start_date
+        if current < end_month_first_day:
+            # can not compare months in this case - January < December
+            month["end"] = (month.get("end") + relativedelta(days=1)).replace(hour=0, minute=0)
         if current.month == end_date.month:
             # Last month ends with end_date
             month["end"] = end_date.replace(hour=23, minute=59)
@@ -316,6 +322,7 @@ def _generate_accounts(static_report_data=None):
     if static_report_data:
         payer_account = static_report_data.get("payer")
         usage_accounts = tuple(static_report_data.get("user"))
+        currency_code = static_report_data.get("currency_code")
     else:
         fake = Faker()
         payer_account = fake.ean(length=13)
@@ -326,7 +333,8 @@ def _generate_accounts(static_report_data=None):
             fake.ean(length=13),
             fake.ean(length=13),
         )
-    return payer_account, usage_accounts
+        currency_code = "USD"
+    return payer_account, usage_accounts, currency_code
 
 
 def _generate_azure_account_info(static_report_data=None):
@@ -401,6 +409,8 @@ def _get_jsonl_generators(generator_list):
                     attributes["start_date"] = parser.parse(attributes.get("start_date"))
                 if attributes.get("end_date"):
                     attributes["end_date"] = parser.parse(attributes.get("end_date"))
+                if attributes.get("currency"):
+                    attributes["currency"] = attributes.get("currency")
                 generator_obj["attributes"] = attributes
                 generators.append(generator_obj)
     return generators
@@ -416,7 +426,7 @@ def _create_generator_dates_from_yaml(attributes, month):
         hour=23, minute=59, second=59
     ):
         gen_start_date = month.get("start")
-        gen_end_date = month.get("end") + relativedelta(days=1)
+        gen_end_date = month.get("end")
 
     # Generator starts before month start and ends within month
     if attributes.get("start_date") <= month.get("start") and attributes.get("end_date") <= month.get("end").replace(
@@ -437,7 +447,7 @@ def _create_generator_dates_from_yaml(attributes, month):
         hour=23, minute=59, second=59
     ):
         gen_start_date = attributes.get("start_date")
-        gen_end_date = month.get("end") + relativedelta(days=1)
+        gen_end_date = month.get("end")
 
     return gen_start_date, gen_end_date
 
@@ -467,6 +477,40 @@ def write_aws_file(
     return full_file_name
 
 
+def default_currency(currency, static_currency):
+    if currency:
+        return currency
+    elif static_currency:
+        return static_currency
+    else:
+        return "USD"
+
+
+def aws_create_marketplace_report(options):  # noqa: C901
+    """Create a marketplace usage report file."""
+    static_report_data = options.get("static_report_data")
+    # added to keep import happy
+    MarketplaceGenerator
+    options["manifest_generation"] = False
+
+    if static_report_data:
+        aws_create_report(options)
+    else:
+        start = options.get("start_date").strftime("%Y%m%d")
+        end = options.get("end_date").strftime("%Y%m%d")
+        generators = {"generators": [{"MarketplaceGenerator": {"start_date": start, "end_date": end}}]}
+
+        if not options.get("aws_report_name"):
+            options["aws_report_name"] = "marketplace"
+        else:
+            options["aws_report_name"] = options.get("aws_report_name") + "-marketplace"
+
+        options["static_report_data"] = generators
+        options["accounts_list"] = None
+
+        aws_create_report(options)
+
+
 def aws_create_report(options):  # noqa: C901
     """Create a cost usage report file."""
     data = []
@@ -474,6 +518,7 @@ def aws_create_report(options):  # noqa: C901
     end_date = options.get("end_date")
     aws_finalize_report = options.get("aws_finalize_report")
     static_report_data = options.get("static_report_data")
+    manifest_gen = True if options.get("manifest_generation") is None else options.get("manifest_generation")
 
     if static_report_data:
         generators = _get_generators(static_report_data.get("generators"))
@@ -492,7 +537,8 @@ def aws_create_report(options):  # noqa: C901
 
     months = _create_month_list(start_date, end_date)
 
-    payer_account, usage_accounts = _generate_accounts(accounts_list)
+    payer_account, usage_accounts, currency_code = _generate_accounts(accounts_list)
+    currency_code = default_currency(options.get("currency"), currency_code)
 
     aws_bucket_name = options.get("aws_bucket_name")
     aws_report_name = options.get("aws_report_name")
@@ -520,7 +566,13 @@ def aws_create_report(options):  # noqa: C901
                 gen_start_date, gen_end_date = _create_generator_dates_from_yaml(attributes, month)
 
             gen = generator_cls(
-                gen_start_date, gen_end_date, payer_account, usage_accounts, attributes, options.get("aws_tags")
+                gen_start_date,
+                gen_end_date,
+                currency_code,
+                payer_account,
+                usage_accounts,
+                attributes,
+                options.get("aws_tags"),
             )
             num_instances = 1 if attributes else randint(2, 60)
             for _ in range(num_instances):
@@ -564,21 +616,32 @@ def aws_create_report(options):  # noqa: C901
             manifest_values["start_date"] = gen_start_date
             manifest_values["end_date"] = gen_end_date
             manifest_values["file_names"] = monthly_files
-            s3_cur_path, manifest_data = aws_generate_manifest(fake, manifest_values)
-            s3_month_path = os.path.dirname(s3_cur_path)
-            s3_month_manifest_path = s3_month_path + "/" + aws_report_name + "-Manifest.json"
-            s3_assembly_manifest_path = s3_cur_path + "/" + aws_report_name + "-Manifest.json"
 
-            temp_manifest = _write_manifest(manifest_data)
-            aws_route_file(aws_bucket_name, s3_month_manifest_path, temp_manifest)
-            aws_route_file(aws_bucket_name, s3_assembly_manifest_path, temp_manifest)
+            if not manifest_gen:
+                s3_cur_path, _ = aws_generate_manifest(fake, manifest_values)
+                for monthly_file in monthly_files:
+                    temp_cur_zip = _gzip_report(monthly_file)
+                    destination_file = "{}/{}.gz".format(s3_cur_path, os.path.basename(monthly_file))
+                    aws_route_file(aws_bucket_name, destination_file, temp_cur_zip)
+                    os.remove(temp_cur_zip)
+            else:
+                s3_cur_path, manifest_data = aws_generate_manifest(fake, manifest_values)
+                s3_month_path = os.path.dirname(s3_cur_path)
+                s3_month_manifest_path = s3_month_path + "/" + aws_report_name + "-Manifest.json"
+                s3_assembly_manifest_path = s3_cur_path + "/" + aws_report_name + "-Manifest.json"
 
-            for monthly_file in monthly_files:
-                temp_cur_zip = _gzip_report(monthly_file)
-                destination_file = "{}/{}.gz".format(s3_cur_path, os.path.basename(monthly_file))
-                aws_route_file(aws_bucket_name, destination_file, temp_cur_zip)
-                os.remove(temp_cur_zip)
-            os.remove(temp_manifest)
+                temp_manifest = _write_manifest(manifest_data)
+                aws_route_file(aws_bucket_name, s3_month_manifest_path, temp_manifest)
+                aws_route_file(aws_bucket_name, s3_assembly_manifest_path, temp_manifest)
+
+                for monthly_file in monthly_files:
+                    temp_cur_zip = _gzip_report(monthly_file)
+                    destination_file = "{}/{}.gz".format(s3_cur_path, os.path.basename(monthly_file))
+                    aws_route_file(aws_bucket_name, destination_file, temp_cur_zip)
+                    os.remove(temp_cur_zip)
+
+                os.remove(temp_manifest)
+
         if not write_monthly:
             _remove_files(monthly_files)
 
@@ -605,6 +668,7 @@ def azure_create_report(options):  # noqa: C901
     months = _create_month_list(start_date, end_date)
 
     account_info = _generate_azure_account_info(accounts_list)
+    currency = default_currency(options.get("currency"), account_info["currency_code"])
 
     meter_cache = {}
     # The options params are not going to change so we don't
@@ -641,7 +705,7 @@ def azure_create_report(options):  # noqa: C901
                 meter_cache.update(attributes.get("meter_cache"))  # needed so that meter_cache can be defined in yaml
             attributes["meter_cache"] = meter_cache
             attributes["version_two"] = version_two
-            gen = generator_cls(gen_start_date, gen_end_date, account_info, attributes)
+            gen = generator_cls(gen_start_date, gen_end_date, currency, account_info, attributes)
             azure_columns = gen.azure_columns
             data += gen.generate_data()
             meter_cache = gen.get_meter_cache()
@@ -762,6 +826,39 @@ def ocp_create_report(options):  # noqa: C901
                 temp_files[temp_filename] = temp_usage_file
 
             manifest_file_names = ", ".join(f'"{w}"' for w in temp_files)
+            cr_status = {
+                "clusterID": "4e009161-4f40-42c8-877c-3e59f6baea3d",
+                "clusterVersion": "stable-4.6",
+                "api_url": "https://console.redhat.com",
+                "authentication": {"type": "token"},
+                "packaging": {"max_reports_to_store": 30, "max_size_MB": 100},
+                "upload": {
+                    "ingress_path": "/api/ingress/v1/upload",
+                    "upload": "True",
+                    "upload_wait": 27,
+                    "upload_cycle": 360,
+                },
+                "operator_commit": __version__,
+                "prometheus": {
+                    "prometheus_configured": "True",
+                    "prometheus_connected": "True",
+                    "last_query_start_time": "2021-07-28T12:22:37Z",
+                    "last_query_success_time": "2021-07-28T12:22:37Z",
+                    "service_address": "https://thanos-querier.openshift-monitoring.svc:9091",
+                },
+                "reports": {
+                    "report_month": "07",
+                    "last_hour_queried": "2021-07-28 11:00:00 - 2021-07-28 11:59:59",
+                    "data_collected": "True",
+                },
+                "source": {
+                    "sources_path": "/api/sources/v1.0/",
+                    "name": "INSERT-SOURCE-NAME",
+                    "create_source": "False",
+                    "check_cycle": 1440,
+                },
+            }
+            cr_status = json.dumps(cr_status)
             manifest_values = {
                 "ocp_cluster_id": cluster_id,
                 "ocp_assembly_id": ocp_assembly_id,
@@ -770,6 +867,8 @@ def ocp_create_report(options):  # noqa: C901
                 "start": gen_start_date,
                 "end": gen_end_date,
                 "version": __version__,
+                "certified": False,
+                "cr_status": cr_status,
             }
             manifest_data = ocp_generate_manifest(manifest_values)
             temp_manifest = _write_manifest(manifest_data)
@@ -824,6 +923,11 @@ def write_gcp_file_jsonl(start_date, end_date, data, options):
     return local_file_path, output_file_name
 
 
+def get_gcp_static_currency(generator):
+    """Returns currency from static report"""
+    return generator[0].get("attributes").get("currency")
+
+
 def gcp_create_report(options):  # noqa: C901
     """Create a GCP cost usage report file."""
     fake = Faker()
@@ -855,6 +959,7 @@ def gcp_create_report(options):  # noqa: C901
                         key = pair.split(":")[0]
                         value = pair.split(":")[1]
                         labels.append({"key": key, "value": value})
+
                 project["labels"] = labels
                 location = {}
                 location["location"] = static_dict.get("location.location", "")
@@ -867,6 +972,7 @@ def gcp_create_report(options):  # noqa: C901
                     "location": location,
                 }
                 projects.append(row)
+                currency = default_currency(options.get("currency"), get_gcp_static_currency(generators))
         else:
             generators = [
                 {"generator": JSONLCloudStorageGenerator, "attributes": None},
@@ -877,10 +983,22 @@ def gcp_create_report(options):  # noqa: C901
             account = fake.word()
             project_generator = JSONLProjectGenerator(account)
             projects = project_generator.generate_projects()
+            currency = default_currency(options.get("currency"), None)
 
     elif static_report_data:
         generators = _get_generators(static_report_data.get("generators"))
         projects = static_report_data.get("projects")
+        processed_projects = copy.deepcopy(projects)
+        for i, project in enumerate(projects):
+            labels = []
+            static_labels = project.get("project.labels", [])
+            if static_labels:
+                for pair in static_labels.split(";"):
+                    key = pair.split(":")[0]
+                    value = pair.split(":")[1]
+                    labels.append({"key": key, "value": value})
+                processed_projects[i]["project.labels"] = json.dumps(labels)
+        projects = processed_projects
 
     else:
         generators = [
@@ -894,6 +1012,68 @@ def gcp_create_report(options):  # noqa: C901
         project_generator = ProjectGenerator(account)
         projects = project_generator.generate_projects()
 
+    if gcp_dataset_name:
+        monthly_files = _gcp_bigquery_process(
+            start_date,
+            end_date,
+            currency,
+            projects,
+            generators,
+            options,
+            gcp_bucket_name,
+            gcp_dataset_name,
+            gcp_table_name,
+        )
+    else:
+        months = _create_month_list(start_date, end_date)
+        monthly_files = []
+        output_files = []
+        for month in months:
+            data = []
+            gen_start_date = month.get("start")
+            gen_end_date = month.get("end")
+            for project in projects:
+                num_gens = len(generators)
+                ten_percent = int(num_gens * 0.1) if num_gens > 50 else 5
+                LOG.info(
+                    f"Producing data for {num_gens} generators for start: {gen_start_date} and end: {gen_end_date}."
+                )
+                for count, generator in enumerate(generators):
+                    attributes = generator.get("attributes", {})
+                    if attributes:
+                        start_date = attributes.get("start_date")
+                        end_date = attributes.get("end_date")
+                        currency = default_currency(options.get("currency"), attributes.get("currency"))
+                    else:
+                        currency = default_currency(options.get("currency"), None)
+                    if gen_end_date > end_date:
+                        gen_end_date = end_date
+
+                    generator_cls = generator.get("generator")
+                    gen = generator_cls(gen_start_date, gen_end_date, currency, project, attributes=attributes)
+                    for hour in gen.generate_data():
+                        data += [hour]
+                    count += 1
+                    if count % ten_percent == 0:
+                        LOG.info(f"Done with {count} of {num_gens} generators.")
+
+            local_file_path, output_file_name = write_gcp_file(gen_start_date, gen_end_date, data, options)
+            output_files.append(output_file_name)
+            monthly_files.append(local_file_path)
+
+        for index, month_file in enumerate(monthly_files):
+            if gcp_bucket_name:
+                gcp_route_file(gcp_bucket_name, month_file, output_files[index])
+
+    write_monthly = options.get("write_monthly", False)
+    if not write_monthly:
+        _remove_files(monthly_files)
+
+
+def _gcp_bigquery_process(
+    start_date, end_date, currency, projects, generators, options, gcp_bucket_name, gcp_dataset_name, gcp_table_name
+):
+
     data = []
     for project in projects:
         num_gens = len(generators)
@@ -906,7 +1086,7 @@ def gcp_create_report(options):  # noqa: C901
                 end_date = attributes.get("end_date")
 
             generator_cls = generator.get("generator")
-            gen = generator_cls(start_date, end_date, project, attributes=attributes)
+            gen = generator_cls(start_date, end_date, currency, project, attributes=attributes)
             for hour in gen.generate_data():
                 data += [hour]
             count += 1
@@ -914,22 +1094,15 @@ def gcp_create_report(options):  # noqa: C901
                 LOG.info(f"Done with {count} of {num_gens} generators.")
 
     monthly_files = []
-    if not gcp_dataset_name:
-        local_file_path, output_file_name = write_gcp_file(start_date, end_date, data, options)
-        monthly_files.append(local_file_path)
-    else:
-        local_file_path, output_file_name = write_gcp_file_jsonl(start_date, end_date, data, options)
-        monthly_files.append(local_file_path)
+    local_file_path, output_file_name = write_gcp_file_jsonl(start_date, end_date, data, options)
+    monthly_files.append(local_file_path)
 
     if gcp_bucket_name:
         gcp_route_file(gcp_bucket_name, local_file_path, output_file_name)
 
-    if gcp_dataset_name:
-        if not gcp_table_name:
-            etag = options.get("gcp_etag") if options.get("gcp_etag") else str(uuid4())
-            gcp_table_name = f"gcp_billing_export_{etag}"
-        gcp_bucket_to_dataset(gcp_bucket_name, output_file_name, gcp_dataset_name, gcp_table_name)
+    if not gcp_table_name:
+        etag = options.get("gcp_etag") if options.get("gcp_etag") else str(uuid4())
+        gcp_table_name = f"gcp_billing_export_{etag}"
+    gcp_bucket_to_dataset(gcp_bucket_name, output_file_name, gcp_dataset_name, gcp_table_name)
 
-    write_monthly = options.get("write_monthly", False)
-    if not write_monthly:
-        _remove_files(monthly_files)
+    return monthly_files
