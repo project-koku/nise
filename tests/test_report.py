@@ -259,6 +259,7 @@ class MiscReportTestCase(TestCase):
         header = {
             "identity": {
                 "account_number": insights_account_id,
+                "org_id": insights_org_id,
                 "internal": {"org_id": insights_org_id},
                 "type": content_type,
             }
