@@ -165,6 +165,8 @@ SAVINGS_COLS = (
     "savingsPlan/RecurringCommitmentForBillingPeriod",
 )
 
+LEGAL_ENTITY_CHOICES = ("Red Hat", "Red Hat Inc.", "Amazon Web Services, Inc.")
+
 
 class MarketplaceGenerator(AbstractGenerator):
     """Defines a generator for AWS Marketplace"""
@@ -195,18 +197,10 @@ class MarketplaceGenerator(AbstractGenerator):
         self._product_sku = self.fake.pystr(min_chars=12, max_chars=12).upper()
         self._resource_id = "i-{}".format(self.fake.ean8())
         self._currency = currency
+        self._legal_entity = None
 
-        if self.attributes:
-            if self.attributes.get("amount"):
-                self._amount = float(self.attributes.get("amount"))
-            if self.attributes.get("rate"):
-                self._rate = float(self.attributes.get("rate"))
-            if self.attributes.get("product_sku"):
-                self._product_sku = self.attributes.get("product_sku")
-            if self.attributes.get("resource_id"):
-                self._resource_id = self.attributes.get("resource_id")
-            if self.attributes.get("tags"):
-                self._tags = self.attributes.get("tags")
+        for attribute in self.attributes:
+            setattr(self, f"_{attribute}", self.attributes.get(attribute))
 
         if tag_cols:
             self.RESOURCE_TAG_COLS.update(tag_cols)
@@ -326,6 +320,7 @@ class MarketplaceGenerator(AbstractGenerator):
         row["bill/BillingPeriodEndDate"] = "2021-12-01T00:00:00Z"
 
         row["lineItem/UsageAccountId"] = choice(self.usage_accounts)
+        row["lineItem/LegalEntity"] = self._legal_entity if self._legal_entity else choice(LEGAL_ENTITY_CHOICES)
         row["lineItem/LineItemType"] = "Usage"
         row["lineItem/UsageStartDate"] = start
         row["lineItem/UsageEndDate"] = end
