@@ -35,6 +35,7 @@ BILL_COLS = (
 )
 LINE_ITEM_COLS = (
     "lineItem/UsageAccountId",
+    "lineItem/LegalEntity",
     "lineItem/LineItemType",
     "lineItem/UsageStartDate",
     "lineItem/UsageEndDate",
