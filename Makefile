@@ -37,7 +37,17 @@ endif
 
 
 test:
-	tox -e py36
+	tox -e py38
+
+test-aws-generator:
+	coverage run -m unittest tests.test_aws_generator && coverage report -m
+test-azure-generator:
+	coverage run -m unittest tests.test_azure_generator && coverage report -m
+test-gcp-generator:
+	coverage run -m unittest tests.test_gcp_generator && coverage report -m
+test-ocp-generator:
+	coverage run -m unittest tests.test_ocp_generator && coverage report -m
+
 
 lint:
 	pre-commit run --all-files
