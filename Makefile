@@ -2,6 +2,8 @@ DATE    = $(shell date)
 PYTHON  = $(shell which python)
 
 TOPDIR = $(shell pwd)
+SCRIPTDIR = $(TOPDIR)/scripts
+
 IQE_CMD = 'iqe tests plugin --debug cost_management -k test_api -m cost_smoke'
 
 DOCKER := $(shell command -v docker 2> /dev/null)
@@ -36,17 +38,9 @@ ifdef PODMAN
 endif
 
 
+test_source=all
 test:
-	tox -e py38
-
-test-aws-generator:
-	coverage run -m unittest tests.test_aws_generator && coverage report -m
-test-azure-generator:
-	coverage run -m unittest tests.test_azure_generator && coverage report -m
-test-gcp-generator:
-	coverage run -m unittest tests.test_gcp_generator && coverage report -m
-test-ocp-generator:
-	coverage run -m unittest tests.test_ocp_generator && coverage report -m
+	$(SCRIPTDIR)/test_generators.sh $(test_source)
 
 
 lint:

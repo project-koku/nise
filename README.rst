@@ -51,9 +51,13 @@ Nise uses tox to standardize the environment used when running tests. Essentiall
 
 This will rebuild the tox virtual env and then run all tests.
 
-To run unit tests specifically::
+To run all unit tests specifically::
 
-    tox -e py38
+    make test
+
+To run unit tests for a single provider::
+
+    make test test_source=<aws|azure|gcp|ocp>
 
 Linting
 -------
