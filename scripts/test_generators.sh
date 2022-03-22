@@ -35,5 +35,4 @@ case ${1} in
    "oci") test_generator oci ;;
    "all") run_tox ;;
    *) usage ;;
-
 esac
