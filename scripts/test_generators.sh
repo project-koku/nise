@@ -16,7 +16,7 @@ usage() {
 test_generator() {
     local _source_type=$1
     log-info "Running unit tests for ${_source_type}"
-    coverage run -m unittest tests.test_${_source_type}_generator && coverage report -m
+    python3 -m unittest tests.test_${_source_type}_generator
 }
 
 run_tox() {
