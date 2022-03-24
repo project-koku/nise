@@ -84,7 +84,6 @@ class GCPNetworkGenerator(GCPGenerator):
         row["usage.unit"] = usage_unit
         row["usage.pricing_unit"] = pricing_unit
         row["cost_type"] = "regular"
-        row["currency"] = self._currency
         row["currency_conversion_rate"] = 1
         row["usage.amount"] = self._gen_usage_unit_amount(usage_unit)
         row["usage.amount_in_pricing_units"] = self._gen_pricing_unit_amount(pricing_unit, row["usage.amount"])
@@ -101,6 +100,7 @@ class GCPNetworkGenerator(GCPGenerator):
                 if key in self.column_labels:
                     row[key] = self.attributes[key]
 
+        row["currency"] = self._currency
         row["labels"] = self.determine_labels(self.LABELS)
 
         return row
