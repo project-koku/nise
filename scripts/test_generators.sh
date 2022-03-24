@@ -13,6 +13,7 @@ usage() {
     log-info "help show usage"
 }
 
+# run single test
 test_generator() {
     local _source_type=$1
     log-info "Running unit tests for ${_source_type}"
