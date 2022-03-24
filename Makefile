@@ -2,6 +2,8 @@ DATE    = $(shell date)
 PYTHON  = $(shell which python)
 
 TOPDIR = $(shell pwd)
+SCRIPTDIR = $(TOPDIR)/scripts
+
 IQE_CMD = 'iqe tests plugin --debug cost_management -k test_api -m cost_smoke'
 
 DOCKER := $(shell command -v docker 2> /dev/null)
@@ -36,8 +38,10 @@ ifdef PODMAN
 endif
 
 
+test_source=all
 test:
-	tox -e py36
+	$(SCRIPTDIR)/test_generators.sh $(test_source)
+
 
 lint:
 	pre-commit run --all-files
