@@ -31,6 +31,7 @@ from nise.report import aws_create_report
 from nise.report import azure_create_report
 from nise.report import gcp_create_report
 from nise.report import ocp_create_report
+from nise.report import oci_create_report
 from nise.util import load_yaml
 from nise.util import LOG
 from nise.util import LOG_VERBOSITY
@@ -258,6 +259,17 @@ def add_ocp_parser_args(parser):
     )
 
 
+def add_oci_parser_args(parser):
+    """Add OCI sub-parser args."""
+    parser.add_argument(
+        "--oci-report-type",
+        metavar="OCI_REPORT_TYPE",
+        dest="oci_report_type",
+        required=False,
+        help="Type of report to generate.",
+    )
+
+
 def create_parser():
     """Create the parser for incoming data."""
     parser = argparse.ArgumentParser()
@@ -340,12 +352,20 @@ def create_parser():
     ocp_parser = report_subparser.add_parser(
         "ocp", parents=[parent_parser], add_help=False, description="The OCP parser", help="create the OCP reports"
     )
+    oci_parser = report_subparser.add_parser(
+        "oci", 
+        parents=[parent_parser], 
+        add_help=False, 
+        description="The OCI parser", 
+        help="create the OCI reports"
+    )
 
     add_aws_parser_args(aws_parser)
     add_aws_marketplace_parser_args(aws_marketplace_parser)
     add_azure_parser_args(azure_parser)
     add_gcp_parser_args(gcp_parser)
     add_ocp_parser_args(ocp_parser)
+    add_oci_parser_args(oci_parser)
 
     return parser
 
@@ -516,6 +536,18 @@ def _validate_gcp_arguments(parser, options):
     """
     return True
 
+def _validate_oci_arguments(parser, options):
+    """Validate aws argument combination.
+
+    Args:
+        parser (Object): ArgParser parser.
+        options (Dict): dictionary of arguments.
+    Raises:
+        (ParserError): If combination is invalid.
+
+    """
+    return True
+
 
 def _validate_provider_inputs(parser, options):
     """Validate provider inputs.
@@ -535,6 +567,7 @@ def _validate_provider_inputs(parser, options):
         "azure": _validate_azure_arguments,
         "gcp": _validate_gcp_arguments,
         "ocp": _validate_ocp_arguments,
+        "oci": _validate_oci_arguments,
     }
 
     if VALIDATOR_MAP.get(provider_type):
@@ -670,6 +703,8 @@ def run(provider_type, options):
         ocp_create_report(options)
     elif provider_type == "gcp":
         gcp_create_report(options)
+    elif provider_type == "oci":
+        oci_create_report(options)
 
 
 def main():
