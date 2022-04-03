@@ -1119,7 +1119,6 @@ def write_oci_file(report_type, file_number, data, options):
         OCI_COST_REPORT: 'cost',
         OCI_USAGE_REPORT: 'usage'
     }
-    # file_name = f"reports_{report_type_to_name[report_type]}-{options['month']}_csv_0001000000{file_number}"
     file_name = f"reports_{report_type_to_name[report_type]}-csv_0001000000{file_number}"
     full_file_name = f"{os.getcwd()}/{file_name}.csv"
     _write_csv(
@@ -1136,22 +1135,24 @@ def oci_create_report(options):
     end_date = options.get("end_date")
     generators = [
         {"generator": OCIComputeGenerator, "attributes": None},
-        # {"generator": OCINetworkGenerator, "attributes": None},
+        {"generator": OCINetworkGenerator, "attributes": None},
     ]
     months = _create_month_list(start_date, end_date)
     currency = default_currency(options.get("currency"), static_currency=None)
     write_monthly = options.get("write_monthly", False)
     
     fake = Faker()
-    cost_report_number = int(fake.ean(length=8))
-    usage_report_number = int(fake.ean(length=13))
-    
+    file_numbers = {
+        OCI_COST_REPORT: fake.random_number(digits=6, fix_len=True) , 
+        OCI_USAGE_REPORT: fake.random_number(digits=6, fix_len=True)
+    }
+
     for month in months:
         data = {OCI_COST_REPORT:[], OCI_USAGE_REPORT:[]}
-        file_numbers = {OCI_COST_REPORT: cost_report_number , OCI_USAGE_REPORT: usage_report_number}
         monthly_files = []
 
         for report_type in OCI_REPORT_TYPE_TO_COLS:
+            LOG.info(f"Generating data for OCI for {month.get('name')}")
 
             for generator in generators:
                 generator_cls = generator.get("generator")
@@ -1160,11 +1161,9 @@ def oci_create_report(options):
                 gen_end_date = month.get("end")
                 gen = generator_cls(gen_start_date, gen_end_date, currency, report_type, attributes)
 
-                LOG.info(f"Generating data for OCI {report_type} for {month.get('name')}")
                 for hour in gen.generate_data(report_type=report_type):
                     data[report_type] += [hour]
 
-            # options['month'] = month.get('name')
             month_output_file = write_oci_file(
                 report_type,
                 file_numbers[report_type],
@@ -1172,3 +1171,4 @@ def oci_create_report(options):
                 options
             )
             monthly_files.append(month_output_file)
+            file_numbers[report_type] += 1

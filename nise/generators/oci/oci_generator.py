@@ -1,5 +1,5 @@
 #
-# Copyright 2018 Red Hat, Inc.
+# Copyright 2022 Red Hat, Inc.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -111,10 +111,55 @@ OCI_REPORT_TYPE_TO_COLS = {
 class OCIGenerator(AbstractGenerator):
     """Defines a abstract class for generators."""
 
+    OCI_REGIONS_TO_DOMAIN = [
+        {"region": "ap-sydney-1", "domain":1},
+        {"region": "ap-melbourne-1", "domain":1},
+        {"region": "sa-saopaulo-1",	"domain":1},
+        {"region": "sa-vinhedo-1", "domain": 1},
+        {"region": "ca-montreal-1", "domain": 1},
+        {"region": "ca-toronto-1", "domain": 1},
+        {"region": "sa-santiago-1", "domain": 1},
+        {"region": "eu-marseille-1", "domain": 1},
+        {"region": "eu-frankfurt-1", "domain": 3},
+        {"region": "ap-hyderabad-1", "domain": 1},
+        {"region": "ap-mumbai-1", "domain": 1},
+        {"region": "il-jerusalem-1", "domain": 1},
+        {"region": "eu-milan-1", "domain": 1},
+        {"region": "ap-osaka-1", "domain": 1},
+        {"region": "ap-tokyo-1", "domain": 1},
+        {"region": "eu-amsterdam-1", "domain": 1},
+        {"region": "me-jeddah-1", "domain": 1},
+        {"region": "ap-singapore-1", "domain": 1},
+        {"region": "af-johannesburg-1", "domain": 1},
+        {"region": "ap-seoul-1", "domain": 1},
+        {"region": "ap-chuncheon-1", "domain": 1},
+        {"region": "eu-stockholm-1", "domain": 1},
+        {"region": "eu-zurich-1", "domain": 1},
+        {"region": "me-abudhabi-1", "domain": 1},
+        {"region": "me-dubai-1", "domain": 1},
+        {"region": "uk-london-1", "domain": 1},
+        {"region": "uk-cardiff-1",	"domain": 1},
+        {"region": "us-ashburn-1",	"domain": 3},
+        {"region": "us-phoenix-1", "domain": 3},	
+        {"region": "us-sanjose-1", "domain": 1}
+    ]
+
     def __init__(self, start_date, end_date, currency, attributes=None):
         """Initialize the generator."""
         super().__init__(start_date, end_date)
         self.currency = currency
+        self.fake = Faker()
+        # TODO: to be modified/organized
+        self.tenant_id = f"ocid1.tenancy.oc1..{self.fake.pystr(min_chars=20, max_chars=50)}"
+        self.reference_no = self._get_reference_num()
+        self.compartment_id = self.tenant_id
+        self.compartment_name = self.fake.name().replace(' ', '').lower()
+        self.region_to_domain = choice(self.OCI_REGIONS_TO_DOMAIN)
+        self.product_region = self._get_product_region()
+        self.availability_domain = self._get_availability_domain()
+        self.is_correction = choice(["true", "false"])
+        self.email_domain = self.fake.free_email_domain()
+        self.subscription_id = self.fake.random_number(fix_len=True, digits=8)
 
     @staticmethod
     def timestamp(in_date):
@@ -146,31 +191,58 @@ class OCIGenerator(AbstractGenerator):
         return row   
 
     def _common_usage_datagen(self,start, end, **kwargs):
-        """Generate data for common columns."""
-        fake = Faker()
-        data = {
-            "lineItem/referenceNo":"V2.HrPD8n8biHxnXDjI+bskegyizs8AnIwLRpgLIjsEUTRUCzTXZ7akEPPZ3Ws7I2SLz5mRURPIvuNsYsdXBVTTQQ==",
-            "lineItem/tenantId":"ocid1.tenancy.oc1..aaaaaaaa2sgzyxbcxlmuiigavvinkxvhtlvyw5rwy5aq5f6clf376dgt2axa",
-            "lineItem/intervalUsageStart":OCIGenerator.timestamp(start),
-            "lineItem/intervalUsageEnd":OCIGenerator.timestamp(end),
-            "product/service":"",
-            "product/compartmentId":"",
-            "product/compartmentName":"",
-            "product/region":"",
-            "product/availabilityDomain":"",
-            "product/resourceId":"",
-            "lineItem/isCorrection":"",
-            "lineItem/backreferenceNo":"",
-            "tags/Oracle-Tags.CreatedBy":"",
-            "tags/Oracle-Tags.CreatedOn":"2022-02-23T15:24:54.842Z",
-            "tags/orcl-cloud.free-tier-retained":"",
-        }
+        """
+        Generate data for common columns.
+            TODO: 
+                tag date =>  get tags/Oracle-Tags.CreatedOn from kwargs??
+        """
 
+        data = {
+            "lineItem/referenceNo": f"{self.reference_no}+{self.fake.pystr()}==",
+            "lineItem/tenantId": self.tenant_id,
+            "lineItem/intervalUsageStart": OCIGenerator.timestamp(start),
+            "lineItem/intervalUsageEnd": OCIGenerator.timestamp(end),
+            "product/service":"",
+            "product/compartmentId": self.compartment_id,
+            "product/compartmentName": self.compartment_name,
+            "product/region": self.product_region,
+            "product/availabilityDomain": self.availability_domain,
+            "product/resourceId":"",
+            "lineItem/isCorrection": self.is_correction,
+            "lineItem/backreferenceNo": f"{self.reference_no}+{self.fake.pystr()}==" if self.is_correction == "true" else "",
+            "tags/Oracle-Tags.CreatedBy": f"default/{self.compartment_name}@{self.email_domain}",
+            "tags/Oracle-Tags.CreatedOn": choice([OCIGenerator._tag_timestamp(start), OCIGenerator._tag_timestamp(end)]),
+            "tags/orcl-cloud.free-tier-retained": choice(["true", ""]),
+        }
         return data
+
+    def _get_reference_num(self):
+        """Get reference number"""
+        ref_num = f"V2.{self.fake.pystr(min_chars=20, max_chars=50)}"
+        return ref_num
+
+    def _tag_timestamp(in_date):
+        """Provide timestamp tags."""
+        if not (in_date and isinstance(in_date, datetime.datetime)):
+            tag_date = ""
+        else:
+            tag_date = in_date + datetime.timedelta(minutes=randint(1, 50), seconds=randint(1, 50))
+        return choice([tag_date.strftime("%Y-%m-%dT%H:%M:%S.000Z"), ""])
+    
+    def _get_product_region(self):
+        """Get a random region""" 
+        return self.region_to_domain.get('region')
+
+    def _get_availability_domain(self):
+        """Get availability domain of the region"""
+        a_domain = f"{self.fake.pystr(max_chars=4)}:{self.product_region.upper()}-AD-{self.region_to_domain.get('domain')}"
+        return a_domain
+
+
 
     @abstractmethod
     def _update_data(self, row, start, end, **kwargs):
-        """Update data with generator specific data."""
+        """Update data with generator specific info."""
 
     def _generate_hourly_data(self, **kwargs):
         """Create hourly data."""
