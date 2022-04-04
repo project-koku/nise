@@ -40,7 +40,6 @@ OCI_IDENTITY_COLUMNS=(
     "lineItem/intervalUsageEnd",
     "product/service"
 )
-
 OCI_USAGE_PRODUCT_COLS = {
     "product/resource"
 }
@@ -181,19 +180,15 @@ class OCIGenerator(AbstractGenerator):
             row[column] = ""
         return row
 
-    def _add_common_usage_info(self, row, start, end, **kwargs):
+    def _add_common_usage_info(self, row, start, end):
         """Add common usage information."""
-        data = self._common_usage_datagen(start, end, **kwargs)
+        data = self._get_common_usage_data(start, end)
         for column in OCI_ALL_COMMON_COLUMNS:
             row[column] = data[column]
         return row   
 
-    def _common_usage_datagen(self,start, end, **kwargs):
-        """
-        Generate data for common columns.
-            TODO: 
-                tag date =>  get tags/Oracle-Tags.CreatedOn from kwargs??
-        """
+    def _get_common_usage_data(self,start, end):
+        """Generate data for common columns."""
 
         data = {
             "lineItem/referenceNo": f"{self.reference_no}+{self.fake.pystr()}==",
@@ -209,7 +204,7 @@ class OCIGenerator(AbstractGenerator):
             "lineItem/isCorrection": self.is_correction,
             "lineItem/backreferenceNo": f"{self.reference_no}+{self.fake.pystr()}==" if self.is_correction == "true" else "",
             "tags/Oracle-Tags.CreatedBy": f"default/{self.compartment_name}@{self.email_domain}",
-            "tags/Oracle-Tags.CreatedOn": choice([OCIGenerator._tag_timestamp(start), OCIGenerator._tag_timestamp(end)]),
+            "tags/Oracle-Tags.CreatedOn": choice([self._tag_timestamp(start), self._tag_timestamp(end), ""]),
             "tags/orcl-cloud.free-tier-retained": choice(["true", ""]),
         }
         return data
@@ -219,13 +214,13 @@ class OCIGenerator(AbstractGenerator):
         ref_num = f"V2.{self.fake.pystr(min_chars=20, max_chars=50)}"
         return ref_num
 
-    def _tag_timestamp(in_date):
-        """Provide timestamp tags."""
-        if not (in_date and isinstance(in_date, datetime.datetime)):
-            tag_date = ""
-        else:
-            tag_date = in_date + datetime.timedelta(minutes=randint(1, 50), seconds=randint(1, 50))
-        return choice([tag_date.strftime("%Y-%m-%dT%H:%M:%S.000Z"), ""])
+    def _tag_timestamp(self, in_date):
+        """Provide timestamp a tag date."""
+        tag_date = ""
+        if (in_date and isinstance(in_date, datetime.datetime)):
+            _date = in_date + datetime.timedelta(minutes=randint(1, 50), seconds=randint(1, 50))
+            tag_date = _date.strftime("%Y-%m-%dT%H:%M:%S.000Z")
+        return tag_date
     
     def _get_product_region(self):
         """Get a random region""" 
@@ -246,7 +241,7 @@ class OCIGenerator(AbstractGenerator):
             start = hour.get("start")
             end = hour.get("end")
             row = self._init_data_row(start, end, **kwargs)
-            row = self._add_common_usage_info(row, start, end, **kwargs)
+            row = self._add_common_usage_info(row, start, end)
             row = self._update_data(row, start, end, **kwargs)
             yield row
     
