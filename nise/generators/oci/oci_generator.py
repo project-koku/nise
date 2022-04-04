@@ -67,7 +67,6 @@ OCI_COST_COLUMNS = (
     "cost/overageFlag",
 )
 OCI_USAGE_COLUMNS = (
-    "product/resource"
     "usage/consumedQuantity",
     "usage/billedQuantity",
     "usage/consumedQuantityUnits",
@@ -82,8 +81,7 @@ OCI_TAGS_COLUMNS=(
     "tags/Oracle-Tags.CreatedOn",
     "tags/orcl-cloud.free-tier-retained",
 )
-
-OCI_COMMON_USAGE = (
+OCI_ALL_COMMON_COLUMNS = (
     OCI_IDENTITY_COLUMNS
     + OCI_COMMON_PRODUCT_COLS
     + OCI_CORRECTION_COLUMNS
@@ -143,12 +141,12 @@ class OCIGenerator(AbstractGenerator):
         {"region": "us-phoenix-1", "domain": 3},	
         {"region": "us-sanjose-1", "domain": 1}
     ]
+    fake = Faker()
 
     def __init__(self, start_date, end_date, currency, attributes=None):
         """Initialize the generator."""
         super().__init__(start_date, end_date)
         self.currency = currency
-        self.fake = Faker()
         # TODO: to be modified/organized
         self.tenant_id = f"ocid1.tenancy.oc1..{self.fake.pystr(min_chars=20, max_chars=50)}"
         self.reference_no = self._get_reference_num()
@@ -186,7 +184,7 @@ class OCIGenerator(AbstractGenerator):
     def _add_common_usage_info(self, row, start, end, **kwargs):
         """Add common usage information."""
         data = self._common_usage_datagen(start, end, **kwargs)
-        for column in OCI_COMMON_USAGE:
+        for column in OCI_ALL_COMMON_COLUMNS:
             row[column] = data[column]
         return row   
 
@@ -237,8 +235,6 @@ class OCIGenerator(AbstractGenerator):
         """Get availability domain of the region"""
         a_domain = f"{self.fake.pystr(max_chars=4)}:{self.product_region.upper()}-AD-{self.region_to_domain.get('domain')}"
         return a_domain
-
-
 
     @abstractmethod
     def _update_data(self, row, start, end, **kwargs):

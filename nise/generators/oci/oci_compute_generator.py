@@ -1,4 +1,3 @@
-from datetime import datetime
 from nise.generators.oci.oci_generator import OCIGenerator
 from nise.generators.oci.oci_generator import OCI_COST_REPORT
 from nise.generators.oci.oci_generator import OCI_USAGE_REPORT
@@ -20,17 +19,23 @@ class OCIComputeGenerator(OCIGenerator):
         self.product_description  = "Virtual Machine Standard - E2 Micro - Free"
         self.billing_unit = "ONE HOURS OCPUS"
         self.cost_sku_unit = "OCPU Hours"
+        self.consumed_quantity = self.fake.random_number(digits=9, fix_len=True)
+        self.billed_quantity = self.fake.random_number(digits=9, fix_len=True)
+        self.consumed_quant_units = "GB_MS"
+        self.consumed_quant_measure = "STORAGE_SIZE"
 
 
     def _add_cost_data(self, row, start, end, **kwargs):
         """Add cost information to report."""
+        _data = self._get_cost_data(**kwargs)
         for column in OCI_COST_COLUMNS:
-            _data = self._get_compute_cost_data(**kwargs)
             row[column] = _data[column]
         return row
 
-    def _get_compute_cost_data(self, **kwargs):
-        _data = {
+    def _get_cost_data(self, **kwargs):
+        """Get compute cost data"""
+
+        _cost_data = {
             "usage/billedQuantity": 1,
             "usage/billedQuantityOverage":"",
             "cost/subscriptionId": self.subscription_id,
@@ -45,13 +50,25 @@ class OCIComputeGenerator(OCIGenerator):
             "cost/skuUnitDescription": self.cost_sku_unit,
             "cost/overageFlag":"",
         }
-        return _data
+        return _cost_data
     
     def _add_usage_data(self, row, start, end, **kwargs):
         """Add cost information to report."""
+        row['product/resource'] = "PIC_COMPUTE_VM_STANDARD_E2_MICRO_FREE"
+        _data = self._get_usage_data(**kwargs)
         for column in OCI_USAGE_COLUMNS:
-            row[column] = ""
+            row[column] = _data[column]
         return row
+    
+    def _get_usage_data(self, **kwargs):
+        """Get compute usage data"""
+        _usage_data = {
+            'usage/consumedQuantity': self.consumed_quantity, 
+            'usage/billedQuantity': self.billed_quantity, 
+            'usage/consumedQuantityUnits': self.consumed_quant_units, 
+            'usage/consumedQuantityMeasure': self.consumed_quant_measure
+        }
+        return _usage_data
 
     def _update_data(self, row, start, end, **kwargs):
         """Update a data row with compute values."""
