@@ -1,0 +1,20 @@
+payer_account: 9999999999999
+max_account_id_length: 13
+max_users: 100
+
+# Maximum number of words in name
+max_name_words: 2
+# Maximm resource id length (This will be a left-zero-padded string)
+max_resource_id_length: 10
+# Below are the max settings by entity and sub-entity definition
+# If random mode:
+#    The value will be between either 1 or the defined minimum and the defined maximum
+# Else:
+#    The value will be the maximum setting
+max_data_transfer_gens: 1000
+max_ebs_gens: 1000
+max_ec2_gens: 1000
+max_rds_gens: 1000
+max_route53_gens: 1000
+max_s3_gens: 1000
+max_vpc_gens: 1000

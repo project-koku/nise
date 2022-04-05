@@ -1,0 +1,68 @@
+---
+generators:
+{% for bwg in generator.bandwidth_gens %}  - BandwidthGenerator:
+      start_date: {{ bwg.start_date }}
+      end_date: {{ bwg.end_date }}
+      instance_id: {{ bwg.instance_id }}
+      meter_id: {{ bwg.meter_id }}
+      resource_location: {{ bwg.resource_location }}
+      usage_quantity: {{ bwg.usage_quantity }}
+      resource_rate: {{ bwg.resource_rate }}
+      pre_tax_cost: {{ bwg.pre_tax_cost }}
+      tags:{% for tag in bwg.tags %}
+        {{ tag.key }}: {{ tag.v }}{% endfor %}
+{% endfor %}
+{% for sql in generator.sql_gens %}  - SQLGenerator:
+      start_date: {{ sql.start_date }}
+      end_date: {{ sql.end_date }}
+      instance_id: {{ sql.instance_id }}
+      meter_id: {{ sql.meter_id }}
+      resource_location: {{ sql.resource_location }}
+      usage_quantity: {{ sql.usage_quantity }}
+      resource_rate: {{ sql.resource_rate }}
+      pre_tax_cost: {{ sql.pre_tax_cost }}
+      tags:{% for tag in sql.tags %}
+        {{ tag.key }}: {{ tag.v }}{% endfor %}
+{% endfor %}
+{% for stor in generator.storage_gens %}  - StorageGenerator:
+      start_date: {{ stor.start_date }}
+      end_date: {{ stor.end_date }}
+      instance_id: {{ stor.instance_id }}
+      meter_id: {{ stor.meter_id }}
+      resource_location: {{ stor.resource_location }}
+      usage_quantity: {{ stor.usage_quantity }}
+      resource_rate: {{ stor.resource_rate }}
+      pre_tax_cost: {{ stor.pre_tax_cost }}
+      tags:{% for tag in stor.tags %}
+        {{ tag.key }}: {{ tag.v }}{% endfor %}
+{% endfor %}
+{% for vmg in generator.vmachine_gens %}  - VMGenerator:
+      start_date: {{ vmg.start_date }}
+      end_date: {{ vmg.end_date }}
+      instance_id: {{ vmg.instance_id }}
+      meter_id: {{ vmg.meter_id }}
+      resource_location: {{ vmg.resource_location }}
+      usage_quantity: {{ vmg.usage_quantity }}
+      resource_rate: {{ vmg.resource_rate }}
+      pre_tax_cost: {{ vmg.pre_tax_cost }}
+      tags:{% for tag in vmg.tags %}
+        {{ tag.key }}: {{ tag.v }}{% endfor %}
+{% endfor %}
+{% for vng in generator.vnetwork_gens %}  - VNGenerator:
+      start_date: {{ vng.start_date }}
+      end_date: {{ vng.end_date }}
+      instance_id: {{ vng.instance_id }}
+      meter_id: {{ vng.meter_id }}
+      resource_location: {{ vng.resource_location }}
+      usage_quantity: {{ vng.usage_quantity }}
+      resource_rate: {{ vng.resource_rate }}
+      pre_tax_cost: {{ vng.pre_tax_cost }}
+      tags:{% for tag in vng.tags %}
+        {{ tag.key }}: {{ tag.v }}{% endfor %}
+{% endfor %}
+
+# SubscriptionGuid
+accounts:
+  payer: {{ generator.payer }}
+  user:
+    - {{ generator.payer }}

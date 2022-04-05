@@ -1,0 +1,21 @@
+ocp-on-aws:
+  ocp:
+    ocp-template: ocp_static_data.yml.j2
+    ocp-gen-config: ocp_generator_config.yml
+    ocp-output-filename: ocp-on-aws_ocp.yml
+
+  aws:
+    aws-template: aws_static_data.yml.j2
+    aws-gen-config: aws_generator_config.yml
+    aws-output-filename: ocp-on-aws_aws.yml
+
+ocp-on-azure:
+  ocp:
+    ocp-template: ocp_static_data.yml.j2
+    ocp-gen-config: ocp_generator_config.yml
+    ocp-output-filename: ocp-on-azure_ocp.yml
+
+  azure:
+    azure-template: azure_static_data.yml.j2
+    azure-gen-config: azure_generator_config.yml
+    azure-output-filename: ocp-on-azure_azure.yml

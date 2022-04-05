@@ -1,0 +1,3 @@
+[console_scripts]
+pipenv-setup = pipenv_setup.main:cmd
+

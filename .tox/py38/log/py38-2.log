@@ -1,0 +1,18 @@
+action: py38, msg: envreport
+cwd: /Users/dnakabaa/Documents/project-koku/nise
+cmd: /Users/dnakabaa/Documents/project-koku/nise/.tox/py38/bin/python -m pip freeze
+certifi==2021.10.8
+charset-normalizer==2.0.12
+codecov==2.1.12
+coverage==6.3.2
+distlib==0.3.4
+filelock==3.6.0
+idna==3.3
+koku-nise==2.8.0
+pipenv==2022.1.8
+platformdirs==2.5.1
+requests==2.27.1
+six==1.16.0
+urllib3==1.26.8
+virtualenv==20.13.3
+virtualenv-clone==0.5.7

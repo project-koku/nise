@@ -1,0 +1,90 @@
+---
+generators:
+{% for dtg in generator.data_transfer_gens %}  - DataTransferGenerator:
+      start_date: {{ dtg.start_date }}
+      end_date: {{ dtg.end_date }}
+      resource_id: {{ dtg.resource_id }}
+      product_sku: {{ dtg.product_sku }}
+      amount: {{ dtg.amount }}
+      rate: {{ dtg.rate }}
+      tags:{% for tag in dtg.tags %}
+        {{ tag.key }}: {{ tag.v }}{% endfor %}
+{% endfor %}
+{% for ebs in generator.ebs_gens %}  - EBSGenerator:
+      start_date: {{ ebs.start_date }}
+      end_date: {{ ebs.end_date }}
+      resource_id: {{ ebs.resource_id }}
+      product_sku: {{ ebs.product_sku }}
+      amount: {{ ebs.amount }}
+      rate: {{ ebs.rate }}
+      tags:{% for tag in ebs.tags %}
+        {{ tag.key }}: {{ tag.v }}{% endfor %}
+{% endfor %}
+{% for ec2 in generator.ec2_gens %}  - EC2Generator:
+      start_date: {{  ec2.start_date }}
+      end_date: {{  ec2.end_date }}
+      resource_id: {{  ec2.resource_id }}
+      product_sku: {{ ec2.product_sku }}
+      region: {{ ec2.region }}
+      processor_arch: {{  ec2.processor_arch }}
+      instance_type:
+        inst_type: {{ ec2.instance_type.inst_type }}
+        vcpu: {{ ec2.instance_type.vcpu }}
+        memory: {{ ec2.instance_type.memory }}
+        storage: {{ ec2.instance_type.storage }}
+        family: {{ ec2.instance_type.family }}
+        cost: {{ ec2.instance_type.cost }}
+        rate: {{ ec2.instance_type.rate }}
+      tags:{% for tag in ec2.tags %}
+        {{ tag.key }}: {{ tag.v }}{% endfor %}
+{% endfor %}
+{% for rds in generator.rds_gens %}  - RDSGenerator:
+      start_date: {{ rds.start_date }}
+      end_date: {{ rds.end_date }}
+      resource_id: {{ rds.resource_id }}
+      product_sku: {{ rds.product_sku }}
+      region: {{ rds.region }}
+      processor_arch: {{ rds.processor_arch }}
+      instance_type:
+        inst_type: {{ rds.instance_type.inst_type }}
+        vcpu: {{ rds.instance_type.vcpu }}
+        memory: {{ rds.instance_type.memory }}
+        storage: {{ rds.instance_type.storage }}
+        family: {{ rds.instance_type.family }}
+        cost: {{ rds.instance_type.cost }}
+        rate: {{ rds.instance_type.rate }}
+      tags:{% for tag in rds.tags %}
+        {{ tag.key }}: {{ tag.v }}{% endfor %}
+{% endfor %}
+{% for r53 in generator.route53_gens %}  - Route53Generator:
+      start_date: {{ r53.start_date }}
+      end_date: {{ r53.end_date }}
+      resource_id: {{ r53.resource_id }}
+      product_sku: {{ r53.product_sku }}
+      product_family: {{ r53.product_family }}
+      tags:{% for tag in r53.tags %}
+        {{ tag.key }}: {{ tag.v }}{% endfor %}
+{% endfor %}
+{% for s3 in generator.s3_gens %}  - S3Generator:
+      start_date: {{ s3.start_date }}
+      end_date: {{ s3.end_date }}
+      resource_id: {{ s3.resource_id }}
+      product_sku: {{ s3.product_sku }}
+      amount: {{ s3.amount }}
+      rate: {{ s3.rate }}
+      tags:{% for tag in s3.tags %}
+        {{ tag.key }}: {{ tag.v }}{% endfor %}
+{% endfor %}
+{% for vpc in generator.vpc_gens %}  - VPCGenerator:
+      start_date: {{ vpc.start_date }}
+      end_date: {{ vpc.end_date }}
+      resource_id: {{ vpc.resource_id }}
+      product_sku: {{ vpc.product_sku }}
+      tags:{% for tag in vpc.tags %}
+        {{ tag.key }}: {{ tag.v }}{% endfor %}
+{% endfor %}
+
+accounts:
+  payer: {{ generator.payer }}
+  user:{% for user in generator.users %}
+    - {{ user }}{% endfor %}

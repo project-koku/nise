@@ -1,0 +1,26 @@
+# Storage class designations
+storage_classes:
+- gp2
+# Maximum number of words in name
+max_name_words: 2
+# Maximm resource id length (This will be a left-zero-padded string)
+max_resource_id_length: 10
+# Below are the max settings by entity and sub-entity definition
+# If random mode:
+#    The value will be between either 1 or the defined minimum and the defined maximum
+# Else:
+#    The value will be the maximum setting
+max_nodes: 20
+max_node_cpu_cores: 16
+max_node_memory_gig: 64
+max_node_namespaces: 5
+max_node_namespace_pods: 50
+min_node_namespace_pod_seconds: 300
+max_node_namespace_pod_seconds: 3600
+max_node_namespace_pod_labels: 5
+max_node_namespace_volumes: 50
+max_node_namespace_volume_labels: 3
+max_node_namespace_volume_request_gig: 64
+max_node_namespace_volume_volume_claims: 2
+max_node_namespace_volume_volume_claim_capacity_gig: 64
+max_node_namespace_volume_volume_claim_labels: 2

@@ -1,0 +1,10 @@
+action: py38, msg: getenv
+cwd: /Users/dnakabaa/Documents/project-koku/nise/.tox
+cmd: /Users/dnakabaa/.local/share/virtualenvs/nise-EWvkBQcm/bin/python -m virtualenv --no-download --python /Users/dnakabaa/.local/share/virtualenvs/nise-EWvkBQcm/bin/python py38
+created virtual environment CPython3.8.9.final.0-64 in 713ms
+  creator CPython3macOsFramework(dest=/Users/dnakabaa/Documents/project-koku/nise/.tox/py38, clear=False, no_vcs_ignore=False, global=False)
+  seeder FromAppData(download=False, pip=bundle, setuptools=bundle, wheel=bundle, via=copy, app_data_dir=/Users/dnakabaa/Library/Application Support/virtualenv)
+    added seed packages: pip==21.1.2, setuptools==57.0.0, wheel==0.36.2
+  activators BashActivator,CShellActivator,FishActivator,PowerShellActivator,PythonActivator,XonshActivator
+/Users/dnakabaa/.local/share/virtualenvs/nise-EWvkBQcm/lib/python3.8/site-packages/setuptools/command/install.py:34: SetuptoolsDeprecationWarning: setup.py install is deprecated. Use build and pip and other standards-based tools.
+  warnings.warn(

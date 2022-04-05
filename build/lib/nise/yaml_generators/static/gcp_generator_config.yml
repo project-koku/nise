@@ -1,0 +1,12 @@
+billing_account_id: my-billing-account
+project-name: big-project-name
+project-id: big-project-id
+# Below are the max settings by entity and sub-entity definition
+# If random mode:
+#    The value will be between either 1 or the defined minimum and the defined maximum
+# Else:
+#    The value will be the maximum setting
+max_compute_gens: 30
+max_storage_gens: 30
+max_network_gens: 30
+max_database_gens: 30

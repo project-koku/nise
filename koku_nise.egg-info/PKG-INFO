@@ -1,0 +1,16 @@
+Metadata-Version: 2.1
+Name: koku-nise
+Version: 2.8.1
+Summary: A tool for generating sample cost and usage data for testing purposes.
+Home-page: https://github.com/project-koku/nise
+Author: Project Koku
+Author-email: cost_mgmt@redhat.com
+License: UNKNOWN
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: GNU Affero General Public License v3
+Classifier: Operating System :: OS Independent
+License-File: LICENSE
+
+UNKNOWN
+
