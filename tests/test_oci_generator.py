@@ -17,10 +17,11 @@ class TestGenerator(OCIGenerator):
     def generate_data(self, report_type=None):
         return []
 
-class TestOCIGenerator(TestCase):
+class OCIGeneratorTestCase(TestCase):
     """Tests for OCI Generator."""
     def setUp(self):
         self.fake = Faker()
+        self.attributes = None
         self.now = datetime.now().replace(microsecond=0, second=0, minute=0)
         self.one_hour = timedelta(minutes=60)
         self.one_day = timedelta(hours=24)
@@ -68,7 +69,7 @@ class TestOCIGenerator(TestCase):
         for report_type in OCI_REPORT_TYPE_TO_COLS:
             kwargs = {"report_type":report_type}
             test_row.update(generator._init_data_row(self.six_hours_ago, self.now, **kwargs))
-        self.assertIsInstance(test_row, dict)
+            self.assertIsInstance(test_row, dict)
 
     def test_init_data_row_start_none(self):
         """Test the init data row method none start date."""
@@ -104,3 +105,50 @@ class TestOCIGenerator(TestCase):
         test_row_out = generator._add_common_usage_info(test_row_in, self.six_hours_ago, self.now)
         self.assertIn("lineItem/intervalUsageStart", test_row_out)
         self.assertIn("lineItem/intervalUsageEnd", test_row_out)
+
+
+class TestOCIComputeGenerator(OCIGeneratorTestCase):
+    """Tests for the Compute Generator type."""
+
+    def test_init_data_row(self):
+        """Test the init data row."""
+        for report_type in OCI_REPORT_TYPE_TO_COLS:
+            generator = OCIComputeGenerator(
+                self.six_hours_ago, self.now, self.currency, report_type
+            )
+            self.assertEqual(generator.service_name, "COMPUTE")
+            self.assertEqual(generator.report_type, report_type)
+            self.assertIsNotNone(generator.report_type)
+
+    def test_init_data_with_none_report(self):
+        """Test the init data with a none report type."""
+        generator = OCIComputeGenerator(self.six_hours_ago, self.now, self.currency, None)
+        self.assertIsNone(generator.report_type)
+
+    def test_update_data(self):
+        """Test that row is updated."""
+        generator = OCIComputeGenerator(self.six_hours_ago, self.now, self.currency, None, self.attributes)
+        row = generator._update_data({}, self.six_hours_ago, self.now)
+        self.assertEqual(row["product/service"], "COMPUTE")
+        self.assertIsNotNone(row["product/resourceId"])
+        self.assertIn("ocid1.instance.oci", row["product/resourceId"])
+
+    def test_add_cost_data(self):
+        """Test that cost specific data is added."""
+        report_type = "oci_cost_report"
+        generator = OCIComputeGenerator(self.six_hours_ago, self.now, self.currency, report_type, self.attributes)
+        row = generator._add_cost_data({}, self.six_hours_ago, self.now)
+        self.assertEqual(row["cost/currencyCode"], self.currency)
+        self.assertIn("B", row["cost/productSku"])
+        self.assertEqual(len(row["cost/productSku"]), 6)
+    
+    def test_add_usage_data(self):
+        """Test that usage specific data is added."""
+        report_type = "oci_usage_report"
+        generator = OCIComputeGenerator(self.six_hours_ago, self.now, self.currency, report_type, self.attributes)
+        usage_row = generator._add_usage_data({}, self.six_hours_ago, self.now)
+        self.assertIsInstance(usage_row["usage/consumedQuantity"], int)
+        self.assertIsInstance(usage_row["usage/billedQuantity"], int)
+        self.assertIsInstance(usage_row["usage/consumedQuantityUnits"], str)
+        self.assertIsInstance(usage_row["usage/consumedQuantityMeasure"], str)
+        self.assertNotEqual(usage_row["usage/consumedQuantityUnits"], "")
