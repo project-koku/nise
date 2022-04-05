@@ -13,7 +13,7 @@ class OCIComputeGenerator(OCIGenerator):
         """Initialize the compute generator."""
         super().__init__(start_date, end_date, currency, attributes)
         self.report_type = report_type
-        self.service = "COMPUTE"
+        self.service_name = "COMPUTE"
         self.resource_id = f"ocid1.instance.oci.{self.product_region}.{self.fake.pystr(min_chars=25, max_chars=35)}"
         self.product_sku = f"B{self.fake.random_number(fix_len=True, digits=5)}"
         self.product_description  = "Virtual Machine Standard - E2 Micro - Free"
@@ -72,7 +72,7 @@ class OCIComputeGenerator(OCIGenerator):
 
     def _update_data(self, row, start, end, **kwargs):
         """Update a data row with compute values."""
-        row["product/service"] = self.service
+        row["product/service"] = self.service_name
         row["product/resourceId"] = self.resource_id
         if self.report_type == OCI_COST_REPORT:
             row = self._add_cost_data(row, start, end, **kwargs)
