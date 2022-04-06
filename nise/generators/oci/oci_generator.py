@@ -16,15 +16,11 @@
 #
 """Defines the abstract generator."""
 import datetime
-from copy import deepcopy
 from random import choice
 from random import choices
 from random import randint
-from random import uniform
-from string import ascii_lowercase
 from abc import abstractmethod
 from faker import Faker
-
 from dateutil import parser
 from nise.generators.generator import AbstractGenerator
 from nise.generators.generator import REPORT_TYPE
@@ -146,7 +142,6 @@ class OCIGenerator(AbstractGenerator):
         """Initialize the generator."""
         super().__init__(start_date, end_date)
         self.currency = currency
-        # TODO: to be modified/organized
         self.tenant_id = f"ocid1.tenancy.oc1..{self.fake.pystr(min_chars=20, max_chars=50)}"
         self.reference_no = self._get_reference_num()
         self.compartment_id = self.tenant_id
@@ -157,6 +152,9 @@ class OCIGenerator(AbstractGenerator):
         self.is_correction = choice(["true", "false"])
         self.email_domain = self.fake.free_email_domain()
         self.subscription_id = self.fake.random_number(fix_len=True, digits=8)
+        self.usage_quantity = self.fake.random_number(digits=6, fix_len=True)
+        self.cost_overage_flag = choice(["N", ""])
+        self.cost_product_sku = f"B{self.fake.random_number(fix_len=True, digits=5)}"
 
     @staticmethod
     def timestamp(in_date):
@@ -217,7 +215,7 @@ class OCIGenerator(AbstractGenerator):
     def _tag_timestamp(self, in_date):
         """Provide timestamp a tag date."""
         tag_date = ""
-        if (in_date and isinstance(in_date, datetime.datetime)):
+        if isinstance(in_date, datetime.datetime):
             _date = in_date + datetime.timedelta(minutes=randint(1, 50), seconds=randint(1, 50))
             tag_date = _date.strftime("%Y-%m-%dT%H:%M:%S.000Z")
         return tag_date
@@ -228,12 +226,62 @@ class OCIGenerator(AbstractGenerator):
 
     def _get_availability_domain(self):
         """Get availability domain of the region"""
-        a_domain = f"{self.fake.pystr(max_chars=4)}:{self.product_region.upper()}-AD-{self.region_to_domain.get('domain')}"
-        return a_domain
+        available_domain = f"{self.fake.pystr(max_chars=4)}:{self.product_region.upper()}-AD-{self.region_to_domain.get('domain')}"
+        return available_domain
 
-    @abstractmethod
+    def _add_cost_data(self, row, start, end, **kwargs):
+        """Add cost information."""
+        _data = self._get_cost_data(**kwargs)
+        for column in OCI_COST_COLUMNS:
+            row[column] = _data[column]
+        return row
+
+    def _get_cost_data(self, **kwargs):
+        """Get cost data"""
+        _cost_data = {
+            "usage/billedQuantity": 1,
+            "usage/billedQuantityOverage":"",
+            "cost/subscriptionId": self.subscription_id,
+            "cost/productSku": self.cost_product_sku,
+            "product/Description": self.cost_product_description,
+            "cost/unitPrice": 0,
+            "cost/unitPriceOverage":"",
+            "cost/myCost": 0,
+            "cost/myCostOverage": self.cost_overage_flag,
+            "cost/currencyCode": self.currency,
+            "cost/billingUnitReadable": self.cost_billing_unit,
+            "cost/skuUnitDescription": self.cost_sku_unit_description,
+            "cost/overageFlag": self.cost_overage_flag,
+        }
+        return _cost_data
+    
+    def _add_usage_data(self, row, start, end, **kwargs):
+        """Add usage information."""
+        row['product/resource'] = "PIC_COMPUTE_VM_STANDARD_E2_MICRO_FREE"
+        _data = self._get_usage_data(**kwargs)
+        for column in OCI_USAGE_COLUMNS:
+            row[column] = _data[column]
+        return row
+    
+    def _get_usage_data(self, **kwargs):
+        """Get usage data."""
+        _usage_data = {
+            'usage/consumedQuantity': self.usage_quantity, 
+            'usage/billedQuantity': self.usage_quantity, 
+            'usage/consumedQuantityUnits': self.usage_consumed_quant_units, 
+            'usage/consumedQuantityMeasure': self.usage_consumed_quant_measure
+        }
+        return _usage_data
+
     def _update_data(self, row, start, end, **kwargs):
-        """Update data with generator specific info."""
+        """Update a data row with compute values."""
+        row["product/service"] = self.service_name
+        row["product/resourceId"] = self.resource_id
+        if self.report_type == OCI_COST_REPORT:
+            row = self._add_cost_data(row, start, end, **kwargs)
+        if self.report_type == OCI_USAGE_REPORT:
+            row = self._add_usage_data(row, start, end, **kwargs)
+        return row
 
     def _generate_hourly_data(self, **kwargs):
         """Create hourly data."""
@@ -245,6 +293,8 @@ class OCIGenerator(AbstractGenerator):
             row = self._update_data(row, start, end, **kwargs)
             yield row
     
-    @abstractmethod
     def generate_data(self, report_type=None, **kwargs):
-        """Responsibile for generating data."""
+        """Generate OCI compute data."""
+        if report_type:
+            kwargs.update({"report_type":report_type})
+        return self._generate_hourly_data(**kwargs)

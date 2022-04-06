@@ -1,9 +1,21 @@
+#
+# Copyright 2022 Red Hat, Inc.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+"""Module for OCI network data generation."""
 from nise.generators.oci.oci_generator import OCIGenerator
-from nise.generators.oci.oci_generator import OCI_COST_REPORT
-from nise.generators.oci.oci_generator import OCI_USAGE_REPORT
-from nise.generators.oci.oci_generator import OCI_COST_COLUMNS
-from nise.generators.oci.oci_generator import OCI_USAGE_COLUMNS
-from nise.generators.oci.oci_generator import OCI_REPORT_TYPE_TO_COLS
 
 
 class OCINetworkGenerator(OCIGenerator):
@@ -13,17 +25,10 @@ class OCINetworkGenerator(OCIGenerator):
         """Initialize the network generator."""
         super().__init__(start_date, end_date, currency, attributes)
         self.report_type = report_type
-        self.service = "NETWORK"
-        self.resource_id = f"ocid1.instance.oci.{self.product_region}.{self.fake.pystr(min_chars=25, max_chars=35)}"
-
-    def _update_data(self, row, start, end, **kwargs):
-        """Update a data row with network values."""
-        row["product/service"] = self.service
-        row["product/resourceId"] = self.resource_id
-        return row
-
-    def generate_data(self, report_type=None, **kwargs):
-        """Generate OCI network data."""
-        if report_type:
-            kwargs.update({"report_type":report_type})
-        return self._generate_hourly_data(**kwargs)
+        self.service_name = "NETWORK"
+        self.resource_id = f"ocid1.vnic.oci.iad.{self.product_region}.{self.fake.pystr(min_chars=25, max_chars=35)}"
+        self.cost_product_description  = "Outbound Data Transfer Zone 1"
+        self.cost_billing_unit = "ONE GiB HOURS DATA_TRANSFERED"
+        self.cost_sku_unit_description = "GB Months"
+        self.usage_consumed_quant_units = "BYTES"
+        self.usage_consumed_quant_measure = "DATA_TRASFERED"
