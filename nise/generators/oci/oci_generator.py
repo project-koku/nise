@@ -17,28 +17,24 @@
 """Defines the abstract generator."""
 import datetime
 from random import choice
-from random import choices
 from random import randint
-from abc import abstractmethod
+
 from faker import Faker
-from dateutil import parser
 from nise.generators.generator import AbstractGenerator
 from nise.generators.generator import REPORT_TYPE
 
 
-OCI_COST_REPORT="oci_cost_report"
+OCI_COST_REPORT = "oci_cost_report"
 OCI_USAGE_REPORT = "oci_usage_report"
 
-OCI_IDENTITY_COLUMNS=(
+OCI_IDENTITY_COLUMNS = (
     "lineItem/referenceNo",
     "lineItem/tenantId",
     "lineItem/intervalUsageStart",
     "lineItem/intervalUsageEnd",
-    "product/service"
+    "product/service",
 )
-OCI_USAGE_PRODUCT_COLS = {
-    "product/resource"
-}
+OCI_USAGE_PRODUCT_COLS = {"product/resource"}
 OCI_COMMON_PRODUCT_COLS = (
     "product/compartmentId",
     "product/compartmentName",
@@ -65,31 +61,15 @@ OCI_USAGE_COLUMNS = (
     "usage/consumedQuantity",
     "usage/billedQuantity",
     "usage/consumedQuantityUnits",
-    "usage/consumedQuantityMeasure"
+    "usage/consumedQuantityMeasure",
 )
-OCI_CORRECTION_COLUMNS=(
-    "lineItem/isCorrection",
-    "lineItem/backreferenceNo"
-)
-OCI_TAGS_COLUMNS=(
-    "tags/Oracle-Tags.CreatedBy",
-    "tags/Oracle-Tags.CreatedOn",
-    "tags/orcl-cloud.free-tier-retained",
-)
-OCI_ALL_COMMON_COLUMNS = (
-    OCI_IDENTITY_COLUMNS
-    + OCI_COMMON_PRODUCT_COLS
-    + OCI_CORRECTION_COLUMNS
-    + OCI_TAGS_COLUMNS
-)
+OCI_CORRECTION_COLUMNS = ("lineItem/isCorrection", "lineItem/backreferenceNo")
+OCI_TAGS_COLUMNS = ("tags/Oracle-Tags.CreatedBy", "tags/Oracle-Tags.CreatedOn", "tags/orcl-cloud.free-tier-retained")
+OCI_ALL_COMMON_COLUMNS = OCI_IDENTITY_COLUMNS + OCI_COMMON_PRODUCT_COLS + OCI_CORRECTION_COLUMNS + OCI_TAGS_COLUMNS
 
 OCI_REPORT_TYPE_TO_COLS = {
     OCI_COST_REPORT: (
-        OCI_IDENTITY_COLUMNS
-        + OCI_COMMON_PRODUCT_COLS
-        + OCI_COST_COLUMNS
-        + OCI_CORRECTION_COLUMNS
-        + OCI_TAGS_COLUMNS
+        OCI_IDENTITY_COLUMNS + OCI_COMMON_PRODUCT_COLS + OCI_COST_COLUMNS + OCI_CORRECTION_COLUMNS + OCI_TAGS_COLUMNS
     ),
     OCI_USAGE_REPORT: (
         OCI_IDENTITY_COLUMNS
@@ -98,21 +78,19 @@ OCI_REPORT_TYPE_TO_COLS = {
         + OCI_USAGE_COLUMNS
         + OCI_CORRECTION_COLUMNS
         + OCI_TAGS_COLUMNS
-    )
+    ),
 }
+
 
 class OCIGenerator(AbstractGenerator):
     """Defines a abstract class for generators."""
 
-    OCI_DOMAINS = {
-        "domain_1": 1,
-        "domain_3": 3
-    }
+    OCI_DOMAINS = {"domain_1": 1, "domain_3": 3}
 
     OCI_REGIONS_TO_DOMAIN = [
-        {"region": "ap-sydney-1", "domain":1},
-        {"region": "ap-melbourne-1", "domain":1},
-        {"region": "sa-saopaulo-1",	"domain":1},
+        {"region": "ap-sydney-1", "domain": 1},
+        {"region": "ap-melbourne-1", "domain": 1},
+        {"region": "sa-saopaulo-1", "domain": 1},
         {"region": "sa-vinhedo-1", "domain": 1},
         {"region": "ca-montreal-1", "domain": 1},
         {"region": "ca-toronto-1", "domain": 1},
@@ -136,10 +114,10 @@ class OCIGenerator(AbstractGenerator):
         {"region": "me-abudhabi-1", "domain": 1},
         {"region": "me-dubai-1", "domain": 1},
         {"region": "uk-london-1", "domain": 1},
-        {"region": "uk-cardiff-1",	"domain": 1},
-        {"region": "us-ashburn-1",	"domain": 3},
-        {"region": "us-phoenix-1", "domain": 3},	
-        {"region": "us-sanjose-1", "domain": 1}
+        {"region": "uk-cardiff-1", "domain": 1},
+        {"region": "us-ashburn-1", "domain": 3},
+        {"region": "us-phoenix-1", "domain": 3},
+        {"region": "us-sanjose-1", "domain": 1},
     ]
     fake = Faker()
 
@@ -150,7 +128,7 @@ class OCIGenerator(AbstractGenerator):
         self.tenant_id = f"ocid1.tenancy.oc1..{self.fake.pystr(min_chars=20, max_chars=50)}"
         self.reference_no = self._get_reference_num()
         self.compartment_id = self.tenant_id
-        self.compartment_name = self.fake.name().replace(' ', '').lower()
+        self.compartment_name = self.fake.name().replace(" ", "").lower()
         self.region_to_domain = choice(self.OCI_REGIONS_TO_DOMAIN)
         self.product_region = self._get_product_region()
         self.availability_domain = self._get_availability_domain()
@@ -188,9 +166,9 @@ class OCIGenerator(AbstractGenerator):
         data = self._get_common_usage_data(start, end)
         for column in OCI_ALL_COMMON_COLUMNS:
             row[column] = data[column]
-        return row   
+        return row
 
-    def _get_common_usage_data(self,start, end):
+    def _get_common_usage_data(self, start, end):
         """Generate data for common columns."""
 
         data = {
@@ -198,14 +176,16 @@ class OCIGenerator(AbstractGenerator):
             "lineItem/tenantId": self.tenant_id,
             "lineItem/intervalUsageStart": OCIGenerator.timestamp(start),
             "lineItem/intervalUsageEnd": OCIGenerator.timestamp(end),
-            "product/service":"",
+            "product/service": "",
             "product/compartmentId": self.compartment_id,
             "product/compartmentName": self.compartment_name,
             "product/region": self.product_region,
             "product/availabilityDomain": self.availability_domain,
-            "product/resourceId":"",
+            "product/resourceId": "",
             "lineItem/isCorrection": self.is_correction,
-            "lineItem/backreferenceNo": f"{self.reference_no}+{self.fake.pystr()}==" if self.is_correction == "true" else "",
+            "lineItem/backreferenceNo": f"{self.reference_no}+{self.fake.pystr()}=="
+            if self.is_correction == "true"
+            else "",
             "tags/Oracle-Tags.CreatedBy": f"default/{self.compartment_name}@{self.email_domain}",
             "tags/Oracle-Tags.CreatedOn": choice([self._tag_timestamp(start), self._tag_timestamp(end), ""]),
             "tags/orcl-cloud.free-tier-retained": choice(["true", ""]),
@@ -224,14 +204,16 @@ class OCIGenerator(AbstractGenerator):
             _date = in_date + datetime.timedelta(minutes=randint(1, 50), seconds=randint(1, 50))
             tag_date = _date.strftime("%Y-%m-%dT%H:%M:%S.000Z")
         return tag_date
-    
+
     def _get_product_region(self):
-        """Get a random region""" 
-        return self.region_to_domain.get('region')
+        """Get a random region"""
+        return self.region_to_domain.get("region")
 
     def _get_availability_domain(self):
         """Get availability domain of the region"""
-        available_domain = f"{self.fake.pystr(max_chars=4)}:{self.product_region.upper()}-AD-{self.region_to_domain.get('domain')}"
+        available_domain = (
+            f"{self.fake.pystr(max_chars=4)}:{self.product_region.upper()}-AD-{self.region_to_domain.get('domain')}"
+        )
         return available_domain
 
     def _add_cost_data(self, row, start, end, **kwargs):
@@ -245,12 +227,12 @@ class OCIGenerator(AbstractGenerator):
         """Get cost data"""
         _cost_data = {
             "usage/billedQuantity": 1,
-            "usage/billedQuantityOverage":"",
+            "usage/billedQuantityOverage": "",
             "cost/subscriptionId": self.subscription_id,
             "cost/productSku": self.cost_product_sku,
             "product/Description": self.cost_product_description,
             "cost/unitPrice": 0,
-            "cost/unitPriceOverage":"",
+            "cost/unitPriceOverage": "",
             "cost/myCost": 0,
             "cost/myCostOverage": self.cost_overage_flag,
             "cost/currencyCode": self.currency,
@@ -259,22 +241,22 @@ class OCIGenerator(AbstractGenerator):
             "cost/overageFlag": self.cost_overage_flag,
         }
         return _cost_data
-    
+
     def _add_usage_data(self, row, start, end, **kwargs):
         """Add usage information."""
-        row['product/resource'] = "PIC_COMPUTE_VM_STANDARD_E2_MICRO_FREE"
+        row["product/resource"] = "PIC_COMPUTE_VM_STANDARD_E2_MICRO_FREE"
         _data = self._get_usage_data(**kwargs)
         for column in OCI_USAGE_COLUMNS:
             row[column] = _data[column]
         return row
-    
+
     def _get_usage_data(self, **kwargs):
         """Get usage data."""
         _usage_data = {
-            'usage/consumedQuantity': self.usage_quantity, 
-            'usage/billedQuantity': self.usage_quantity, 
-            'usage/consumedQuantityUnits': self.usage_consumed_quant_units, 
-            'usage/consumedQuantityMeasure': self.usage_consumed_quant_measure
+            "usage/consumedQuantity": self.usage_quantity,
+            "usage/billedQuantity": self.usage_quantity,
+            "usage/consumedQuantityUnits": self.usage_consumed_quant_units,
+            "usage/consumedQuantityMeasure": self.usage_consumed_quant_measure,
         }
         return _usage_data
 
@@ -297,9 +279,9 @@ class OCIGenerator(AbstractGenerator):
             row = self._add_common_usage_info(row, start, end)
             row = self._update_data(row, start, end, **kwargs)
             yield row
-    
+
     def generate_data(self, report_type=None, **kwargs):
         """Generate OCI compute data."""
         if report_type:
-            kwargs.update({"report_type":report_type})
+            kwargs.update({"report_type": report_type})
         return self._generate_hourly_data(**kwargs)

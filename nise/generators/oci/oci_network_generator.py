@@ -27,7 +27,7 @@ class OCINetworkGenerator(OCIGenerator):
         self.report_type = report_type
         self.service_name = "NETWORK"
         self.resource_id = f"ocid1.vnic.oci.iad.{self.product_region}.{self.fake.pystr(min_chars=25, max_chars=35)}"
-        self.cost_product_description  = "Outbound Data Transfer Zone 1"
+        self.cost_product_description = "Outbound Data Transfer Zone 1"
         self.cost_billing_unit = "ONE GiB HOURS DATA_TRANSFERED"
         self.cost_sku_unit_description = "GB Months"
         self.usage_consumed_quant_units = "BYTES"

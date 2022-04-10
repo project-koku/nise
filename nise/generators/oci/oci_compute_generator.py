@@ -26,8 +26,10 @@ class OCIComputeGenerator(OCIGenerator):
         super().__init__(start_date, end_date, currency, attributes)
         self.report_type = report_type
         self.service_name = "COMPUTE"
-        self.resource_id = f"ocid1.instance.oci.iad.{self.product_region}.{self.fake.pystr(min_chars=25, max_chars=35)}"
-        self.cost_product_description  = "Virtual Machine Standard - E2 Micro - Free"
+        self.resource_id = (
+            f"ocid1.instance.oci.iad.{self.product_region}.{self.fake.pystr(min_chars=25, max_chars=35)}"
+        )
+        self.cost_product_description = "Virtual Machine Standard - E2 Micro - Free"
         self.cost_billing_unit = "ONE HOURS OCPUS"
         self.cost_sku_unit_description = "OCPU Hours"
         self.usage_consumed_quant_units = "GB_MS"

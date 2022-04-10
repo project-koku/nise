@@ -1,4 +1,3 @@
-from nise.generators.oci.oci_generator import OCIGenerator
-from nise.generators.oci.oci_generator import OCI_REPORT_TYPE_TO_COLS
 from nise.generators.oci.oci_compute_generator import OCIComputeGenerator
+from nise.generators.oci.oci_generator import OCIGenerator
 from nise.generators.oci.oci_network_generator import OCINetworkGenerator

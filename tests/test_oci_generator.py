@@ -15,21 +15,24 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """OCI Generator Unit Tests."""
-from faker import Faker
 from datetime import datetime
 from datetime import timedelta
 from unittest import TestCase
-from unittest.mock import patch, MagicMock
-from nise.generators.oci import OCIGenerator
+from unittest.mock import patch
+
+from faker import Faker
 from nise.generators.oci import OCIComputeGenerator
+from nise.generators.oci import OCIGenerator
 from nise.generators.oci import OCINetworkGenerator
-from nise.generators.oci.oci_generator import OCI_COST_REPORT
-from nise.generators.oci.oci_generator import OCI_USAGE_REPORT
 from nise.generators.oci.oci_generator import OCI_REPORT_TYPE_TO_COLS
+
+# from nise.generators.oci.oci_generator import OCI_COST_REPORT
+# from nise.generators.oci.oci_generator import OCI_USAGE_REPORT
 
 
 class OCIGeneratorTestCase(TestCase):
     """Tests for OCI Generator."""
+
     def setUp(self):
         self.fake = Faker()
         self.attributes = None
@@ -48,28 +51,25 @@ class OCIGeneratorTestCase(TestCase):
         """Test timestamp method fails with an invalid date."""
         with self.assertRaises(ValueError):
             OCIGenerator.timestamp("invalid")
-    
+
     def test_tag_timestamp(self):
         """Test tag timestamp method returns a string."""
         generator = OCIGenerator(self.six_hours_ago, self.now, self.currency)
         test_date = datetime.now()
         tag_date = generator._tag_timestamp(test_date)
         self.assertIsInstance(tag_date, str)
-    
+
     def test_tag_timestamp_date(self):
         """Test tag timestamp method with valid date returns a timestamp."""
         generator = OCIGenerator(self.six_hours_ago, self.now, self.currency)
         test_date = datetime.now()
-        tag_date = datetime.strptime(
-            generator._tag_timestamp(test_date), 
-            "%Y-%m-%dT%H:%M:%S.000Z"
-        )
-        self.assertIsInstance(tag_date, datetime) 
-    
+        tag_date = datetime.strptime(generator._tag_timestamp(test_date), "%Y-%m-%dT%H:%M:%S.000Z")
+        self.assertIsInstance(tag_date, datetime)
+
     def test_tag_timestamp_invalid_date(self):
         """Test tag timestamp method with invalid date returns an empty."""
         generator = OCIGenerator(self.six_hours_ago, self.now, self.currency)
-        tag_date = generator._tag_timestamp('invalid date')
+        tag_date = generator._tag_timestamp("invalid date")
         self.assertIsInstance(tag_date, str)
         self.assertEqual(tag_date, "")
 
@@ -78,7 +78,7 @@ class OCIGeneratorTestCase(TestCase):
         generator = OCIGenerator(self.six_hours_ago, self.now, self.currency)
         test_row = {}
         for report_type in OCI_REPORT_TYPE_TO_COLS:
-            kwargs = {"report_type":report_type}
+            kwargs = {"report_type": report_type}
             test_row.update(generator._init_data_row(self.six_hours_ago, self.now, **kwargs))
             self.assertIsInstance(test_row, dict)
 
@@ -87,7 +87,7 @@ class OCIGeneratorTestCase(TestCase):
         generator = OCIGenerator(self.six_hours_ago, self.now, self.currency)
         with self.assertRaises(ValueError):
             generator._init_data_row(None, self.now)
-        
+
     def test_init_data_row_end_none(self):
         """Test the init data row method none end date."""
         generator = OCIGenerator(self.six_hours_ago, self.now, self.currency)
@@ -105,23 +105,22 @@ class OCIGeneratorTestCase(TestCase):
         generator = OCIGenerator(self.six_hours_ago, self.now, self.currency)
         with self.assertRaises(ValueError):
             generator._init_data_row(self.six_hours_ago, "invalid")
-    
+
     def test_add_common_usage_info(self):
         """Test that add_common_usage_info updates usage timestamps."""
         generator = OCIGenerator(self.six_hours_ago, self.now, self.currency)
         test_row_in = {}
         for report_type in OCI_REPORT_TYPE_TO_COLS:
-            kwargs = {"report_type":report_type}
+            kwargs = {"report_type": report_type}
             test_row_in.update(generator._init_data_row(self.six_hours_ago, self.now, **kwargs))
             test_row_out = generator._add_common_usage_info(test_row_in, self.six_hours_ago, self.now)
             self.assertIn("lineItem/intervalUsageStart", test_row_out)
             self.assertIn("lineItem/intervalUsageEnd", test_row_out)
-    
+
     # def test_generate_hourly_data_(self):
     #     # TODO:
     #     """Test oci generate hourly data is called"""
     #     pass
-
 
 
 class TestOCIComputeGenerator(OCIGeneratorTestCase):
@@ -130,9 +129,7 @@ class TestOCIComputeGenerator(OCIGeneratorTestCase):
     def test_init_data_row(self):
         """Test the init data row."""
         for report_type in OCI_REPORT_TYPE_TO_COLS:
-            generator = OCIComputeGenerator(
-                self.six_hours_ago, self.now, self.currency, report_type
-            )
+            generator = OCIComputeGenerator(self.six_hours_ago, self.now, self.currency, report_type)
             self.assertEqual(generator.service_name, "COMPUTE")
             self.assertEqual(generator.report_type, report_type)
             self.assertIsNotNone(generator.report_type)
@@ -159,7 +156,7 @@ class TestOCIComputeGenerator(OCIGeneratorTestCase):
         self.assertEqual(row["cost/currencyCode"], self.currency)
         self.assertIn("B", row["cost/productSku"])
         self.assertEqual(len(row["cost/productSku"]), 6)
-    
+
     def test_add_usage_data(self):
         """Test that usage data is added."""
         report_type = "oci_usage_report"
@@ -182,12 +179,11 @@ class TestOCIComputeGenerator(OCIGeneratorTestCase):
 
 class TestOCINetworkGenerator(OCIGeneratorTestCase):
     """Tests for the Network Generator."""
+
     def test_init_data_row(self):
         """Test the init data row."""
         for report_type in OCI_REPORT_TYPE_TO_COLS:
-            generator = OCINetworkGenerator(
-                self.six_hours_ago, self.now, self.currency, report_type, self.attributes
-            )
+            generator = OCINetworkGenerator(self.six_hours_ago, self.now, self.currency, report_type, self.attributes)
             self.assertEqual(generator.service_name, "NETWORK")
             self.assertEqual(generator.report_type, report_type)
             self.assertIsNotNone(generator.report_type)
@@ -207,7 +203,7 @@ class TestOCINetworkGenerator(OCIGeneratorTestCase):
         row = generator._add_cost_data({}, self.six_hours_ago, self.now)
         self.assertEqual(row["cost/currencyCode"], self.currency)
         self.assertIn("B", row["cost/productSku"])
-    
+
     def test_add_usage_data(self):
         """Test that usage specific data for network service is added."""
         report_type = "oci_usage_report"

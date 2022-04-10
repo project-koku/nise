@@ -30,8 +30,8 @@ from nise.report import aws_create_marketplace_report
 from nise.report import aws_create_report
 from nise.report import azure_create_report
 from nise.report import gcp_create_report
-from nise.report import ocp_create_report
 from nise.report import oci_create_report
+from nise.report import ocp_create_report
 from nise.util import load_yaml
 from nise.util import LOG
 from nise.util import LOG_VERBOSITY
@@ -353,11 +353,7 @@ def create_parser():
         "ocp", parents=[parent_parser], add_help=False, description="The OCP parser", help="create the OCP reports"
     )
     oci_parser = report_subparser.add_parser(
-        "oci", 
-        parents=[parent_parser], 
-        add_help=False, 
-        description="The OCI parser", 
-        help="create the OCI reports"
+        "oci", parents=[parent_parser], add_help=False, description="The OCI parser", help="create the OCI reports"
     )
 
     add_aws_parser_args(aws_parser)
@@ -535,6 +531,7 @@ def _validate_gcp_arguments(parser, options):
 
     """
     return True
+
 
 def _validate_oci_arguments(parser, options):
     """Validate aws argument combination.
