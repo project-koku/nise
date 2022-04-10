@@ -1119,7 +1119,7 @@ def write_oci_file(report_type, file_number, data, options):
         OCI_COST_REPORT: 'cost',
         OCI_USAGE_REPORT: 'usage'
     }
-    file_name = f"reports_{report_type_to_name[report_type]}-csv_0001000000{file_number}"
+    file_name = f"reports_{report_type_to_name[report_type]}-csv_0001{file_number}"
     full_file_name = f"{os.getcwd()}/{file_name}.csv"
     _write_csv(
         full_file_name, 
@@ -1140,12 +1140,7 @@ def oci_create_report(options):
     months = _create_month_list(start_date, end_date)
     currency = default_currency(options.get("currency"), static_currency=None)
     write_monthly = options.get("write_monthly", False)
-    
-    fake = Faker()
-    file_numbers = {
-        OCI_COST_REPORT: fake.random_number(digits=6, fix_len=True) , 
-        OCI_USAGE_REPORT: fake.random_number(digits=6, fix_len=True)
-    }
+    file_number = 0
 
     for month in months:
         data = {OCI_COST_REPORT:[], OCI_USAGE_REPORT:[]}
@@ -1166,9 +1161,9 @@ def oci_create_report(options):
 
             month_output_file = write_oci_file(
                 report_type,
-                file_numbers[report_type],
+                file_number,
                 data[report_type],
                 options
             )
             monthly_files.append(month_output_file)
-            file_numbers[report_type] += 1
+        file_number += 1

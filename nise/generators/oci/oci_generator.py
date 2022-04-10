@@ -104,6 +104,11 @@ OCI_REPORT_TYPE_TO_COLS = {
 class OCIGenerator(AbstractGenerator):
     """Defines a abstract class for generators."""
 
+    OCI_DOMAINS = {
+        "domain_1": 1,
+        "domain_3": 3
+    }
+
     OCI_REGIONS_TO_DOMAIN = [
         {"region": "ap-sydney-1", "domain":1},
         {"region": "ap-melbourne-1", "domain":1},
