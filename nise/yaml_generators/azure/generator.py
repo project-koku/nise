@@ -130,9 +130,7 @@ class AzureGenerator(Generator):
         return config
 
     def build_data(self, config, _random=False):  # noqa: C901
-        """
-
-        """
+        """ """
         LOG.info("Data build starting")
 
         data = dicta(

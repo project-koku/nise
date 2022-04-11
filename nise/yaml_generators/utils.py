@@ -42,7 +42,7 @@ def generate_number_str(max_len):
     Generate a string of digits of arbitrary length.
     The maximum length is specified in the config. (max_len)
     """
-    return str(FAKER.random_int(int(10 ** (max_len - 1)), 10 ** max_len)).zfill(max_len)
+    return str(FAKER.random_int(int(10 ** (max_len - 1)), 10**max_len)).zfill(max_len)
 
 
 def generate_name(config, prefix="", suffix="", dynamic=True, generator=generate_words, cache=SEEN_NAMES):
