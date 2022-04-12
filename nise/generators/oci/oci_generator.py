@@ -17,9 +17,7 @@
 """Defines the abstract generator."""
 import datetime
 from random import choice
-from random import randint
 
-from faker import Faker
 from nise.generators.generator import AbstractGenerator
 from nise.generators.generator import REPORT_TYPE
 
@@ -85,8 +83,6 @@ OCI_REPORT_TYPE_TO_COLS = {
 class OCIGenerator(AbstractGenerator):
     """Defines a abstract class for generators."""
 
-    OCI_DOMAINS = {"domain_1": 1, "domain_3": 3}
-
     OCI_REGIONS_TO_DOMAIN = [
         {"region": "ap-sydney-1", "domain": 1},
         {"region": "ap-melbourne-1", "domain": 1},
@@ -119,13 +115,16 @@ class OCIGenerator(AbstractGenerator):
         {"region": "us-phoenix-1", "domain": 3},
         {"region": "us-sanjose-1", "domain": 1},
     ]
-    fake = Faker()
 
     def __init__(self, start_date, end_date, currency, attributes=None):
         """Initialize the generator."""
         super().__init__(start_date, end_date)
         self.currency = currency
-        self.tenant_id = f"ocid1.tenancy.oc1..{self.fake.pystr(min_chars=20, max_chars=50)}"
+        self.tenant_id = (
+            attributes.get("tenant_id")
+            if attributes
+            else f"ocid1.tenancy.oc1..{self.fake.pystr(min_chars=20, max_chars=50)}"
+        )
         self.reference_no = self._get_reference_num()
         self.compartment_id = self.tenant_id
         self.compartment_name = self.fake.name().replace(" ", "").lower()
@@ -142,7 +141,7 @@ class OCIGenerator(AbstractGenerator):
     @staticmethod
     def timestamp(in_date):
         """Provide timestamp for a date."""
-        if not (in_date and isinstance(in_date, datetime.datetime)):
+        if not isinstance(in_date, datetime.datetime):
             raise ValueError("in_date must be a date object.")
         return in_date.strftime("%Y-%m-%dT%H:%MZ")
 
@@ -201,8 +200,7 @@ class OCIGenerator(AbstractGenerator):
         """Provide timestamp a tag date."""
         tag_date = ""
         if isinstance(in_date, datetime.datetime):
-            _date = in_date + datetime.timedelta(minutes=randint(1, 50), seconds=randint(1, 50))
-            tag_date = _date.strftime("%Y-%m-%dT%H:%M:%S.000Z")
+            tag_date = in_date.strftime("%Y-%m-%dT%H:%M:%S.000Z")
         return tag_date
 
     def _get_product_region(self):

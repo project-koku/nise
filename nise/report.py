@@ -65,6 +65,7 @@ from nise.generators.gcp import JSONLGCPDatabaseGenerator
 from nise.generators.gcp import JSONLGCPNetworkGenerator
 from nise.generators.gcp import JSONLProjectGenerator
 from nise.generators.gcp import ProjectGenerator
+from nise.generators.oci import OCIBlockStorageGenerator
 from nise.generators.oci import OCIComputeGenerator
 from nise.generators.oci import OCINetworkGenerator
 from nise.generators.oci.oci_generator import OCI_COST_REPORT
@@ -1126,9 +1127,13 @@ def oci_create_report(options):
     """Create cost and usage report files."""
     start_date = options.get("start_date")
     end_date = options.get("end_date")
+    fake = Faker()
+    attributes = {}
+    attributes["tenant_id"] = f"ocid1.tenancy.oc1..{fake.pystr(min_chars=20, max_chars=50)}"
     generators = [
-        {"generator": OCIComputeGenerator, "attributes": None},
-        {"generator": OCINetworkGenerator, "attributes": None},
+        {"generator": OCIComputeGenerator, "attributes": attributes},
+        {"generator": OCINetworkGenerator, "attributes": attributes},
+        {"generator": OCIBlockStorageGenerator, "attributes": attributes},
     ]
     months = _create_month_list(start_date, end_date)
     currency = default_currency(options.get("currency"), static_currency=None)
