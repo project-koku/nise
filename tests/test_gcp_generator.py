@@ -104,7 +104,6 @@ class TestGCPGenerator(TestCase):
         )
         generated_data = generator.generate_data()
         list_data = list(generated_data)
-        print("CHECKING DATA: ", list_data)
         self.assertEqual(list_data[0]["cost"], self.usage_attributes["usage.amount"] * self.usage_attributes["price"])
 
     def test_jsonl_compute_engine_init_with_attributes(self):

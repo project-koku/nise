@@ -6,7 +6,7 @@ nise is a command line tool::
 
     Usage:
         nise ( report | yaml )
-        nise report ( aws | azure | gcp | ocp ) [options]
+        nise report ( aws | azure | gcp | ocp | oci ) [options]
         nise yaml ( aws | azure | ocp | ocp-on-cloud ) [options]
 
     Report Options:
@@ -179,3 +179,16 @@ Below is an example usage of ``nise`` for OCP running on AZURE data using the `e
 .. _`example ocp-on-aws yamls`: ../examples/ocp_on_aws
 
 .. _`example ocp-on-azure yamls`: ../examples/ocp_on_azure
+
+
+
+OCI reports
+-----------
+
+Generated reports will be produced in daily .csv files with the file format <reports>_<Report-type>-<csv>_<File-number>.csv.
+
+Below are example usages of ``nise`` for OCI data::
+
+To generate completely random data and save the report files in the local directory::
+
+    nise report oci -s 2022-02-10 -w

@@ -184,9 +184,9 @@ class GCPGenerator(AbstractGenerator):
         if pricing_unit == "gibibyte month":
             return amount * 0.00244752
         if pricing_unit == "gibibyte hour":
-            return amount * (3.3528 * 10 ** -6)
+            return amount * (3.3528 * 10**-6)
         if pricing_unit == "gibibyte":
-            return amount * (9.31323 * 10 ** -0)
+            return amount * (9.31323 * 10**-0)
         if pricing_unit == "hour":
             return amount / 3600.00
         return 0

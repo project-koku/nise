@@ -218,7 +218,7 @@ class OCPGeneratorTestCase(TestCase):
     def test_gen_namespaces_with_namespace(self):
         """Test that gen_namespaces arranges the output dict in the expected way.
 
-            If namespaces are specified, namespaces are not generated.
+        If namespaces are specified, namespaces are not generated.
         """
         in_nodes = self.attributes.get("nodes")
         generator = OCPGenerator(self.two_hours_ago, self.now, self.attributes)
@@ -231,7 +231,7 @@ class OCPGeneratorTestCase(TestCase):
     def test_gen_namespaces_without_namespace(self):
         """Test that gen_namespaces arranges the output dict in the expected way.
 
-            If no namespaces are specified, namespaces are generated.
+        If no namespaces are specified, namespaces are generated.
         """
         in_nodes = self.attributes.get("nodes")
         del in_nodes[0]["namespaces"]
@@ -248,7 +248,7 @@ class OCPGeneratorTestCase(TestCase):
     def test_gen_nodes_with_nodes(self):
         """Test that gen_nodes arranges the output dict in the expected way.
 
-            If nodes are specified, nodes are not generated.
+        If nodes are specified, nodes are not generated.
         """
         in_nodes = self.attributes.get("nodes")
         generator = OCPGenerator(self.two_hours_ago, self.now, self.attributes)
@@ -260,7 +260,7 @@ class OCPGeneratorTestCase(TestCase):
     def test_gen_nodes_without_nodes(self):
         """Test that gen_nodes arranges the output dict in the expected way.
 
-            If nodes are not specified, nodes are generated.
+        If nodes are not specified, nodes are generated.
         """
         generator = OCPGenerator(self.two_hours_ago, self.now, {})
         out_nodes = generator._gen_nodes()
@@ -279,7 +279,7 @@ class OCPGeneratorTestCase(TestCase):
     def test_gen_pods_with_namespaces(self):
         """Test that gen_pods arranges the output dict in the expected way.
 
-            If namespaces with pods are specified, defined pods are used.
+        If namespaces with pods are specified, defined pods are used.
         """
         generator = OCPGenerator(self.two_hours_ago, self.now, self.attributes)
         out_pods, _ = generator._gen_pods(generator.namespaces)  # gen_pods depends on the output of gen_namespaces.
@@ -323,7 +323,7 @@ class OCPGeneratorTestCase(TestCase):
     def test_gen_pods_without_namespaces(self):
         """Test that gen_pods arranges the output dict in the expected way.
 
-            If no namespaces are specified, pods are generated.
+        If no namespaces are specified, pods are generated.
         """
         generator = OCPGenerator(self.two_hours_ago, self.now, {})
         out_pods, _ = generator._gen_pods(generator.namespaces)
@@ -391,7 +391,7 @@ class OCPGeneratorTestCase(TestCase):
     def test_gen_volumes_with_namespaces(self):
         """Test that gen_volumes arranges the output dict in the expected way.
 
-            If namespaces with volumes are specified, defined volumes are used.
+        If namespaces with volumes are specified, defined volumes are used.
         """
         generator = OCPGenerator(self.two_hours_ago, self.now, self.attributes)
 
@@ -412,7 +412,7 @@ class OCPGeneratorTestCase(TestCase):
     def test_gen_volumes_without_namespaces(self):
         """Test that gen_volumes arranges the output dict in the expected way.
 
-            If no namespaces are specified, volumes are generated.
+        If no namespaces are specified, volumes are generated.
         """
         generator = OCPGenerator(self.two_hours_ago, self.now, {})
 

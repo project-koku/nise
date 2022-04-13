@@ -54,7 +54,7 @@ class OCPGeneratorTestCase(TestCase):
         self.assertTrue(self.yg.validate_config(dc))
 
     def test_config_validator(self):
-        """Test config validation """
+        """Test config validation"""
         dc = self.yg.default_config()
         self.assertTrue(self.yg.validate_config(dc))
         with self.assertRaises(TypeError):
@@ -223,7 +223,7 @@ class OCPGeneratorTestCase(TestCase):
                 self.assertEqual(config[k], config_file_data[k])
 
     def test_process_template(self):
-        """ Test process jinja template """
+        """Test process jinja template"""
         test_template_file_name = os.path.join(FILE_DIR, "test_yaml_generator_template.yml.j2")
         test_config_file_name = os.path.join(FILE_DIR, "test_yaml_generator_config.yml")
         test_output_file_name = os.path.join(FILE_DIR, "test_ocp_generated.yml")

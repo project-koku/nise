@@ -52,7 +52,7 @@ class AzureGeneratorTestCase(TestCase):
         self.assertTrue(self.yg.validate_config(dc))
 
     def test_config_validator(self):
-        """Test config validation """
+        """Test config validation"""
         dc = self.yg.default_config()
         self.assertTrue(self.yg.validate_config(dc))
         with self.assertRaises(TypeError):

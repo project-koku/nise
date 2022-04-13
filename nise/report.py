@@ -65,6 +65,12 @@ from nise.generators.gcp import JSONLGCPDatabaseGenerator
 from nise.generators.gcp import JSONLGCPNetworkGenerator
 from nise.generators.gcp import JSONLProjectGenerator
 from nise.generators.gcp import ProjectGenerator
+from nise.generators.oci import OCIBlockStorageGenerator
+from nise.generators.oci import OCIComputeGenerator
+from nise.generators.oci import OCINetworkGenerator
+from nise.generators.oci.oci_generator import OCI_COST_REPORT
+from nise.generators.oci.oci_generator import OCI_REPORT_TYPE_TO_COLS
+from nise.generators.oci.oci_generator import OCI_USAGE_REPORT
 from nise.generators.ocp import OCP_NAMESPACE_LABEL
 from nise.generators.ocp import OCP_NODE_LABEL
 from nise.generators.ocp import OCP_POD_USAGE
@@ -1106,3 +1112,51 @@ def _gcp_bigquery_process(
     gcp_bucket_to_dataset(gcp_bucket_name, output_file_name, gcp_dataset_name, gcp_table_name)
 
     return monthly_files
+
+
+def write_oci_file(report_type, file_number, data, options):
+    """Write OCI data to a file."""
+    report_type_to_name = {OCI_COST_REPORT: "cost", OCI_USAGE_REPORT: "usage"}
+    file_name = f"reports_{report_type_to_name[report_type]}-csv_0001{file_number}"
+    full_file_name = f"{os.getcwd()}/{file_name}.csv"
+    _write_csv(full_file_name, data, OCI_REPORT_TYPE_TO_COLS[report_type])
+    return full_file_name
+
+
+def oci_create_report(options):
+    """Create cost and usage report files."""
+    start_date = options.get("start_date")
+    end_date = options.get("end_date")
+    fake = Faker()
+    attributes = {}
+    attributes["tenant_id"] = f"ocid1.tenancy.oc1..{fake.pystr(min_chars=20, max_chars=50)}"
+    generators = [
+        {"generator": OCIComputeGenerator, "attributes": attributes},
+        {"generator": OCINetworkGenerator, "attributes": attributes},
+        {"generator": OCIBlockStorageGenerator, "attributes": attributes},
+    ]
+    months = _create_month_list(start_date, end_date)
+    currency = default_currency(options.get("currency"), static_currency=None)
+    # write_monthly = options.get("write_monthly", False)
+    file_number = 0
+
+    for month in months:
+        data = {OCI_COST_REPORT: [], OCI_USAGE_REPORT: []}
+        monthly_files = []
+
+        for report_type in OCI_REPORT_TYPE_TO_COLS:
+            LOG.info(f"Generating data for OCI for {month.get('name')}")
+
+            for generator in generators:
+                generator_cls = generator.get("generator")
+                attributes = generator.get("attributes")
+                gen_start_date = month.get("start")
+                gen_end_date = month.get("end")
+                gen = generator_cls(gen_start_date, gen_end_date, currency, report_type, attributes)
+
+                for hour in gen.generate_data(report_type=report_type):
+                    data[report_type] += [hour]
+
+            month_output_file = write_oci_file(report_type, file_number, data[report_type], options)
+            monthly_files.append(month_output_file)
+        file_number += 1

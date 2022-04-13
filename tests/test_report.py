@@ -47,6 +47,7 @@ from nise.report import azure_create_report
 from nise.report import default_currency
 from nise.report import gcp_create_report
 from nise.report import gcp_route_file
+from nise.report import oci_create_report
 from nise.report import ocp_create_report
 from nise.report import ocp_route_file
 from nise.report import post_payload_to_ingest_service
@@ -1486,3 +1487,23 @@ class GCPReportTestCase(TestCase):
 
         self.assertTrue(os.path.isfile(expected_output_file_path))
         os.remove(expected_output_file_path)
+
+
+class OCIReportTestCase(TestCase):
+    """Tests for OCI report generation."""
+
+    def test_oci_create_report(self):
+        """Test the oci report creation method."""
+        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
+        one_day = datetime.timedelta(days=1)
+        yesterday = now - one_day
+        report_types = ["cost", "usage"]
+        file_number = 0
+        options = {"start_date": yesterday, "end_date": now, "write_monthly": True}
+        oci_create_report(options)
+
+        for report_type in report_types:
+            file_name = f"reports_{report_type}-csv_0001{file_number}"
+            expected_output_file_path = f"{os.getcwd()}/{file_name}.csv"
+            self.assertTrue(os.path.isfile(expected_output_file_path))
+            os.remove(expected_output_file_path)
