@@ -57,7 +57,7 @@ To run all unit tests specifically::
 
 To run unit tests for a single provider::
 
-    make test test_source=<aws|azure|gcp|ocp>
+    make test test_source=<aws|azure|gcp|ocp|oci>
 
 Linting
 -------
@@ -110,7 +110,7 @@ nise is a command line tool::
 
     Usage:
         nise ( report | yaml )
-        nise report ( aws | azure | gcp | ocp ) [options]
+        nise report ( aws | azure | gcp | ocp | oci ) [options]
         nise yaml ( aws | azure | ocp | ocp-on-cloud ) [options]
 
     Report Options:
