@@ -32,3 +32,4 @@ class OCINetworkGenerator(OCIGenerator):
         self.cost_sku_unit_description = "GB Months"
         self.usage_consumed_quant_units = "BYTES"
         self.usage_consumed_quant_measure = "DATA_TRASFERED"
+        self.usage_product_resource = "PIC_COMPUTE_OUTBOUND_DATA_TRANSFER_ZONE1"

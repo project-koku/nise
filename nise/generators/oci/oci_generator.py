@@ -242,7 +242,7 @@ class OCIGenerator(AbstractGenerator):
 
     def _add_usage_data(self, row, start, end, **kwargs):
         """Add usage information."""
-        row["product/resource"] = "PIC_COMPUTE_VM_STANDARD_E2_MICRO_FREE"
+        row["product/resource"] = self.usage_product_resource
         _data = self._get_usage_data(**kwargs)
         for column in OCI_USAGE_COLUMNS:
             row[column] = _data[column]
@@ -279,7 +279,7 @@ class OCIGenerator(AbstractGenerator):
             yield row
 
     def generate_data(self, report_type=None, **kwargs):
-        """Generate OCI compute data."""
+        """Generate OCI data."""
         if report_type:
             kwargs.update({"report_type": report_type})
         return self._generate_hourly_data(**kwargs)
