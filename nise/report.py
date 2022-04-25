@@ -531,13 +531,14 @@ def aws_create_report(options):  # noqa: C901
         accounts_list = static_report_data.get("accounts")
     else:
         generators = [
-            {"generator": DataTransferGenerator, "attributes": None},
-            {"generator": EBSGenerator, "attributes": None},
-            {"generator": EC2Generator, "attributes": None},
-            {"generator": S3Generator, "attributes": None},
-            {"generator": RDSGenerator, "attributes": None},
-            {"generator": Route53Generator, "attributes": None},
-            {"generator": VPCGenerator, "attributes": None},
+            {"generator": DataTransferGenerator, "attributes": {}},
+            {"generator": EBSGenerator, "attributes": {}},
+            {"generator": EC2Generator, "attributes": {}},
+            {"generator": S3Generator, "attributes": {}},
+            {"generator": RDSGenerator, "attributes": {}},
+            {"generator": Route53Generator, "attributes": {}},
+            {"generator": VPCGenerator, "attributes": {}},
+            {"generator": MarketplaceGenerator, "attributes": {}},
         ]
         accounts_list = None
 
@@ -766,7 +767,7 @@ def ocp_create_report(options):  # noqa: C901
     if static_report_data:
         generators = _get_generators(static_report_data.get("generators"))
     else:
-        generators = [{"generator": OCPGenerator, "attributes": None}]
+        generators = [{"generator": OCPGenerator, "attributes": {}}]
 
     months = _create_month_list(start_date, end_date)
     insights_upload = options.get("insights_upload")
@@ -981,10 +982,10 @@ def gcp_create_report(options):  # noqa: C901
                 currency = default_currency(options.get("currency"), get_gcp_static_currency(generators))
         else:
             generators = [
-                {"generator": JSONLCloudStorageGenerator, "attributes": None},
-                {"generator": JSONLComputeEngineGenerator, "attributes": None},
-                {"generator": JSONLGCPNetworkGenerator, "attributes": None},
-                {"generator": JSONLGCPDatabaseGenerator, "attributes": None},
+                {"generator": JSONLCloudStorageGenerator, "attributes": {}},
+                {"generator": JSONLComputeEngineGenerator, "attributes": {}},
+                {"generator": JSONLGCPNetworkGenerator, "attributes": {}},
+                {"generator": JSONLGCPDatabaseGenerator, "attributes": {}},
             ]
             account = fake.word()
             project_generator = JSONLProjectGenerator(account)
@@ -1008,10 +1009,10 @@ def gcp_create_report(options):  # noqa: C901
 
     else:
         generators = [
-            {"generator": CloudStorageGenerator, "attributes": None},
-            {"generator": ComputeEngineGenerator, "attributes": None},
-            {"generator": GCPNetworkGenerator, "attributes": None},
-            {"generator": GCPDatabaseGenerator, "attributes": None},
+            {"generator": CloudStorageGenerator, "attributes": {}},
+            {"generator": ComputeEngineGenerator, "attributes": {}},
+            {"generator": GCPNetworkGenerator, "attributes": {}},
+            {"generator": GCPDatabaseGenerator, "attributes": {}},
         ]
         account = fake.word()
 
