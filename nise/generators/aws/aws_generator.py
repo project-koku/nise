@@ -61,8 +61,11 @@ PRODUCT_COLS = (
     "product/architecturalReview",
     "product/architectureSupport",
     "product/availability",
+    "product/availabilityZone",
     "product/bestPractices",
+    "product/capacitystatus",
     "product/caseSeverityresponseTimes",
+    "product/classicnetworkingsupport",
     "product/clockSpeed",
     "product/comments",
     "product/contentType",
@@ -78,6 +81,7 @@ PRODUCT_COLS = (
     "product/durability",
     "product/ebsOptimized",
     "product/ecu",
+    "product/edition",
     "product/endpointType",
     "product/engineCode",
     "product/enhancedNetworkingSupported",
@@ -85,17 +89,23 @@ PRODUCT_COLS = (
     "product/feeDescription",
     "product/fromLocation",
     "product/fromLocationType",
+    "product/fromRegionCode",
     "product/group",
     "product/groupDescription",
     "product/includedServices",
     "product/instanceFamily",
     "product/instanceType",
+    "product/instanceTypeFamily",
+    "product/intelAvx2Available",
+    "product/intelAvxAvailable",
+    "product/intelTurboAvailable",
     "product/isshadow",
     "product/iswebsocket",
     "product/launchSupport",
     "product/licenseModel",
     "product/location",
     "product/locationType",
+    "product/marketoption",
     "product/maxIopsBurstPerformance",
     "product/maxIopsvolume",
     "product/maxThroughputvolume",
@@ -106,11 +116,14 @@ PRODUCT_COLS = (
     "product/messageDeliveryOrder",
     "product/minVolumeSize",
     "product/networkPerformance",
+    "product/normalizationSizeFactor",
     "product/operatingSystem",
     "product/operation",
     "product/operationsSupport",
     "product/origin",
     "product/physicalProcessor",
+    "product/platousagetype",
+    "product/platovolumetype",
     "product/preInstalledSw",
     "product/proactiveGuidance",
     "product/processorArchitecture",
@@ -122,34 +135,43 @@ PRODUCT_COLS = (
     "product/queueType",
     "product/recipient",
     "product/region",
+    "product/regionCode",
     "product/requestDescription",
     "product/requestType",
     "product/resourceEndpoint",
     "product/routingTarget",
     "product/routingType",
     "product/servicecode",
+    "product/servicename",
     "product/sku",
     "product/softwareType",
     "product/storage",
     "product/storageClass",
     "product/storageMedia",
     "product/storageType",
+    "product/subscriptionType",
     "product/technicalSupport",
     "product/tenancy",
     "product/thirdpartySoftwareSupport",
     "product/toLocation",
     "product/toLocationType",
+    "product/toRegionCode",
     "product/training",
     "product/transferType",
     "product/usagetype",
     "product/vcpu",
     "product/version",
     "product/virtualInterfaceType",
+    "product/volumeApiName",
     "product/volumeType",
+    "product/vpcnetworkingsupport",
     "product/whoCanOpenCases",
 )
 PRICING_COLS = (
     "pricing/LeaseContractLength",
+    "pricing/RateCode",
+    "pricing/RateId",
+    "pricing/currency",
     "pricing/OfferingClass" "pricing/PurchaseOption",
     "pricing/publicOnDemandCost",
     "pricing/publicOnDemandRate",
@@ -157,13 +179,26 @@ PRICING_COLS = (
     "pricing/unit",
 )
 RESERVE_COLS = (
+    "reservation/AmortizedUpfrontCostForUsage",
+    "reservation/AmortizedUpfrontFeeForBillingPeriod",
     "reservation/AvailabilityZone",
+    "reservation/EffectiveCost",
+    "reservation/EndTime",
+    "reservation/ModificationStatus",
     "reservation/NormalizedUnitsPerReservation",
     "reservation/NumberOfReservations",
+    "reservation/RecurringFeeForUsage",
     "reservation/ReservationARN",
+    "reservation/StartTime",
+    "reservation/SubscriptionId",
     "reservation/TotalReservedNormalizedUnits",
     "reservation/TotalReservedUnits",
     "reservation/UnitsPerReservation",
+    "reservation/UnusedAmortizedUpfrontFeeForBillingPeriod",
+    "reservation/UnusedNormalizedUnitQuantity",
+    "reservation/UnusedQuantity",
+    "reservation/UnusedRecurringFee",
+    "reservation/UpfrontValue",
 )
 SAVINGS_COLS = (
     "savingsPlan/AmortizedUpfrontCommitmentForBillingPeriod",
@@ -206,7 +241,7 @@ class AWSGenerator(AbstractGenerator):
         + tuple(RESOURCE_TAG_COLS)
     )
 
-    def __init__(self, start_date, end_date, currency, payer_account, usage_accounts, attributes=None, tag_cols=None):
+    def __init__(self, start_date, end_date, currency, payer_account, usage_accounts, attributes={}, tag_cols=None):
         """Initialize the generator."""
         self.payer_account = payer_account
         self.currency = currency
@@ -290,6 +325,7 @@ class AWSGenerator(AbstractGenerator):
         row["lineItem/UsageStartDate"] = start
         row["lineItem/UsageEndDate"] = end
         row["lineItem/CurrencyCode"] = self.currency
+        row["lineItem/LegalEntity"] = "Amazon Web Services, Inc."
         return row
 
     def _add_tag_data(self, row):
