@@ -15,8 +15,9 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """Module for OCI database data generation."""
-from nise.generators.oci.oci_generator import OCIGenerator
 from random import choice
+
+from nise.generators.oci.oci_generator import OCIGenerator
 
 
 class OCIDatabaseGenerator(OCIGenerator):
@@ -30,7 +31,7 @@ class OCIDatabaseGenerator(OCIGenerator):
             "usage_product_resource": "PIC_ADWC_EXADATA_STORAGE",
             "cost_sku_unit_description": "TB Months",
             "cost_billing_unit": "ONE TiB HOURS",
-            "cost_product_description": "Oracle Autonomous Data Warehouse"
+            "cost_product_description": "Oracle Autonomous Data Warehouse",
         },
         {
             "resource_id": "database",
@@ -39,7 +40,7 @@ class OCIDatabaseGenerator(OCIGenerator):
             "usage_product_resource": "PIC_DATABASE_CLOUD_ALL_EDITION",
             "cost_sku_unit_description": "GB Months",
             "cost_billing_unit": "ONE GiB HOURS",
-            "cost_product_description": "DBaaS - Attached Block Storage Volume"
+            "cost_product_description": "DBaaS - Attached Block Storage Volume",
         },
     ]
 
