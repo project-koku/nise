@@ -50,7 +50,7 @@ class OCIDatabaseGenerator(OCIGenerator):
         self.report_type = report_type
         self.service_name = "DATABASE"
         self.select_db_resource = choice(self.database_resource_types)
-        self.resource_id = f"ocid1.{self.select_db_resource.get('resource_id')}.oci.iad.{self.product_region}.{self.fake.pystr(min_chars=25, max_chars=35)}"
+        self.resource_id = f"ocid1.{self.select_db_resource.get('resource_id')}.oci.iad.{self.product_region}.{self.fake.pystr(min_chars=25, max_chars=35)}"  # noqa: E501
         self.cost_product_description = self.select_db_resource.get("cost_product_description")
         self.cost_billing_unit = self.select_db_resource.get("cost_billing_unit")
         self.cost_sku_unit_description = self.select_db_resource.get("cost_sku_unit_description")
