@@ -512,7 +512,7 @@ class TestMarketplaceGenerator(AWSGeneratorTestCase):
         row = generator._update_data(start_row, self.two_hours_ago, self.now)
 
         self.assertEqual(row["bill/BillingEntity"], "AWS Marketplace")
-        self.assertEqual(row["product/ProductName"], "Red Hat OpenShift Service on AWS")
+        self.assertIn(row["product/ProductName"], generator.MARKETPLACE_PRODUCTS)
 
     def test_generate_data(self):
         """Test that the MarketplaceGenerator generate_data method works."""
@@ -523,6 +523,12 @@ class TestMarketplaceGenerator(AWSGeneratorTestCase):
         self.assertNotEqual(data, [])
 
     def test_add_common_pricing_info(self):
+        self.attributes.update(
+            {
+                "rate_id": "4981658079",
+                "rate_code": "VDHYUHU8G2Z5AZY3.4799GE89SK.6YS6EN2CT7",
+            }
+        )
         generator = MarketplaceGenerator(
             self.two_hours_ago, self.now, self.currency, self.payer_account, self.usage_accounts, self.attributes
         )
