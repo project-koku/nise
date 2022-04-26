@@ -34,3 +34,4 @@ class OCIComputeGenerator(OCIGenerator):
         self.cost_sku_unit_description = "OCPU Hours"
         self.usage_consumed_quant_units = "GB_MS"
         self.usage_consumed_quant_measure = "STORAGE_SIZE"
+        self.usage_product_resource = "PIC_COMPUTE_VM_STANDARD_E2_MICRO_FREE"

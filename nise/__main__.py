@@ -571,8 +571,8 @@ def _validate_provider_inputs(parser, options):
         func = VALIDATOR_MAP.get(provider_type)
         valid_inputs = func(parser, options)
     else:
-        msg = "One of {}, {}, {}, or {} must be supplied to generate a report."
-        msg = msg.format("aws", "aws-marketplace", "azure", "ocp", "gcp")
+        msg = "One of {}, {}, {}, {}, or {} must be supplied to generate a report."
+        msg = msg.format("aws", "aws-marketplace", "azure", "ocp", "gcp", "oci")
         parser.error(msg)
     return (valid_inputs, provider_type)
 

@@ -67,6 +67,7 @@ from nise.generators.gcp import JSONLProjectGenerator
 from nise.generators.gcp import ProjectGenerator
 from nise.generators.oci import OCIBlockStorageGenerator
 from nise.generators.oci import OCIComputeGenerator
+from nise.generators.oci import OCIDatabaseGenerator
 from nise.generators.oci import OCINetworkGenerator
 from nise.generators.oci.oci_generator import OCI_COST_REPORT
 from nise.generators.oci.oci_generator import OCI_REPORT_TYPE_TO_COLS
@@ -1135,6 +1136,7 @@ def oci_create_report(options):
         {"generator": OCIComputeGenerator, "attributes": attributes},
         {"generator": OCINetworkGenerator, "attributes": attributes},
         {"generator": OCIBlockStorageGenerator, "attributes": attributes},
+        {"generator": OCIDatabaseGenerator, "attributes": attributes},
     ]
     months = _create_month_list(start_date, end_date)
     currency = default_currency(options.get("currency"), static_currency=None)
