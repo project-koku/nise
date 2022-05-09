@@ -262,11 +262,11 @@ def add_ocp_parser_args(parser):
 def add_oci_parser_args(parser):
     """Add OCI sub-parser args."""
     parser.add_argument(
-        "--oci-report-type",
-        metavar="OCI_REPORT_TYPE",
-        dest="oci_report_type",
+        "--oci-bucket-name",
+        metavar="BUCKET_NAME",
+        dest="oci_bucket_name",
         required=False,
-        help="Type of report to generate.",
+        help="Bucket where to upload data in OCI.",
     )
 
 
@@ -534,7 +534,7 @@ def _validate_gcp_arguments(parser, options):
 
 
 def _validate_oci_arguments(parser, options):
-    """Validate aws argument combination.
+    """Validate oci argument combination.
 
     Args:
         parser (Object): ArgParser parser.
@@ -543,6 +543,15 @@ def _validate_oci_arguments(parser, options):
         (ParserError): If combination is invalid.
 
     """
+    # is_args_valid = False
+    # bucket_name = options.get("oci_bucket_name")
+
+    # if bucket_name is None:
+    #     msg = "{} must be supplied."
+    #     msg = msg.format("--oci-bucket-name")
+    #     parser.error(msg)
+    # else:
+    # is_args_valid = True
     return True
 
 

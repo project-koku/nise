@@ -41,6 +41,8 @@ nise is a command line tool::
         --ocp-cluster-id CLUSTER_ID             REQUIRED
         --insights-upload UPLOAD_URL            optional, Use local directory path to populate a
                                                 "local upload directory".
+    OCI Report Options:
+        --oci-bucket-name BUCKET_NAME           REQUIRED, if uploading to an OCI storage bucket
 
 AWS reports
 -----------
@@ -187,8 +189,16 @@ OCI reports
 
 Generated reports will be produced in daily .csv files with the file format <reports>_<Report-type>-<csv>_<File-number>.csv.
 
+The ``--oci-bucket-name`` options is used to attemp uploading the generated report to an OCI Storage bucket.
+When this is the case, the ``OCI_CONFIG_FILE`` environment variable must be set, and the given bucket-name must match
+an existing bucket that is accessable by the service account indicated in the ``OCI_CONFIG_FILE``.
+
 Below are example usages of ``nise`` for OCI data::
 
 To generate completely random data and save the report files in the local directory::
 
     nise report oci -s 2022-02-10 -w
+
+To generate completely random data and upload the report files to an OCI Storage bucket::
+
+    nise report oci -s 2022-02-10 --oci-bucket-name test-bucket

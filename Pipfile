@@ -15,6 +15,7 @@ azure-storage-blob = ">=12.1"
 google-cloud-storage = ">=1.19"
 pyyaml = ">=5.3"
 google-cloud-bigquery = ">=2.2.0"
+oci = ">=2.64.0"
 
 [dev-packages]
 tox = ">=3.14"

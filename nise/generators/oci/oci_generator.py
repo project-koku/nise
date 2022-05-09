@@ -22,8 +22,8 @@ from nise.generators.generator import AbstractGenerator
 from nise.generators.generator import REPORT_TYPE
 
 
-OCI_COST_REPORT = "oci_cost_report"
-OCI_USAGE_REPORT = "oci_usage_report"
+OCI_COST_REPORT = "cost"
+OCI_USAGE_REPORT = "usage"
 
 OCI_IDENTITY_COLUMNS = (
     "lineItem/referenceNo",

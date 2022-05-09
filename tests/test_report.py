@@ -30,6 +30,7 @@ from unittest.mock import patch
 
 import faker
 from dateutil.relativedelta import relativedelta
+from nise.generators.oci.oci_generator import OCI_REPORT_TYPE_TO_COLS
 from nise.generators.ocp.ocp_generator import OCP_REPORT_TYPE_TO_COLS
 from nise.report import _convert_bytes
 from nise.report import _create_generator_dates_from_yaml
@@ -47,10 +48,13 @@ from nise.report import azure_create_report
 from nise.report import default_currency
 from nise.report import gcp_create_report
 from nise.report import gcp_route_file
+from nise.report import oci_bucket_upload
 from nise.report import oci_create_report
+from nise.report import oci_route_file
 from nise.report import ocp_create_report
 from nise.report import ocp_route_file
 from nise.report import post_payload_to_ingest_service
+from nise.report import write_oci_file
 
 
 fake = faker.Faker()
@@ -1497,13 +1501,59 @@ class OCIReportTestCase(TestCase):
         now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
         one_day = datetime.timedelta(days=1)
         yesterday = now - one_day
-        report_types = ["cost", "usage"]
         file_number = 0
         options = {"start_date": yesterday, "end_date": now, "write_monthly": True}
         oci_create_report(options)
-
-        for report_type in report_types:
+        for report_type in OCI_REPORT_TYPE_TO_COLS:
             file_name = f"reports_{report_type}-csv_0001{file_number}"
             expected_output_file_path = f"{os.getcwd()}/{file_name}.csv"
             self.assertTrue(os.path.isfile(expected_output_file_path))
             os.remove(expected_output_file_path)
+
+    @patch("nise.report._write_csv")
+    def test_write_oci_file(self, mock_write_csv):
+        """Test that the write_oci_file method is called."""
+        file_number = 0
+        data = {"cost": [], "usage": []}
+        options = {}
+        for report_type in OCI_REPORT_TYPE_TO_COLS:
+            write_oci_file(report_type, file_number, data[report_type], options)
+            assert mock_write_csv.called
+
+    @patch("nise.report._write_csv")
+    @patch("nise.report.upload_to_oci_bucket")
+    def test_oci_bucket_upload(self, mock_write_csv, mock_oci_bucket_upload):
+        """Test that the oci_bucket_upload method is called."""
+        bucket_name = "test-bucket"
+        file_number = 0
+        data = {"cost": [], "usage": []}
+        options = {"oci_bucket_name": bucket_name}
+        for report_type in OCI_REPORT_TYPE_TO_COLS:
+            oci_bucket_upload(bucket_name, report_type, file_number, data[report_type], options)
+            assert mock_write_csv.called
+            assert mock_oci_bucket_upload.called
+
+    @patch("nise.report.oci_bucket_upload")
+    @patch("nise.report.write_oci_file")
+    def test_oci_route_file_upload(self, mock_write_oci_file, mock_upload):
+        """Test that file is uploaded if bucket_name is not none."""
+        for report_type in OCI_REPORT_TYPE_TO_COLS:
+            bucket_name = "test-bucket"
+            file_number = 0
+            data = {"cost": [], "usage": []}
+            options = {"oci_bucket_name": bucket_name}
+            oci_route_file(report_type, file_number, data, options)
+            mock_write_oci_file.assert_not_called()
+            mock_upload.assert_called()
+
+    @patch("nise.report.oci_bucket_upload")
+    @patch("nise.report.write_oci_file")
+    def test_oci_route_file_no_upload(self, mock_write_oci_file, mock_upload):
+        """Test that file is not upload if bucket_name is none."""
+        for report_type in OCI_REPORT_TYPE_TO_COLS:
+            file_number = 0
+            data = {"cost": [], "usage": []}
+            options = {"oci_bucket_name": None}
+            oci_route_file(report_type, file_number, data, options)
+            mock_write_oci_file.assert_called()
+            mock_upload.assert_not_called()

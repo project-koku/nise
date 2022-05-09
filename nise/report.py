@@ -83,6 +83,7 @@ from nise.manifest import ocp_generate_manifest
 from nise.upload import gcp_bucket_to_dataset
 from nise.upload import upload_to_azure_container
 from nise.upload import upload_to_gcp_storage
+from nise.upload import upload_to_oci_bucket
 from nise.upload import upload_to_s3
 from nise.util import LOG
 
@@ -226,6 +227,18 @@ def gcp_route_file(bucket_name, bucket_file_path, local_path):
         copy_to_local_dir(bucket_name, bucket_file_path, local_path)
     else:
         upload_to_gcp_storage(bucket_name, bucket_file_path, local_path)
+
+
+def oci_route_file(report_type, file_number, data, options):
+    """Route file to either local file system or OCI bucket."""
+
+    bucket_name = options.get("oci_bucket_name")
+    file_name = ""
+    if bucket_name is None:
+        file_name = write_oci_file(report_type, file_number, data, options)
+    else:
+        file_name = oci_bucket_upload(bucket_name, report_type, file_number, data, options)
+    return file_name
 
 
 def _convert_bytes(num):
@@ -1125,6 +1138,16 @@ def write_oci_file(report_type, file_number, data, options):
     return full_file_name
 
 
+def oci_bucket_upload(bucket_name, report_type, file_number, data, options):
+    """Upload data to OCI bucket."""
+    file_name = f"0001{file_number}.csv"
+    full_file_name = f"{os.getcwd()}/{file_name}"
+    _write_csv(full_file_name, data, OCI_REPORT_TYPE_TO_COLS[report_type])
+    _report_type = f"{report_type}-csv"
+    upload_to_oci_bucket(bucket_name, _report_type, file_name)
+    return file_name
+
+
 def oci_create_report(options):
     """Create cost and usage report files."""
     start_date = options.get("start_date")
@@ -1160,6 +1183,6 @@ def oci_create_report(options):
                 for hour in gen.generate_data(report_type=report_type):
                     data[report_type] += [hour]
 
-            month_output_file = write_oci_file(report_type, file_number, data[report_type], options)
+            month_output_file = oci_route_file(report_type, file_number, data[report_type], options)
             monthly_files.append(month_output_file)
         file_number += 1

@@ -147,6 +147,9 @@ nise is a command line tool::
         --insights-upload UPLOAD_URL            optional, Use local directory path to populate a
                                                 "local upload directory".
 
+    OCI Report Options:
+        --oci-bucket-name BUCKET_NAME           optional, OCI bucket name.
+
     Common YAML Options:
         -o, --output YAML_NAME                  REQUIRED, Output file path (i.e "large.yml").
         -c, --config ( CONFIG | default )       optional, Config file path. If "default" is provided,
