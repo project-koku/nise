@@ -1165,12 +1165,12 @@ def oci_create_report(options):
     currency = default_currency(options.get("currency"), static_currency=None)
     file_number = 0
 
-    for month in months:
-        data = {OCI_COST_REPORT: [], OCI_USAGE_REPORT: []}
+    for report_type in OCI_REPORT_TYPE_TO_COLS:
         monthly_files = []
+        data = {OCI_COST_REPORT: [], OCI_USAGE_REPORT: []}
 
-        for report_type in OCI_REPORT_TYPE_TO_COLS:
-            LOG.info(f"Generating data for OCI for {month.get('name')}")
+        for month in months:
+            LOG.info(f"Generating {report_type} data for OCI for {month.get('name')}")
 
             for generator in generators:
                 generator_cls = generator.get("generator")
@@ -1182,10 +1182,9 @@ def oci_create_report(options):
                 for hour in gen.generate_data(report_type=report_type):
                     data[report_type] += [hour]
 
-            month_output_file = oci_route_file(report_type, file_number, data[report_type], options)
-            monthly_files.append(month_output_file)
-
-            file_number += 1
+        month_output_file = oci_route_file(report_type, file_number, data[report_type], options)
+        monthly_files.append(month_output_file)
+        file_number += 1
 
         write_monthly = options.get("write_monthly", False)
         if not write_monthly:

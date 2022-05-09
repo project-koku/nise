@@ -1496,18 +1496,20 @@ class GCPReportTestCase(TestCase):
 class OCIReportTestCase(TestCase):
     """Tests for OCI report generation."""
 
-    def test_oci_create_report(self):
-        """Test the oci report creation method."""
+    @patch("nise.report._remove_files")
+    def test_oci_create_report(self, mock_remove_files):
+        """Test the oci create report method."""
         now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
         one_day = datetime.timedelta(days=1)
         yesterday = now - one_day
         file_number = 0
-        options = {"start_date": yesterday, "end_date": now, "write_monthly": True}
+        options = {"start_date": yesterday, "end_date": now, "write_monthly": False}
         oci_create_report(options)
         for report_type in OCI_REPORT_TYPE_TO_COLS:
             file_name = f"reports_{report_type}-csv_0001{file_number}.csv"
             expected_output_file_path = f"{os.getcwd()}/{file_name}"
             self.assertTrue(os.path.isfile(expected_output_file_path))
+            mock_remove_files.assert_called()
             os.remove(file_name)
             file_number += 1
 
