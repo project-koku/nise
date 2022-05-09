@@ -326,7 +326,6 @@ def upload_to_oci_bucket(bucket_name, report_type, file_name):
             "Please set your OCI_CONFIG_FILE "
             "environment variable before attempting to upload data to an oci bucket."
         )
-        os.remove(file_name)
         return uploaded
 
     try:
@@ -355,7 +354,4 @@ def upload_to_oci_bucket(bucket_name, report_type, file_name):
     except (ServiceError, InvalidConfig, ConfigFileNotFound) as upload_err:
         LOG.error(upload_err)
         uploaded = False
-
-    if os.path.exists(file_name):
-        os.remove(file_name)
     return uploaded

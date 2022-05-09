@@ -1505,10 +1505,12 @@ class OCIReportTestCase(TestCase):
         options = {"start_date": yesterday, "end_date": now, "write_monthly": True}
         oci_create_report(options)
         for report_type in OCI_REPORT_TYPE_TO_COLS:
-            file_name = f"reports_{report_type}-csv_0001{file_number}"
-            expected_output_file_path = f"{os.getcwd()}/{file_name}.csv"
+            file_name = f"reports_{report_type}-csv_0001{file_number}.csv"
+            expected_output_file_path = f"{os.getcwd()}/{file_name}"
             self.assertTrue(os.path.isfile(expected_output_file_path))
-            os.remove(expected_output_file_path)
+            os.remove(file_name)
+            file_number += 1
+
 
     @patch("nise.report._write_csv")
     def test_write_oci_file(self, mock_write_csv):

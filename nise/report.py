@@ -1163,7 +1163,6 @@ def oci_create_report(options):
     ]
     months = _create_month_list(start_date, end_date)
     currency = default_currency(options.get("currency"), static_currency=None)
-    # write_monthly = options.get("write_monthly", False)
     file_number = 0
 
     for month in months:
@@ -1185,4 +1184,9 @@ def oci_create_report(options):
 
             month_output_file = oci_route_file(report_type, file_number, data[report_type], options)
             monthly_files.append(month_output_file)
-        file_number += 1
+
+            file_number += 1
+        
+        write_monthly = options.get("write_monthly", False)
+        if not write_monthly:
+            _remove_files(monthly_files)
