@@ -1511,7 +1511,6 @@ class OCIReportTestCase(TestCase):
             os.remove(file_name)
             file_number += 1
 
-
     @patch("nise.report._write_csv")
     def test_write_oci_file(self, mock_write_csv):
         """Test that the write_oci_file method is called."""

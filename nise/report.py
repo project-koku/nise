@@ -1186,7 +1186,7 @@ def oci_create_report(options):
             monthly_files.append(month_output_file)
 
             file_number += 1
-        
+
         write_monthly = options.get("write_monthly", False)
         if not write_monthly:
             _remove_files(monthly_files)
