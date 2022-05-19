@@ -21,6 +21,7 @@ import datetime
 import os
 import sys
 import time
+from pathlib import Path
 from pprint import pformat
 
 from dateutil import parser as date_parser
@@ -543,16 +544,23 @@ def _validate_oci_arguments(parser, options):
         (ParserError): If combination is invalid.
 
     """
-    # is_args_valid = False
-    # bucket_name = options.get("oci_bucket_name")
+    is_args_valid = False
+    bucket_name = options.get("oci_bucket_name")
+    config_file = os.environ.get("OCI_CONFIG_FILE")
 
-    # if bucket_name is None:
-    #     msg = "{} must be supplied."
-    #     msg = msg.format("--oci-bucket-name")
-    #     parser.error(msg)
-    # else:
-    # is_args_valid = True
-    return True
+    if not bucket_name:
+        is_args_valid = True
+    elif bucket_name and config_file and Path(config_file).exists():
+        is_args_valid = True
+    else:
+        msg = (
+            f"\n\t--oci-bucket-name {bucket_name} was supplied as an argument\n"
+            "\tbut a config file path is not set in your environment or does not exist locally."
+        )
+        msg = msg.format("--oci-bucket-name")
+        parser.error(msg)
+
+    return is_args_valid
 
 
 def _validate_provider_inputs(parser, options):

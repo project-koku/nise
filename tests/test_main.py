@@ -447,6 +447,58 @@ class CommandLineTestCase(TestCase):
             run(provider_type, options)
             self.assertEqual(options.get("end_date").date(), end + timedelta(days=1))
 
+    def test_valid_oci_no_input(self):
+        """
+        Test user passes no OCI argument combination.
+        """
+        args = ["report", "oci", "--start-date", str(date.today())]
+        options = vars(self.parser.parse_args(args))
+        self.assertTrue(_validate_provider_inputs(self.parser, options))
+
+    def test_valid_oci_input(self):
+        """
+        Test user passes a valid OCI argument combination.
+        """
+        args = [
+            "report",
+            "oci",
+            "--start-date",
+            str(date.today()),
+            "-w",
+        ]
+        options = vars(self.parser.parse_args(args))
+        self.assertTrue(_validate_provider_inputs(self.parser, options))
+
+    @patch.dict(os.environ, {"OCI_CONFIG_FILE": ""})
+    def test_valid_oci_inputs_no_config_file(self):
+        """
+        Test user passes valid OCI arguments for bucket upload but no config file.
+        """
+        with self.assertRaises(SystemExit):
+            args = [
+                "report", 
+                "oci", 
+                "--start-date", 
+                str(date.today()), 
+                "--oci-bucket-name", 
+                "mybucket"
+            ]
+            options = vars(self.parser.parse_args(args))
+            _validate_provider_inputs(self.parser, options)
+
+    def test_invalid_oci_inputs(self):
+        """
+        Test user passes an invalid OCI argument combination.
+        """
+        with self.assertRaises(SystemExit):
+            args = ["report", "oci", "--oci-bucket-name"]
+            options = vars(self.parser.parse_args(args))
+            _validate_provider_inputs(self.parser, options)
+        with self.assertRaises(SystemExit):
+            args = ["report", "oci", "--start-date"]
+            options = vars(self.parser.parse_args(args))
+            _validate_provider_inputs(self.parser, options)
+
 
 class MainDateTest(TestCase):
     """Functional data testing class."""
