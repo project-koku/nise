@@ -475,14 +475,7 @@ class CommandLineTestCase(TestCase):
         Test user passes valid OCI arguments for bucket upload but no config file.
         """
         with self.assertRaises(SystemExit):
-            args = [
-                "report", 
-                "oci", 
-                "--start-date", 
-                str(date.today()), 
-                "--oci-bucket-name", 
-                "mybucket"
-            ]
+            args = ["report", "oci", "--start-date", str(date.today()), "--oci-bucket-name", "mybucket"]
             options = vars(self.parser.parse_args(args))
             _validate_provider_inputs(self.parser, options)
 
