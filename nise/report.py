@@ -1155,12 +1155,17 @@ def oci_create_report(options):
     fake = Faker()
     attributes = {}
     attributes["tenant_id"] = f"ocid1.tenancy.oc1..{fake.pystr(min_chars=20, max_chars=50)}"
-    generators = [
-        {"generator": OCIComputeGenerator, "attributes": attributes},
-        {"generator": OCINetworkGenerator, "attributes": attributes},
-        {"generator": OCIBlockStorageGenerator, "attributes": attributes},
-        {"generator": OCIDatabaseGenerator, "attributes": attributes},
-    ]
+    static_report_data = options.get("static_report_data")
+    
+    if static_report_data:
+        generators = _get_generators(static_report_data.get("generators"))
+    else:
+        generators = [
+            {"generator": OCIComputeGenerator, "attributes": attributes},
+            {"generator": OCIBlockStorageGenerator, "attributes": attributes},
+            {"generator": OCINetworkGenerator, "attributes": attributes},
+            {"generator": OCIDatabaseGenerator, "attributes": attributes},
+        ]
     months = _create_month_list(start_date, end_date)
     currency = default_currency(options.get("currency"), static_currency=None)
     file_number = 0
@@ -1173,10 +1178,17 @@ def oci_create_report(options):
             LOG.info(f"Generating {report_type} data for OCI for {month.get('name')}")
 
             for generator in generators:
+                # TODO: set static currency
                 generator_cls = generator.get("generator")
                 attributes = generator.get("attributes")
                 gen_start_date = month.get("start")
                 gen_end_date = month.get("end")
+
+                if static_report_data:
+                    gen_start_date = attributes.get("start_date")
+                    gen_end_date = attributes.get("end_date")
+                    currency = attributes.get("currency")
+
                 gen = generator_cls(gen_start_date, gen_end_date, currency, report_type, attributes)
 
                 for hour in gen.generate_data(report_type=report_type):

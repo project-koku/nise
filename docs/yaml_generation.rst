@@ -5,7 +5,7 @@ Example ``nise yaml`` usage
 Yaml generation uses the following arguments::
 
     Usage:
-        nise yaml ( aws | azure | ocp | ocp-on-cloud ) [options]
+        nise yaml ( aws | azure | ocp | ocp-on-cloud | oci |) [options]
 
     Common YAML Options:
         -o, --output YAML_NAME                  REQUIRED, Output file path (i.e "large.yml").
@@ -34,7 +34,7 @@ Yaml generation uses the following arguments::
 
 For AWS, Azure, and OCP, an output file name must be supplied. This file name will be the name of the generated yaml file. For the ``-c, --config`` option, either the value ``default`` can be supplied or the path to a configuration file may be given. If using the ``default`` keyword, the `internal configuration found in nise/yaml_generators/static`_ will be used.  If the configuration argument is omitted, Nise will generate the smallest yaml possible based on the given template (this means 1 node, 1 generator, etc.).  Start and end dates can be supplied on the command line or in the configuration file. The configuration file dates take precedence over the CLI arguments. If using the ``-r, --random`` argument, the number of nodes, generators, and labels will vary between 1 (or 0) and the maximum values defined by the configuration.  The ``-t, --template`` argument can be omitted to use the default template.
 
-For OCP-on-Cloud yaml generation, things are more complicated.  OCP is linked to AWS through resource-id or tags, whereas OCP is linked to Azure through instance-id/node-name or tags.  To ensure there are no overlapping namespaces or tags, all of the yamls should be generated simluatenously which means all of the configurations for AWS, Azure, OCP for AWS, and OCP for Azure need to be specified, including the generator configurations, the templates, and the output files.  To accomplish this, a unique configuration file containing all of the configuration information is supplied.  Just like with the individual providers, `a built-in configuration is included in Nise and be found here.`_ To make use of the built-in configuration, supply ``default`` to the ``-c, --config`` argument.
+For OCP-on-Cloud yaml generation, things are more complicated.  OCP is linked to AWS through resource-id or tags, whereas OCP is linked to Azure through instance-id/node-name or tags.  To ensure there are no overlapping namespaces or tags, all of the yamls should be generated simluatenously which means all of the configurations for AWS, Azure, OCP for AWS, and OCP for Azure need to be specified, including the generator configurations, the templates, and the output files.  To accomplish this, a unique configuration file containing all of the configuration information is supplied.  Just like with the individual providers, `a built-in configuration is included in Nise and can be found here.`_ To make use of the built-in configuration, supply ``default`` to the ``-c, --config`` argument.
 
 
 Examples

@@ -26,6 +26,7 @@ from nise.yaml_generators.azure.generator import AzureGenerator
 from nise.yaml_generators.gcp.generator import GCPGenerator
 from nise.yaml_generators.ocp.generator import OCPGenerator
 from nise.yaml_generators.ocp_on_cloud.generator import OCPonCloudGenerator
+from nise.yaml_generators.oci.generator import OCIGenerator
 
 FILE_DIR = os.path.dirname(os.path.abspath(__file__))
 STATIC_DIR = os.path.join(os.path.dirname(FILE_DIR), "nise/yaml_generators/static")
@@ -36,6 +37,7 @@ GENERATOR_MAP = {
     "AZURE": AzureGenerator(),
     "OCP-ON-CLOUD": OCPonCloudGenerator(),
     "GCP": GCPGenerator(),
+    "OCI": OCIGenerator(),
 }
 
 
@@ -91,6 +93,11 @@ def add_ocp_on_cloud_args(parser):
         "-c", "--config", dest="config_file_name", type=str, required=True, metavar="CONF", help="Config file path."
     )
     add_ocp_args(parser)
+
+
+def add_oci_args(parser):
+    """Add OCI specific parser args."""
+    pass
 
 
 def add_yaml_parser_args(yaml_parser):
@@ -152,6 +159,9 @@ def add_yaml_parser_args(yaml_parser):
     azure_parser = yaml_subparser.add_parser(
         "azure", parents=[parent_parser], add_help=False, description="The Azure parser", help="create the Azure yamls"
     )
+    oci_parser = yaml_subparser.add_parser(
+        "oci", parents=[parent_parser], add_help=False, description="The OCI parser", help="create the OCI yamls"
+    )
     ocp_parser = yaml_subparser.add_parser(
         "ocp", parents=[parent_parser], add_help=False, description="The OCP parser", help="create the OCP yamls"
     )
@@ -171,6 +181,7 @@ def add_yaml_parser_args(yaml_parser):
     add_gcp_args(gcp_parser)
     add_ocp_args(ocp_parser)
     add_ocp_on_cloud_args(ocp_on_cloud_parser)
+    add_oci_args(oci_parser)
 
     return yaml_parser
 

@@ -7,7 +7,7 @@ nise is a command line tool::
     Usage:
         nise ( report | yaml )
         nise report ( aws | azure | gcp | ocp | oci ) [options]
-        nise yaml ( aws | azure | ocp | ocp-on-cloud ) [options]
+        nise yaml ( aws | azure | ocp | ocp-on-cloud | oci ) [options]
 
     Report Options:
         -s, --start-date YYYY-MM-DD             required if not using --static-report-file FILE_NAME
@@ -173,17 +173,6 @@ Below is an example usage of ``nise`` for OCP running on AZURE data using the `e
     nise report ocp -w --ocp-cluster-id my-cluster-id --static-report-file examples/ocp_on_azure/ocp_static_data.yml
 
 
-
-.. Links to repo files or directories
-
-.. _`Example aws yaml.`: ../example_aws_static_data.yml
-
-.. _`example ocp-on-aws yamls`: ../examples/ocp_on_aws
-
-.. _`example ocp-on-azure yamls`: ../examples/ocp_on_azure
-
-
-
 OCI reports
 -----------
 
@@ -202,3 +191,23 @@ To generate completely random data and save the report files in the local direct
 To generate completely random data and upload the report files to an OCI Storage bucket::
 
     nise report oci -s 2022-02-10 --oci-bucket-name test-bucket
+
+To generate less randomized data, supply a ``--static-report-file YAML_NAME``. `Example oci yaml.`_::
+
+    nise report oci --static-report-file example_oci_static_data.yml
+
+
+
+
+.. Links to repo files or directories
+
+.. _`Example aws yaml.`: ../example_aws_static_data.yml
+
+.. _`example ocp-on-aws yamls`: ../examples/ocp_on_aws
+
+.. _`example ocp-on-azure yamls`: ../examples/ocp_on_azure
+
+.. _`Example oci yaml.`: ../example_oci_static_data.yml
+
+
+

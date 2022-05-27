@@ -1,0 +1,33 @@
+---
+generators:
+  - OCIComputeGenerator:
+      start_date: 2022-04-01
+      end_date: 2022-05-27
+      cost: 0.24389
+      currency: USD
+      compartment_name: richardprice
+      tenant_id: ocid1.tenancy.oc1..EfjkUPxyZSYLvd
+
+  - OCIBlockStorageGenerator:
+      start_date: 2022-04-01
+      end_date: 2022-05-27
+      cost: 0.20768
+      currency: USD
+      compartment_name: richardprice
+      tenant_id: ocid1.tenancy.oc1..EfjkUPxyZSYLvd
+
+  - OCINetworkGenerator:
+      start_date: 2022-04-01
+      end_date: 2022-05-27
+      cost: 0.38265
+      currency: USD
+      compartment_name: richardprice
+      tenant_id: ocid1.tenancy.oc1..EfjkUPxyZSYLvd
+
+  - OCIDatabaseGenerator:
+      start_date: 2022-04-01
+      end_date: 2022-05-27
+      cost: 0.17478
+      currency: USD
+      compartment_name: richardprice
+      tenant_id: ocid1.tenancy.oc1..EfjkUPxyZSYLvd
