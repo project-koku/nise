@@ -30,19 +30,20 @@ from nise.yaml_generators.utils import dicta
 FAKER = faker.Faker()
 
 COMPARTMENT_NAME = FAKER.name().replace(" ", "").lower()
-TENANT_ID = 'ocid1.tenancy.oc1..EfjkUPxyZSYLvd'
+TENANT_ID = "ocid1.tenancy.oc1..EfjkUPxyZSYLvd"
+
 
 def generate_oci_dicta(config, key):
     """Return dicta with common attributes."""
     cost = round(random.uniform(0.1, 0.50), 5)
     currency = "USD"
     return dicta(
-        start_date=str(config.start_date), 
-        end_date=str(config.end_date), 
-        cost=cost, 
+        start_date=str(config.start_date),
+        end_date=str(config.end_date),
+        cost=cost,
         currency=currency,
         compartment_name=COMPARTMENT_NAME,
-        tenant_id=TENANT_ID
+        tenant_id=TENANT_ID,
     )
 
 

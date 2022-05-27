@@ -24,9 +24,9 @@ from dateutil.relativedelta import relativedelta
 from nise.yaml_generators.aws.generator import AWSGenerator
 from nise.yaml_generators.azure.generator import AzureGenerator
 from nise.yaml_generators.gcp.generator import GCPGenerator
+from nise.yaml_generators.oci.generator import OCIGenerator
 from nise.yaml_generators.ocp.generator import OCPGenerator
 from nise.yaml_generators.ocp_on_cloud.generator import OCPonCloudGenerator
-from nise.yaml_generators.oci.generator import OCIGenerator
 
 FILE_DIR = os.path.dirname(os.path.abspath(__file__))
 STATIC_DIR = os.path.join(os.path.dirname(FILE_DIR), "nise/yaml_generators/static")

@@ -208,6 +208,3 @@ To generate less randomized data, supply a ``--static-report-file YAML_NAME``. `
 .. _`example ocp-on-azure yamls`: ../examples/ocp_on_azure
 
 .. _`Example oci yaml.`: ../example_oci_static_data.yml
-
-
-

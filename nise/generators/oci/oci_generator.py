@@ -128,9 +128,7 @@ class OCIGenerator(AbstractGenerator):
         self.reference_no = self._get_reference_num()
         self.compartment_id = self.tenant_id
         self.compartment_name = (
-            attributes.get("compartment_name")
-            if attributes
-            else self.fake.name().replace(" ", "").lower()
+            attributes.get("compartment_name") if attributes else self.fake.name().replace(" ", "").lower()
         )
         self.region_to_domain = choice(self.OCI_REGIONS_TO_DOMAIN)
         self.product_region = self._get_product_region()
@@ -139,7 +137,7 @@ class OCIGenerator(AbstractGenerator):
         self.email_domain = self.fake.free_email_domain()
         self.subscription_id = self.fake.random_number(fix_len=True, digits=8)
         self.usage_quantity = self.fake.random_number(digits=6, fix_len=True)
-        self.cost = attributes.get('cost') if attributes else 0
+        self.cost = attributes.get("cost") if attributes else 0
         self.cost_overage_flag = choice(["N", ""])
         self.cost_product_sku = f"B{self.fake.random_number(fix_len=True, digits=5)}"
 

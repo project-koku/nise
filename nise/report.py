@@ -1156,7 +1156,7 @@ def oci_create_report(options):
     attributes = {}
     attributes["tenant_id"] = f"ocid1.tenancy.oc1..{fake.pystr(min_chars=20, max_chars=50)}"
     static_report_data = options.get("static_report_data")
-    
+
     if static_report_data:
         generators = _get_generators(static_report_data.get("generators"))
     else:
