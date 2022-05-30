@@ -672,7 +672,7 @@ class MainDateTest(TestCase):
                 with self.subTest(key=key):
                     self.assertEqual(attributes.get("start_date"), str(expected.get(key).get("start_date")))
                     self.assertEqual(attributes.get("end_date"), str(expected.get(key).get("end_date")))
-    
+
     @patch("nise.__main__.load_yaml")
     def test_oci_dates(self, mock_load):
         """Test that select static-data-file dates return correct dates."""
