@@ -28,7 +28,6 @@ from nise.yaml_generators.utils import dicta
 
 
 FAKER = faker.Faker()
-
 COMPARTMENT_NAME = FAKER.name().replace(" ", "").lower()
 TENANT_ID = "ocid1.tenancy.oc1..EfjkUPxyZSYLvd"
 

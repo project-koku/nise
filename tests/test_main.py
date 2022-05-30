@@ -672,6 +672,46 @@ class MainDateTest(TestCase):
                 with self.subTest(key=key):
                     self.assertEqual(attributes.get("start_date"), str(expected.get(key).get("start_date")))
                     self.assertEqual(attributes.get("end_date"), str(expected.get(key).get("end_date")))
+    
+    @patch("nise.__main__.load_yaml")
+    def test_oci_dates(self, mock_load):
+        """Test that select static-data-file dates return correct dates."""
+        oci_gens = [
+            {"oci_gen_first": {"start_date": datetime(2020, 6, 1).date(), "end_date": datetime(2020, 6, 1).date()}},
+            {
+                "oci_gen_first_second": {
+                    "start_date": datetime(2020, 6, 1).date(),
+                    "end_date": datetime(2020, 6, 2).date(),
+                }
+            },
+            {"oci_gen_first_start": {"start_date": datetime(2020, 6, 1).date()}},
+            {"oci_gen_last": {"start_date": datetime(2020, 5, 31).date(), "end_date": datetime(2020, 5, 31).date()}},
+            {
+                "oci_gen_last_first": {
+                    "start_date": datetime(2020, 5, 31).date(),
+                    "end_date": datetime(2020, 6, 1).date(),
+                }
+            },
+        ]
+        static_report_data = {"generators": oci_gens}
+        expected = {
+            "oci_gen_first": {"start_date": datetime(2020, 6, 1, 0, 0), "end_date": datetime(2020, 6, 1, 0, 0)},
+            "oci_gen_first_second": {"start_date": datetime(2020, 6, 1, 0, 0), "end_date": datetime(2020, 6, 2, 0, 0)},
+            "oci_gen_first_start": {
+                "start_date": datetime(2020, 6, 1, 0, 0),
+                "end_date": datetime.now().replace(minute=0, second=0, microsecond=0),
+            },
+            "oci_gen_last": {"start_date": datetime(2020, 5, 31, 0, 0), "end_date": datetime(2020, 5, 31, 0, 0)},
+            "oci_gen_last_first": {"start_date": datetime(2020, 5, 31, 0, 0), "end_date": datetime(2020, 6, 1, 0, 0)},
+        }
+        options = {"provider": "oci", "static_report_file": "tests/oci_static_report.yml"}
+        mock_load.return_value = static_report_data
+        _load_static_report_data(options)
+        for generator_dict in options.get("static_report_data").get("generators"):
+            for key, attributes in generator_dict.items():
+                with self.subTest(key=key):
+                    self.assertEqual(attributes.get("start_date"), str(expected.get(key).get("start_date")))
+                    self.assertEqual(attributes.get("end_date"), str(expected.get(key).get("end_date")))
 
     def test_static_report_file_does_not_exist(self):
         """

@@ -548,9 +548,7 @@ def _validate_oci_arguments(parser, options):
     bucket_name = options.get("oci_bucket_name")
     config_file = os.environ.get("OCI_CONFIG_FILE")
 
-    if not bucket_name:
-        is_args_valid = True
-    elif bucket_name and config_file and Path(config_file).exists():
+    if (not bucket_name) or (bucket_name and config_file and Path(config_file).exists()):
         is_args_valid = True
     else:
         msg = (

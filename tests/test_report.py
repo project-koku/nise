@@ -1560,3 +1560,70 @@ class OCIReportTestCase(TestCase):
             oci_route_file(report_type, file_number, data, options)
             mock_write_oci_file.assert_called()
             mock_upload.assert_not_called()
+
+    def test_oci_create_report_static_data(self):
+        """Test oci report creation with static data."""
+
+        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
+        one_day = datetime.timedelta(days=1)
+        yesterday = now - one_day
+        cost = fake.pyint(min_value=10, max_value=1000)
+        static_oci_data = {
+            "generators": [
+                {
+                    "OCIComputeGenerator": {
+                        "start_date": str(yesterday.date()),
+                        "end_date": str(now.date()),
+                        "cost": cost,
+                        "currency": "USD",
+                        "compartment_name": "testcompartmentname",
+                        "tenant_id": "ocid1.tenancy.oc1..fjkEUoxyZSYLvd",
+                    }
+                },
+                {
+                    "OCIBlockStorageGenerator": {
+                        "start_date": str(yesterday.date()),
+                        "end_date": str(now.date()),
+                        "cost": cost,
+                        "currency": "USD",
+                        "compartment_name": "testcompartmentname",
+                        "tenant_id": "ocid1.tenancy.oc1..fjkEUoxyZSYLvd",
+                    }
+                },
+                {
+                    "OCINetworkGenerator": {
+                        "start_date": str(yesterday.date()),
+                        "end_date": str(now.date()),
+                        "cost": cost,
+                        "currency": "USD",
+                        "compartment_name": "testcompartmentname",
+                        "tenant_id": "ocid1.tenancy.oc1..fjkEUoxyZSYLvd",
+                    }
+                },
+                {
+                    "OCIDatabaseGenerator": {
+                        "start_date": str(yesterday.date()),
+                        "end_date": str(now.date()),
+                        "cost": cost,
+                        "currency": "USD",
+                        "compartment_name": "testcompartmentname",
+                        "tenant_id": "ocid1.tenancy.oc1..fjkEUoxyZSYLvd",
+                    }
+                },
+            ],
+        }
+        oci_create_report(
+            {
+                "start_date": yesterday,
+                "end_date": now,
+                "write_monthly": True,
+                "static_report_data": static_oci_data,
+            }
+        )
+        cost_file_path = "{}/{}".format(os.getcwd(), "reports_cost-csv_00010.csv")
+        usage_file_path = "{}/{}".format(os.getcwd(), "reports_usage-csv_00011.csv")
+
+        self.assertTrue(os.path.isfile(cost_file_path))
+        self.assertTrue(os.path.isfile(usage_file_path))
+        os.remove(cost_file_path)
+        os.remove(usage_file_path)

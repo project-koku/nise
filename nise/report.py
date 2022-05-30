@@ -1178,7 +1178,6 @@ def oci_create_report(options):
             LOG.info(f"Generating {report_type} data for OCI for {month.get('name')}")
 
             for generator in generators:
-                # TODO: set static currency
                 generator_cls = generator.get("generator")
                 attributes = generator.get("attributes")
                 gen_start_date = month.get("start")
