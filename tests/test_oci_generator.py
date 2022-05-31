@@ -169,7 +169,7 @@ class TestOCIComputeGenerator(OCIGeneratorTestCase):
 
     def test_add_cost_data(self):
         """Test that cost data is added."""
-        report_type = "oci_cost_report"
+        report_type = "cost"
         generator = OCIComputeGenerator(self.six_hours_ago, self.now, self.currency, report_type, self.attributes)
         row = generator._add_cost_data({}, self.six_hours_ago, self.now)
         self.assertEqual(row["cost/currencyCode"], self.currency)
@@ -178,7 +178,7 @@ class TestOCIComputeGenerator(OCIGeneratorTestCase):
 
     def test_add_usage_data(self):
         """Test that usage data is added."""
-        report_type = "oci_usage_report"
+        report_type = "usage"
         generator = OCIComputeGenerator(self.six_hours_ago, self.now, self.currency, report_type, self.attributes)
         usage_row = generator._add_usage_data({}, self.six_hours_ago, self.now)
         self.assertIsInstance(usage_row["usage/consumedQuantity"], int)
@@ -217,7 +217,7 @@ class TestOCINetworkGenerator(OCIGeneratorTestCase):
 
     def test_add_cost_data(self):
         """Test that cost data is added."""
-        report_type = "oci_cost_report"
+        report_type = "cost"
         generator = OCINetworkGenerator(self.six_hours_ago, self.now, self.currency, report_type, self.attributes)
         row = generator._add_cost_data({}, self.six_hours_ago, self.now)
         self.assertEqual(row["cost/currencyCode"], self.currency)
@@ -225,7 +225,7 @@ class TestOCINetworkGenerator(OCIGeneratorTestCase):
 
     def test_add_usage_data(self):
         """Test that usage specific data for network service is added."""
-        report_type = "oci_usage_report"
+        report_type = "usage"
         generator = OCINetworkGenerator(self.six_hours_ago, self.now, self.currency, report_type, self.attributes)
         usage_row = generator._add_usage_data({}, self.six_hours_ago, self.now)
         self.assertIsInstance(usage_row["usage/consumedQuantity"], int)
@@ -261,7 +261,7 @@ class TestOCIBlockStorageGenerator(OCIGeneratorTestCase):
 
     def test_add_cost_data(self):
         """Test that cost specific data for block storage service is added."""
-        report_type = "oci_cost_report"
+        report_type = "cost"
         generator = OCIBlockStorageGenerator(self.six_hours_ago, self.now, self.currency, report_type, self.attributes)
         test_row = generator._add_cost_data({}, self.six_hours_ago, self.now)
         self.assertEqual(test_row["cost/currencyCode"], self.currency)
@@ -269,7 +269,7 @@ class TestOCIBlockStorageGenerator(OCIGeneratorTestCase):
 
     def test_add_usage_data(self):
         """Test that usage specific data for block storage service is added."""
-        report_type = "oci_usage_report"
+        report_type = "usage"
         generator = OCIBlockStorageGenerator(self.six_hours_ago, self.now, self.currency, report_type, self.attributes)
         test_row = generator._add_usage_data({}, self.six_hours_ago, self.now)
         self.assertIsInstance(test_row["usage/consumedQuantity"], int)
@@ -300,7 +300,7 @@ class TestOCIDatabaseGenerator(OCIGeneratorTestCase):
 
     def test_add_cost_data(self):
         """Test that cost specific data for database service is added."""
-        report_type = "oci_cost_report"
+        report_type = "cost"
         generator = OCIDatabaseGenerator(self.two_hours_ago, self.now, self.currency, report_type, self.attributes)
         test_row = generator._add_cost_data({}, self.two_hours_ago, self.now)
         self.assertEqual(test_row["cost/currencyCode"], self.currency)
@@ -308,7 +308,7 @@ class TestOCIDatabaseGenerator(OCIGeneratorTestCase):
 
     def test_add_usage_data(self):
         """Test that usage specific data for database service is added."""
-        report_type = "oci_usage_report"
+        report_type = "usage"
         generator = OCIDatabaseGenerator(self.two_hours_ago, self.now, self.currency, report_type, self.attributes)
         test_row = generator._add_usage_data({}, self.two_hours_ago, self.now)
         self.assertIsInstance(test_row["usage/consumedQuantity"], int)
