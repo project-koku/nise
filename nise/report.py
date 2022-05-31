@@ -1132,9 +1132,13 @@ def _gcp_bigquery_process(
 def write_oci_file(report_type, file_number, data, options):
     """Write OCI data to a file."""
     report_type_to_name = {OCI_COST_REPORT: "cost", OCI_USAGE_REPORT: "usage"}
-    file_name = f"reports_{report_type_to_name[report_type]}-csv_0001{file_number}"
-    full_file_name = f"{os.getcwd()}/{file_name}.csv"
+    file_name = f"reports_{report_type_to_name[report_type]}-csv_0001{file_number}.csv"
+    full_file_name = f"{os.getcwd()}/{file_name}"
     _write_csv(full_file_name, data, OCI_REPORT_TYPE_TO_COLS[report_type])
+
+    local_bucket = options.get("oci_local_bucket")
+    if local_bucket and os.path.isdir(local_bucket):
+        copy_to_local_dir(local_bucket, full_file_name, file_name)
     return full_file_name
 
 

@@ -111,7 +111,7 @@ nise is a command line tool::
     Usage:
         nise ( report | yaml )
         nise report ( aws | azure | gcp | ocp | oci ) [options]
-        nise yaml ( aws | azure | ocp | ocp-on-cloud ) [options]
+        nise yaml ( aws | azure | ocp | ocp-on-cloud | oci ) [options]
 
     Report Options:
         -s, --start-date YYYY-MM-DD             required if not using --static-report-file FILE_NAME
@@ -149,6 +149,7 @@ nise is a command line tool::
 
     OCI Report Options:
         --oci-bucket-name BUCKET_NAME           optional, OCI bucket name.
+        --oci-local-bucket LOCAL_BUCKET_PATH    optional, path to upload reports to a local directory.
 
     Common YAML Options:
         -o, --output YAML_NAME                  REQUIRED, Output file path (i.e "large.yml").

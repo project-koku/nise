@@ -1523,6 +1523,29 @@ class OCIReportTestCase(TestCase):
             write_oci_file(report_type, file_number, data[report_type], options)
             assert mock_write_csv.called
 
+    @patch("nise.report.copy_to_local_dir")
+    def test_write_oci_file_to_local_bucket(self, mock_copy_to_local_dir):
+        """Test the aws report creation method with local directory."""
+        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
+        one_day = datetime.timedelta(days=1)
+        yesterday = now - one_day
+        local_bucket_path = mkdtemp()
+        options = {
+            "start_date": yesterday,
+            "end_date": now,
+            "oci_local_bucket": local_bucket_path,
+            "write_monthly": True,
+        }
+        oci_create_report(options)
+        assert mock_copy_to_local_dir.called
+        cost_file_path = "{}/{}".format(os.getcwd(), "reports_cost-csv_00010.csv")
+        usage_file_path = "{}/{}".format(os.getcwd(), "reports_usage-csv_00011.csv")
+        self.assertTrue(os.path.isfile(cost_file_path))
+        self.assertTrue(os.path.isfile(usage_file_path))
+        os.remove(cost_file_path)
+        os.remove(usage_file_path)
+        shutil.rmtree(local_bucket_path)
+
     @patch("nise.report._write_csv")
     @patch("nise.report.upload_to_oci_bucket")
     def test_oci_bucket_upload(self, mock_write_csv, mock_oci_bucket_upload):

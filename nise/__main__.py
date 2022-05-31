@@ -267,7 +267,14 @@ def add_oci_parser_args(parser):
         metavar="BUCKET_NAME",
         dest="oci_bucket_name",
         required=False,
-        help="Bucket where to upload data in OCI.",
+        help="OCI storage bucket where to upload generated reports.",
+    )
+    parser.add_argument(
+        "--oci-local-bucket",
+        metavar="OCI_LOCAL_BUCKET",
+        dest="oci_local_bucket",
+        required=False,
+        help="Local bucket or path where to upload generated reports.",
     )
 
 
@@ -545,10 +552,11 @@ def _validate_oci_arguments(parser, options):
 
     """
     is_args_valid = False
+    local_bucket = options.get("oci_local_bucket")
     bucket_name = options.get("oci_bucket_name")
     config_file = os.environ.get("OCI_CONFIG_FILE")
 
-    if (not bucket_name) or (bucket_name and config_file and Path(config_file).exists()):
+    if (not bucket_name) or (bucket_name and config_file and Path(config_file).exists()) or local_bucket:
         is_args_valid = True
     else:
         msg = (

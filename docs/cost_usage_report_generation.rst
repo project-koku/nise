@@ -192,6 +192,10 @@ To generate completely random data and upload the report files to an OCI Storage
 
     nise report oci -s 2022-02-10 --oci-bucket-name test-bucket
 
+To generate completely random data and upload the report files to a local bucket::
+
+    nise report oci -s 2022-02-10 --oci-local-bucket '/path/to/local/bucket'
+
 To generate less randomized data, supply a ``--static-report-file YAML_NAME``. `Example oci yaml.`_::
 
     nise report oci --static-report-file example_oci_static_data.yml
