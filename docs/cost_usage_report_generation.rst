@@ -176,25 +176,20 @@ Below is an example usage of ``nise`` for OCP running on AZURE data using the `e
 OCI reports
 -----------
 
-Generated reports will be produced in daily .csv files with the file format <reports>_<Report-type>-<csv>_<File-number>.csv.
+Cost and usage reports will be generated in monthly .csv files with the file format 
+<reports>_<Report Type>-<csv>_<File Number>_<Year>-<Month>.csv.
 
-The ``--oci-bucket-name`` options is used to attemp uploading the generated report to an OCI Storage bucket.
-When this is the case, the ``OCI_CONFIG_FILE`` environment variable must be set, and the given bucket-name must match
-an existing bucket that is accessable by the service account indicated in the ``OCI_CONFIG_FILE``.
+To generate completely random data and save the report files in the local directory, simply supply a ``--start-date YYYY-MM-DD`` and ``--write-monthly``::
 
-Below are example usages of ``nise`` for OCI data::
+    nise report oci --start-date 2022-04-01 --write-monthly
 
-To generate completely random data and save the report files in the local directory::
+To move the generated data into a specific local directory, supply ``--oci-local-bucket`` with a ``/path/to/local/dir``::
 
-    nise report oci -s 2022-02-10 -w
+    nise report oci -s 2022-04-01 --oci-local-bucket /local/path/testbucket
 
-To generate completely random data and upload the report files to an OCI Storage bucket::
+To upload data to an OCI bucket::
 
-    nise report oci -s 2022-02-10 --oci-bucket-name test-bucket
-
-To generate completely random data and upload the report files to a local bucket::
-
-    nise report oci -s 2022-02-10 --oci-local-bucket '/path/to/local/bucket'
+    nise report oci -s 2022-04-01 --oci-bucket-name testbucket
 
 To generate less randomized data, supply a ``--static-report-file YAML_NAME``. `Example oci yaml.`_::
 

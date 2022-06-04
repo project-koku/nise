@@ -126,7 +126,7 @@ class OCIGeneratorTestCase(TestCase):
 
     def test_generate_hourly_data(self):
         """Test that the _generate_hourly_data method is called."""
-        kwargs = {"report_type": "oci_cost_type"}
+        kwargs = {}
         with patch.object(OCIGenerator, "_generate_hourly_data", return_value=None) as mock_method:
             generator = OCIGenerator(self.six_hours_ago, self.now, self.currency, self.attributes)
             generator._generate_hourly_data(**kwargs)
@@ -136,10 +136,9 @@ class OCIGeneratorTestCase(TestCase):
     def test_generate_data(self, mock_method):
         """Test that the generate_data method is called."""
         generator = OCIGenerator(self.six_hours_ago, self.now, self.currency, self.attributes)
-        for report_type in OCI_REPORT_TYPE_TO_COLS:
-            generator.generate_data(report_type)
-            assert mock_method is OCIGenerator.generate_data
-            assert mock_method.called
+        generator.generate_data()
+        assert mock_method is OCIGenerator.generate_data
+        assert mock_method.called
 
 
 class TestOCIComputeGenerator(OCIGeneratorTestCase):
@@ -147,30 +146,20 @@ class TestOCIComputeGenerator(OCIGeneratorTestCase):
 
     def test_init_data_row(self):
         """Test the init data row."""
-        for report_type in OCI_REPORT_TYPE_TO_COLS:
-            generator = OCIComputeGenerator(self.six_hours_ago, self.now, self.currency, report_type)
-            self.assertEqual(generator.service_name, "COMPUTE")
-            self.assertEqual(generator.report_type, report_type)
-            self.assertIsNotNone(generator.report_type)
-
-    def test_init_data_with_none_report(self):
-        """Test the init data with a none report type."""
-        generator = OCIComputeGenerator(self.six_hours_ago, self.now, self.currency, None)
-        self.assertIsNone(generator.report_type)
+        generator = OCIComputeGenerator(self.six_hours_ago, self.now, self.currency)
+        self.assertEqual(generator.service_name, "COMPUTE")
 
     def test_update_data(self):
         """Test that a compute row is updated."""
-        for report_type in OCI_REPORT_TYPE_TO_COLS:
-            generator = OCIComputeGenerator(self.six_hours_ago, self.now, self.currency, report_type, self.attributes)
-            row = generator._update_data({}, self.six_hours_ago, self.now)
-            self.assertEqual(row["product/service"], "COMPUTE")
-            self.assertIsNotNone(row["product/resourceId"])
-            self.assertIn("ocid1.instance.oci", row["product/resourceId"])
+        generator = OCIComputeGenerator(self.six_hours_ago, self.now, self.currency, self.attributes)
+        row = generator._update_data({}, self.six_hours_ago, self.now)
+        self.assertEqual(row["product/service"], "COMPUTE")
+        self.assertIsNotNone(row["product/resourceId"])
+        self.assertIn("ocid1.instance.oci", row["product/resourceId"])
 
     def test_add_cost_data(self):
         """Test that cost data is added."""
-        report_type = "cost"
-        generator = OCIComputeGenerator(self.six_hours_ago, self.now, self.currency, report_type, self.attributes)
+        generator = OCIComputeGenerator(self.six_hours_ago, self.now, self.currency, self.attributes)
         row = generator._add_cost_data({}, self.six_hours_ago, self.now)
         self.assertEqual(row["cost/currencyCode"], self.currency)
         self.assertIn("B", row["cost/productSku"])
@@ -178,8 +167,7 @@ class TestOCIComputeGenerator(OCIGeneratorTestCase):
 
     def test_add_usage_data(self):
         """Test that usage data is added."""
-        report_type = "usage"
-        generator = OCIComputeGenerator(self.six_hours_ago, self.now, self.currency, report_type, self.attributes)
+        generator = OCIComputeGenerator(self.six_hours_ago, self.now, self.currency, self.attributes)
         usage_row = generator._add_usage_data({}, self.six_hours_ago, self.now)
         self.assertIsInstance(usage_row["usage/consumedQuantity"], int)
         self.assertIsInstance(usage_row["usage/billedQuantity"], int)
@@ -188,12 +176,11 @@ class TestOCIComputeGenerator(OCIGeneratorTestCase):
 
     def test_generate_data(self):
         """Test that the generate_data method for network service works."""
-        for report_type in OCI_REPORT_TYPE_TO_COLS:
-            generator = OCIComputeGenerator(self.six_hours_ago, self.now, self.currency, report_type, self.attributes)
-            with patch.object(generator, "_generate_hourly_data") as mock_method:
-                kwargs = {"report_type": report_type}
-                generator.generate_data(**kwargs)
-                mock_method.assert_called_with(**kwargs)
+        generator = OCIComputeGenerator(self.six_hours_ago, self.now, self.currency, self.attributes)
+        with patch.object(generator, "_generate_hourly_data") as mock_method:
+            kwargs = {}
+            generator.generate_data(**kwargs)
+            mock_method.assert_called_with(**kwargs)
 
 
 class TestOCINetworkGenerator(OCIGeneratorTestCase):
@@ -201,32 +188,26 @@ class TestOCINetworkGenerator(OCIGeneratorTestCase):
 
     def test_init_data_row(self):
         """Test the init data row."""
-        for report_type in OCI_REPORT_TYPE_TO_COLS:
-            generator = OCINetworkGenerator(self.six_hours_ago, self.now, self.currency, report_type, self.attributes)
-            self.assertEqual(generator.service_name, "NETWORK")
-            self.assertEqual(generator.report_type, report_type)
-            self.assertIsNotNone(generator.report_type)
+        generator = OCINetworkGenerator(self.six_hours_ago, self.now, self.currency, self.attributes)
+        self.assertEqual(generator.service_name, "NETWORK")
 
     def test_update_data(self):
         """Test that a network row is updated."""
-        for report_type in OCI_REPORT_TYPE_TO_COLS:
-            generator = OCINetworkGenerator(self.six_hours_ago, self.now, self.currency, report_type, self.attributes)
-            row = generator._update_data({}, self.six_hours_ago, self.now)
-            self.assertEqual(row["product/service"], "NETWORK")
-            self.assertIsNotNone(row["product/resourceId"])
+        generator = OCINetworkGenerator(self.six_hours_ago, self.now, self.currency, self.attributes)
+        row = generator._update_data({}, self.six_hours_ago, self.now)
+        self.assertEqual(row["product/service"], "NETWORK")
+        self.assertIsNotNone(row["product/resourceId"])
 
     def test_add_cost_data(self):
         """Test that cost data is added."""
-        report_type = "cost"
-        generator = OCINetworkGenerator(self.six_hours_ago, self.now, self.currency, report_type, self.attributes)
+        generator = OCINetworkGenerator(self.six_hours_ago, self.now, self.currency, self.attributes)
         row = generator._add_cost_data({}, self.six_hours_ago, self.now)
         self.assertEqual(row["cost/currencyCode"], self.currency)
         self.assertIn("B", row["cost/productSku"])
 
     def test_add_usage_data(self):
         """Test that usage specific data for network service is added."""
-        report_type = "usage"
-        generator = OCINetworkGenerator(self.six_hours_ago, self.now, self.currency, report_type, self.attributes)
+        generator = OCINetworkGenerator(self.six_hours_ago, self.now, self.currency, self.attributes)
         usage_row = generator._add_usage_data({}, self.six_hours_ago, self.now)
         self.assertIsInstance(usage_row["usage/consumedQuantity"], int)
         self.assertIsInstance(usage_row["usage/billedQuantity"], int)
@@ -239,38 +220,32 @@ class TestOCIBlockStorageGenerator(OCIGeneratorTestCase):
 
     def test_init_data_row(self):
         """Test the init data row for block storage data."""
-        for report_type in OCI_REPORT_TYPE_TO_COLS:
-            generator = OCIBlockStorageGenerator(
-                self.six_hours_ago, self.now, self.currency, report_type, self.attributes
-            )
-            self.assertEqual(generator.service_name, "BLOCK_STORAGE")
-            self.assertEqual(generator.report_type, report_type)
-            self.assertIsNotNone(generator.report_type)
+        generator = OCIBlockStorageGenerator(
+            self.six_hours_ago, self.now, self.currency, self.attributes
+        )
+        self.assertEqual(generator.service_name, "BLOCK_STORAGE")
 
     def test_update_data(self):
         """Test that a block storage data row is updated."""
-        for report_type in OCI_REPORT_TYPE_TO_COLS:
-            generator = OCIBlockStorageGenerator(
-                self.six_hours_ago, self.now, self.currency, report_type, self.attributes
-            )
-            row = generator._update_data({}, self.six_hours_ago, self.now)
-            self.assertEqual(row["product/service"], "BLOCK_STORAGE")
-            self.assertEqual(row["product/service"], generator.service_name)
-            self.assertIsNotNone(row["product/resourceId"])
-            self.assertIn("ocid1.bootvolume.oc1", row["product/resourceId"])
+        generator = OCIBlockStorageGenerator(
+            self.six_hours_ago, self.now, self.currency, self.attributes
+        )
+        row = generator._update_data({}, self.six_hours_ago, self.now)
+        self.assertEqual(row["product/service"], "BLOCK_STORAGE")
+        self.assertEqual(row["product/service"], generator.service_name)
+        self.assertIsNotNone(row["product/resourceId"])
+        self.assertIn("ocid1.bootvolume.oc1", row["product/resourceId"])
 
     def test_add_cost_data(self):
         """Test that cost specific data for block storage service is added."""
-        report_type = "cost"
-        generator = OCIBlockStorageGenerator(self.six_hours_ago, self.now, self.currency, report_type, self.attributes)
+        generator = OCIBlockStorageGenerator(self.six_hours_ago, self.now, self.currency, self.attributes)
         test_row = generator._add_cost_data({}, self.six_hours_ago, self.now)
         self.assertEqual(test_row["cost/currencyCode"], self.currency)
         self.assertIn("B", test_row["cost/productSku"])
 
     def test_add_usage_data(self):
         """Test that usage specific data for block storage service is added."""
-        report_type = "usage"
-        generator = OCIBlockStorageGenerator(self.six_hours_ago, self.now, self.currency, report_type, self.attributes)
+        generator = OCIBlockStorageGenerator(self.six_hours_ago, self.now, self.currency, self.attributes)
         test_row = generator._add_usage_data({}, self.six_hours_ago, self.now)
         self.assertIsInstance(test_row["usage/consumedQuantity"], int)
         self.assertIsInstance(test_row["usage/billedQuantity"], int)
@@ -283,33 +258,27 @@ class TestOCIDatabaseGenerator(OCIGeneratorTestCase):
 
     def test_init_data_row(self):
         """Test the init data row for database generator is created."""
-        for report_type in OCI_REPORT_TYPE_TO_COLS:
-            generator = OCIDatabaseGenerator(self.two_hours_ago, self.now, self.currency, report_type, self.attributes)
-            self.assertEqual(generator.service_name, "DATABASE")
-            self.assertEqual(generator.report_type, report_type)
-            self.assertIsNotNone(generator.report_type)
+        generator = OCIDatabaseGenerator(self.two_hours_ago, self.now, self.currency, self.attributes)
+        self.assertEqual(generator.service_name, "DATABASE")
 
     def test_update_data(self):
         """Test that a database data row is updated."""
-        for report_type in OCI_REPORT_TYPE_TO_COLS:
-            generator = OCIDatabaseGenerator(self.six_hours_ago, self.now, self.currency, report_type, self.attributes)
-            row = generator._update_data({}, self.six_hours_ago, self.now)
-            self.assertEqual(row["product/service"], "DATABASE")
-            self.assertEqual(row["product/service"], generator.service_name)
-            self.assertIsNotNone(row["product/resourceId"])
+        generator = OCIDatabaseGenerator(self.six_hours_ago, self.now, self.currency, self.attributes)
+        row = generator._update_data({}, self.six_hours_ago, self.now)
+        self.assertEqual(row["product/service"], "DATABASE")
+        self.assertEqual(row["product/service"], generator.service_name)
+        self.assertIsNotNone(row["product/resourceId"])
 
     def test_add_cost_data(self):
         """Test that cost specific data for database service is added."""
-        report_type = "cost"
-        generator = OCIDatabaseGenerator(self.two_hours_ago, self.now, self.currency, report_type, self.attributes)
+        generator = OCIDatabaseGenerator(self.two_hours_ago, self.now, self.currency, self.attributes)
         test_row = generator._add_cost_data({}, self.two_hours_ago, self.now)
         self.assertEqual(test_row["cost/currencyCode"], self.currency)
         self.assertIn("B", test_row["cost/productSku"])
 
     def test_add_usage_data(self):
         """Test that usage specific data for database service is added."""
-        report_type = "usage"
-        generator = OCIDatabaseGenerator(self.two_hours_ago, self.now, self.currency, report_type, self.attributes)
+        generator = OCIDatabaseGenerator(self.two_hours_ago, self.now, self.currency, self.attributes)
         test_row = generator._add_usage_data({}, self.two_hours_ago, self.now)
         self.assertIsInstance(test_row["usage/consumedQuantity"], int)
         self.assertIsInstance(test_row["usage/billedQuantity"], int)
