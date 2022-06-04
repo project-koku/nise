@@ -176,7 +176,7 @@ Below is an example usage of ``nise`` for OCP running on AZURE data using the `e
 OCI reports
 -----------
 
-Cost and usage reports will be generated in monthly .csv files with the file format 
+Cost and usage reports will be generated in monthly .csv files with the file format
 <reports>_<Report Type>-<csv>_<File Number>_<Year>-<Month>.csv.
 
 To generate completely random data and save the report files in the local directory, simply supply a ``--start-date YYYY-MM-DD`` and ``--write-monthly``::

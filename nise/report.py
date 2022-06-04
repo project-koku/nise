@@ -1143,7 +1143,7 @@ def oci_write_file(report_type, month, year, data, options):
 
 
 def oci_bucket_upload(bucket_name, report_type, month, year, data, options):
-    
+
     """Upload data to OCI bucket."""
     month_num = f"0{month}" if month < 10 else month
     file_name = f"report_{report_type}-0001_{year}-{month_num}.csv"
@@ -1196,14 +1196,10 @@ def oci_create_report(options):
 
         for report_type in OCI_REPORT_TYPE_TO_COLS:
             month_output_file = oci_route_file(
-                report_type,
-                gen_start_date.month,
-                gen_start_date.year,
-                data[report_type], 
-                options
+                report_type, gen_start_date.month, gen_start_date.year, data[report_type], options
             )
             monthly_files.append(month_output_file)
-            
+
     write_monthly = options.get("write_monthly", False)
     if not write_monthly:
         _remove_files(monthly_files)

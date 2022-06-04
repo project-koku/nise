@@ -220,16 +220,12 @@ class TestOCIBlockStorageGenerator(OCIGeneratorTestCase):
 
     def test_init_data_row(self):
         """Test the init data row for block storage data."""
-        generator = OCIBlockStorageGenerator(
-            self.six_hours_ago, self.now, self.currency, self.attributes
-        )
+        generator = OCIBlockStorageGenerator(self.six_hours_ago, self.now, self.currency, self.attributes)
         self.assertEqual(generator.service_name, "BLOCK_STORAGE")
 
     def test_update_data(self):
         """Test that a block storage data row is updated."""
-        generator = OCIBlockStorageGenerator(
-            self.six_hours_ago, self.now, self.currency, self.attributes
-        )
+        generator = OCIBlockStorageGenerator(self.six_hours_ago, self.now, self.currency, self.attributes)
         row = generator._update_data({}, self.six_hours_ago, self.now)
         self.assertEqual(row["product/service"], "BLOCK_STORAGE")
         self.assertEqual(row["product/service"], generator.service_name)

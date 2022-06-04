@@ -129,7 +129,9 @@ class OCIGenerator(AbstractGenerator):
         self.reference_no = self._get_reference_num()
         self.compartment_id = self.tenant_id
         self.compartment_name = (
-            attributes.get("compartment_name") if attributes and attributes.get("compartment_name") else self.fake.name().replace(" ", "").lower()
+            attributes.get("compartment_name")
+            if attributes and attributes.get("compartment_name")
+            else self.fake.name().replace(" ", "").lower()
         )
         self.region_to_domain = choice(self.OCI_REGIONS_TO_DOMAIN)
         self.product_region = self._get_product_region()
@@ -138,9 +140,9 @@ class OCIGenerator(AbstractGenerator):
         self.email_domain = self.fake.free_email_domain()
         self.subscription_id = self.fake.random_number(fix_len=True, digits=8)
         self.usage_quantity = self.fake.random_number(digits=6, fix_len=True)
-        self.cost = attributes.get("cost") if attributes and attributes.get('cost') else self._gen_cost_value()
+        self.cost = attributes.get("cost") if attributes and attributes.get("cost") else self._gen_cost_value()
         self.cost_overage_flag = choice(["N", ""])
-        self.cost_product_sku = f"B{self.fake.random_number(fix_len=True, digits=5)}" 
+        self.cost_product_sku = f"B{self.fake.random_number(fix_len=True, digits=5)}"
 
     @staticmethod
     def timestamp(in_date):
@@ -217,6 +219,7 @@ class OCIGenerator(AbstractGenerator):
             f"{self.fake.pystr(max_chars=4)}:{self.product_region.upper()}-AD-{self.region_to_domain.get('domain')}"
         )
         return available_domain
+
     def _gen_cost_value(self):
         """Generate the cost value."""
         return round(uniform(0, 9.0), 2)
@@ -270,7 +273,7 @@ class OCIGenerator(AbstractGenerator):
         row["product/service"] = self.service_name
         row["product/resourceId"] = self.resource_id
         report_type = kwargs.get(REPORT_TYPE)
-        
+
         if report_type == OCI_COST_REPORT:
             row = self._add_cost_data(row, start, end, **kwargs)
         if report_type == OCI_USAGE_REPORT:
@@ -290,8 +293,6 @@ class OCIGenerator(AbstractGenerator):
                 row = self._update_data(row, start, end, **kwargs)
                 data[report_type].append(row)
         return data
-
-
 
     def generate_data(self, **kwargs):
         """Generate OCI data."""
