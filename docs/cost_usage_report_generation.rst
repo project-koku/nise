@@ -7,7 +7,7 @@ nise is a command line tool::
     Usage:
         nise ( report | yaml )
         nise report ( aws | azure | gcp | ocp | oci ) [options]
-        nise yaml ( aws | azure | ocp | ocp-on-cloud ) [options]
+        nise yaml ( aws | azure | ocp | ocp-on-cloud | oci ) [options]
 
     Report Options:
         -s, --start-date YYYY-MM-DD             required if not using --static-report-file FILE_NAME
@@ -173,6 +173,30 @@ Below is an example usage of ``nise`` for OCP running on AZURE data using the `e
     nise report ocp -w --ocp-cluster-id my-cluster-id --static-report-file examples/ocp_on_azure/ocp_static_data.yml
 
 
+OCI reports
+-----------
+
+Cost and usage reports will be generated in monthly .csv files with the file format
+<reports>_<Report Type>-<csv>_<File Number>_<Year>-<Month>.csv.
+
+To generate completely random data and save the report files in the local directory, simply supply a ``--start-date YYYY-MM-DD`` and ``--write-monthly``::
+
+    nise report oci --start-date 2022-04-01 --write-monthly
+
+To move the generated data into a specific local directory, supply ``--oci-local-bucket`` with a ``/path/to/local/dir``::
+
+    nise report oci -s 2022-04-01 --oci-local-bucket /local/path/testbucket
+
+To upload data to an OCI bucket::
+
+    nise report oci -s 2022-04-01 --oci-bucket-name testbucket
+
+To generate less randomized data, supply a ``--static-report-file YAML_NAME``. `Example oci yaml.`_::
+
+    nise report oci --static-report-file example_oci_static_data.yml
+
+
+
 
 .. Links to repo files or directories
 
@@ -182,23 +206,4 @@ Below is an example usage of ``nise`` for OCP running on AZURE data using the `e
 
 .. _`example ocp-on-azure yamls`: ../examples/ocp_on_azure
 
-
-
-OCI reports
------------
-
-Generated reports will be produced in daily .csv files with the file format <reports>_<Report-type>-<csv>_<File-number>.csv.
-
-The ``--oci-bucket-name`` options is used to attemp uploading the generated report to an OCI Storage bucket.
-When this is the case, the ``OCI_CONFIG_FILE`` environment variable must be set, and the given bucket-name must match
-an existing bucket that is accessable by the service account indicated in the ``OCI_CONFIG_FILE``.
-
-Below are example usages of ``nise`` for OCI data::
-
-To generate completely random data and save the report files in the local directory::
-
-    nise report oci -s 2022-02-10 -w
-
-To generate completely random data and upload the report files to an OCI Storage bucket::
-
-    nise report oci -s 2022-02-10 --oci-bucket-name test-bucket
+.. _`Example oci yaml.`: ../example_oci_static_data.yml

@@ -51,11 +51,10 @@ from nise.report import gcp_route_file
 from nise.report import oci_bucket_upload
 from nise.report import oci_create_report
 from nise.report import oci_route_file
+from nise.report import oci_write_file
 from nise.report import ocp_create_report
 from nise.report import ocp_route_file
 from nise.report import post_payload_to_ingest_service
-from nise.report import write_oci_file
-
 
 fake = faker.Faker()
 
@@ -1502,61 +1501,153 @@ class OCIReportTestCase(TestCase):
         now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
         one_day = datetime.timedelta(days=1)
         yesterday = now - one_day
-        file_number = 0
         options = {"start_date": yesterday, "end_date": now, "write_monthly": False}
         oci_create_report(options)
         for report_type in OCI_REPORT_TYPE_TO_COLS:
-            file_name = f"reports_{report_type}-csv_0001{file_number}.csv"
+            month_num = f"0{now.month}" if now.month < 10 else now.month
+            file_name = f"report_{report_type}-0001_{now.year}-{month_num}.csv"
             expected_output_file_path = f"{os.getcwd()}/{file_name}"
             self.assertTrue(os.path.isfile(expected_output_file_path))
             mock_remove_files.assert_called()
             os.remove(file_name)
-            file_number += 1
 
     @patch("nise.report._write_csv")
-    def test_write_oci_file(self, mock_write_csv):
-        """Test that the write_oci_file method is called."""
-        file_number = 0
+    def test_oci_write_file(self, mock_write_csv):
+        """Test that the oci_write_file method is called."""
+        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
         data = {"cost": [], "usage": []}
         options = {}
         for report_type in OCI_REPORT_TYPE_TO_COLS:
-            write_oci_file(report_type, file_number, data[report_type], options)
+            oci_write_file(report_type, now.month, now.year, data[report_type], options)
             assert mock_write_csv.called
+
+    @patch("nise.report.copy_to_local_dir")
+    def test_oci_write_file_to_local_bucket(self, mock_copy_to_local_dir):
+        """Test the aws report creation method with local directory."""
+        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
+        one_day = datetime.timedelta(days=1)
+        yesterday = now - one_day
+        local_bucket_path = mkdtemp()
+        options = {
+            "start_date": yesterday,
+            "end_date": now,
+            "oci_local_bucket": local_bucket_path,
+            "write_monthly": True,
+        }
+        oci_create_report(options)
+        assert mock_copy_to_local_dir.called
+
+        month_num = f"0{now.month}" if now.month < 10 else now.month
+        cost_file_path = f"{os.getcwd()}/report_cost-0001_{now.year}-{month_num}.csv"
+        usage_file_path = f"{os.getcwd()}/report_usage-0001_{now.year}-{month_num}.csv"
+        self.assertTrue(os.path.isfile(cost_file_path))
+        self.assertTrue(os.path.isfile(usage_file_path))
+        os.remove(cost_file_path)
+        os.remove(usage_file_path)
+        shutil.rmtree(local_bucket_path)
 
     @patch("nise.report._write_csv")
     @patch("nise.report.upload_to_oci_bucket")
     def test_oci_bucket_upload(self, mock_write_csv, mock_oci_bucket_upload):
         """Test that the oci_bucket_upload method is called."""
+        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
         bucket_name = "test-bucket"
-        file_number = 0
         data = {"cost": [], "usage": []}
         options = {"oci_bucket_name": bucket_name}
         for report_type in OCI_REPORT_TYPE_TO_COLS:
-            oci_bucket_upload(bucket_name, report_type, file_number, data[report_type], options)
+            oci_bucket_upload(bucket_name, report_type, now.month, now.year, data[report_type], options)
             assert mock_write_csv.called
             assert mock_oci_bucket_upload.called
 
     @patch("nise.report.oci_bucket_upload")
-    @patch("nise.report.write_oci_file")
-    def test_oci_route_file_upload(self, mock_write_oci_file, mock_upload):
+    @patch("nise.report.oci_write_file")
+    def test_oci_route_file_upload(self, mock_oci_write_file, mock_upload):
         """Test that file is uploaded if bucket_name is not none."""
+        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
+        bucket_name = "test-bucket"
+        data = {"cost": [], "usage": []}
+        options = {"oci_bucket_name": bucket_name}
         for report_type in OCI_REPORT_TYPE_TO_COLS:
-            bucket_name = "test-bucket"
-            file_number = 0
-            data = {"cost": [], "usage": []}
-            options = {"oci_bucket_name": bucket_name}
-            oci_route_file(report_type, file_number, data, options)
-            mock_write_oci_file.assert_not_called()
+            oci_route_file(report_type, now.month, now.year, data[report_type], options)
+            mock_oci_write_file.assert_not_called()
             mock_upload.assert_called()
 
     @patch("nise.report.oci_bucket_upload")
-    @patch("nise.report.write_oci_file")
-    def test_oci_route_file_no_upload(self, mock_write_oci_file, mock_upload):
+    @patch("nise.report.oci_write_file")
+    def test_oci_route_file_no_upload(self, mock_oci_write_file, mock_upload):
         """Test that file is not upload if bucket_name is none."""
+        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
+        data = {"cost": [], "usage": []}
+        options = {"oci_bucket_name": None}
         for report_type in OCI_REPORT_TYPE_TO_COLS:
-            file_number = 0
-            data = {"cost": [], "usage": []}
-            options = {"oci_bucket_name": None}
-            oci_route_file(report_type, file_number, data, options)
-            mock_write_oci_file.assert_called()
+            oci_route_file(report_type, now.month, now.year, data[report_type], options)
+            mock_oci_write_file.assert_called()
             mock_upload.assert_not_called()
+
+    def test_oci_create_report_static_data(self):
+        """Test oci report creation with static data."""
+
+        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
+        one_day = datetime.timedelta(days=1)
+        yesterday = now - one_day
+        cost = fake.pyint(min_value=0, max_value=10)
+        static_oci_data = {
+            "generators": [
+                {
+                    "OCIComputeGenerator": {
+                        "start_date": str(yesterday.date()),
+                        "end_date": str(now.date()),
+                        "cost": cost,
+                        "currency": "USD",
+                        "compartment_name": "testcompartmentname",
+                        "tenant_id": "ocid1.tenancy.oc1..fjkEUoxyZSYLvd",
+                    }
+                },
+                {
+                    "OCIBlockStorageGenerator": {
+                        "start_date": str(yesterday.date()),
+                        "end_date": str(now.date()),
+                        "cost": cost,
+                        "currency": "USD",
+                        "compartment_name": "testcompartmentname",
+                        "tenant_id": "ocid1.tenancy.oc1..fjkEUoxyZSYLvd",
+                    }
+                },
+                {
+                    "OCINetworkGenerator": {
+                        "start_date": str(yesterday.date()),
+                        "end_date": str(now.date()),
+                        "cost": cost,
+                        "currency": "USD",
+                        "compartment_name": "testcompartmentname",
+                        "tenant_id": "ocid1.tenancy.oc1..fjkEUoxyZSYLvd",
+                    }
+                },
+                {
+                    "OCIDatabaseGenerator": {
+                        "start_date": str(yesterday.date()),
+                        "end_date": str(now.date()),
+                        "cost": cost,
+                        "currency": "USD",
+                        "compartment_name": "testcompartmentname",
+                        "tenant_id": "ocid1.tenancy.oc1..fjkEUoxyZSYLvd",
+                    }
+                },
+            ],
+        }
+        oci_create_report(
+            {
+                "start_date": yesterday,
+                "end_date": now,
+                "write_monthly": True,
+                "static_report_data": static_oci_data,
+            }
+        )
+
+        month_num = f"0{now.month}" if now.month < 10 else now.month
+        cost_file_path = f"{os.getcwd()}/report_cost-0001_{now.year}-{month_num}.csv"
+        usage_file_path = f"{os.getcwd()}/report_usage-0001_{now.year}-{month_num}.csv"
+        self.assertTrue(os.path.isfile(cost_file_path))
+        self.assertTrue(os.path.isfile(usage_file_path))
+        os.remove(cost_file_path)
+        os.remove(usage_file_path)

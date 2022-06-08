@@ -229,18 +229,6 @@ def gcp_route_file(bucket_name, bucket_file_path, local_path):
         upload_to_gcp_storage(bucket_name, bucket_file_path, local_path)
 
 
-def oci_route_file(report_type, file_number, data, options):
-    """Route file to either local file system or OCI bucket."""
-
-    bucket_name = options.get("oci_bucket_name")
-    file_name = ""
-    if bucket_name is None:
-        file_name = write_oci_file(report_type, file_number, data, options)
-    else:
-        file_name = oci_bucket_upload(bucket_name, report_type, file_number, data, options)
-    return file_name
-
-
 def _convert_bytes(num):
     """Convert bytes to MB, GB, etc.."""
     for mem_size in ["bytes", "KB", "MB", "GB", "TB"]:
@@ -1129,18 +1117,36 @@ def _gcp_bigquery_process(
     return monthly_files
 
 
-def write_oci_file(report_type, file_number, data, options):
+def oci_route_file(report_type, month, year, data, options):
+    """Route file to either local file system or OCI bucket."""
+
+    bucket_name = options.get("oci_bucket_name")
+    file_name = ""
+    if bucket_name is None:
+        file_name = oci_write_file(report_type, month, year, data, options)
+    else:
+        file_name = oci_bucket_upload(bucket_name, report_type, month, year, data, options)
+    return file_name
+
+
+def oci_write_file(report_type, month, year, data, options):
     """Write OCI data to a file."""
-    report_type_to_name = {OCI_COST_REPORT: "cost", OCI_USAGE_REPORT: "usage"}
-    file_name = f"reports_{report_type_to_name[report_type]}-csv_0001{file_number}"
-    full_file_name = f"{os.getcwd()}/{file_name}.csv"
+    month_num = f"0{month}" if month < 10 else month
+    file_name = f"report_{report_type}-0001_{year}-{month_num}.csv"
+    full_file_name = f"{os.getcwd()}/{file_name}"
     _write_csv(full_file_name, data, OCI_REPORT_TYPE_TO_COLS[report_type])
+
+    local_bucket = options.get("oci_local_bucket")
+    if local_bucket and os.path.isdir(local_bucket):
+        copy_to_local_dir(local_bucket, full_file_name, file_name)
     return full_file_name
 
 
-def oci_bucket_upload(bucket_name, report_type, file_number, data, options):
+def oci_bucket_upload(bucket_name, report_type, month, year, data, options):
+
     """Upload data to OCI bucket."""
-    file_name = f"0001{file_number}.csv"
+    month_num = f"0{month}" if month < 10 else month
+    file_name = f"report_{report_type}-0001_{year}-{month_num}.csv"
     full_file_name = f"{os.getcwd()}/{file_name}"
     _write_csv(full_file_name, data, OCI_REPORT_TYPE_TO_COLS[report_type])
     _report_type = f"{report_type}-csv"
@@ -1154,38 +1160,46 @@ def oci_create_report(options):
     end_date = options.get("end_date")
     fake = Faker()
     attributes = {}
-    attributes["tenant_id"] = f"ocid1.tenancy.oc1..{fake.pystr(min_chars=20, max_chars=50)}"
-    generators = [
-        {"generator": OCIComputeGenerator, "attributes": attributes},
-        {"generator": OCINetworkGenerator, "attributes": attributes},
-        {"generator": OCIBlockStorageGenerator, "attributes": attributes},
-        {"generator": OCIDatabaseGenerator, "attributes": attributes},
-    ]
+    attributes["tenant_id"] = f"ocid1.tenancy.oc1..{fake.pystr(min_chars=20, max_chars=30)}"
+    attributes["compartment_name"] = fake.name().replace(" ", "").lower()
+    static_report_data = options.get("static_report_data")
+
+    if static_report_data:
+        generators = _get_generators(static_report_data.get("generators"))
+    else:
+        generators = [
+            {"generator": OCIComputeGenerator, "attributes": attributes},
+            {"generator": OCIBlockStorageGenerator, "attributes": attributes},
+            {"generator": OCINetworkGenerator, "attributes": attributes},
+            {"generator": OCIDatabaseGenerator, "attributes": attributes},
+        ]
     months = _create_month_list(start_date, end_date)
     currency = default_currency(options.get("currency"), static_currency=None)
-    file_number = 0
+    monthly_files = []
+    data = {OCI_COST_REPORT: [], OCI_USAGE_REPORT: []}
 
-    for report_type in OCI_REPORT_TYPE_TO_COLS:
-        monthly_files = []
-        data = {OCI_COST_REPORT: [], OCI_USAGE_REPORT: []}
+    for month in months:
+        LOG.info(f"Generating data for OCI for {month.get('name')}")
+        gen_start_date = month.get("start")
+        gen_end_date = month.get("end")
 
-        for month in months:
-            LOG.info(f"Generating {report_type} data for OCI for {month.get('name')}")
+        for generator in generators:
+            generator_cls = generator.get("generator")
+            attributes = generator.get("attributes")
 
-            for generator in generators:
-                generator_cls = generator.get("generator")
-                attributes = generator.get("attributes")
-                gen_start_date = month.get("start")
-                gen_end_date = month.get("end")
-                gen = generator_cls(gen_start_date, gen_end_date, currency, report_type, attributes)
+            if static_report_data:
+                currency = attributes.get("currency")
 
-                for hour in gen.generate_data(report_type=report_type):
-                    data[report_type] += [hour]
+            gen = generator_cls(gen_start_date, gen_end_date, currency, attributes)
+            for report_type in OCI_REPORT_TYPE_TO_COLS:
+                data[report_type] += gen.generate_data()[report_type]
 
-        month_output_file = oci_route_file(report_type, file_number, data[report_type], options)
-        monthly_files.append(month_output_file)
-        file_number += 1
+        for report_type in OCI_REPORT_TYPE_TO_COLS:
+            month_output_file = oci_route_file(
+                report_type, gen_start_date.month, gen_start_date.year, data[report_type], options
+            )
+            monthly_files.append(month_output_file)
 
-        write_monthly = options.get("write_monthly", False)
-        if not write_monthly:
-            _remove_files(monthly_files)
+    write_monthly = options.get("write_monthly", False)
+    if not write_monthly:
+        _remove_files(monthly_files)
