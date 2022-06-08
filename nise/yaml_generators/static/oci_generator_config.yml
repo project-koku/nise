@@ -1,0 +1,14 @@
+# Maximum number of words in name
+max_name_words: 2
+# Maximm resource id length (This will be a left-zero-padded string)
+max_resource_id_length: 10
+# Below are the max settings by entity and sub-entity definition
+# If random mode:
+#    The value will be between either 1 or the defined minimum and the defined maximum
+# Else:
+#    The value will be the maximum setting
+max_bandwidth_gens: 2500
+max_sql_gens: 2500
+max_storage_gens: 2500
+max_vmachine_gens: 2500
+max_vnetwork_gens: 2500

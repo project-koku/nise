@@ -21,10 +21,9 @@ from nise.generators.oci.oci_generator import OCIGenerator
 class OCIComputeGenerator(OCIGenerator):
     """Generator for OCI Compute data."""
 
-    def __init__(self, start_date, end_date, currency, report_type, attributes=None):
+    def __init__(self, start_date, end_date, currency, attributes=None):
         """Initialize the compute generator."""
         super().__init__(start_date, end_date, currency, attributes)
-        self.report_type = report_type
         self.service_name = "COMPUTE"
         self.resource_id = (
             f"ocid1.instance.oci.iad.{self.product_region}.{self.fake.pystr(min_chars=25, max_chars=35)}"

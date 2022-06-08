@@ -1,0 +1,34 @@
+---
+generators:
+{% for compute in generator.compute_gens %}  - OCIComputeGenerator:
+      start_date: {{ compute.start_date }}
+      end_date: {{ compute.end_date }}
+      cost: {{ compute.cost }}
+      currency: {{ compute.currency }}
+      compartment_name: {{ compute.compartment_name }}
+      tenant_id: {{ compute.tenant_id }}
+{% endfor %}
+{% for storage in generator.storage_gens %}  - OCIBlockStorageGenerator:
+      start_date: {{ storage.start_date }}
+      end_date: {{ storage.end_date }}
+      cost: {{ storage.cost }}
+      currency: {{ storage.currency }}
+      compartment_name: {{ storage.compartment_name }}
+      tenant_id: {{ storage.tenant_id }}
+{% endfor %}
+{% for network in generator.network_gens %}  - OCINetworkGenerator:
+      start_date: {{ network.start_date }}
+      end_date: {{ network.end_date }}
+      cost: {{ network.cost }}
+      currency: {{ network.currency }}
+      compartment_name: {{ network.compartment_name }}
+      tenant_id: {{ network.tenant_id }}
+{% endfor %}
+{% for db in generator.database_gens %}  - OCIDatabaseGenerator:
+      start_date: {{ db.start_date }}
+      end_date: {{ db.end_date }}
+      cost: {{ db.cost }}
+      currency: {{ db.currency }}
+      compartment_name: {{ db.compartment_name }}
+      tenant_id: {{ db.tenant_id }}
+{% endfor %}

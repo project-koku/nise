@@ -17,6 +17,7 @@
 """Defines the abstract generator."""
 import datetime
 from random import choice
+from random import uniform
 
 from nise.generators.generator import AbstractGenerator
 from nise.generators.generator import REPORT_TYPE
@@ -127,7 +128,11 @@ class OCIGenerator(AbstractGenerator):
         )
         self.reference_no = self._get_reference_num()
         self.compartment_id = self.tenant_id
-        self.compartment_name = self.fake.name().replace(" ", "").lower()
+        self.compartment_name = (
+            attributes.get("compartment_name")
+            if attributes and attributes.get("compartment_name")
+            else self.fake.name().replace(" ", "").lower()
+        )
         self.region_to_domain = choice(self.OCI_REGIONS_TO_DOMAIN)
         self.product_region = self._get_product_region()
         self.availability_domain = self._get_availability_domain()
@@ -135,6 +140,7 @@ class OCIGenerator(AbstractGenerator):
         self.email_domain = self.fake.free_email_domain()
         self.subscription_id = self.fake.random_number(fix_len=True, digits=8)
         self.usage_quantity = self.fake.random_number(digits=6, fix_len=True)
+        self.cost = attributes.get("cost") if attributes and attributes.get("cost") else self._gen_cost_value()
         self.cost_overage_flag = choice(["N", ""])
         self.cost_product_sku = f"B{self.fake.random_number(fix_len=True, digits=5)}"
 
@@ -214,6 +220,10 @@ class OCIGenerator(AbstractGenerator):
         )
         return available_domain
 
+    def _gen_cost_value(self):
+        """Generate the cost value."""
+        return round(uniform(0, 9.0), 2)
+
     def _add_cost_data(self, row, start, end, **kwargs):
         """Add cost information."""
         _data = self._get_cost_data(**kwargs)
@@ -231,7 +241,7 @@ class OCIGenerator(AbstractGenerator):
             "product/Description": self.cost_product_description,
             "cost/unitPrice": 0,
             "cost/unitPriceOverage": "",
-            "cost/myCost": 0,
+            "cost/myCost": self.cost,
             "cost/myCostOverage": self.cost_overage_flag,
             "cost/currencyCode": self.currency,
             "cost/billingUnitReadable": self.cost_billing_unit,
@@ -262,24 +272,28 @@ class OCIGenerator(AbstractGenerator):
         """Update a data row with compute values."""
         row["product/service"] = self.service_name
         row["product/resourceId"] = self.resource_id
-        if self.report_type == OCI_COST_REPORT:
+        report_type = kwargs.get(REPORT_TYPE)
+
+        if report_type == OCI_COST_REPORT:
             row = self._add_cost_data(row, start, end, **kwargs)
-        if self.report_type == OCI_USAGE_REPORT:
+        if report_type == OCI_USAGE_REPORT:
             row = self._add_usage_data(row, start, end, **kwargs)
         return row
 
     def _generate_hourly_data(self, **kwargs):
         """Create hourly data."""
+        data = {OCI_COST_REPORT: [], OCI_USAGE_REPORT: []}
         for hour in self.hours:
             start = hour.get("start")
             end = hour.get("end")
-            row = self._init_data_row(start, end, **kwargs)
-            row = self._add_common_usage_info(row, start, end)
-            row = self._update_data(row, start, end, **kwargs)
-            yield row
+            for report_type in data:
+                kwargs.update({"report_type": report_type})
+                row = self._init_data_row(start, end, **kwargs)
+                row = self._add_common_usage_info(row, start, end)
+                row = self._update_data(row, start, end, **kwargs)
+                data[report_type].append(row)
+        return data
 
-    def generate_data(self, report_type=None, **kwargs):
+    def generate_data(self, **kwargs):
         """Generate OCI data."""
-        if report_type:
-            kwargs.update({"report_type": report_type})
         return self._generate_hourly_data(**kwargs)
