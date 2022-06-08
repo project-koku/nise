@@ -61,6 +61,7 @@ setup(
         "google-cloud-storage>=1.19",
         "pyyaml>=5.3",
         "google-cloud-bigquery>=2.2.0",
+        "oci>=2.64.0",
     ],
     dependency_links=[],
     entry_points={"console_scripts": ["nise = nise.__main__:main"]},
