@@ -1545,7 +1545,7 @@ class OCIReportTestCase(TestCase):
         os.remove(cost_file_path)
         os.remove(usage_file_path)
         shutil.rmtree(local_bucket_path)
-    
+
     @patch("nise.report.copy_to_local_dir")
     def test_oci_write_file_to_local_bucket_not_exist(self, mock_copy_to_local_dir):
         """Test oci report creation method with non-existing local directory."""
