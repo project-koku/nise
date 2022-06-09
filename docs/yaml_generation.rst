@@ -64,7 +64,7 @@ Azure yamls
 The examples listed above for AWS also apply for Azure. Simply switch out ``aws`` for ``azure``.
 
 
-OCP yamls
+OCI yamls
 ---------
 
 To generate a yaml file which can be used to generate cost and usage reports we must supply 1 required argument: ``-o, --output YAML_NAME``. The output is the output file location. The following command will output a yaml in the local directory.::
