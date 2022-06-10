@@ -1138,11 +1138,9 @@ def oci_write_file(report_type, month, year, data, options):
 
     local_bucket = options.get("oci_local_bucket")
     if local_bucket:
-        if os.path.isdir(local_bucket):
-            copy_to_local_dir(local_bucket, full_file_name, file_name)
-        else:
+        if not os.path.isdir(local_bucket):
             os.mkdir(local_bucket)
-            copy_to_local_dir(local_bucket, full_file_name, file_name)
+        copy_to_local_dir(local_bucket, full_file_name, file_name)
     return full_file_name
 
 
