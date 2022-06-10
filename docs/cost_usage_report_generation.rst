@@ -183,11 +183,11 @@ To generate completely random data and save the report files in the local direct
 
     nise report oci --start-date 2022-04-01 --write-monthly
 
-To move the generated data into a specific local directory, supply ``--oci-local-bucket`` with a ``/path/to/local/dir``::
+To move the generated data into a specific local directory, supply ``--oci-local-bucket`` with a ``/path/to/local/dir``. If the directory does not exist in the path provided, it will be created::
 
     nise report oci -s 2022-04-01 --oci-local-bucket /local/path/testbucket
 
-To upload data to an OCI bucket::
+To upload data to an OCI bucket, supply ``--oci-bucket-name``. This also requires the ``OCI_CONFIG_FILE=/path/to/oci/config_file`` environment variable to be set in your ``.env`` file, and the bucket must already exist in your OCI storage.::
 
     nise report oci -s 2022-04-01 --oci-bucket-name testbucket
 

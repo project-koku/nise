@@ -1522,12 +1522,37 @@ class OCIReportTestCase(TestCase):
             assert mock_write_csv.called
 
     @patch("nise.report.copy_to_local_dir")
-    def test_oci_write_file_to_local_bucket(self, mock_copy_to_local_dir):
-        """Test the aws report creation method with local directory."""
+    def test_oci_write_file_to_local_bucket_exists(self, mock_copy_to_local_dir):
+        """Test oci report creation method with existing local directory."""
         now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
         one_day = datetime.timedelta(days=1)
         yesterday = now - one_day
         local_bucket_path = mkdtemp()
+        options = {
+            "start_date": yesterday,
+            "end_date": now,
+            "oci_local_bucket": local_bucket_path,
+            "write_monthly": True,
+        }
+        oci_create_report(options)
+        assert mock_copy_to_local_dir.called
+
+        month_num = f"0{now.month}" if now.month < 10 else now.month
+        cost_file_path = f"{os.getcwd()}/report_cost-0001_{now.year}-{month_num}.csv"
+        usage_file_path = f"{os.getcwd()}/report_usage-0001_{now.year}-{month_num}.csv"
+        self.assertTrue(os.path.isfile(cost_file_path))
+        self.assertTrue(os.path.isfile(usage_file_path))
+        os.remove(cost_file_path)
+        os.remove(usage_file_path)
+        shutil.rmtree(local_bucket_path)
+
+    @patch("nise.report.copy_to_local_dir")
+    def test_oci_write_file_to_local_bucket_not_exist(self, mock_copy_to_local_dir):
+        """Test oci report creation method with non-existing local directory."""
+        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
+        one_day = datetime.timedelta(days=1)
+        yesterday = now - one_day
+        local_bucket_path = f"{mkdtemp()}/testbucket"
         options = {
             "start_date": yesterday,
             "end_date": now,

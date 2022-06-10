@@ -149,7 +149,7 @@ nise is a command line tool::
 
     OCI Report Options:
         --oci-bucket-name BUCKET_NAME           optional, OCI bucket name.
-        --oci-local-bucket LOCAL_BUCKET_PATH    optional, path to upload reports to a local directory.
+        --oci-local-bucket LOCAL_BUCKET_PATH    optional, local directory path to upload reports to.
 
     Common YAML Options:
         -o, --output YAML_NAME                  REQUIRED, Output file path (i.e "large.yml").
