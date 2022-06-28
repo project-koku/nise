@@ -1181,7 +1181,7 @@ def oci_create_report(options):
     data = {OCI_COST_REPORT: [], OCI_USAGE_REPORT: []}
 
     for month in months:
-        LOG.info(f"Generating data for OCI for {month.get('name')}")
+        LOG.info(f"Generating {month.get('name')} data for OCI")
         gen_start_date = month.get("start")
         gen_end_date = month.get("end")
 
@@ -1201,6 +1201,7 @@ def oci_create_report(options):
                 report_type, gen_start_date.month, gen_start_date.year, data[report_type], options
             )
             monthly_files.append(month_output_file)
+            data[report_type] = []
 
     write_monthly = options.get("write_monthly", False)
     if not write_monthly:
