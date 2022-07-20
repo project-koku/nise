@@ -505,6 +505,7 @@ class TestMarketplaceGenerator(AWSGeneratorTestCase):
 
     def test_update_data(self):
         """Test Marketplace specific update data method."""
+        del self.attributes["product_name"]
         generator = MarketplaceGenerator(
             self.two_hours_ago, self.now, self.currency, self.payer_account, self.usage_accounts, self.attributes
         )
@@ -513,6 +514,21 @@ class TestMarketplaceGenerator(AWSGeneratorTestCase):
 
         self.assertEqual(row["bill/BillingEntity"], "AWS Marketplace")
         self.assertIn(row["product/ProductName"], generator.MARKETPLACE_PRODUCTS)
+
+    def test_update_data_with_overrides(self):
+        """Test Marketplace specific update data method with override to 'product_name' & 'legal_entity'"""
+        self.attributes["product_name"] = "TESTING_PN"
+        self.attributes["legal_entity"] = "TESTING_LE"
+
+        generator = MarketplaceGenerator(
+            self.two_hours_ago, self.now, self.currency, self.payer_account, self.usage_accounts, self.attributes
+        )
+        start_row = {}
+        row = generator._update_data(start_row, self.two_hours_ago, self.now)
+
+        self.assertEqual(row["bill/BillingEntity"], "AWS Marketplace")
+        self.assertIn(row["product/ProductName"], "TESTING_PN")
+        self.assertIn(row["lineItem/LegalEntity"], "TESTING_LE")
 
     def test_generate_data(self):
         """Test that the MarketplaceGenerator generate_data method works."""
