@@ -37,7 +37,6 @@ class MarketplaceGenerator(AWSGenerator):
         """Initialize the generator."""
         super().__init__(start_date, end_date, currency, payer_account, usage_accounts, attributes, tag_cols)
 
-        self._legal_entity = choice(self.LEGAL_ENTITY_CHOICES)
         self._amount = uniform(0.2, 300.99)
         self._rate = round(uniform(0.02, 0.16), 3)
         self._resource_id = "i-{}".format(self.fake.ean8())
@@ -93,7 +92,7 @@ class MarketplaceGenerator(AWSGenerator):
         row["bill/BillingEntity"] = "AWS Marketplace"
 
         row["lineItem/UsageAccountId"] = choice(self.usage_accounts)
-        row["lineItem/LegalEntity"] = self._legal_entity
+        row["lineItem/LegalEntity"] = self._get_legal_entity()
         row["lineItem/LineItemType"] = "Usage"
         row["lineItem/UsageStartDate"] = start
         row["lineItem/UsageEndDate"] = end
@@ -110,7 +109,7 @@ class MarketplaceGenerator(AWSGenerator):
         row["lineItem/BlendedCost"] = cost
         row["lineItem/LineItemDescription"] = description
 
-        row["product/ProductName"] = choice(self.MARKETPLACE_PRODUCTS)
+        row["product/ProductName"] = self._get_product_name()
         row["product/region"] = aws_region
         row["product/sku"] = self._product_sku
 
@@ -130,3 +129,21 @@ class MarketplaceGenerator(AWSGenerator):
     def generate_data(self, report_type=None):
         """Responsibile for generating data."""
         return self._generate_hourly_data()
+
+    def _get_legal_entity(self):
+        """look for provided 'legal_entity', if not supplied use defaults."""
+        if self.attributes and self.attributes.get("legal_entity"):
+            legal_entity = self.attributes.get("legal_entity")
+        else:
+            legal_entity = choice(self.LEGAL_ENTITY_CHOICES)
+
+        return legal_entity
+
+    def _get_product_name(self):
+        """look for provided 'product_name', if not supplied use defaults."""
+        if self.attributes and self.attributes.get("product_name"):
+            product_name = self.attributes.get("product_name")
+        else:
+            product_name = choice(self.MARKETPLACE_PRODUCTS)
+
+        return product_name
