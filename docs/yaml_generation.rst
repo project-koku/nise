@@ -69,7 +69,7 @@ OCI yamls
 
 To generate a yaml file which can be used to generate cost and usage reports we must supply 1 required argument: ``-o, --output YAML_NAME``. The output is the output file location. The following command will output a yaml in the local directory.::
 
-    nise yaml oci -o yaml_for_aws.yml
+    nise yaml oci -o yaml_for_oci.yml
 
 
 OCP yamls
