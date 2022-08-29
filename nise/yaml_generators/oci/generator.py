@@ -67,7 +67,7 @@ def generate_tags(config, key):
         SEEN_KEYS = set()
         for _key, _value in tag_key_list.items():
             if _key not in SEEN_KEYS:
-                tags.append(dicta(_key=_key, v=_value))
+                tags.append(dicta(key=_key, v=_value))
                 SEEN_KEYS.update([_key])
     return tags
 

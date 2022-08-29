@@ -124,6 +124,15 @@ class OCIGeneratorTestCase(TestCase):
             self.assertIn("lineItem/intervalUsageStart", test_row_out)
             self.assertIn("lineItem/intervalUsageEnd", test_row_out)
 
+    def test_get_common_usage_data_update_tags(self):
+        """Test that _get_common_usage_data updates tags."""
+        tags = {"tags/free-form-tag": "discuss", "tags/orcl-cloud.free-tier-retained": "nice"}
+        self.attributes = {"tags": tags}
+        generator = OCIGenerator(self.six_hours_ago, self.now, self.currency, self.attributes)
+        for _ in OCI_REPORT_TYPE_TO_COLS:
+            result_usage_data = generator._get_common_usage_data(self.six_hours_ago, self.now)
+            self.assertTrue(all(result_usage_data.get(key, None) == v for key, v in tags.items()))
+
     def test_generate_hourly_data(self):
         """Test that the _generate_hourly_data method is called."""
         kwargs = {}
