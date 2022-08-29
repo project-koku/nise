@@ -71,7 +71,7 @@ class OCIGeneratorTestCase(TestCase):
             return v_min <= val <= config_val
 
         def validate_data(data, config, check_func):
-            keys = sorted(["cost", "end_date", "start_date", "currency", "compartment_name", "tenant_id"])
+            keys = sorted(["cost", "end_date", "start_date", "currency", "compartment_name", "tenant_id", "tags"])
             gens = ["compute_gens", "database_gens", "network_gens", "storage_gens"]
             self.assertTrue(isinstance(data, self.module.dicta))
 
