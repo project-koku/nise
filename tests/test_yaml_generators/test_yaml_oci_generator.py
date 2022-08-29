@@ -59,6 +59,18 @@ class OCIGeneratorTestCase(TestCase):
             dc.start_date = ""
             self.assertFalse(self.yg.validate_config(dc))
 
+    def test_generate_tags(self):
+        """
+        Test label string generator
+        """
+        dc = self.yg.default_config()
+        for key in self.module.TAG_KEYS.keys():
+            with self.subTest(key=key):
+                tags = self.module.generate_tags(dc, key)
+                self.assertEqual(len(tags), len(self.module.TAG_KEYS[key]))
+                for tag in tags:
+                    self.assertTrue(tag.get("key") in self.module.TAG_KEYS[key])
+
     def test_build_data(self):  # noqa: C901
         """
         Test create data static and random

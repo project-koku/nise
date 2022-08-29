@@ -240,10 +240,6 @@ class OCIGenerator(AbstractGenerator):
         )
         return available_domain
 
-    def _gen_cost_value(self):
-        """Generate the cost value."""
-        return self.unit_price * self.usage_billed_quantity
-
     def _add_cost_data(self, row, start, end, **kwargs):
         """Add cost information."""
         _data = self._get_cost_data(**kwargs)
