@@ -51,6 +51,8 @@ class ComputeEngineGenerator(GCPGenerator):
         """Initialize the cloud storage generator."""
         super().__init__(start_date, end_date, currency, project, attributes)
         self.credit_total = 0
+        for attribute in self.attributes:
+            setattr(self, f"_{attribute}", self.attributes.get(attribute))
         if self.attributes:
             if self.attributes.get("labels"):
                 self._labels = self.attributes.get("labels")
@@ -102,6 +104,10 @@ class ComputeEngineGenerator(GCPGenerator):
         row["currency"] = self._currency
         row["labels"] = self.determine_labels(self.LABELS)
         row["system_labels"] = self.determine_system_labels(sku[3])
+        if self.resource_level:
+            resource = self._generate_resource()
+            row["resource.name"] = resource.get("name")
+            row["resource.global_name"] = resource.get("global_name")
 
         return row
 
@@ -166,6 +172,9 @@ class JSONLComputeEngineGenerator(ComputeEngineGenerator):
         row["currency"] = self._currency
         row["labels"] = self.determine_labels(self.LABELS)
         row["system_labels"] = self.determine_system_labels(sku_choice[3])
+        if self.resource_level:
+            resource = self._generate_resource()
+            row["resource"] = resource
 
         return row
 

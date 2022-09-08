@@ -92,6 +92,9 @@ class CloudStorageGenerator(GCPGenerator):
         row["currency"] = self._currency
         row["labels"] = self.determine_labels(self.LABELS)
         row["system_labels"] = choice(self.SYSTEM_LABELS)
+        if self.resource_level:
+            row["resource.name"] = ""
+            row["resource.global_name"] = ""
 
         return row
 
@@ -155,6 +158,8 @@ class JSONLCloudStorageGenerator(CloudStorageGenerator):
         row["currency"] = self._currency
         row["labels"] = self.determine_labels(self.LABELS)
         row["system_labels"] = choice(self.SYSTEM_LABELS)
+        if self.resource_level:
+            row["resource"] = {}
 
         return row
 

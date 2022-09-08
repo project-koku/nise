@@ -102,6 +102,9 @@ class GCPNetworkGenerator(GCPGenerator):
 
         row["currency"] = self._currency
         row["labels"] = self.determine_labels(self.LABELS)
+        if self.resource_level:
+            row["resource.name"] = ""
+            row["resource.global_name"] = ""
 
         return row
 
@@ -166,6 +169,8 @@ class JSONLGCPNetworkGenerator(GCPNetworkGenerator):
 
         row["currency"] = self._currency
         row["labels"] = self.determine_labels(self.LABELS)
+        if self.resource_level:
+            row["resource"] = {}
 
         return row
 

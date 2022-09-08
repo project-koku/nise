@@ -96,6 +96,10 @@ class GCPDatabaseGenerator(GCPGenerator):
 
         row["currency"] = self._currency
         row["labels"] = self.determine_labels(self.LABELS)
+        if self.resource_level:
+            resource = self._generate_resource()
+            row["resource.name"] = resource.get("name")
+            row["resource.global_name"] = resource.get("global_name")
 
         return row
 
@@ -161,6 +165,9 @@ class JSONLGCPDatabaseGenerator(GCPDatabaseGenerator):
 
         row["currency"] = self._currency
         row["labels"] = self.determine_labels(self.LABELS)
+        if self.resource_level:
+            resource = self._generate_resource()
+            row["resource"] = resource
 
         return row
 
