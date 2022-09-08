@@ -57,6 +57,7 @@ from nise.generators.azure import VNGenerator
 from nise.generators.gcp import CloudStorageGenerator
 from nise.generators.gcp import ComputeEngineGenerator
 from nise.generators.gcp import GCP_REPORT_COLUMNS
+from nise.generators.gcp import GCP_RESOURCE_COLUMNS
 from nise.generators.gcp import GCPDatabaseGenerator
 from nise.generators.gcp import GCPNetworkGenerator
 from nise.generators.gcp import JSONLCloudStorageGenerator
@@ -911,7 +912,10 @@ def write_gcp_file(start_date, end_date, data, options):
         file_name = report_prefix + ".csv"
     local_file_path = "{}/{}".format(os.getcwd(), file_name)
     output_file_name = f"{etag}/{file_name}"
-    _write_csv(local_file_path, data, GCP_REPORT_COLUMNS)
+    columns = GCP_REPORT_COLUMNS
+    if options.get("gcp_resource_level"):
+        columns += GCP_RESOURCE_COLUMNS
+    _write_csv(local_file_path, data, columns)
     return local_file_path, output_file_name
 
 
@@ -948,6 +952,7 @@ def gcp_create_report(options):  # noqa: C901
     end_date = options.get("end_date")
 
     static_report_data = options.get("static_report_data")
+    resource_level = options.get("gcp_resource_level", False)
 
     if gcp_dataset_name:
         # if the file is supposed to be uploaded to a bigquery table, it needs the JSONL version of everything
@@ -1049,6 +1054,7 @@ def gcp_create_report(options):  # noqa: C901
                 )
                 for count, generator in enumerate(generators):
                     attributes = generator.get("attributes", {})
+                    attributes["resource_level"] = resource_level
                     if attributes:
                         start_date = attributes.get("start_date")
                         end_date = attributes.get("end_date")
@@ -1082,7 +1088,7 @@ def gcp_create_report(options):  # noqa: C901
 def _gcp_bigquery_process(
     start_date, end_date, currency, projects, generators, options, gcp_bucket_name, gcp_dataset_name, gcp_table_name
 ):
-
+    resource_level = options.get("gcp_resource_level", False)
     data = []
     for project in projects:
         num_gens = len(generators)
@@ -1093,6 +1099,7 @@ def _gcp_bigquery_process(
             if attributes:
                 start_date = attributes.get("start_date")
                 end_date = attributes.get("end_date")
+            attributes["resource_level"] = resource_level
 
             generator_cls = generator.get("generator")
             gen = generator_cls(start_date, end_date, currency, project, attributes=attributes)
