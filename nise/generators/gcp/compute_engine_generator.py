@@ -62,7 +62,11 @@ class ComputeEngineGenerator(GCPGenerator):
                 self._pricing_amount = self.attributes.get("usage.amount_in_pricing_units")
             if self.attributes.get("price"):
                 self._price = self.attributes.get("price")
-            if self.attributes.get("usage.pricing_unit"):
+            if self.attributes.get("sku_id"):
+                for sku in self.SKU:
+                    if self.attributes.get("sku_id") == sku[0]:
+                        self._sku = sku
+            elif self.attributes.get("usage.pricing_unit"):
                 for sku in self.SKU:
                     if self.attributes.get("usage.pricing_unit") == sku[3]:
                         self._sku = sku
