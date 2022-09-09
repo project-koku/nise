@@ -105,7 +105,8 @@ class GCPGenerator(AbstractGenerator):
         self.return_list = False
         self.currency = currency
         # class vars to be set by the child classes based off attributes.
-        self._resource = {}
+        self._resource_name = None
+        self._resource_global_name = None
         self._labels = None
         self._usage_amount = None
         self._pricing_amount = None
@@ -287,16 +288,17 @@ class GCPGenerator(AbstractGenerator):
         else:
             return json.dumps(label_format)
 
-    def _generate_resource(self, region=None):
-        name = self._resource_name or self.fake.word()
-        global_name = self._resource.get("global_name")
-        if not self._resource:
+    def _generate_resource(self, resource_name=None, resource_global_name=None, region=None):
+        name = resource_name
+        global_name = resource_global_name
+        if not name or not global_name:
             name = self.fake.word()
             id = "".join([choice(string.digits) for _ in range(19)])
             proj_id = self.project.get("project.id")
             if proj_id is None:
                 proj_id = self.project.get("id")
-            global_name = "//compute.googleapis.com/projects/" f"{proj_id}/zones/{region}/instances/{id}"
+            name = f"projects/{proj_id}/instances/{name}"
+            global_name = f"//compute.googleapis.com/projects/{proj_id}/zones/{region}/instances/{id}"
         return {"name": name, "global_name": global_name}
 
     def _add_common_usage_info(self, row, start, end, **kwargs):

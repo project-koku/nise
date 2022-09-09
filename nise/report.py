@@ -965,6 +965,7 @@ def gcp_create_report(options):  # noqa: C901
                 project = {}
                 project["name"] = static_dict.get("project.name", "")
                 project["id"] = static_dict.get("project.id", "")
+                project["region"] = static_dict.get("location.region", "")
                 # the k:v pairs are split by ; and the keys and values split by :
                 static_labels = static_dict.get("project.labels", [])
                 labels = []
