@@ -32,7 +32,9 @@ class ComputeEngineGenerator(GCPGenerator):
         ("D973-5D65-BAB2", "Storage PD Capacity", "byte-seconds", "gibibyte month"),
         ("D0CC-50DF-59D2", "Network Inter Zone Ingress", "bytes", "gibibyte"),
         ("F449-33EC-A5EF", "E2 Instance Ram running in Americas", "byte-seconds", "gibibyte hour"),
-        ("CD20-B4CA-0F7C", "Licensing Fee for Debian 10 Buster (RAM cost)", "byte-seconds", "gibiyte hour"),
+        ("CD20-B4CA-0F7C", "Licensing Fee for Debian 10 Buster (RAM cost)", "byte-seconds", "gibibyte hour"),
+        ("236F-83FC-852C", "Licensing Fee for RedHat Enterprise Linux 8 (RAM cost)", "byte-seconds", "gibibyte hour"),
+        ("8C61-80B1-C43A", "Licensing Fee for RedHat Enterprise Linux 8 on VM with 1 to 4 VCPU", "seconds", "hour"),
         ("6B8F-E63D-832B", "Network Internet Egress from Americas to APAC", "bytes", "gibibyte"),
         ("DFA5-B5C6-36D6", "Network Internet Egress from Americas to EMEA", "bytes", "gibibyte"),
         ("9DE9-9092-B3BC", "Network Internet Egress from Americas to China", "bytes", "gibibyte"),
@@ -62,7 +64,11 @@ class ComputeEngineGenerator(GCPGenerator):
                 self._pricing_amount = self.attributes.get("usage.amount_in_pricing_units")
             if self.attributes.get("price"):
                 self._price = self.attributes.get("price")
-            if self.attributes.get("usage.pricing_unit"):
+            if self.attributes.get("sku_id"):
+                for sku in self.SKU:
+                    if self.attributes.get("sku_id") == sku[0]:
+                        self._sku = sku
+            elif self.attributes.get("usage.pricing_unit"):
                 for sku in self.SKU:
                     if self.attributes.get("usage.pricing_unit") == sku[3]:
                         self._sku = sku
@@ -109,7 +115,9 @@ class ComputeEngineGenerator(GCPGenerator):
         row["labels"] = self.determine_labels(self.LABELS)
         row["system_labels"] = self.determine_system_labels(sku[3])
         if self.resource_level:
-            resource = self._generate_resource(self._resource_name, self._resource_global_name, self.project.get("region"))
+            resource = self._generate_resource(
+                self._resource_name, self._resource_global_name, self.project.get("region")
+            )
             row["resource.name"] = resource.get("name")
             row["resource.global_name"] = resource.get("global_name")
 
