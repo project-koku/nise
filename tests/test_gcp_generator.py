@@ -46,6 +46,15 @@ class TestGCPGenerator(TestCase):
             "price": 2,
             "usage.pricing_unit": "hour",
         }
+        self.sku_attributes = {
+            "currency": fake.currency_code(),
+            "currency_conversion_rate": 1,
+            "cost_type": "regular",
+            "usage.amount": 10,
+            "usage.amount_in_pricing_units": 10,
+            "price": 2,
+            "sku_id": "CF4E-A0C7-E3BF",
+        }
         self.now = datetime.now().replace(microsecond=0, second=0, minute=0)
         self.yesterday = self.now - timedelta(days=1)
         self.currency = "USD"
@@ -106,6 +115,15 @@ class TestGCPGenerator(TestCase):
         list_data = list(generated_data)
         self.assertEqual(list_data[0]["cost"], self.usage_attributes["usage.amount"] * self.usage_attributes["price"])
 
+    def test_compute_engine_init_with_sku_attributes(self):
+        """Test the init with sku attributes for Compute Engine."""
+        generator = ComputeEngineGenerator(
+            self.yesterday, self.now, self.currency, self.project, attributes=self.sku_attributes
+        )
+        generated_data = generator.generate_data()
+        list_data = list(generated_data)
+        self.assertEqual(list_data[0]["cost"], self.sku_attributes["usage.amount"] * self.sku_attributes["price"])
+
     def test_jsonl_compute_engine_init_with_attributes(self):
         """Test the init with attribute for JSONL Compute Engine."""
         generator = JSONLComputeEngineGenerator(
@@ -123,6 +141,15 @@ class TestGCPGenerator(TestCase):
         generated_data = generator.generate_data()
         list_data = list(generated_data)
         self.assertEqual(list_data[0]["cost"], self.usage_attributes["usage.amount"] * self.usage_attributes["price"])
+
+    def test_jsonl_compute_engine_init_with_sku_attributes(self):
+        """Test the init with attribute for JSONL Compute Engine."""
+        generator = JSONLComputeEngineGenerator(
+            self.yesterday, self.now, self.currency, self.project, attributes=self.sku_attributes
+        )
+        generated_data = generator.generate_data()
+        list_data = list(generated_data)
+        self.assertEqual(list_data[0]["cost"], self.sku_attributes["usage.amount"] * self.sku_attributes["price"])
 
     def test_network_generator_init_with_attributes(self):
         """Test the init with attribute for GCP Network Generator."""
