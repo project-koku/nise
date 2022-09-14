@@ -127,7 +127,7 @@ def upload_to_gcp_storage(bucket_name, source_file_name, destination_blob_name):
     return uploaded
 
 
-def gcp_bucket_to_dataset(gcp_bucket_name, file_name, dataset_name, table_name):
+def gcp_bucket_to_dataset(gcp_bucket_name, file_name, dataset_name, table_name, resource_level=False):
     """
     Create a gcp dataset from a file stored in a bucket.
 
@@ -162,12 +162,8 @@ def gcp_bucket_to_dataset(gcp_bucket_name, file_name, dataset_name, table_name):
 
         table_id = f"{project_name}.{dataset_name}.{table_name}"
 
-        # creates the job config with specifics
-        job_config = bigquery.LoadJobConfig(
-            write_disposition=bigquery.WriteDisposition.WRITE_TRUNCATE,
-            source_format=bigquery.SourceFormat.NEWLINE_DELIMITED_JSON,
-            time_partitioning=bigquery.TimePartitioning(),
-            schema=[
+        # Build schema
+        schema=[
                 {"name": "billing_account_id", "type": "STRING", "mode": "NULLABLE"},
                 {
                     "name": "service",
@@ -283,8 +279,26 @@ def gcp_bucket_to_dataset(gcp_bucket_name, file_name, dataset_name, table_name):
                     ],
                     "mode": "NULLABLE",
                 },
-            ],
-        )
+            ]
+
+        # Add resource to schema if required
+        if resource_level:
+            schema += [{
+                    "name": "resource",
+                    "type": "RECORD",
+                    "fields": [
+                        {"name": "name", "type": "STRING", "mode": "NULLABLE"},
+                        {"name": "global_name", "type": "STRING", "mode": "NULLABLE"},
+                    ],
+                    "mode": "NULLABLE",
+                }]
+        
+        # creates the job config with specifics
+        job_config = bigquery.LoadJobConfig(
+            write_disposition=bigquery.WriteDisposition.WRITE_TRUNCATE,
+            source_format=bigquery.SourceFormat.NEWLINE_DELIMITED_JSON,
+            time_partitioning=bigquery.TimePartitioning(),
+            schema=schema)
 
         uri = f"gs://{gcp_bucket_name}/{file_name}"
 
