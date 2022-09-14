@@ -27,13 +27,10 @@ from google.cloud.exceptions import GoogleCloudError
 from nise.generators.oci.oci_generator import OCI_REPORT_TYPE_TO_COLS
 from nise.upload import BlobServiceClient
 from nise.upload import gcp_bucket_to_dataset
-from nise.upload import ObjectStorageClient
 from nise.upload import upload_to_azure_container
 from nise.upload import upload_to_gcp_storage
 from nise.upload import upload_to_oci_bucket
 from nise.upload import upload_to_s3
-from oci.exceptions import ConfigFileNotFound
-from oci.exceptions import InvalidConfig
 
 
 fake = faker.Faker()
@@ -170,50 +167,34 @@ class UploadTestCase(TestCase):
 
         self.assertFalse(uploaded)
 
-    @patch.dict(os.environ, {"OCI_CONFIG_FILE": "/path/to/creds"})
-    @patch.object(ObjectStorageClient, "put_object", autospec=True)
+    @patch.dict(
+        os.environ,
+        {
+            "OCI_CLI_USER": "oci_user",
+            "OCI_CLI_FINGERPRINT": "oci_fingerprint",
+            "OCI_CLI_TENANCY": "oci_tenancy",
+            "OCI_CREDENTIALS": "oci_credentials",
+            "OCI_BUCKET_REGION": "oci_region",
+            "OCI_NAMESPACE": "oci_namespace",
+        },
+    )
     @patch("nise.upload.ObjectStorageClient")
     @patch("nise.upload.validate_config")
-    @patch("nise.upload.from_file")
-    def test_upload_to_oci_bucket_success(
-        self, mock_from_file, mock_validate_config, mock_ostorage_client, mock_put_object
-    ):
-        """Test upload_to_oci_bucket method is called"""
+    def test_upload_to_oci_bucket_success(self, mock_validate_config, mock_ostorage_client):
+        """Test upload_to_oci_bucket method is called correctly"""
         bucket_name = "my_bucket"
-        mock_from_file.return_value = {}
-
+        config = {
+            "user": os.environ["OCI_CLI_USER"],
+            "fingerprint": os.environ["OCI_CLI_FINGERPRINT"],
+            "tenancy": os.environ["OCI_CLI_TENANCY"],
+            "key_content": os.environ["OCI_CREDENTIALS"],
+            "region": os.environ["OCI_BUCKET_REGION"],
+            "namespace": os.environ["OCI_NAMESPACE"],
+        }
+        mock_ostorage_client.put_object.return_value = None
         for report_type in OCI_REPORT_TYPE_TO_COLS:
             with NamedTemporaryFile(delete=False) as t_file:
                 success = upload_to_oci_bucket(bucket_name, report_type, t_file.name)
-            mock_from_file.assert_called_with(file_location=os.environ["OCI_CONFIG_FILE"])
-            mock_validate_config.assert_called_with({})
-            mock_ostorage_client.assert_called_with({})
-            self.assertTrue(mock_put_object.assert_called)
+            mock_validate_config.assert_called_with(config)
+            mock_ostorage_client.assert_called_with(config)
             self.assertTrue(success)
-
-    @patch.dict(os.environ, {"OCI_CONFIG_FILE": "/path/to/creds"})
-    @patch("nise.upload.upload_to_oci_bucket")
-    def test_upload_to_oci_bucket_config_not_found(self, mock_oci_upload):
-        """Test upload to oci bucket fails with invalid config file."""
-        bucket_name = "my_bucket"
-        file_name = "file.csv"
-        mock_oci_upload.side_effect = [ConfigFileNotFound]
-
-        for report_type in OCI_REPORT_TYPE_TO_COLS:
-            upload_to_oci_bucket(bucket_name, report_type, file_name)
-            self.assertRaises(ConfigFileNotFound)
-
-    @patch.dict(os.environ, {"OCI_CONFIG_FILE": "/path/to/creds"})
-    @patch("nise.upload.upload_to_oci_bucket")
-    @patch("nise.upload.from_file")
-    def test_upload_to_oci_bucket_invalid_config(self, mock_from_file, mock_oci_upload):
-        """Test upload to oci bucket fails with invalid config file."""
-        bucket_name = "my_bucket"
-        report_type = "cost"
-        file_name = "file.csv"
-        mock_from_file.return_value = {}
-        mock_oci_upload.side_effect = [InvalidConfig]
-
-        for report_type in OCI_REPORT_TYPE_TO_COLS:
-            upload_to_oci_bucket(bucket_name, report_type, file_name)
-            self.assertRaises(InvalidConfig)

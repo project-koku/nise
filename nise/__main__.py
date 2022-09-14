@@ -21,7 +21,6 @@ import datetime
 import os
 import sys
 import time
-from pathlib import Path
 from pprint import pformat
 
 from dateutil import parser as date_parser
@@ -551,22 +550,29 @@ def _validate_oci_arguments(parser, options):
         (ParserError): If combination is invalid.
 
     """
-    is_args_valid = False
+
     local_bucket = options.get("oci_local_bucket")
     bucket_name = options.get("oci_bucket_name")
-    config_file = os.environ.get("OCI_CONFIG_FILE")
-
-    if (not bucket_name) or (bucket_name and config_file and Path(config_file).exists()) or local_bucket:
-        is_args_valid = True
+    if not bucket_name or local_bucket:
+        return True
     else:
-        msg = (
-            f"\n\t--oci-bucket-name {bucket_name} was supplied as an argument\n"
-            "\tbut a config file path is not set in your environment or does not exist locally."
-        )
-        msg = msg.format("--oci-bucket-name")
-        parser.error(msg)
+        try:
+            oci_user = os.environ["OCI_CLI_USER"]
+            oci_fingerprint = os.environ["OCI_CLI_FINGERPRINT"]
+            oci_tenancy = os.environ["OCI_CLI_TENANCY"]
+            oci_credentials = os.environ["OCI_CREDENTIALS"]
+            oci_region = os.environ["OCI_BUCKET_REGION"]
 
-    return is_args_valid
+            if all(
+                oci_var is not None
+                for oci_var in [oci_user, oci_fingerprint, oci_tenancy, oci_credentials, oci_region]
+            ):
+                return True
+        except KeyError as err:
+            msg = f"\n\t--oci-bucket-name {bucket_name} was supplied as an argument but the environment is missing a required variable {err}"  # noqa: E501
+            msg = msg.format("--oci-bucket-name", bucket_name)
+            parser.error(msg)
+            return False
 
 
 def _validate_provider_inputs(parser, options):

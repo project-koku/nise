@@ -469,16 +469,6 @@ class CommandLineTestCase(TestCase):
         options = vars(self.parser.parse_args(args))
         self.assertTrue(_validate_provider_inputs(self.parser, options))
 
-    @patch.dict(os.environ, {"OCI_CONFIG_FILE": ""})
-    def test_valid_oci_inputs_no_config_file(self):
-        """
-        Test user passes valid OCI arguments for bucket upload but no config file.
-        """
-        with self.assertRaises(SystemExit):
-            args = ["report", "oci", "--start-date", str(date.today()), "--oci-bucket-name", "mybucket"]
-            options = vars(self.parser.parse_args(args))
-            _validate_provider_inputs(self.parser, options)
-
     def test_invalid_oci_inputs(self):
         """
         Test user passes an invalid OCI argument combination.

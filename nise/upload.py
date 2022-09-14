@@ -31,11 +31,7 @@ from google.cloud.exceptions import GoogleCloudError
 from msrestazure.azure_exceptions import ClientException
 from msrestazure.azure_exceptions import CloudError
 from nise.util import LOG
-from oci.config import from_file
 from oci.config import validate_config
-from oci.exceptions import ConfigFileNotFound
-from oci.exceptions import InvalidConfig
-from oci.exceptions import ServiceError
 from oci.object_storage import ObjectStorageClient
 from requests.exceptions import ConnectionError as BotoConnectionError
 
@@ -327,21 +323,24 @@ def upload_to_oci_bucket(bucket_name, report_type, file_name):
         (Boolean): True if file was uploaded
     """
 
-    uploaded = False
-
-    if "OCI_CONFIG_FILE" not in os.environ:
-        LOG.warning(
-            "Please set your OCI_CONFIG_FILE "
-            "environment variable before attempting to upload data to an oci bucket."
-        )
-        return uploaded
-
     try:
-        config = from_file(file_location=os.environ["OCI_CONFIG_FILE"])
+        oci_user = os.environ["OCI_CLI_USER"]
+        oci_fingerprint = os.environ["OCI_CLI_FINGERPRINT"]
+        oci_tenancy = os.environ["OCI_CLI_TENANCY"]
+        oci_credentials = os.environ["OCI_CREDENTIALS"]
+        oci_region = os.environ["OCI_BUCKET_REGION"]
+        oci_namespace = os.environ["OCI_NAMESPACE"]
 
+        config = {
+            "user": oci_user,
+            "fingerprint": oci_fingerprint,
+            "tenancy": oci_tenancy,
+            "key_content": oci_credentials,
+            "region": oci_region,
+            "namespace": oci_namespace,
+        }
         validate_config(config)
         object_storage_client = ObjectStorageClient(config)
-        namespace = object_storage_client.get_namespace().data
 
         with open(file_name, "rb") as file_in:
             with gzip.open(f"{file_name}.gz", "wb") as file_out:
@@ -350,7 +349,7 @@ def upload_to_oci_bucket(bucket_name, report_type, file_name):
 
         upload_file_name = f"reports/{report_type}/{zipped_file.name}"
         object_storage_client.put_object(
-            namespace,
+            oci_namespace,
             bucket_name,
             upload_file_name,
             io.open(zipped_file.name, "rb"),
@@ -358,8 +357,10 @@ def upload_to_oci_bucket(bucket_name, report_type, file_name):
 
         LOG.info(f"File {upload_file_name} uploaded to OCI Storage {bucket_name} bucket.")
         os.remove(zipped_file.name)
-        uploaded = True
-    except (ServiceError, InvalidConfig, ConfigFileNotFound) as upload_err:
-        LOG.error(upload_err)
-        uploaded = False
-    return uploaded
+        return True
+    except KeyError as err:
+        LOG.warning(f"missing a required configuration variable in your environment {err}")
+        return False
+    except Exception as err:
+        LOG.warning(f"Error: {err}")
+        return False
