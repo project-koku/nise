@@ -21,6 +21,7 @@ from random import choice
 from nise.generators.gcp.gcp_generator import GCP_REPORT_COLUMNS_JSONL
 from nise.generators.gcp.gcp_generator import GCPGenerator
 
+
 class ComputeEngineGenerator(GCPGenerator):
     """Generator for GCP Compute Engine data."""
 
@@ -134,7 +135,9 @@ class JSONLComputeEngineGenerator(ComputeEngineGenerator):
 
     def __init__(self, start_date, end_date, currency, project, attributes=None):
         super().__init__(start_date, end_date, currency, project, attributes)
-        self.column_labels = GCP_REPORT_COLUMNS_JSONL + ("resource",) if self.resource_level else GCP_REPORT_COLUMNS_JSONL
+        self.column_labels = (
+            GCP_REPORT_COLUMNS_JSONL + ("resource",) if self.resource_level else GCP_REPORT_COLUMNS_JSONL
+        )
         self.return_list = True
         self._currency = currency
 
