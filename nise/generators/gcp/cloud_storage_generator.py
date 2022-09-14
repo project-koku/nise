@@ -110,7 +110,7 @@ class JSONLCloudStorageGenerator(CloudStorageGenerator):
 
     def __init__(self, start_date, end_date, currency, project, attributes=None):
         super().__init__(start_date, end_date, currency, project, attributes)
-        self.column_labels = GCP_REPORT_COLUMNS_JSONL
+        self.column_labels = GCP_REPORT_COLUMNS_JSONL + "resource" if self.resource_level else GCP_REPORT_COLUMNS_JSONL
         self.return_list = True
 
     def _update_data(self, row):  # noqa: C901
@@ -159,7 +159,8 @@ class JSONLCloudStorageGenerator(CloudStorageGenerator):
         row["labels"] = self.determine_labels(self.LABELS)
         row["system_labels"] = choice(self.SYSTEM_LABELS)
         if self.resource_level:
-            row["resource"] = {}
+            resource = self._generate_resource()
+            row["resource"] = resource
 
         return row
 

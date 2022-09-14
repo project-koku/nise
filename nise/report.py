@@ -118,6 +118,7 @@ def _write_jsonl(output_file, data):
     LOG.info(f"Writing to {output_file.split('/')[-1]}")
     with open(output_file, "w") as file:
         for row in data:
+            LOG.info(f"ROW: {row}")
             json.dump(row, file)
             # each dictionary "row" is its own line in a JSONL file
             file.write("\n")
