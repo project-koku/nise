@@ -1056,8 +1056,8 @@ def gcp_create_report(options):  # noqa: C901
                 for count, generator in enumerate(generators):
                     attributes = generator.get("attributes", {})
                     if attributes:
-                        start_date = attributes.get("start_date")
-                        end_date = attributes.get("end_date")
+                        start_date = attributes.get("start_date", start_date)
+                        end_date = attributes.get("end_date", end_date)
                         currency = default_currency(options.get("currency"), attributes.get("currency"))
                     else:
                         currency = default_currency(options.get("currency"), None)
@@ -1098,8 +1098,8 @@ def _gcp_bigquery_process(
         for count, generator in enumerate(generators):
             attributes = generator.get("attributes", {})
             if attributes:
-                start_date = attributes.get("start_date")
-                end_date = attributes.get("end_date")
+                start_date = attributes.get("start_date", start_date)
+                end_date = attributes.get("end_date", end_date)
             attributes["resource_level"] = resource_level
 
             generator_cls = generator.get("generator")
