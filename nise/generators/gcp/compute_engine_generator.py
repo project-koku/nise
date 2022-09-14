@@ -134,7 +134,7 @@ class JSONLComputeEngineGenerator(ComputeEngineGenerator):
 
     def __init__(self, start_date, end_date, currency, project, attributes=None):
         super().__init__(start_date, end_date, currency, project, attributes)
-        self.column_labels = GCP_REPORT_COLUMNS_JSONL + "resource" if self.resource_level else GCP_REPORT_COLUMNS_JSONL
+        self.column_labels = GCP_REPORT_COLUMNS_JSONL + ("resource",) if self.resource_level else GCP_REPORT_COLUMNS_JSONL
         self.return_list = True
         self._currency = currency
 
@@ -171,6 +171,9 @@ class JSONLComputeEngineGenerator(ComputeEngineGenerator):
         month = datetime.strptime(row.get("usage_start_time"), "%Y-%m-%dT%H:%M:%S").month
         invoice["month"] = f"{year}{month:02d}"
         row["invoice"] = invoice
+        if self.resource_level:
+            resource = self._generate_resource()
+            row["resource"] = resource
 
         if self.attributes:
             for key in self.attributes:
@@ -183,9 +186,6 @@ class JSONLComputeEngineGenerator(ComputeEngineGenerator):
         row["currency"] = self._currency
         row["labels"] = self.determine_labels(self.LABELS)
         row["system_labels"] = self.determine_system_labels(sku_choice[3])
-        if self.resource_level:
-            resource = self._generate_resource()
-            row["resource"] = resource
 
         return row
 

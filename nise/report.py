@@ -914,7 +914,7 @@ def write_gcp_file(start_date, end_date, data, options):
     local_file_path = "{}/{}".format(os.getcwd(), file_name)
     output_file_name = f"{etag}/{file_name}"
     columns = GCP_REPORT_COLUMNS
-    if options.get("gcp_resource_level"):
+    if options.get("gcp_resource_level", False):
         columns += GCP_RESOURCE_COLUMNS
     _write_csv(local_file_path, data, columns)
     return local_file_path, output_file_name
@@ -966,7 +966,6 @@ def gcp_create_report(options):  # noqa: C901
                 project = {}
                 project["name"] = static_dict.get("project.name", "")
                 project["id"] = static_dict.get("project.id", "")
-                project["region"] = static_dict.get("location.region", "")
                 # the k:v pairs are split by ; and the keys and values split by :
                 static_labels = static_dict.get("project.labels", [])
                 labels = []

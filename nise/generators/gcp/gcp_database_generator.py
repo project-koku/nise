@@ -115,7 +115,7 @@ class JSONLGCPDatabaseGenerator(GCPDatabaseGenerator):
 
     def __init__(self, start_date, end_date, currency, project, attributes=None):
         super().__init__(start_date, end_date, currency, project, attributes)
-        self.column_labels = GCP_REPORT_COLUMNS_JSONL + "resource" if self.resource_level else GCP_REPORT_COLUMNS_JSONL
+        self.column_labels = GCP_REPORT_COLUMNS_JSONL + ("resource",) if self.resource_level else GCP_REPORT_COLUMNS_JSONL
         self.return_list = True
 
     def _update_data(self, row):  # noqa: C901
@@ -154,6 +154,9 @@ class JSONLGCPDatabaseGenerator(GCPDatabaseGenerator):
         usage_date = datetime.strptime(row.get("usage_start_time"), "%Y-%m-%dT%H:%M:%S")
         invoice["month"] = f"{usage_date.year}{usage_date.month:02d}"
         row["invoice"] = invoice
+        if self.resource_level:
+            resource = self._generate_resource()
+            row["resource"] = resource
 
         if self.attributes:
             for key in self.attributes:
@@ -165,9 +168,6 @@ class JSONLGCPDatabaseGenerator(GCPDatabaseGenerator):
 
         row["currency"] = self._currency
         row["labels"] = self.determine_labels(self.LABELS)
-        if self.resource_level:
-            resource = self._generate_resource()
-            row["resource"] = resource
 
         return row
 
