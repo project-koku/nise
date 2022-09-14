@@ -1055,7 +1055,6 @@ def gcp_create_report(options):  # noqa: C901
                 )
                 for count, generator in enumerate(generators):
                     attributes = generator.get("attributes", {})
-                    attributes["resource_level"] = resource_level
                     if attributes:
                         start_date = attributes.get("start_date")
                         end_date = attributes.get("end_date")
@@ -1064,6 +1063,7 @@ def gcp_create_report(options):  # noqa: C901
                         currency = default_currency(options.get("currency"), None)
                     if gen_end_date > end_date:
                         gen_end_date = end_date
+                    attributes["resource_level"] = resource_level
 
                     generator_cls = generator.get("generator")
                     gen = generator_cls(gen_start_date, gen_end_date, currency, project, attributes=attributes)
