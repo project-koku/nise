@@ -291,13 +291,14 @@ class GCPGenerator(AbstractGenerator):
     def _generate_resource(self, resource_name=None, resource_global_name=None, region=None):
         name = resource_name
         global_name = resource_global_name
-        if not name or not global_name:
+        proj_id = self.project.get("project.id")
+        if proj_id is None:
+            proj_id = self.project.get("id")
+        if not name:
             name = self.fake.word()
-            id = "".join([choice(string.digits) for _ in range(19)])
-            proj_id = self.project.get("project.id")
-            if proj_id is None:
-                proj_id = self.project.get("id")
             name = f"projects/{proj_id}/instances/{name}"
+        if not global_name:
+            id = "".join([choice(string.digits) for _ in range(19)])
             global_name = f"//compute.googleapis.com/projects/{proj_id}/zones/{region}/instances/{id}"
         return {"name": name, "global_name": global_name}
 
