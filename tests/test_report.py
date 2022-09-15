@@ -55,6 +55,7 @@ from nise.report import oci_write_file
 from nise.report import ocp_create_report
 from nise.report import ocp_route_file
 from nise.report import post_payload_to_ingest_service
+from nise.report import write_gcp_file
 
 fake = faker.Faker()
 
@@ -1490,6 +1491,19 @@ class GCPReportTestCase(TestCase):
 
         self.assertTrue(os.path.isfile(expected_output_file_path))
         os.remove(expected_output_file_path)
+
+    def test_write_gcp_file_with_resource_data(self):
+        """Test that resource data is created."""
+        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
+        one_day = datetime.timedelta(days=1)
+        yesterday = now - one_day
+        report_prefix = "test_resource_report"
+        data = [{"resource.name": "Baked", "resource.global_name": "Beans"}]
+        write_gcp_file(yesterday, now, data, {"gcp_report_prefix": report_prefix, "gcp_resource_level": True})
+        output_file_name = "{}-{}.csv".format(report_prefix, yesterday.strftime("%Y-%m-%d"))
+        expected_output_file_path = "{}/{}".format(os.getcwd(), output_file_name)
+
+        self.assertFalse(os.path.isfile(expected_output_file_path))
 
 
 class OCIReportTestCase(TestCase):

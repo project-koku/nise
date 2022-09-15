@@ -17,6 +17,7 @@
 """Abstract class for gcp data generation."""
 import datetime
 import json
+import string
 from abc import abstractmethod
 from datetime import timedelta
 from random import choice
@@ -56,6 +57,8 @@ GCP_REPORT_COLUMNS = (
     "cost_type",
     "partition_date",
 )
+
+GCP_RESOURCE_COLUMNS = ("resource.name", "resource.global_name")
 
 GCP_REPORT_COLUMNS_JSONL = (
     "billing_account_id",
@@ -97,10 +100,13 @@ class GCPGenerator(AbstractGenerator):
         self.project = project
         self.num_instances = 1 if attributes else randint(2, 60)
         self.attributes = attributes
-        self.column_labels = GCP_REPORT_COLUMNS
+        self.resource_level = self.attributes.get("resource_level", False)
+        self.column_labels = GCP_REPORT_COLUMNS + GCP_RESOURCE_COLUMNS if self.resource_level else GCP_REPORT_COLUMNS
         self.return_list = False
         self.currency = currency
         # class vars to be set by the child classes based off attributes.
+        self._resource_name = None
+        self._resource_global_name = None
         self._labels = None
         self._usage_amount = None
         self._pricing_amount = None
@@ -281,6 +287,20 @@ class GCPGenerator(AbstractGenerator):
             return label_format
         else:
             return json.dumps(label_format)
+
+    def _generate_resource(self, resource_name=None, resource_global_name=None, region=None):
+        name = resource_name
+        global_name = resource_global_name
+        proj_id = self.project.get("project.id")
+        if proj_id is None:
+            proj_id = self.project.get("id")
+        if not name:
+            name = self.fake.word()
+            name = f"projects/{proj_id}/instances/{name}"
+        if not global_name:
+            id = "".join([choice(string.digits) for _ in range(19)])
+            global_name = f"//compute.googleapis.com/projects/{proj_id}/zones/{region}/instances/{id}"
+        return {"name": name, "global_name": global_name}
 
     def _add_common_usage_info(self, row, start, end, **kwargs):
         """Not needed for GCP."""

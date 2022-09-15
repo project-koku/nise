@@ -53,6 +53,8 @@ class ComputeEngineGenerator(GCPGenerator):
         """Initialize the cloud storage generator."""
         super().__init__(start_date, end_date, currency, project, attributes)
         self.credit_total = 0
+        for attribute in self.attributes:
+            setattr(self, f"_{attribute}", self.attributes.get(attribute))
         if self.attributes:
             if self.attributes.get("labels"):
                 self._labels = self.attributes.get("labels")
@@ -74,6 +76,10 @@ class ComputeEngineGenerator(GCPGenerator):
                 self._instance_type = self.attributes.get("instance_type")
             if self.attributes.get("credit_amount"):
                 self._credit_amount = self.attributes.get("credit_amount")
+            if self.attributes.get("resource.name"):
+                self._resource_name = self.attributes.get("resource.name")
+            if self.attributes.get("resource.global_name"):
+                self._resource_global_name = self.attributes.get("resource.global_name")
 
     def _update_data(self, row):  # noqa: C901
         """Update a data row with compute values."""
@@ -108,6 +114,12 @@ class ComputeEngineGenerator(GCPGenerator):
         row["currency"] = self._currency
         row["labels"] = self.determine_labels(self.LABELS)
         row["system_labels"] = self.determine_system_labels(sku[3])
+        if self.resource_level:
+            resource = self._generate_resource(
+                self._resource_name, self._resource_global_name, self.project.get("region")
+            )
+            row["resource.name"] = resource.get("name")
+            row["resource.global_name"] = resource.get("global_name")
 
         return row
 
@@ -123,7 +135,9 @@ class JSONLComputeEngineGenerator(ComputeEngineGenerator):
 
     def __init__(self, start_date, end_date, currency, project, attributes=None):
         super().__init__(start_date, end_date, currency, project, attributes)
-        self.column_labels = GCP_REPORT_COLUMNS_JSONL
+        self.column_labels = (
+            GCP_REPORT_COLUMNS_JSONL + ("resource",) if self.resource_level else GCP_REPORT_COLUMNS_JSONL
+        )
         self.return_list = True
         self._currency = currency
 
@@ -160,6 +174,9 @@ class JSONLComputeEngineGenerator(ComputeEngineGenerator):
         month = datetime.strptime(row.get("usage_start_time"), "%Y-%m-%dT%H:%M:%S").month
         invoice["month"] = f"{year}{month:02d}"
         row["invoice"] = invoice
+        if self.resource_level:
+            resource = self._generate_resource()
+            row["resource"] = resource
 
         if self.attributes:
             for key in self.attributes:
