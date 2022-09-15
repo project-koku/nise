@@ -14,7 +14,6 @@ from nise.generators.gcp import JSONLGCPDatabaseGenerator
 from nise.generators.gcp import JSONLGCPNetworkGenerator
 from nise.generators.gcp import JSONLProjectGenerator
 from nise.generators.gcp import ProjectGenerator
-from nise.generators.gcp import GCPGenerator
 
 
 fake = Faker()
@@ -144,8 +143,10 @@ class TestGCPGenerator(TestCase):
         )
         generated_data = generator.generate_data()
         list_data = list(generated_data)
-        self.assertEqual(list_data[0]["cost"], self.resource_attributes["usage.amount"] * self.resource_attributes["price"])
-        
+        self.assertEqual(
+            list_data[0]["cost"], self.resource_attributes["usage.amount"] * self.resource_attributes["price"]
+        )
+
     def test_jsonl_compute_engine_init_with_attributes(self):
         """Test the init with attribute for JSONL Compute Engine."""
         generator = JSONLComputeEngineGenerator(
@@ -172,7 +173,7 @@ class TestGCPGenerator(TestCase):
         generated_data = generator.generate_data()
         list_data = list(generated_data)
         self.assertEqual(list_data[0]["cost"], self.sku_attributes["usage.amount"] * self.sku_attributes["price"])
-    
+
     def test_jsonl_compute_engine_init_with_resource_attributes(self):
         """Test the init with attribute for JSONL Compute Engine."""
         generator = JSONLComputeEngineGenerator(
@@ -180,7 +181,9 @@ class TestGCPGenerator(TestCase):
         )
         generated_data = generator.generate_data()
         list_data = list(generated_data)
-        self.assertEqual(list_data[0]["cost"], self.resource_attributes["usage.amount"] * self.resource_attributes["price"])
+        self.assertEqual(
+            list_data[0]["cost"], self.resource_attributes["usage.amount"] * self.resource_attributes["price"]
+        )
 
     def test_network_generator_init_with_attributes(self):
         """Test the init with attribute for GCP Network Generator."""
@@ -207,7 +210,9 @@ class TestGCPGenerator(TestCase):
         )
         generated_data = generator.generate_data()
         list_data = list(generated_data)
-        self.assertEqual(list_data[0]["cost"], self.resource_attributes["usage.amount"] * self.resource_attributes["price"])
+        self.assertEqual(
+            list_data[0]["cost"], self.resource_attributes["usage.amount"] * self.resource_attributes["price"]
+        )
 
     def test_jsonl_network_generator_init_with_resource_attributes(self):
         """Test the init with resource attribute for JSONL GCP Network Generator."""
@@ -216,7 +221,9 @@ class TestGCPGenerator(TestCase):
         )
         generated_data = generator.generate_data()
         list_data = list(generated_data)
-        self.assertEqual(list_data[0]["cost"], self.resource_attributes["usage.amount"] * self.resource_attributes["price"])
+        self.assertEqual(
+            list_data[0]["cost"], self.resource_attributes["usage.amount"] * self.resource_attributes["price"]
+        )
 
     def test_jsonl_network_generator_init_with_attributes(self):
         """Test the init with attribute for JSONL GCP Network Generator."""
@@ -261,7 +268,9 @@ class TestGCPGenerator(TestCase):
         )
         generated_data = generator.generate_data()
         list_data = list(generated_data)
-        self.assertEqual(list_data[0]["cost"], self.resource_attributes["usage.amount"] * self.resource_attributes["price"])
+        self.assertEqual(
+            list_data[0]["cost"], self.resource_attributes["usage.amount"] * self.resource_attributes["price"]
+        )
 
     def test_jsonl_database_generator_init_with_resource_attributes(self):
         """Test the init with resource attribute for JSONL GCP Database Generator."""
@@ -270,7 +279,9 @@ class TestGCPGenerator(TestCase):
         )
         generated_data = generator.generate_data()
         list_data = list(generated_data)
-        self.assertEqual(list_data[0]["cost"], self.resource_attributes["usage.amount"] * self.resource_attributes["price"])
+        self.assertEqual(
+            list_data[0]["cost"], self.resource_attributes["usage.amount"] * self.resource_attributes["price"]
+        )
 
     def test_jsonl_database_generator_init_with_attributes(self):
         """Test the init with attribute for JSONL GCP Database Generator."""

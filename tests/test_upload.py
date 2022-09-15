@@ -158,7 +158,7 @@ class UploadTestCase(TestCase):
         mock_client.load_table_from_uri.assert_called_with(uri, table_id, job_config=mock_job_config)
 
         self.assertTrue(uploaded)
-    
+
     @patch.dict(os.environ, {"GOOGLE_APPLICATION_CREDENTIALS": "/path/to/creds"})
     @patch("nise.upload.bigquery")
     @patch("nise.upload.storage")
