@@ -66,6 +66,7 @@ class TestGCPGenerator(TestCase):
             "sku_id": "CF4E-A0C7-E3BF",
             "resource.name": "resource-name",
             "resource.global_name": "global-name",
+            "resource_level": True,
         }
         self.now = datetime.now().replace(microsecond=0, second=0, minute=0)
         self.yesterday = self.now - timedelta(days=1)

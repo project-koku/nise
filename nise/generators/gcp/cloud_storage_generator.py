@@ -57,6 +57,10 @@ class CloudStorageGenerator(GCPGenerator):
                 self._price = self.attributes.get("price")
             if self.attributes.get("credit_amount"):
                 self._credit_amount = self.attributes.get("credit_amount")
+            if self.attributes.get("resource.name"):
+                self._resource_name = self.attributes.get("resource.name")
+            if self.attributes.get("resource.global_name"):
+                self._resource_global_name = self.attributes.get("resource.global_name")
 
     def _update_data(self, row):  # noqa: C901
         """Update a data row with compute values."""
@@ -93,8 +97,11 @@ class CloudStorageGenerator(GCPGenerator):
         row["labels"] = self.determine_labels(self.LABELS)
         row["system_labels"] = choice(self.SYSTEM_LABELS)
         if self.resource_level:
-            row["resource.name"] = ""
-            row["resource.global_name"] = ""
+            resource = self._generate_resource(
+                self._resource_name, self._resource_global_name, self.project.get("region")
+            )
+            row["resource.name"] = resource.get("name")
+            row["resource.global_name"] = resource.get("global_name")
 
         return row
 
