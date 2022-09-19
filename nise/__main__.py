@@ -550,29 +550,31 @@ def _validate_oci_arguments(parser, options):
         (ParserError): If combination is invalid.
 
     """
-
-    local_bucket = options.get("oci_local_bucket")
     bucket_name = options.get("oci_bucket_name")
-    if not bucket_name or local_bucket:
+    if not bucket_name:
         return True
-    else:
-        try:
-            oci_user = os.environ["OCI_CLI_USER"]
-            oci_fingerprint = os.environ["OCI_CLI_FINGERPRINT"]
-            oci_tenancy = os.environ["OCI_CLI_TENANCY"]
-            oci_credentials = os.environ["OCI_CREDENTIALS"]
-            oci_region = os.environ["OCI_BUCKET_REGION"]
+    is_args_valid = False
 
-            if all(
-                oci_var is not None
-                for oci_var in [oci_user, oci_fingerprint, oci_tenancy, oci_credentials, oci_region]
-            ):
-                return True
-        except KeyError as err:
-            msg = f"\n\t--oci-bucket-name {bucket_name} was supplied as an argument but the environment is missing a required variable {err}"  # noqa: E501
-            msg = msg.format("--oci-bucket-name", bucket_name)
-            parser.error(msg)
-            return False
+    try:
+        oci_user = os.environ["OCI_CLI_USER"]
+        oci_fingerprint = os.environ["OCI_CLI_FINGERPRINT"]
+        oci_tenancy = os.environ["OCI_CLI_TENANCY"]
+        oci_credentials = os.environ["OCI_CREDENTIALS"]
+        oci_region = os.environ["OCI_BUCKET_REGION"]
+        oci_namespace = os.environ["OCI_NAMESPACE"]
+    except KeyError as err:
+        msg = f"\n\t--oci-bucket-name {bucket_name} was supplied as an argument but missing a required variable {err}"  # noqa: E501
+        parser.error(msg)
+        is_args_valid = False
+
+    if any(
+        (oci_var is None or oci_var == "")
+        for oci_var in [oci_user, oci_fingerprint, oci_tenancy, oci_credentials, oci_region, oci_namespace]
+    ):
+        is_args_valid = False
+    else:
+        is_args_valid = True
+    return is_args_valid
 
 
 def _validate_provider_inputs(parser, options):

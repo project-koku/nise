@@ -32,6 +32,9 @@ from msrestazure.azure_exceptions import ClientException
 from msrestazure.azure_exceptions import CloudError
 from nise.util import LOG
 from oci.config import validate_config
+from oci.exceptions import InvalidConfig
+from oci.exceptions import InvalidPrivateKey
+from oci.exceptions import ServiceError
 from oci.object_storage import ObjectStorageClient
 from requests.exceptions import ConnectionError as BotoConnectionError
 
@@ -339,6 +342,11 @@ def upload_to_oci_bucket(bucket_name, report_type, file_name):
             "region": oci_region,
             "namespace": oci_namespace,
         }
+
+        for oci_var in [oci_user, oci_fingerprint, oci_tenancy, oci_credentials, oci_region, oci_namespace]:
+            if oci_var is None or oci_var == "":
+                raise KeyError(f"{oci_var} must be a valid value")
+
         validate_config(config)
         object_storage_client = ObjectStorageClient(config)
 
@@ -358,9 +366,9 @@ def upload_to_oci_bucket(bucket_name, report_type, file_name):
         LOG.info(f"File {upload_file_name} uploaded to OCI Storage {bucket_name} bucket.")
         os.remove(zipped_file.name)
         return True
-    except KeyError as err:
+    except (KeyError, InvalidConfig, InvalidPrivateKey) as err:
         LOG.warning(f"missing a required configuration variable in your environment {err}")
         return False
-    except Exception as err:
-        LOG.warning(f"Error: {err}")
+    except ServiceError as err:
+        LOG.warning(f"Error uploading file to oci bucket: {err}")
         return False
