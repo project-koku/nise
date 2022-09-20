@@ -18,6 +18,7 @@ import os
 import shutil
 from importlib import import_module
 from unittest import TestCase
+from unittest.mock import patch
 
 from nise.yaml_generators.oci import generator
 
@@ -59,17 +60,44 @@ class OCIGeneratorTestCase(TestCase):
             dc.start_date = ""
             self.assertFalse(self.yg.validate_config(dc))
 
-    def test_generate_tags(self):
-        """
-        Test label string generator
-        """
+    @patch("nise.yaml_generators.oci.generator.choice")
+    def test_generate_tags(self, mock_choice):
+        """Test label string generator."""
+
         dc = self.yg.default_config()
         for key in self.module.TAG_KEYS.keys():
             with self.subTest(key=key):
+                mock_choice.return_value = []
                 tags = self.module.generate_tags(dc, key)
+                mock_choice.assert_not_called()
                 self.assertEqual(len(tags), len(self.module.TAG_KEYS[key]))
                 for tag in tags:
                     self.assertTrue(tag.get("key") in self.module.TAG_KEYS[key])
+
+    @patch("nise.yaml_generators.oci.generator.choice")
+    def test_generate_tags_with_random_choice(self, mock_choice):
+        """Test tag string generator"""
+
+        dc = self.yg.default_config()
+        tag_keys = {
+            "storage": {
+                "tags/new-tags.tarnished-tags": "environmental",
+                "tags/orcl-cloud.free-tier-retained": "political",
+            },
+            "compute": {"tags/test-compute-tags": "compute-tag-value"},
+            "database": {"tags/test-db-tags": "db-tag-value"},
+            "network": {"tags/test-network-tags": ""},
+        }
+
+        for key in tag_keys.keys():
+            with self.subTest(key=key):
+                mock_choice.return_value = tag_keys[key]
+                dc.update({"tags": tag_keys[key]})
+                tags = self.module.generate_tags(dc, key)
+                mock_choice.assert_called()
+                self.assertEqual(len(tags), len(tag_keys[key]))
+                for tag in tags:
+                    self.assertTrue(tag.get("key") in tag_keys[key])
 
     def test_build_data(self):  # noqa: C901
         """

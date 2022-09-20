@@ -19,6 +19,7 @@ import os
 import random
 from calendar import monthrange
 from datetime import date
+from random import choice
 
 import faker
 from dateutil.relativedelta import relativedelta
@@ -56,19 +57,19 @@ def generate_oci_dicta(config, key):
 
 
 def generate_tags(config, key):
-    """generates the tags dictionary for oci tags."""
+    """Generates the tags dictionary for oci tags."""
 
     tags = []
     if not config.get("tags"):
         keys = TAG_KEYS.get(key)
         tags = [dicta(key=key, v=FAKER.word()) for key in keys]
     else:
-        tag_key_list = random.choice(config.tags.get)
+        tags_dict = choice(config.tags.get)
         SEEN_KEYS = set()
-        for _key, _value in tag_key_list.items():
-            if _key not in SEEN_KEYS:
-                tags.append(dicta(key=_key, v=_value))
-                SEEN_KEYS.update([_key])
+        for key, value in tags_dict.items():
+            if key not in SEEN_KEYS:
+                tags.append(dicta(key=key, v=value))
+                SEEN_KEYS.update([key])
     return tags
 
 
@@ -92,8 +93,9 @@ class OCIGenerator(Generator):
         """
         Generate a config object with all values set to defaults
         Returns:
-            dicta
+            dicta.
         """
+
         default_date = date.today()
         last_day_of_month = monthrange(default_date.year, default_date.month)[1]
         return dicta(
@@ -134,11 +136,9 @@ class OCIGenerator(Generator):
         return True
 
     def build_data(self, config, _random=False):
-        """
-        build the data
-        """
-        LOG.info("Data build starting")
+        """build the data."""
 
+        LOG.info("Data build starting")
         data = dicta(
             compute_gens=[],
             storage_gens=[],
