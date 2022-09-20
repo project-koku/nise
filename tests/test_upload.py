@@ -173,11 +173,11 @@ class UploadTestCase(TestCase):
     @patch.dict(
         os.environ,
         {
-            "OCI_CLI_USER": "oci_user",
-            "OCI_CLI_FINGERPRINT": "oci_fingerprint",
-            "OCI_CLI_TENANCY": "oci_tenancy",
+            "OCI_USER": "oci_user",
+            "OCI_FINGERPRINT": "oci_fingerprint",
+            "OCI_TENANCY": "oci_tenancy",
             "OCI_CREDENTIALS": "oci_credentials",
-            "OCI_BUCKET_REGION": "oci_region",
+            "OCI_REGION": "oci_region",
             "OCI_NAMESPACE": "oci_namespace",
         },
     )
@@ -187,11 +187,11 @@ class UploadTestCase(TestCase):
         """Test upload_to_oci_bucket method is called correctly"""
         bucket_name = "my_bucket"
         config = {
-            "user": os.environ["OCI_CLI_USER"],
-            "fingerprint": os.environ["OCI_CLI_FINGERPRINT"],
-            "tenancy": os.environ["OCI_CLI_TENANCY"],
+            "user": os.environ["OCI_USER"],
+            "fingerprint": os.environ["OCI_FINGERPRINT"],
+            "tenancy": os.environ["OCI_TENANCY"],
             "key_content": os.environ["OCI_CREDENTIALS"],
-            "region": os.environ["OCI_BUCKET_REGION"],
+            "region": os.environ["OCI_REGION"],
             "namespace": os.environ["OCI_NAMESPACE"],
         }
         mock_ostorage_client.put_object.return_value = None
