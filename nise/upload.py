@@ -327,11 +327,11 @@ def upload_to_oci_bucket(bucket_name, report_type, file_name):
     """
 
     try:
-        oci_user = os.environ["OCI_CLI_USER"]
-        oci_fingerprint = os.environ["OCI_CLI_FINGERPRINT"]
-        oci_tenancy = os.environ["OCI_CLI_TENANCY"]
+        oci_user = os.environ["OCI_USER"]
+        oci_fingerprint = os.environ["OCI_FINGERPRINT"]
+        oci_tenancy = os.environ["OCI_TENANCY"]
         oci_credentials = os.environ["OCI_CREDENTIALS"]
-        oci_region = os.environ["OCI_BUCKET_REGION"]
+        oci_region = os.environ["OCI_REGION"]
         oci_namespace = os.environ["OCI_NAMESPACE"]
 
         config = {
