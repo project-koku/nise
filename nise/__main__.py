@@ -239,6 +239,14 @@ def add_gcp_parser_args(parser):
     parser.add_argument(
         "-etag", "--gcp-etag", metavar="GCP_ETAG", dest="gcp_etag", required=False, help="The etag in the filename"
     )
+    parser.add_argument(
+        "-r",
+        "--resource-level",
+        dest="gcp_resource_level",
+        action="store_true",
+        required=False,
+        help="Whether to generate a resource level report",
+    )
 
 
 def add_ocp_parser_args(parser):

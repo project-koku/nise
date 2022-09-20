@@ -126,7 +126,7 @@ def upload_to_gcp_storage(bucket_name, source_file_name, destination_blob_name):
     return uploaded
 
 
-def gcp_bucket_to_dataset(gcp_bucket_name, file_name, dataset_name, table_name):
+def gcp_bucket_to_dataset(gcp_bucket_name, file_name, dataset_name, table_name, resource_level=False):
     """
     Create a gcp dataset from a file stored in a bucket.
 
@@ -161,128 +161,145 @@ def gcp_bucket_to_dataset(gcp_bucket_name, file_name, dataset_name, table_name):
 
         table_id = f"{project_name}.{dataset_name}.{table_name}"
 
+        # Build schema
+        schema = [
+            {"name": "billing_account_id", "type": "STRING", "mode": "NULLABLE"},
+            {
+                "name": "service",
+                "type": "RECORD",
+                "fields": [
+                    {"name": "id", "type": "STRING", "mode": "NULLABLE"},
+                    {"name": "description", "type": "STRING", "mode": "NULLABLE"},
+                ],
+                "mode": "NULLABLE",
+            },
+            {
+                "name": "sku",
+                "type": "RECORD",
+                "fields": [
+                    {"name": "id", "type": "STRING", "mode": "NULLABLE"},
+                    {"name": "description", "type": "STRING", "mode": "NULLABLE"},
+                ],
+                "mode": "NULLABLE",
+            },
+            {"name": "usage_start_time", "type": "TIMESTAMP", "mode": "NULLABLE"},
+            {"name": "usage_end_time", "type": "TIMESTAMP", "mode": "NULLABLE"},
+            {
+                "name": "project",
+                "type": "RECORD",
+                "fields": [
+                    {"name": "id", "type": "STRING", "mode": "NULLABLE"},
+                    {"name": "number", "type": "STRING", "mode": "NULLABLE"},
+                    {"name": "name", "type": "STRING", "mode": "NULLABLE"},
+                    {
+                        "name": "labels",
+                        "type": "RECORD",
+                        "fields": [
+                            {"name": "key", "type": "STRING", "mode": "NULLABLE"},
+                            {"name": "value", "type": "STRING", "mode": "NULLABLE"},
+                        ],
+                        "mode": "REPEATED",
+                    },
+                    {"name": "ancestry_numbers", "type": "STRING", "mode": "NULLABLE"},
+                ],
+                "mode": "NULLABLE",
+            },
+            {
+                "name": "labels",
+                "type": "RECORD",
+                "fields": [
+                    {"name": "key", "type": "STRING", "mode": "NULLABLE"},
+                    {"name": "value", "type": "STRING", "mode": "NULLABLE"},
+                ],
+                "mode": "REPEATED",
+            },
+            {
+                "name": "system_labels",
+                "type": "RECORD",
+                "fields": [
+                    {"name": "key", "type": "STRING", "mode": "NULLABLE"},
+                    {"name": "value", "type": "STRING", "mode": "NULLABLE"},
+                ],
+                "mode": "REPEATED",
+            },
+            {
+                "name": "location",
+                "type": "RECORD",
+                "fields": [
+                    {"name": "location", "type": "STRING", "mode": "NULLABLE"},
+                    {"name": "country", "type": "STRING", "mode": "NULLABLE"},
+                    {"name": "region", "type": "STRING", "mode": "NULLABLE"},
+                    {"name": "zone", "type": "STRING", "mode": "NULLABLE"},
+                ],
+                "mode": "NULLABLE",
+            },
+            {"name": "export_time", "type": "TIMESTAMP", "mode": "NULLABLE"},
+            {"name": "cost", "type": "FLOAT", "mode": "NULLABLE"},
+            {"name": "currency", "type": "STRING", "mode": "NULLABLE"},
+            {"name": "currency_conversion_rate", "type": "FLOAT", "mode": "NULLABLE"},
+            {
+                "name": "usage",
+                "type": "RECORD",
+                "fields": [
+                    {"name": "amount", "type": "FLOAT", "mode": "NULLABLE"},
+                    {"name": "unit", "type": "STRING", "mode": "NULLABLE"},
+                    {"name": "amount_in_pricing_units", "type": "FLOAT", "mode": "NULLABLE"},
+                    {"name": "pricing_unit", "type": "STRING", "mode": "NULLABLE"},
+                ],
+                "mode": "NULLABLE",
+            },
+            {
+                "name": "credits",
+                "type": "RECORD",
+                "fields": [
+                    {"name": "name", "type": "STRING", "mode": "NULLABLE"},
+                    {"name": "amount", "type": "FLOAT", "mode": "NULLABLE"},
+                    {"name": "full_name", "type": "STRING", "mode": "NULLABLE"},
+                    {"name": "id", "type": "STRING", "mode": "NULLABLE"},
+                    {"name": "type", "type": "STRING", "mode": "NULLABLE"},
+                ],
+                "mode": "REPEATED",
+            },
+            {
+                "name": "invoice",
+                "type": "RECORD",
+                "fields": [{"name": "month", "type": "STRING", "mode": "NULLABLE"}],
+                "mode": "NULLABLE",
+            },
+            {"name": "cost_type", "type": "STRING", "mode": "NULLABLE"},
+            {
+                "name": "adjustment_info",
+                "type": "RECORD",
+                "fields": [
+                    {"name": "id", "type": "STRING", "mode": "NULLABLE"},
+                    {"name": "description", "type": "STRING", "mode": "NULLABLE"},
+                    {"name": "mode", "type": "STRING", "mode": "NULLABLE"},
+                    {"name": "type", "type": "STRING", "mode": "NULLABLE"},
+                ],
+                "mode": "NULLABLE",
+            },
+        ]
+
+        # Add resource to schema if required
+        if resource_level:
+            schema += [
+                {
+                    "name": "resource",
+                    "type": "RECORD",
+                    "fields": [
+                        {"name": "name", "type": "STRING", "mode": "NULLABLE"},
+                        {"name": "global_name", "type": "STRING", "mode": "NULLABLE"},
+                    ],
+                    "mode": "NULLABLE",
+                }
+            ]
+
         # creates the job config with specifics
         job_config = bigquery.LoadJobConfig(
             write_disposition=bigquery.WriteDisposition.WRITE_TRUNCATE,
             source_format=bigquery.SourceFormat.NEWLINE_DELIMITED_JSON,
             time_partitioning=bigquery.TimePartitioning(),
-            schema=[
-                {"name": "billing_account_id", "type": "STRING", "mode": "NULLABLE"},
-                {
-                    "name": "service",
-                    "type": "RECORD",
-                    "fields": [
-                        {"name": "id", "type": "STRING", "mode": "NULLABLE"},
-                        {"name": "description", "type": "STRING", "mode": "NULLABLE"},
-                    ],
-                    "mode": "NULLABLE",
-                },
-                {
-                    "name": "sku",
-                    "type": "RECORD",
-                    "fields": [
-                        {"name": "id", "type": "STRING", "mode": "NULLABLE"},
-                        {"name": "description", "type": "STRING", "mode": "NULLABLE"},
-                    ],
-                    "mode": "NULLABLE",
-                },
-                {"name": "usage_start_time", "type": "TIMESTAMP", "mode": "NULLABLE"},
-                {"name": "usage_end_time", "type": "TIMESTAMP", "mode": "NULLABLE"},
-                {
-                    "name": "project",
-                    "type": "RECORD",
-                    "fields": [
-                        {"name": "id", "type": "STRING", "mode": "NULLABLE"},
-                        {"name": "number", "type": "STRING", "mode": "NULLABLE"},
-                        {"name": "name", "type": "STRING", "mode": "NULLABLE"},
-                        {
-                            "name": "labels",
-                            "type": "RECORD",
-                            "fields": [
-                                {"name": "key", "type": "STRING", "mode": "NULLABLE"},
-                                {"name": "value", "type": "STRING", "mode": "NULLABLE"},
-                            ],
-                            "mode": "REPEATED",
-                        },
-                        {"name": "ancestry_numbers", "type": "STRING", "mode": "NULLABLE"},
-                    ],
-                    "mode": "NULLABLE",
-                },
-                {
-                    "name": "labels",
-                    "type": "RECORD",
-                    "fields": [
-                        {"name": "key", "type": "STRING", "mode": "NULLABLE"},
-                        {"name": "value", "type": "STRING", "mode": "NULLABLE"},
-                    ],
-                    "mode": "REPEATED",
-                },
-                {
-                    "name": "system_labels",
-                    "type": "RECORD",
-                    "fields": [
-                        {"name": "key", "type": "STRING", "mode": "NULLABLE"},
-                        {"name": "value", "type": "STRING", "mode": "NULLABLE"},
-                    ],
-                    "mode": "REPEATED",
-                },
-                {
-                    "name": "location",
-                    "type": "RECORD",
-                    "fields": [
-                        {"name": "location", "type": "STRING", "mode": "NULLABLE"},
-                        {"name": "country", "type": "STRING", "mode": "NULLABLE"},
-                        {"name": "region", "type": "STRING", "mode": "NULLABLE"},
-                        {"name": "zone", "type": "STRING", "mode": "NULLABLE"},
-                    ],
-                    "mode": "NULLABLE",
-                },
-                {"name": "export_time", "type": "TIMESTAMP", "mode": "NULLABLE"},
-                {"name": "cost", "type": "FLOAT", "mode": "NULLABLE"},
-                {"name": "currency", "type": "STRING", "mode": "NULLABLE"},
-                {"name": "currency_conversion_rate", "type": "FLOAT", "mode": "NULLABLE"},
-                {
-                    "name": "usage",
-                    "type": "RECORD",
-                    "fields": [
-                        {"name": "amount", "type": "FLOAT", "mode": "NULLABLE"},
-                        {"name": "unit", "type": "STRING", "mode": "NULLABLE"},
-                        {"name": "amount_in_pricing_units", "type": "FLOAT", "mode": "NULLABLE"},
-                        {"name": "pricing_unit", "type": "STRING", "mode": "NULLABLE"},
-                    ],
-                    "mode": "NULLABLE",
-                },
-                {
-                    "name": "credits",
-                    "type": "RECORD",
-                    "fields": [
-                        {"name": "name", "type": "STRING", "mode": "NULLABLE"},
-                        {"name": "amount", "type": "FLOAT", "mode": "NULLABLE"},
-                        {"name": "full_name", "type": "STRING", "mode": "NULLABLE"},
-                        {"name": "id", "type": "STRING", "mode": "NULLABLE"},
-                        {"name": "type", "type": "STRING", "mode": "NULLABLE"},
-                    ],
-                    "mode": "REPEATED",
-                },
-                {
-                    "name": "invoice",
-                    "type": "RECORD",
-                    "fields": [{"name": "month", "type": "STRING", "mode": "NULLABLE"}],
-                    "mode": "NULLABLE",
-                },
-                {"name": "cost_type", "type": "STRING", "mode": "NULLABLE"},
-                {
-                    "name": "adjustment_info",
-                    "type": "RECORD",
-                    "fields": [
-                        {"name": "id", "type": "STRING", "mode": "NULLABLE"},
-                        {"name": "description", "type": "STRING", "mode": "NULLABLE"},
-                        {"name": "mode", "type": "STRING", "mode": "NULLABLE"},
-                        {"name": "type", "type": "STRING", "mode": "NULLABLE"},
-                    ],
-                    "mode": "NULLABLE",
-                },
-            ],
+            schema=schema,
         )
 
         uri = f"gs://{gcp_bucket_name}/{file_name}"
