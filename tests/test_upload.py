@@ -33,7 +33,7 @@ from nise.upload import upload_to_oci_bucket
 from nise.upload import upload_to_s3
 from oci.exceptions import InvalidConfig
 from oci.exceptions import InvalidPrivateKey
-from oci.object_storage import ObjectStorageClient
+from oci.exceptions import ServiceError
 
 
 fake = faker.Faker()
@@ -229,91 +229,24 @@ class UploadTestCase(TestCase):
     @patch.dict(
         os.environ,
         {
-            "OCI_CLI_USER": "oci_user",
-            "OCI_CLI_FINGERPRINT": "oci_fingerprint",
-            "OCI_CLI_TENANCY": "oci_tenancy",
-            "OCI_CREDENTIALS": "credentials",
-            "OCI_BUCKET_REGION": "oci_region",
-            "OCI_NAMESPACE": "oci_namespace",
+            "OCI_USER": "",
+            "OCI_FINGERPRINT": "",
+            "OCI_TENANCY": "",
+            "OCI_CREDENTIALS": "",
+            "OCI_REGION": "",
+            "OCI_NAMESPACE": "",
         },
     )
     @patch("nise.upload.ObjectStorageClient")
-    @patch("nise.upload.validate_config")
-    def test_upload_to_oci_bucket_failure_invalid_config(self, mock_validate_config, mock_ostorage_client):
-        """Test uploading reports to oci bucket fails with invalid config values"""
-        with self.assertRaises(Exception) as ctx:
-            bucket_name = "my_bucket"
-            config = {
-                "user": os.environ["OCI_CLI_USER"],
-                "fingerprint": os.environ["OCI_CLI_FINGERPRINT"],
-                "tenancy": os.environ["OCI_CLI_TENANCY"],
-                "key_content": os.environ["OCI_CREDENTIALS"],
-                "region": os.environ["OCI_BUCKET_REGION"],
-                "namespace": os.environ["OCI_NAMESPACE"],
-            }
-            mock_validate_config.return_value = None
-            ostorage_client = Mock()
-            ostorage_client.put_object.return_value.side_effect = InvalidConfig({"Error": {}})
-            mock_ostorage_client.return_value = ostorage_client
-            ostorage_client = ObjectStorageClient(config)
-            for report_type in OCI_REPORT_TYPE_TO_COLS:
-                with NamedTemporaryFile(delete=False) as t_file:
-                    success = upload_to_oci_bucket(bucket_name, report_type, t_file.name)
-                    self.assertEqual(ctx, InvalidConfig)
-                    self.assertFalse(success)
-                os.remove(t_file.name)
+    def test_upload_to_oci_bucket_failure(self, mock_ostorage_client):
+        """Test uploading reports to oci bucket fails."""
 
-    @patch.dict(
-        os.environ,
-        {
-            "OCI_CLI_USER": "ocid1.user.oc1..oci_user",
-            "OCI_CLI_FINGERPRINT": "f0:0c:d1:e6:ec:ca:aa:3e:fe:48:93:1f",
-            "OCI_CLI_TENANCY": "ocid1.tenancy.oc1..oci_tenancy",
-            "OCI_CREDENTIALS": "TestPrivateKey",
-            "OCI_BUCKET_REGION": "oci_region",
-            "OCI_NAMESPACE": "oci_namespace",
-        },
-    )
-    @patch("nise.upload.ObjectStorageClient")
-    @patch("nise.upload.validate_config")
-    def test_upload_to_oci_bucket_failure_invalid_privatekey(self, mock_validate_config, mock_ostorage_client):
-        """Test uploading reports to oci bucket fails with invalid private key"""
         with self.assertRaises(Exception) as ctx:
             bucket_name = "my_bucket"
-            config = {
-                "user": os.environ["OCI_CLI_USER"],
-                "fingerprint": os.environ["OCI_CLI_FINGERPRINT"],
-                "tenancy": os.environ["OCI_CLI_TENANCY"],
-                "key_content": os.environ["OCI_CREDENTIALS"],
-                "region": os.environ["OCI_BUCKET_REGION"],
-                "namespace": os.environ["OCI_NAMESPACE"],
-            }
-            mock_validate_config.return_value = None
-            ostorage_client = Mock()
-            ostorage_client.put_object.return_value.side_effect = InvalidPrivateKey({"Error": {}})
-            mock_ostorage_client.return_value = ostorage_client
-            ostorage_client = ObjectStorageClient(config)
             for report_type in OCI_REPORT_TYPE_TO_COLS:
                 with NamedTemporaryFile(delete=False) as t_file:
                     success = upload_to_oci_bucket(bucket_name, report_type, t_file.name)
-                    self.assertEqual(ctx, InvalidPrivateKey)
-                    self.assertFalse(success)
-                os.remove(t_file.name)
-
-    @patch("nise.upload.ObjectStorageClient")
-    @patch("nise.upload.validate_config")
-    def test_upload_to_oci_bucket_failure_missing_config_key(self, mock_validate_config, mock_ostorage_client):
-        """Test uploading reports to oci bucket fails with missing required keys"""
-        with self.assertRaises(Exception) as ctx:
-            bucket_name = "my_bucket"
-            mock_validate_config.return_value = None
-            ostorage_client = Mock()
-            ostorage_client.put_object.return_value.side_effect = KeyError()
-            mock_ostorage_client.return_value = ostorage_client
-            ostorage_client = ObjectStorageClient({})
-            for report_type in OCI_REPORT_TYPE_TO_COLS:
-                with NamedTemporaryFile(delete=False) as t_file:
-                    success = upload_to_oci_bucket(bucket_name, report_type, t_file.name)
-                    self.assertEqual(ctx, KeyError)
-                    self.assertFalse(success)
+                    mock_ostorage_client.put_object.assert_called()
+                    self.assertIn(ctx, [KeyError, InvalidConfig, InvalidPrivateKey, ServiceError])
+                self.assertFalse(success)
                 os.remove(t_file.name)

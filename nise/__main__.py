@@ -37,6 +37,7 @@ from nise.util import LOG
 from nise.util import LOG_VERBOSITY
 from nise.yaml_gen import add_yaml_parser_args
 from nise.yaml_gen import yaml_main
+from oci.exceptions import InvalidConfig
 
 os.environ["TZ"] = "UTC"
 time.tzset()
@@ -558,31 +559,28 @@ def _validate_oci_arguments(parser, options):
         (ParserError): If combination is invalid.
 
     """
-    bucket_name = options.get("oci_bucket_name")
-    if not bucket_name:
-        return True
-    is_args_valid = False
 
+    bucket_name = options.get("oci_bucket_name")
+    local_bucket = options.get("oci_local_bucket")
+    if not bucket_name or local_bucket:
+        return True
     try:
-        oci_user = os.environ["OCI_CLI_USER"]
-        oci_fingerprint = os.environ["OCI_CLI_FINGERPRINT"]
-        oci_tenancy = os.environ["OCI_CLI_TENANCY"]
+        oci_user = os.environ["OCI_USER"]
+        oci_fingerprint = os.environ["OCI_FINGERPRINT"]
+        oci_tenancy = os.environ["OCI_TENANCY"]
         oci_credentials = os.environ["OCI_CREDENTIALS"]
-        oci_region = os.environ["OCI_BUCKET_REGION"]
+        oci_region = os.environ["OCI_REGION"]
         oci_namespace = os.environ["OCI_NAMESPACE"]
-    except KeyError as err:
+        if any(
+            (oci_var is None or oci_var == "")
+            for oci_var in [oci_user, oci_fingerprint, oci_tenancy, oci_credentials, oci_region, oci_namespace]
+        ):
+            raise InvalidConfig("Must provide valid config varibales")
+        return True
+    except (KeyError, InvalidConfig) as err:
         msg = f"\n\t--oci-bucket-name {bucket_name} was supplied as an argument but missing a required variable {err}"  # noqa: E501
         parser.error(msg)
-        is_args_valid = False
-
-    if any(
-        (oci_var is None or oci_var == "")
-        for oci_var in [oci_user, oci_fingerprint, oci_tenancy, oci_credentials, oci_region, oci_namespace]
-    ):
-        is_args_valid = False
-    else:
-        is_args_valid = True
-    return is_args_valid
+        return False
 
 
 def _validate_provider_inputs(parser, options):

@@ -472,11 +472,11 @@ class CommandLineTestCase(TestCase):
     @patch.dict(
         os.environ,
         {
-            "OCI_CLI_USER": "oci_user",
-            "OCI_CLI_FINGERPRINT": "oci_fingerprint",
-            "OCI_CLI_TENANCY": "oci_tenancy",
+            "OCI_USER": "oci_user",
+            "OCI_FINGERPRINT": "oci_fingerprint",
+            "OCI_TENANCY": "oci_tenancy",
             "OCI_CREDENTIALS": "oci_credentials",
-            "OCI_BUCKET_REGION": "oci_region",
+            "OCI_REGION": "oci_region",
             "OCI_NAMESPACE": "oci_namespace",
         },
     )
@@ -502,17 +502,16 @@ class CommandLineTestCase(TestCase):
         """
         Test fails if user passes bucket_name and no valid OCI config valirables.
         """
+
         with self.assertRaises(SystemExit):
             args = ["report", "oci", "--start-date", str(date.today()), "--oci-bucket-name", "mybucket"]
             options = vars(self.parser.parse_args(args))
             valid_configs = _validate_provider_inputs(self.parser, options)
             self.assertIn(False, valid_configs)
-            self.assertRaises(KeyError)
 
     def test_invalid_oci_inputs(self):
-        """
-        Test user passes an invalid OCI argument combination.
-        """
+        """Test user passes an invalid OCI argument combination."""
+
         with self.assertRaises(SystemExit):
             args = ["report", "oci", "--oci-bucket-name"]
             options = vars(self.parser.parse_args(args))

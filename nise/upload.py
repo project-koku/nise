@@ -362,7 +362,7 @@ def upload_to_oci_bucket(bucket_name, report_type, file_name):
 
         for oci_var in [oci_user, oci_fingerprint, oci_tenancy, oci_credentials, oci_region, oci_namespace]:
             if oci_var is None or oci_var == "":
-                raise KeyError(f"{oci_var} must be a valid value")
+                raise InvalidConfig("Must provide a valid config variables.")
 
         validate_config(config)
         object_storage_client = ObjectStorageClient(config)
@@ -383,9 +383,6 @@ def upload_to_oci_bucket(bucket_name, report_type, file_name):
         LOG.info(f"File {upload_file_name} uploaded to OCI Storage {bucket_name} bucket.")
         os.remove(zipped_file.name)
         return True
-    except (KeyError, InvalidConfig, InvalidPrivateKey) as err:
-        LOG.warning(f"missing a required configuration variable in your environment {err}")
-        return False
-    except ServiceError as err:
-        LOG.warning(f"Error uploading file to oci bucket: {err}")
+    except (InvalidConfig, InvalidPrivateKey, ServiceError) as err:
+        LOG.error(f"Error uploading report to oci bucket: {err}")
         return False

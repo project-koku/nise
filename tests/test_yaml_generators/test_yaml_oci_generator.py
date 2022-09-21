@@ -67,7 +67,6 @@ class OCIGeneratorTestCase(TestCase):
         dc = self.yg.default_config()
         for key in self.module.TAG_KEYS.keys():
             with self.subTest(key=key):
-                mock_choice.return_value = []
                 tags = self.module.generate_tags(dc, key)
                 mock_choice.assert_not_called()
                 self.assertEqual(len(tags), len(self.module.TAG_KEYS[key]))
@@ -88,7 +87,6 @@ class OCIGeneratorTestCase(TestCase):
             "database": {"tags/test-db-tags": "db-tag-value"},
             "network": {"tags/test-network-tags": ""},
         }
-
         for key in tag_keys.keys():
             with self.subTest(key=key):
                 mock_choice.return_value = tag_keys[key]
