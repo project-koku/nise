@@ -21,6 +21,7 @@ import datetime
 import os
 import sys
 import time
+from pathlib import Path
 from pprint import pformat
 
 from dateutil import parser as date_parser
@@ -565,18 +566,22 @@ def _validate_oci_arguments(parser, options):
     if not bucket_name or local_bucket:
         return True
     try:
-        oci_user = os.environ["OCI_USER"]
-        oci_fingerprint = os.environ["OCI_FINGERPRINT"]
-        oci_tenancy = os.environ["OCI_TENANCY"]
-        oci_credentials = os.environ["OCI_CREDENTIALS"]
-        oci_region = os.environ["OCI_REGION"]
-        oci_namespace = os.environ["OCI_NAMESPACE"]
-        if any(
-            (oci_var is None or oci_var == "")
-            for oci_var in [oci_user, oci_fingerprint, oci_tenancy, oci_credentials, oci_region, oci_namespace]
-        ):
-            raise InvalidConfig("Must provide valid config varibales")
-        return True
+        config_file = os.environ.get("OCI_CONFIG_FILE")
+        if config_file and Path(config_file).exists():
+            return True
+        else:
+            oci_user = os.environ["OCI_USER"]
+            oci_fingerprint = os.environ["OCI_FINGERPRINT"]
+            oci_tenancy = os.environ["OCI_TENANCY"]
+            oci_credentials = os.environ["OCI_CREDENTIALS"]
+            oci_region = os.environ["OCI_REGION"]
+            oci_namespace = os.environ["OCI_NAMESPACE"]
+            if any(
+                (oci_var is None or oci_var == "")
+                for oci_var in [oci_user, oci_fingerprint, oci_tenancy, oci_credentials, oci_region, oci_namespace]
+            ):
+                raise InvalidConfig("Must provide valid config varibales")
+            return True
     except (KeyError, InvalidConfig) as err:
         msg = f"\n\t--oci-bucket-name {bucket_name} was supplied as an argument but missing a required variable {err}"  # noqa: E501
         parser.error(msg)

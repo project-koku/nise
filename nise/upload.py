@@ -31,7 +31,9 @@ from google.cloud.exceptions import GoogleCloudError
 from msrestazure.azure_exceptions import ClientException
 from msrestazure.azure_exceptions import CloudError
 from nise.util import LOG
+from oci.config import from_file
 from oci.config import validate_config
+from oci.exceptions import ConfigFileNotFound
 from oci.exceptions import InvalidConfig
 from oci.exceptions import InvalidPrivateKey
 from oci.exceptions import ServiceError
@@ -344,45 +346,47 @@ def upload_to_oci_bucket(bucket_name, report_type, file_name):
     """
 
     try:
-        oci_user = os.environ["OCI_USER"]
-        oci_fingerprint = os.environ["OCI_FINGERPRINT"]
-        oci_tenancy = os.environ["OCI_TENANCY"]
-        oci_credentials = os.environ["OCI_CREDENTIALS"]
-        oci_region = os.environ["OCI_REGION"]
-        oci_namespace = os.environ["OCI_NAMESPACE"]
-
-        config = {
-            "user": oci_user,
-            "fingerprint": oci_fingerprint,
-            "tenancy": oci_tenancy,
-            "key_content": oci_credentials,
-            "region": oci_region,
-            "namespace": oci_namespace,
-        }
-
-        for oci_var in [oci_user, oci_fingerprint, oci_tenancy, oci_credentials, oci_region, oci_namespace]:
-            if oci_var is None or oci_var == "":
-                raise InvalidConfig("Must provide a valid config variables.")
-
+        if "OCI_CONFIG_FILE" in os.environ:
+            config = from_file(file_location=os.environ.get("OCI_CONFIG_FILE"))
+            LOG.info(f"Using configurations from config file: {config}")
+        else:
+            oci_user = os.environ["OCI_USER"]
+            oci_fingerprint = os.environ["OCI_FINGERPRINT"]
+            oci_tenancy = os.environ["OCI_TENANCY"]
+            oci_credentials = os.environ["OCI_CREDENTIALS"]
+            oci_region = os.environ["OCI_REGION"]
+            oci_namespace = os.environ["OCI_NAMESPACE"]
+            for oci_var in [oci_user, oci_fingerprint, oci_tenancy, oci_credentials, oci_region, oci_namespace]:
+                if oci_var is None or oci_var == "":
+                    raise InvalidConfig("Must provide a valid config variables.")
+            config = {
+                "user": oci_user,
+                "fingerprint": oci_fingerprint,
+                "tenancy": oci_tenancy,
+                "key_content": oci_credentials,
+                "region": oci_region,
+                "namespace": oci_namespace,
+            }
+            LOG.info(f"Creating config dict from env vars: {config}")
         validate_config(config)
         object_storage_client = ObjectStorageClient(config)
-
+        namespace = object_storage_client.get_namespace().data
         with open(file_name, "rb") as file_in:
             with gzip.open(f"{file_name}.gz", "wb") as file_out:
                 shutil.copyfileobj(file_in, file_out)
         zipped_file = file_out
-
         upload_file_name = f"reports/{report_type}/{zipped_file.name}"
+
         object_storage_client.put_object(
-            oci_namespace,
+            namespace,
             bucket_name,
             upload_file_name,
             io.open(zipped_file.name, "rb"),
         )
 
-        LOG.info(f"File {upload_file_name} uploaded to OCI Storage {bucket_name} bucket.")
+        LOG.warning(f"File {upload_file_name} uploaded to OCI Storage {bucket_name} bucket.")
         os.remove(zipped_file.name)
         return True
-    except (InvalidConfig, InvalidPrivateKey, ServiceError) as err:
+    except (InvalidConfig, InvalidPrivateKey, ServiceError, ConfigFileNotFound) as err:
         LOG.error(f"Error uploading report to oci bucket: {err}")
         return False

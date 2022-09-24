@@ -193,6 +193,30 @@ class UploadTestCase(TestCase):
 
         self.assertFalse(uploaded)
 
+    @patch.dict(os.environ, {"OCI_CONFIG_FILE": "/path/to/creds"})
+    @patch("nise.upload.ObjectStorageClient")
+    @patch("nise.upload.validate_config")
+    @patch("nise.upload.from_file")
+    def test_upload_to_oci_bucket_success_with_config_file(
+        self,
+        mock_from_file,
+        mock_validate_config,
+        mock_ostorage_client,
+    ):
+        """Test upload_to_oci_bucket method is called."""
+
+        bucket_name = "my_bucket"
+        mock_from_file.return_value = {}
+        mock_validate_config.return_value = None
+        mock_ostorage_client.put_object.return_value = None
+        for report_type in OCI_REPORT_TYPE_TO_COLS:
+            with NamedTemporaryFile(delete=False) as t_file:
+                success = upload_to_oci_bucket(bucket_name, report_type, t_file.name)
+                mock_from_file.assert_called_with(file_location=os.environ["OCI_CONFIG_FILE"])
+                mock_validate_config.assert_called_with({})
+                mock_ostorage_client.assert_called_with({})
+            self.assertTrue(success)
+
     @patch.dict(
         os.environ,
         {
@@ -206,7 +230,7 @@ class UploadTestCase(TestCase):
     )
     @patch("nise.upload.ObjectStorageClient")
     @patch("nise.upload.validate_config")
-    def test_upload_to_oci_bucket_success(self, mock_validate_config, mock_ostorage_client):
+    def test_upload_to_oci_bucket_success_with_config_vars(self, mock_validate_config, mock_ostorage_client):
         """Test upload_to_oci_bucket method is called correctly"""
         bucket_name = "my_bucket"
         config = {
@@ -225,6 +249,15 @@ class UploadTestCase(TestCase):
                 mock_ostorage_client.assert_called_with(config)
                 self.assertTrue(success)
             os.remove(t_file.name)
+
+    @patch.dict(os.environ, {"OCI_CONFIG_FILE": "/path/to/creds"})
+    def test_upload_to_oci_bucket_config_not_found(self):
+        """Test upload to oci bucket fails when config file is not found."""
+        bucket_name = "my_bucket"
+        file_name = "file.csv"
+        for report_type in OCI_REPORT_TYPE_TO_COLS:
+            success = upload_to_oci_bucket(bucket_name, report_type, file_name)
+            self.assertFalse(success)
 
     @patch.dict(
         os.environ,
