@@ -455,7 +455,7 @@ class CommandLineTestCase(TestCase):
         options = vars(self.parser.parse_args(args))
         self.assertTrue(_validate_provider_inputs(self.parser, options))
 
-    def test_valid_oci_input(self):
+    def test_valid_oci_input_write_monthly(self):
         """
         Test user passes a valid OCI argument combination.
         """
@@ -469,6 +469,46 @@ class CommandLineTestCase(TestCase):
         options = vars(self.parser.parse_args(args))
         self.assertTrue(_validate_provider_inputs(self.parser, options))
 
+    @patch.dict(
+        os.environ,
+        {
+            "OCI_USER": "oci_user",
+            "OCI_FINGERPRINT": "oci_fingerprint",
+            "OCI_TENANCY": "oci_tenancy",
+            "OCI_CREDENTIALS": "oci_credentials",
+            "OCI_REGION": "oci_region",
+            "OCI_NAMESPACE": "oci_namespace",
+        },
+    )
+    def test_valid_oci_input_upload_to_bucket(self):
+        """
+        Test passes is user passes valid OCI argument combination for bucket upload.
+        """
+        args = ["report", "oci", "--start-date", str(date.today()), "-w", "--oci-bucket-name", "test-bucket"]
+        options = vars(self.parser.parse_args(args))
+        self.assertTrue(_validate_provider_inputs(self.parser, options))
+
+    def test_invalid_oci_input_upload_to_bucket(self):
+        """
+        Test fails if user passes invalid OCI argument combination for bucket upload.
+        """
+        with self.assertRaises(SystemExit):
+            args = ["report", "oci", "--start-date", str(date.today()), "-w", "--oci-bucket-name"]
+            options = vars(self.parser.parse_args(args))
+            _validate_provider_inputs(self.parser, options)
+
+    @patch.dict(os.environ, {})
+    def test_oci_missing_config_vars(self):
+        """
+        Test fails if user passes bucket_name and no valid OCI config valirables.
+        """
+
+        with self.assertRaises(SystemExit):
+            args = ["report", "oci", "--start-date", str(date.today()), "--oci-bucket-name", "mybucket"]
+            options = vars(self.parser.parse_args(args))
+            valid_configs = _validate_provider_inputs(self.parser, options)
+            self.assertIn(False, valid_configs)
+
     @patch.dict(os.environ, {"OCI_CONFIG_FILE": ""})
     def test_valid_oci_inputs_no_config_file(self):
         """
@@ -480,9 +520,8 @@ class CommandLineTestCase(TestCase):
             _validate_provider_inputs(self.parser, options)
 
     def test_invalid_oci_inputs(self):
-        """
-        Test user passes an invalid OCI argument combination.
-        """
+        """Test user passes an invalid OCI argument combination."""
+
         with self.assertRaises(SystemExit):
             args = ["report", "oci", "--oci-bucket-name"]
             options = vars(self.parser.parse_args(args))

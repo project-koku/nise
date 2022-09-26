@@ -176,6 +176,7 @@ Below is an example usage of ``nise`` for OCP running on AZURE data using the `e
 OCI reports
 -----------
 
+
 Cost and usage reports will be generated in monthly .csv files with the file format
 <reports>_<Report Type>-<csv>_<File Number>_<Year>-<Month>.csv.
 
@@ -187,7 +188,9 @@ To move the generated data into a specific local directory, supply ``--oci-local
 
     nise report oci -s 2022-04-01 --oci-local-bucket /local/path/testbucket
 
-To upload data to an OCI bucket, supply ``--oci-bucket-name``. This also requires the ``OCI_CONFIG_FILE=/path/to/oci/config_file`` environment variable to be set in your ``.env`` file, and the bucket must already exist in your OCI storage.::
+To upload data to an OCI bucket, supply ``--oci-bucket-name``.
+
+    Note: To upload to OCI storage bucket, you must have these variables below set in your environment; [OCI_USER, OCI_FINGERPRINT, OCI_TENANCY, OCI_CREDENTIALS, OCI_REGION, OCI_NAMESPACE, OCI_BUCKET_NAME] and the bucket must already exist in your OCI storage.::
 
     nise report oci -s 2022-04-01 --oci-bucket-name testbucket
 
