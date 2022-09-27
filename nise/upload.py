@@ -348,7 +348,7 @@ def upload_to_oci_bucket(bucket_name, report_type, file_name):
     try:
         if "OCI_CONFIG_FILE" in os.environ:
             config = from_file(file_location=os.environ.get("OCI_CONFIG_FILE"))
-            LOG.info(f"Using configurations from config file: {config}")
+            LOG.info("Using configurations from config file.")
         else:
             oci_user = os.environ["OCI_USER"]
             oci_fingerprint = os.environ["OCI_FINGERPRINT"]
