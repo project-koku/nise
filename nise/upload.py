@@ -367,7 +367,7 @@ def upload_to_oci_bucket(bucket_name, report_type, file_name):
                 "region": oci_region,
                 "namespace": oci_namespace,
             }
-            LOG.info(f"Creating config dict from env vars: {config}")
+            LOG.info("Creating config dict from env vars.")
         validate_config(config)
         object_storage_client = ObjectStorageClient(config)
         namespace = object_storage_client.get_namespace().data
