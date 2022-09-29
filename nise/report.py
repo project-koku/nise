@@ -1118,7 +1118,10 @@ def _gcp_bigquery_process(
 
     if not gcp_table_name:
         etag = options.get("gcp_etag") if options.get("gcp_etag") else str(uuid4())
-        gcp_table_name = f"gcp_billing_export_{etag}"
+        if resource_level:
+            gcp_table_name = f"gcp_billing_export_resource_{etag}"
+        else:
+            gcp_table_name = f"gcp_billing_export_{etag}"
     gcp_bucket_to_dataset(gcp_bucket_name, output_file_name, gcp_dataset_name, gcp_table_name, resource_level)
 
     return monthly_files
