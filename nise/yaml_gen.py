@@ -71,11 +71,6 @@ def add_gcp_args(parser):
     pass
 
 
-def add_oci_args(parser):
-    """Add OCI specific parser args."""
-    pass
-
-
 def add_ocp_args(parser):
     """Add OCP specific parser args."""
     parser.add_argument(
@@ -98,6 +93,11 @@ def add_ocp_on_cloud_args(parser):
         "-c", "--config", dest="config_file_name", type=str, required=True, metavar="CONF", help="Config file path."
     )
     add_ocp_args(parser)
+
+
+def add_oci_args(parser):
+    """Add OCI specific parser args."""
+    pass
 
 
 def add_yaml_parser_args(yaml_parser):

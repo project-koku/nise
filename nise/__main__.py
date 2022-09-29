@@ -38,7 +38,6 @@ from nise.util import LOG
 from nise.util import LOG_VERBOSITY
 from nise.yaml_gen import add_yaml_parser_args
 from nise.yaml_gen import yaml_main
-from oci.exceptions import InvalidConfig
 
 os.environ["TZ"] = "UTC"
 time.tzset()
@@ -560,32 +559,22 @@ def _validate_oci_arguments(parser, options):
         (ParserError): If combination is invalid.
 
     """
-
-    bucket_name = options.get("oci_bucket_name")
+    is_args_valid = False
     local_bucket = options.get("oci_local_bucket")
-    if not bucket_name or local_bucket:
-        return True
-    try:
-        config_file = os.environ.get("OCI_CONFIG_FILE")
-        if config_file and Path(config_file).exists():
-            return True
-        else:
-            oci_user = os.environ["OCI_USER"]
-            oci_fingerprint = os.environ["OCI_FINGERPRINT"]
-            oci_tenancy = os.environ["OCI_TENANCY"]
-            oci_credentials = os.environ["OCI_CREDENTIALS"]
-            oci_region = os.environ["OCI_REGION"]
-            oci_namespace = os.environ["OCI_NAMESPACE"]
-            if any(
-                (oci_var is None or oci_var == "")
-                for oci_var in [oci_user, oci_fingerprint, oci_tenancy, oci_credentials, oci_region, oci_namespace]
-            ):
-                raise InvalidConfig("Must provide valid config varibales")
-            return True
-    except (KeyError, InvalidConfig) as err:
-        msg = f"\n\t--oci-bucket-name {bucket_name} was supplied as an argument but missing a required variable {err}"  # noqa: E501
+    bucket_name = options.get("oci_bucket_name")
+    config_file = os.environ.get("OCI_CONFIG_FILE")
+
+    if (not bucket_name) or (bucket_name and config_file and Path(config_file).exists()) or local_bucket:
+        is_args_valid = True
+    else:
+        msg = (
+            f"\n\t--oci-bucket-name {bucket_name} was supplied as an argument\n"
+            "\tbut a config file path is not set in your environment or does not exist locally."
+        )
+        msg = msg.format("--oci-bucket-name")
         parser.error(msg)
-        return False
+
+    return is_args_valid
 
 
 def _validate_provider_inputs(parser, options):

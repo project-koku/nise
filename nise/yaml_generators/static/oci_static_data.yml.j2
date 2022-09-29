@@ -7,8 +7,6 @@ generators:
       currency: {{ compute.currency }}
       compartment_name: {{ compute.compartment_name }}
       tenant_id: {{ compute.tenant_id }}
-      tags:{% for tag in compute.tags %}
-        {{ tag.key }}: {{ tag.v }}{% endfor %}
 {% endfor %}
 {% for storage in generator.storage_gens %}  - OCIBlockStorageGenerator:
       start_date: {{ storage.start_date }}
@@ -17,8 +15,6 @@ generators:
       currency: {{ storage.currency }}
       compartment_name: {{ storage.compartment_name }}
       tenant_id: {{ storage.tenant_id }}
-      tags:{% for tag in storage.tags %}
-        {{ tag.key }}: {{ tag.v }}{% endfor %}
 {% endfor %}
 {% for network in generator.network_gens %}  - OCINetworkGenerator:
       start_date: {{ network.start_date }}
@@ -27,8 +23,6 @@ generators:
       currency: {{ network.currency }}
       compartment_name: {{ network.compartment_name }}
       tenant_id: {{ network.tenant_id }}
-      tags:{% for tag in network.tags %}
-        {{ tag.key }}: {{ tag.v }}{% endfor %}
 {% endfor %}
 {% for db in generator.database_gens %}  - OCIDatabaseGenerator:
       start_date: {{ db.start_date }}
@@ -37,6 +31,4 @@ generators:
       currency: {{ db.currency }}
       compartment_name: {{ db.compartment_name }}
       tenant_id: {{ db.tenant_id }}
-      tags:{% for tag in db.tags %}
-        {{ tag.key }}: {{ tag.v }}{% endfor %}
 {% endfor %}

@@ -63,14 +63,7 @@ OCI_USAGE_COLUMNS = (
     "usage/consumedQuantityMeasure",
 )
 OCI_CORRECTION_COLUMNS = ("lineItem/isCorrection", "lineItem/backreferenceNo")
-OCI_TAGS_COLUMNS = (
-    "tags/Oracle-Tags.CreatedBy",
-    "tags/Oracle-Tags.CreatedOn",
-    "tags/Oracle-Tags.test",
-    "tags/free-form-tag",
-    "tags/new-tags.tarnished-tags",
-    "tags/orcl-cloud.free-tier-retained",
-)
+OCI_TAGS_COLUMNS = ("tags/Oracle-Tags.CreatedBy", "tags/Oracle-Tags.CreatedOn", "tags/orcl-cloud.free-tier-retained")
 OCI_ALL_COMMON_COLUMNS = OCI_IDENTITY_COLUMNS + OCI_COMMON_PRODUCT_COLS + OCI_CORRECTION_COLUMNS + OCI_TAGS_COLUMNS
 
 OCI_REPORT_TYPE_TO_COLS = {
@@ -146,16 +139,10 @@ class OCIGenerator(AbstractGenerator):
         self.is_correction = choice(["true", "false"])
         self.email_domain = self.fake.free_email_domain()
         self.subscription_id = self.fake.random_number(fix_len=True, digits=8)
-        self.unit_price = round(uniform(1.0, 10.0), 4)
-        self.usage_billed_quantity = round(uniform(0.0, 50.0), 4)
-        self.cost = (
-            attributes.get("cost")
-            if attributes and attributes.get("cost")
-            else (self.unit_price * self.usage_billed_quantity)
-        )
-        self.cost_overage_flag = choice(["N", "", "Y"])
+        self.usage_quantity = self.fake.random_number(digits=6, fix_len=True)
+        self.cost = attributes.get("cost") if attributes and attributes.get("cost") else self._gen_cost_value()
+        self.cost_overage_flag = choice(["N", ""])
         self.cost_product_sku = f"B{self.fake.random_number(fix_len=True, digits=5)}"
-        self.tags = attributes.get("tags") if attributes and attributes.get("tags") else None
 
     @staticmethod
     def timestamp(in_date):
@@ -206,15 +193,8 @@ class OCIGenerator(AbstractGenerator):
             else "",
             "tags/Oracle-Tags.CreatedBy": f"default/{self.compartment_name}@{self.email_domain}",
             "tags/Oracle-Tags.CreatedOn": choice([self._tag_timestamp(start), self._tag_timestamp(end), ""]),
-            "tags/Oracle-Tags.test": choice([self.fake.word(), ""]),
-            "tags/free-form-tag": choice([self.fake.word(), ""]),
-            "tags/new-tags.tarnished-tags": choice([self.fake.word(), ""]),
             "tags/orcl-cloud.free-tier-retained": choice(["true", ""]),
         }
-
-        if self.tags:
-            for key, value in self.tags.items():
-                data[key] = value
         return data
 
     def _get_reference_num(self):
@@ -240,6 +220,10 @@ class OCIGenerator(AbstractGenerator):
         )
         return available_domain
 
+    def _gen_cost_value(self):
+        """Generate the cost value."""
+        return round(uniform(0, 9.0), 2)
+
     def _add_cost_data(self, row, start, end, **kwargs):
         """Add cost information."""
         _data = self._get_cost_data(**kwargs)
@@ -250,15 +234,15 @@ class OCIGenerator(AbstractGenerator):
     def _get_cost_data(self, **kwargs):
         """Get cost data"""
         _cost_data = {
-            "usage/billedQuantity": self.usage_billed_quantity,
-            "usage/billedQuantityOverage": self.usage_billed_quantity,
+            "usage/billedQuantity": 1,
+            "usage/billedQuantityOverage": "",
             "cost/subscriptionId": self.subscription_id,
             "cost/productSku": self.cost_product_sku,
             "product/Description": self.cost_product_description,
-            "cost/unitPrice": self.unit_price,
-            "cost/unitPriceOverage": self.unit_price,
+            "cost/unitPrice": 0,
+            "cost/unitPriceOverage": "",
             "cost/myCost": self.cost,
-            "cost/myCostOverage": self.cost,
+            "cost/myCostOverage": self.cost_overage_flag,
             "cost/currencyCode": self.currency,
             "cost/billingUnitReadable": self.cost_billing_unit,
             "cost/skuUnitDescription": self.cost_sku_unit_description,
@@ -277,8 +261,8 @@ class OCIGenerator(AbstractGenerator):
     def _get_usage_data(self, **kwargs):
         """Get usage data."""
         _usage_data = {
-            "usage/consumedQuantity": self.usage_billed_quantity,
-            "usage/billedQuantity": self.usage_billed_quantity,
+            "usage/consumedQuantity": self.usage_quantity,
+            "usage/billedQuantity": self.usage_quantity,
             "usage/consumedQuantityUnits": self.usage_consumed_quant_units,
             "usage/consumedQuantityMeasure": self.usage_consumed_quant_measure,
         }

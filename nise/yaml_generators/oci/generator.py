@@ -19,7 +19,6 @@ import os
 import random
 from calendar import monthrange
 from datetime import date
-from random import choice
 
 import faker
 from dateutil.relativedelta import relativedelta
@@ -31,20 +30,12 @@ from nise.yaml_generators.utils import dicta
 FAKER = faker.Faker()
 COMPARTMENT_NAME = FAKER.name().replace(" ", "").lower()
 TENANT_ID = "ocid1.tenancy.oc1..EfjkUPxyZSYLvd"
-TAG_KEYS = {
-    "storage": ["tags/new-tags.tarnished-tags", "tags/orcl-cloud.free-tier-retained"],
-    "compute": ["tags/free-form-tag", "tags/orcl-cloud.free-tier-retained"],
-    "database": ["tags/free-form-tag"],
-    "network": ["tags/free-form-tag"],
-}
 
 
 def generate_oci_dicta(config, key):
     """Return dicta with common attributes."""
     cost = round(random.uniform(0.1, 0.50), 5)
     currency = "USD"
-    tags = generate_tags(config, key)
-
     return dicta(
         start_date=str(config.start_date),
         end_date=str(config.end_date),
@@ -52,25 +43,7 @@ def generate_oci_dicta(config, key):
         currency=currency,
         compartment_name=COMPARTMENT_NAME,
         tenant_id=TENANT_ID,
-        tags=tags,
     )
-
-
-def generate_tags(config, key):
-    """Generates the tags dictionary for oci tags."""
-
-    tags = []
-    if not config.get("tags"):
-        keys = TAG_KEYS.get(key)
-        tags = [dicta(key=key, v=FAKER.word()) for key in keys]
-    else:
-        tags_dict = choice(config.tags.get)
-        SEEN_KEYS = set()
-        for key, value in tags_dict.items():
-            if key not in SEEN_KEYS:
-                tags.append(dicta(key=key, v=value))
-                SEEN_KEYS.update([key])
-    return tags
 
 
 class OCIGenerator(Generator):
@@ -93,9 +66,8 @@ class OCIGenerator(Generator):
         """
         Generate a config object with all values set to defaults
         Returns:
-            dicta.
+            dicta
         """
-
         default_date = date.today()
         last_day_of_month = monthrange(default_date.year, default_date.month)[1]
         return dicta(
@@ -136,9 +108,11 @@ class OCIGenerator(Generator):
         return True
 
     def build_data(self, config, _random=False):
-        """build the data."""
-
+        """
+        build the data
+        """
         LOG.info("Data build starting")
+
         data = dicta(
             compute_gens=[],
             storage_gens=[],

@@ -27,13 +27,13 @@ from google.cloud.exceptions import GoogleCloudError
 from nise.generators.oci.oci_generator import OCI_REPORT_TYPE_TO_COLS
 from nise.upload import BlobServiceClient
 from nise.upload import gcp_bucket_to_dataset
+from nise.upload import ObjectStorageClient
 from nise.upload import upload_to_azure_container
 from nise.upload import upload_to_gcp_storage
 from nise.upload import upload_to_oci_bucket
 from nise.upload import upload_to_s3
+from oci.exceptions import ConfigFileNotFound
 from oci.exceptions import InvalidConfig
-from oci.exceptions import InvalidPrivateKey
-from oci.exceptions import ServiceError
 
 
 fake = faker.Faker()
@@ -194,92 +194,49 @@ class UploadTestCase(TestCase):
         self.assertFalse(uploaded)
 
     @patch.dict(os.environ, {"OCI_CONFIG_FILE": "/path/to/creds"})
+    @patch.object(ObjectStorageClient, "put_object", autospec=True)
     @patch("nise.upload.ObjectStorageClient")
     @patch("nise.upload.validate_config")
     @patch("nise.upload.from_file")
-    def test_upload_to_oci_bucket_success_with_config_file(
-        self,
-        mock_from_file,
-        mock_validate_config,
-        mock_ostorage_client,
+    def test_upload_to_oci_bucket_success(
+        self, mock_from_file, mock_validate_config, mock_ostorage_client, mock_put_object
     ):
-        """Test upload_to_oci_bucket method is called."""
-
+        """Test upload_to_oci_bucket method is called"""
         bucket_name = "my_bucket"
         mock_from_file.return_value = {}
-        mock_validate_config.return_value = None
-        mock_ostorage_client.put_object.return_value = None
+
         for report_type in OCI_REPORT_TYPE_TO_COLS:
             with NamedTemporaryFile(delete=False) as t_file:
                 success = upload_to_oci_bucket(bucket_name, report_type, t_file.name)
-                mock_from_file.assert_called_with(file_location=os.environ["OCI_CONFIG_FILE"])
-                mock_validate_config.assert_called_with({})
-                mock_ostorage_client.assert_called_with({})
+            mock_from_file.assert_called_with(file_location=os.environ["OCI_CONFIG_FILE"])
+            mock_validate_config.assert_called_with({})
+            mock_ostorage_client.assert_called_with({})
+            self.assertTrue(mock_put_object.assert_called)
             self.assertTrue(success)
 
-    @patch.dict(
-        os.environ,
-        {
-            "OCI_USER": "oci_user",
-            "OCI_FINGERPRINT": "oci_fingerprint",
-            "OCI_TENANCY": "oci_tenancy",
-            "OCI_CREDENTIALS": "oci_credentials",
-            "OCI_REGION": "oci_region",
-            "OCI_NAMESPACE": "oci_namespace",
-        },
-    )
-    @patch("nise.upload.ObjectStorageClient")
-    @patch("nise.upload.validate_config")
-    def test_upload_to_oci_bucket_success_with_config_vars(self, mock_validate_config, mock_ostorage_client):
-        """Test upload_to_oci_bucket method is called correctly"""
-        bucket_name = "my_bucket"
-        config = {
-            "user": os.environ["OCI_USER"],
-            "fingerprint": os.environ["OCI_FINGERPRINT"],
-            "tenancy": os.environ["OCI_TENANCY"],
-            "key_content": os.environ["OCI_CREDENTIALS"],
-            "region": os.environ["OCI_REGION"],
-            "namespace": os.environ["OCI_NAMESPACE"],
-        }
-        mock_ostorage_client.put_object.return_value = None
-        for report_type in OCI_REPORT_TYPE_TO_COLS:
-            with NamedTemporaryFile(delete=False) as t_file:
-                success = upload_to_oci_bucket(bucket_name, report_type, t_file.name)
-                mock_validate_config.assert_called_with(config)
-                mock_ostorage_client.assert_called_with(config)
-                self.assertTrue(success)
-            os.remove(t_file.name)
-
     @patch.dict(os.environ, {"OCI_CONFIG_FILE": "/path/to/creds"})
-    def test_upload_to_oci_bucket_config_not_found(self):
-        """Test upload to oci bucket fails when config file is not found."""
+    @patch("nise.upload.upload_to_oci_bucket")
+    def test_upload_to_oci_bucket_config_not_found(self, mock_oci_upload):
+        """Test upload to oci bucket fails with invalid config file."""
         bucket_name = "my_bucket"
         file_name = "file.csv"
+        mock_oci_upload.side_effect = [ConfigFileNotFound]
+
         for report_type in OCI_REPORT_TYPE_TO_COLS:
-            success = upload_to_oci_bucket(bucket_name, report_type, file_name)
-            self.assertFalse(success)
+            upload_to_oci_bucket(bucket_name, report_type, file_name)
+            self.assertRaises(ConfigFileNotFound)
 
-    @patch.dict(
-        os.environ,
-        {
-            "OCI_USER": "",
-            "OCI_FINGERPRINT": "",
-            "OCI_TENANCY": "",
-            "OCI_CREDENTIALS": "",
-            "OCI_REGION": "",
-            "OCI_NAMESPACE": "",
-        },
-    )
-    @patch("nise.upload.ObjectStorageClient")
-    def test_upload_to_oci_bucket_failure(self, mock_ostorage_client):
-        """Test uploading reports to oci bucket fails."""
+    @patch.dict(os.environ, {"OCI_CONFIG_FILE": "/path/to/creds"})
+    @patch("nise.upload.upload_to_oci_bucket")
+    @patch("nise.upload.from_file")
+    def test_upload_to_oci_bucket_invalid_config(self, mock_from_file, mock_oci_upload):
+        """Test upload to oci bucket fails with invalid config file."""
+        bucket_name = "my_bucket"
+        report_type = "cost"
+        file_name = "file.csv"
+        mock_from_file.return_value = {}
+        mock_oci_upload.side_effect = [InvalidConfig]
 
-        with self.assertRaises(Exception) as ctx:
-            bucket_name = "my_bucket"
-            for report_type in OCI_REPORT_TYPE_TO_COLS:
-                with NamedTemporaryFile(delete=False) as t_file:
-                    success = upload_to_oci_bucket(bucket_name, report_type, t_file.name)
-                    mock_ostorage_client.put_object.assert_called()
-                    self.assertIn(ctx, [KeyError, InvalidConfig, InvalidPrivateKey, ServiceError])
-                self.assertFalse(success)
-                os.remove(t_file.name)
+        for report_type in OCI_REPORT_TYPE_TO_COLS:
+            upload_to_oci_bucket(bucket_name, report_type, file_name)
+            self.assertRaises(InvalidConfig)
