@@ -124,6 +124,15 @@ class OCIGeneratorTestCase(TestCase):
             self.assertIn("lineItem/intervalUsageStart", test_row_out)
             self.assertIn("lineItem/intervalUsageEnd", test_row_out)
 
+    def test_get_common_usage_data_update_tags(self):
+        """Test that _get_common_usage_data updates tags."""
+        tags = {"tags/free-form-tag": "discuss", "tags/orcl-cloud.free-tier-retained": "nice"}
+        self.attributes = {"tags": tags}
+        generator = OCIGenerator(self.six_hours_ago, self.now, self.currency, self.attributes)
+        for _ in OCI_REPORT_TYPE_TO_COLS:
+            result_usage_data = generator._get_common_usage_data(self.six_hours_ago, self.now)
+            self.assertTrue(all(result_usage_data.get(key, None) == v for key, v in tags.items()))
+
     def test_generate_hourly_data(self):
         """Test that the _generate_hourly_data method is called."""
         kwargs = {}
@@ -169,8 +178,8 @@ class TestOCIComputeGenerator(OCIGeneratorTestCase):
         """Test that usage data is added."""
         generator = OCIComputeGenerator(self.six_hours_ago, self.now, self.currency, self.attributes)
         usage_row = generator._add_usage_data({}, self.six_hours_ago, self.now)
-        self.assertIsInstance(usage_row["usage/consumedQuantity"], int)
-        self.assertIsInstance(usage_row["usage/billedQuantity"], int)
+        self.assertIsInstance(usage_row["usage/consumedQuantity"], float)
+        self.assertIsInstance(usage_row["usage/billedQuantity"], float)
         self.assertIsInstance(usage_row["usage/consumedQuantityUnits"], str)
         self.assertIsInstance(usage_row["usage/consumedQuantityMeasure"], str)
 
@@ -209,8 +218,8 @@ class TestOCINetworkGenerator(OCIGeneratorTestCase):
         """Test that usage specific data for network service is added."""
         generator = OCINetworkGenerator(self.six_hours_ago, self.now, self.currency, self.attributes)
         usage_row = generator._add_usage_data({}, self.six_hours_ago, self.now)
-        self.assertIsInstance(usage_row["usage/consumedQuantity"], int)
-        self.assertIsInstance(usage_row["usage/billedQuantity"], int)
+        self.assertIsInstance(usage_row["usage/consumedQuantity"], float)
+        self.assertIsInstance(usage_row["usage/billedQuantity"], float)
         self.assertIsInstance(usage_row["usage/consumedQuantityUnits"], str)
         self.assertIsInstance(usage_row["usage/consumedQuantityMeasure"], str)
 
@@ -243,8 +252,8 @@ class TestOCIBlockStorageGenerator(OCIGeneratorTestCase):
         """Test that usage specific data for block storage service is added."""
         generator = OCIBlockStorageGenerator(self.six_hours_ago, self.now, self.currency, self.attributes)
         test_row = generator._add_usage_data({}, self.six_hours_ago, self.now)
-        self.assertIsInstance(test_row["usage/consumedQuantity"], int)
-        self.assertIsInstance(test_row["usage/billedQuantity"], int)
+        self.assertIsInstance(test_row["usage/consumedQuantity"], float)
+        self.assertIsInstance(test_row["usage/billedQuantity"], float)
         self.assertIsInstance(test_row["usage/consumedQuantityUnits"], str)
         self.assertIsInstance(test_row["usage/consumedQuantityMeasure"], str)
 
@@ -276,7 +285,7 @@ class TestOCIDatabaseGenerator(OCIGeneratorTestCase):
         """Test that usage specific data for database service is added."""
         generator = OCIDatabaseGenerator(self.two_hours_ago, self.now, self.currency, self.attributes)
         test_row = generator._add_usage_data({}, self.two_hours_ago, self.now)
-        self.assertIsInstance(test_row["usage/consumedQuantity"], int)
-        self.assertIsInstance(test_row["usage/billedQuantity"], int)
+        self.assertIsInstance(test_row["usage/consumedQuantity"], float)
+        self.assertIsInstance(test_row["usage/billedQuantity"], float)
         self.assertIsInstance(test_row["usage/consumedQuantityUnits"], str)
         self.assertIsInstance(test_row["usage/consumedQuantityMeasure"], str)

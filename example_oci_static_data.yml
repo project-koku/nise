@@ -1,33 +1,43 @@
 ---
 generators:
   - OCIComputeGenerator:
-      start_date: 2022-04-01
-      end_date: 2022-05-27
-      cost: 0.24389
+      start_date: 2022-08-01
+      end_date: 2022-09-20
+      cost: 0.16753
       currency: USD
-      compartment_name: richardprice
+      compartment_name: johnlopez
       tenant_id: ocid1.tenancy.oc1..EfjkUPxyZSYLvd
+      tags:
+        tags/free-form-tag: machine
+        tags/orcl-cloud.free-tier-retained: billion
 
   - OCIBlockStorageGenerator:
-      start_date: 2022-04-01
-      end_date: 2022-05-27
-      cost: 0.20768
+      start_date: 2022-08-01
+      end_date: 2022-09-20
+      cost: 0.2099
       currency: USD
-      compartment_name: richardprice
+      compartment_name: johnlopez
       tenant_id: ocid1.tenancy.oc1..EfjkUPxyZSYLvd
+      tags:
+        tags/new-tags.tarnished-tags: person
+        tags/orcl-cloud.free-tier-retained: place
 
   - OCINetworkGenerator:
-      start_date: 2022-04-01
-      end_date: 2022-05-27
-      cost: 0.38265
+      start_date: 2022-08-01
+      end_date: 2022-09-20
+      cost: 0.30749
       currency: USD
-      compartment_name: richardprice
+      compartment_name: johnlopez
       tenant_id: ocid1.tenancy.oc1..EfjkUPxyZSYLvd
+      tags:
+        tags/free-form-tag: television
 
   - OCIDatabaseGenerator:
-      start_date: 2022-04-01
-      end_date: 2022-05-27
-      cost: 0.17478
+      start_date: 2022-08-01
+      end_date: 2022-09-20
+      cost: 0.477
       currency: USD
-      compartment_name: richardprice
+      compartment_name: johnlopez
       tenant_id: ocid1.tenancy.oc1..EfjkUPxyZSYLvd
+      tags:
+        tags/free-form-tag: challenge
