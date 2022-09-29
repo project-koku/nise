@@ -1286,6 +1286,21 @@ class GCPReportTestCase(TestCase):
         self.assertTrue(os.path.isfile(expected_output_file_path))
         os.remove(expected_output_file_path)
 
+    def test_gcp_create_report_resource_level(self):
+        """Test the gcp report creation method."""
+        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
+        one_day = datetime.timedelta(days=1)
+        yesterday = now - one_day
+        report_prefix = "test_report"
+        gcp_create_report(
+            {"start_date": yesterday, "end_date": now, "gcp_report_prefix": report_prefix, "write_monthly": True, "gcp_dataset_name": "gcp-resource-dataset", "gcp_resource_level": True}
+        )
+        output_file_name = f"{report_prefix}.json"
+        expected_output_file_path = "{}/{}".format(os.getcwd(), output_file_name)
+
+        self.assertTrue(os.path.isfile(expected_output_file_path))
+        os.remove(expected_output_file_path)
+
     def test_gcp_create_report_with_dataset_name(self):
         """Test the gcp report creation method where a dataset name is included."""
         now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
