@@ -1293,7 +1293,14 @@ class GCPReportTestCase(TestCase):
         yesterday = now - one_day
         report_prefix = "test_report"
         gcp_create_report(
-            {"start_date": yesterday, "end_date": now, "gcp_report_prefix": report_prefix, "write_monthly": True, "gcp_dataset_name": "gcp-resource-dataset", "gcp_resource_level": True}
+            {
+                "start_date": yesterday,
+                "end_date": now,
+                "gcp_report_prefix": report_prefix,
+                "write_monthly": True,
+                "gcp_dataset_name": "gcp-resource-dataset",
+                "gcp_resource_level": True,
+            }
         )
         output_file_name = f"{report_prefix}.json"
         expected_output_file_path = "{}/{}".format(os.getcwd(), output_file_name)
