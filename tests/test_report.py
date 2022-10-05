@@ -1704,8 +1704,7 @@ class OCIReportTestCase(TestCase):
                 "static_report_data": static_oci_data,
             }
         )
-
-        month_num = f"0{now.month}" if now.month < 10 else now.month
+        month_num = f"0{now.month}" if now.month < 10 else str(now.month)
         cost_file_path = f"{os.getcwd()}/report_cost-0001_{now.year}-{month_num}.csv"
         usage_file_path = f"{os.getcwd()}/report_usage-0001_{now.year}-{month_num}.csv"
         self.assertTrue(os.path.isfile(cost_file_path))
