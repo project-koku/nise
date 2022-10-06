@@ -1718,14 +1718,14 @@ class OCIReportTestCase(TestCase):
         now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
         one_day = datetime.timedelta(days=1)
         yesterday = now - one_day
-        days_after = now - datetime.timedelta(days=90)
+        previous_month = now - datetime.timedelta(days=35)
         cost = fake.pyint(min_value=0, max_value=10)
         static_oci_data = {
             "generators": [
                 {
                     "OCIComputeGenerator": {
                         "start_date": str(yesterday.date()),
-                        "end_date": str(days_after.date()),
+                        "end_date": str(previous_month.date()),
                         "cost": cost,
                         "currency": "USD",
                         "compartment_name": "testcompartmentname",
@@ -1735,7 +1735,7 @@ class OCIReportTestCase(TestCase):
                 {
                     "OCIBlockStorageGenerator": {
                         "start_date": str(yesterday.date()),
-                        "end_date": str(days_after.date()),
+                        "end_date": str(previous_month.date()),
                         "cost": cost,
                         "currency": "USD",
                         "compartment_name": "testcompartmentname",
@@ -1745,7 +1745,7 @@ class OCIReportTestCase(TestCase):
                 {
                     "OCINetworkGenerator": {
                         "start_date": str(yesterday.date()),
-                        "end_date": str(days_after.date()),
+                        "end_date": str(previous_month.date()),
                         "cost": cost,
                         "currency": "USD",
                         "compartment_name": "testcompartmentname",
@@ -1755,7 +1755,7 @@ class OCIReportTestCase(TestCase):
                 {
                     "OCIDatabaseGenerator": {
                         "start_date": str(yesterday.date()),
-                        "end_date": str(days_after.date()),
+                        "end_date": str(previous_month.date()),
                         "cost": cost,
                         "currency": "USD",
                         "compartment_name": "testcompartmentname",
@@ -1785,14 +1785,14 @@ class OCIReportTestCase(TestCase):
 
         now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
         one_day = datetime.timedelta(days=32)
-        days_before = now + datetime.timedelta(days=35)
+        next_month = now + datetime.timedelta(days=35)
         yesterday = now - one_day
         cost = fake.pyint(min_value=0, max_value=10)
         static_oci_data = {
             "generators": [
                 {
                     "OCIComputeGenerator": {
-                        "start_date": str(days_before.date()),
+                        "start_date": str(next_month.date()),
                         "end_date": str(now.date()),
                         "cost": cost,
                         "currency": "USD",
@@ -1802,7 +1802,7 @@ class OCIReportTestCase(TestCase):
                 },
                 {
                     "OCIBlockStorageGenerator": {
-                        "start_date": str(days_before.date()),
+                        "start_date": str(next_month.date()),
                         "end_date": str(now.date()),
                         "cost": cost,
                         "currency": "USD",
@@ -1812,7 +1812,7 @@ class OCIReportTestCase(TestCase):
                 },
                 {
                     "OCINetworkGenerator": {
-                        "start_date": str(days_before.date()),
+                        "start_date": str(next_month.date()),
                         "end_date": str(now.date()),
                         "cost": cost,
                         "currency": "USD",
@@ -1822,7 +1822,7 @@ class OCIReportTestCase(TestCase):
                 },
                 {
                     "OCIDatabaseGenerator": {
-                        "start_date": str(days_before.date()),
+                        "start_date": str(next_month.date()),
                         "end_date": str(now.date()),
                         "cost": cost,
                         "currency": "USD",
