@@ -17,7 +17,6 @@
 """Defines the abstract generator."""
 import datetime
 from random import choice
-from random import uniform
 
 from nise.generators.generator import AbstractGenerator
 from nise.generators.generator import REPORT_TYPE
@@ -146,14 +145,6 @@ class OCIGenerator(AbstractGenerator):
         self.is_correction = choice(["true", "false"])
         self.email_domain = self.fake.free_email_domain()
         self.subscription_id = self.fake.random_number(fix_len=True, digits=8)
-        self.unit_price = round(uniform(1.0, 10.0), 4)
-        # self.usage_billed_quantity = self.fake.pyint(max_value=86400000)
-        # self.usage_billed_quantity = self.fake.pyint(min_value=3600000, max_value=86400000)
-        # self.cost = (
-        #     attributes.get("cost")
-        #     if attributes and attributes.get("cost")
-        #     else (self.unit_price * self.usage_consumed_quantity)
-        # )
         self.cost_overage_flag = choice(["N", "", "Y"])
         self.cost_product_sku = f"B{self.fake.random_number(fix_len=True, digits=5)}"
         self.tags = attributes.get("tags") if attributes and attributes.get("tags") else None

@@ -1177,10 +1177,10 @@ def oci_create_report(options):
         generators = _get_generators(static_report_data.get("generators"))
     else:
         generators = [
-            {"generator": OCIComputeGenerator, "attributes": {}},
-            {"generator": OCIBlockStorageGenerator, "attributes": {}},
-            {"generator": OCINetworkGenerator, "attributes": {}},
-            {"generator": OCIDatabaseGenerator, "attributes": {}},
+            {"generator": OCIComputeGenerator},
+            {"generator": OCIBlockStorageGenerator},
+            {"generator": OCINetworkGenerator},
+            {"generator": OCIDatabaseGenerator},
         ]
     months = _create_month_list(start_date, end_date)
     currency = default_currency(options.get("currency"), static_currency=None)
@@ -1194,7 +1194,7 @@ def oci_create_report(options):
 
         for generator in generators:
             generator_cls = generator.get("generator")
-            attributes = generator.get("attributes")
+            attributes = generator.get("attributes", {})
 
             if attributes:
                 # Skip if generator usage is outside of current month
