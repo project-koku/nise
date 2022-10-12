@@ -147,12 +147,13 @@ class OCIGenerator(AbstractGenerator):
         self.email_domain = self.fake.free_email_domain()
         self.subscription_id = self.fake.random_number(fix_len=True, digits=8)
         self.unit_price = round(uniform(1.0, 10.0), 4)
-        self.usage_billed_quantity = round(uniform(0.0, 50.0), 4)
-        self.cost = (
-            attributes.get("cost")
-            if attributes and attributes.get("cost")
-            else (self.unit_price * self.usage_billed_quantity)
-        )
+        # self.usage_billed_quantity = self.fake.pyint(max_value=86400000)
+        # self.usage_billed_quantity = self.fake.pyint(min_value=3600000, max_value=86400000)
+        # self.cost = (
+        #     attributes.get("cost")
+        #     if attributes and attributes.get("cost")
+        #     else (self.unit_price * self.usage_consumed_quantity)
+        # )
         self.cost_overage_flag = choice(["N", "", "Y"])
         self.cost_product_sku = f"B{self.fake.random_number(fix_len=True, digits=5)}"
         self.tags = attributes.get("tags") if attributes and attributes.get("tags") else None
@@ -250,8 +251,8 @@ class OCIGenerator(AbstractGenerator):
     def _get_cost_data(self, **kwargs):
         """Get cost data"""
         _cost_data = {
-            "usage/billedQuantity": self.usage_billed_quantity,
-            "usage/billedQuantityOverage": self.usage_billed_quantity,
+            "usage/billedQuantity": self.usage_consumed_quantity,
+            "usage/billedQuantityOverage": self.usage_consumed_quantity,
             "cost/subscriptionId": self.subscription_id,
             "cost/productSku": self.cost_product_sku,
             "product/Description": self.cost_product_description,
@@ -277,8 +278,8 @@ class OCIGenerator(AbstractGenerator):
     def _get_usage_data(self, **kwargs):
         """Get usage data."""
         _usage_data = {
-            "usage/consumedQuantity": self.usage_billed_quantity,
-            "usage/billedQuantity": self.usage_billed_quantity,
+            "usage/consumedQuantity": self.usage_consumed_quantity,
+            "usage/billedQuantity": self.usage_consumed_quantity,
             "usage/consumedQuantityUnits": self.usage_consumed_quant_units,
             "usage/consumedQuantityMeasure": self.usage_consumed_quant_measure,
         }
