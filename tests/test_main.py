@@ -500,7 +500,7 @@ class CommandLineTestCase(TestCase):
     @patch.dict(os.environ, {})
     def test_oci_missing_config_vars(self):
         """
-        Test failure if user passes bucket_name and no valid OCI config valirables.
+        Test fails if user passes bucket_name and no valid OCI config valirables.
         """
 
         with self.assertRaises(SystemExit):
