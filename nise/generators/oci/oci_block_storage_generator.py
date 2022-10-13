@@ -15,8 +15,6 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """Module for OCI block storage data generation."""
-from random import uniform
-
 from nise.generators.oci.oci_generator import OCIGenerator
 
 
@@ -34,10 +32,3 @@ class OCIBlockStorageGenerator(OCIGenerator):
         self.usage_consumed_quant_units = "GB_MS"
         self.usage_consumed_quant_measure = "STORAGE_SIZE"
         self.usage_product_resource = "PIC_BLOCK_STORAGE_STANDARD_FREE"
-        self.usage_consumed_quantity = self.fake.pyint(max_value=167674224)
-        self.unit_price = round(uniform(1.0, 10.0), 4)
-        self.cost = (
-            attributes.get("cost")
-            if attributes and attributes.get("cost")
-            else (self.unit_price * self.usage_consumed_quantity)
-        )
