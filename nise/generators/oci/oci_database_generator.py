@@ -16,6 +16,7 @@
 #
 """Module for OCI database data generation."""
 from random import choice
+from random import uniform
 
 from nise.generators.oci.oci_generator import OCIGenerator
 
@@ -56,3 +57,10 @@ class OCIDatabaseGenerator(OCIGenerator):
         self.usage_consumed_quant_units = self.select_db_resource.get("usage_consumed_quant_units")
         self.usage_consumed_quant_measure = self.select_db_resource.get("usage_consumed_quant_measure")
         self.usage_product_resource = self.select_db_resource.get("usage_product_resource")
+        self.usage_consumed_quantity = self.fake.pyint(max_value=167674224)
+        self.unit_price = round(uniform(1.0, 10.0), 4)
+        self.cost = (
+            attributes.get("cost")
+            if attributes and attributes.get("cost")
+            else (self.unit_price * self.usage_consumed_quantity)
+        )

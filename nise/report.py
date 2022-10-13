@@ -1168,22 +1168,19 @@ def oci_bucket_upload(bucket_name, report_type, month, year, data, options):
 
 def oci_create_report(options):
     """Create cost and usage report files."""
+
     start_date = options.get("start_date")
     end_date = options.get("end_date")
-    fake = Faker()
-    attributes = {}
-    attributes["tenant_id"] = f"ocid1.tenancy.oc1..{fake.pystr(min_chars=20, max_chars=30)}"
-    attributes["compartment_name"] = fake.name().replace(" ", "").lower()
     static_report_data = options.get("static_report_data")
 
     if static_report_data:
         generators = _get_generators(static_report_data.get("generators"))
     else:
         generators = [
-            {"generator": OCIComputeGenerator, "attributes": attributes},
-            {"generator": OCIBlockStorageGenerator, "attributes": attributes},
-            {"generator": OCINetworkGenerator, "attributes": attributes},
-            {"generator": OCIDatabaseGenerator, "attributes": attributes},
+            {"generator": OCIComputeGenerator},
+            {"generator": OCIBlockStorageGenerator},
+            {"generator": OCINetworkGenerator},
+            {"generator": OCIDatabaseGenerator},
         ]
     months = _create_month_list(start_date, end_date)
     currency = default_currency(options.get("currency"), static_currency=None)
@@ -1197,10 +1194,16 @@ def oci_create_report(options):
 
         for generator in generators:
             generator_cls = generator.get("generator")
-            attributes = generator.get("attributes")
+            attributes = generator.get("attributes", {})
 
-            if static_report_data:
+            if attributes:
+                # Skip if generator usage is outside of current month
+                if attributes.get("end_date") < month.get("start"):
+                    continue
+                if attributes.get("start_date") > month.get("end"):
+                    continue
                 currency = attributes.get("currency")
+                gen_start_date, gen_end_date = _create_generator_dates_from_yaml(attributes, month)
 
             gen = generator_cls(gen_start_date, gen_end_date, currency, attributes)
             for report_type in OCI_REPORT_TYPE_TO_COLS:

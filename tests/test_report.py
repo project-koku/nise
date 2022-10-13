@@ -1704,8 +1704,143 @@ class OCIReportTestCase(TestCase):
                 "static_report_data": static_oci_data,
             }
         )
+        month_num = f"0{now.month}" if now.month < 10 else str(now.month)
+        cost_file_path = f"{os.getcwd()}/report_cost-0001_{now.year}-{month_num}.csv"
+        usage_file_path = f"{os.getcwd()}/report_usage-0001_{now.year}-{month_num}.csv"
+        self.assertTrue(os.path.isfile(cost_file_path))
+        self.assertTrue(os.path.isfile(usage_file_path))
+        os.remove(cost_file_path)
+        os.remove(usage_file_path)
 
-        month_num = f"0{now.month}" if now.month < 10 else now.month
+    def test_oci_create_report_end_date_before_today(self):
+        """Test oci report creation with static data and end_date before today."""
+
+        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
+        one_day = datetime.timedelta(days=1)
+        yesterday = now - one_day
+        previous_month = now - datetime.timedelta(days=35)
+        cost = fake.pyint(min_value=0, max_value=10)
+        static_oci_data = {
+            "generators": [
+                {
+                    "OCIComputeGenerator": {
+                        "start_date": str(yesterday.date()),
+                        "end_date": str(previous_month.date()),
+                        "cost": cost,
+                        "currency": "USD",
+                        "compartment_name": "testcompartmentname",
+                        "tenant_id": "ocid1.tenancy.oc1..fjkEUoxyZSYLvd",
+                    }
+                },
+                {
+                    "OCIBlockStorageGenerator": {
+                        "start_date": str(yesterday.date()),
+                        "end_date": str(previous_month.date()),
+                        "cost": cost,
+                        "currency": "USD",
+                        "compartment_name": "testcompartmentname",
+                        "tenant_id": "ocid1.tenancy.oc1..fjkEUoxyZSYLvd",
+                    }
+                },
+                {
+                    "OCINetworkGenerator": {
+                        "start_date": str(yesterday.date()),
+                        "end_date": str(previous_month.date()),
+                        "cost": cost,
+                        "currency": "USD",
+                        "compartment_name": "testcompartmentname",
+                        "tenant_id": "ocid1.tenancy.oc1..fjkEUoxyZSYLvd",
+                    }
+                },
+                {
+                    "OCIDatabaseGenerator": {
+                        "start_date": str(yesterday.date()),
+                        "end_date": str(previous_month.date()),
+                        "cost": cost,
+                        "currency": "USD",
+                        "compartment_name": "testcompartmentname",
+                        "tenant_id": "ocid1.tenancy.oc1..fjkEUoxyZSYLvd",
+                    }
+                },
+            ],
+        }
+        oci_create_report(
+            {
+                "start_date": yesterday,
+                "end_date": now,
+                "write_monthly": True,
+                "static_report_data": static_oci_data,
+            }
+        )
+        month_num = f"0{now.month}" if now.month < 10 else str(now.month)
+        cost_file_path = f"{os.getcwd()}/report_cost-0001_{now.year}-{month_num}.csv"
+        usage_file_path = f"{os.getcwd()}/report_usage-0001_{now.year}-{month_num}.csv"
+        self.assertTrue(os.path.isfile(cost_file_path))
+        self.assertTrue(os.path.isfile(usage_file_path))
+        os.remove(cost_file_path)
+        os.remove(usage_file_path)
+
+    def test_oci_create_report_end_date_after_today(self):
+        """Test oci report creation with static data and end_date after today"""
+
+        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
+        one_day = datetime.timedelta(days=32)
+        next_month = now + datetime.timedelta(days=35)
+        yesterday = now - one_day
+        cost = fake.pyint(min_value=0, max_value=10)
+        static_oci_data = {
+            "generators": [
+                {
+                    "OCIComputeGenerator": {
+                        "start_date": str(next_month.date()),
+                        "end_date": str(now.date()),
+                        "cost": cost,
+                        "currency": "USD",
+                        "compartment_name": "testcompartmentname",
+                        "tenant_id": "ocid1.tenancy.oc1..fjkEUoxyZSYLvd",
+                    }
+                },
+                {
+                    "OCIBlockStorageGenerator": {
+                        "start_date": str(next_month.date()),
+                        "end_date": str(now.date()),
+                        "cost": cost,
+                        "currency": "USD",
+                        "compartment_name": "testcompartmentname",
+                        "tenant_id": "ocid1.tenancy.oc1..fjkEUoxyZSYLvd",
+                    }
+                },
+                {
+                    "OCINetworkGenerator": {
+                        "start_date": str(next_month.date()),
+                        "end_date": str(now.date()),
+                        "cost": cost,
+                        "currency": "USD",
+                        "compartment_name": "testcompartmentname",
+                        "tenant_id": "ocid1.tenancy.oc1..fjkEUoxyZSYLvd",
+                    }
+                },
+                {
+                    "OCIDatabaseGenerator": {
+                        "start_date": str(next_month.date()),
+                        "end_date": str(now.date()),
+                        "cost": cost,
+                        "currency": "USD",
+                        "compartment_name": "testcompartmentname",
+                        "tenant_id": "ocid1.tenancy.oc1..fjkEUoxyZSYLvd",
+                    }
+                },
+            ],
+        }
+        oci_create_report(
+            {
+                "start_date": yesterday,
+                "end_date": now,
+                "write_monthly": True,
+                "static_report_data": static_oci_data,
+            }
+        )
+        month_num = f"0{now.month}" if now.month < 10 else str(now.month)
         cost_file_path = f"{os.getcwd()}/report_cost-0001_{now.year}-{month_num}.csv"
         usage_file_path = f"{os.getcwd()}/report_usage-0001_{now.year}-{month_num}.csv"
         self.assertTrue(os.path.isfile(cost_file_path))
