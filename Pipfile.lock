@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "2aa7ff739998346d3f43b7cd42a4026f644394dbe29e3c04e77ee2ad28a9294c"
+            "sha256": "d4a21f0e0193b1ad2604f0574c47b4f46e66106cd29ffd8bdeb038b548280c1a"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -45,30 +45,6 @@
             ],
             "markers": "python_version >= '3.6'",
             "version": "==1.3.2"
-        },
-        "azure-mgmt-costmanagement": {
-            "hashes": [
-                "sha256:6d855472a4cd66f65dac651210d0440a75d3019b7368748b227fe86b84eb512b",
-                "sha256:fd143415ebb49e4e2912fded79d5e1ef678a28d93d289c2d393f4e07b430a0b2"
-            ],
-            "index": "pypi",
-            "version": "==3.0.0"
-        },
-        "azure-mgmt-resource": {
-            "hashes": [
-                "sha256:bd2060d56393ffe6246a8f2ca67e754edd03ec07b975630b30ae03a8860597a7",
-                "sha256:c6f6987e6f61f0cb23abc3fb3658770bae8d299a46834d43d4b20251495d3806"
-            ],
-            "index": "pypi",
-            "version": "==21.2.1"
-        },
-        "azure-mgmt-storage": {
-            "hashes": [
-                "sha256:214f3fde8c91e27d53f2e654a28d15003ad3f6f15c8438a8205f0c88a48d9451",
-                "sha256:afdc830329c674d96a91c963fa03ac81a4e387dfbf9f5a4e823950dc1fe95659"
-            ],
-            "index": "pypi",
-            "version": "==20.1.0"
         },
         "azure-storage-blob": {
             "hashes": [
