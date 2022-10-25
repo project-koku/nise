@@ -7,10 +7,16 @@ on:
 
 jobs:
   pre-commit:
+    name: pre-commit
     runs-on: ubuntu-latest
+    container:
+      image: quay.io/ansible/ansible-builder-test-container:2.0.0
+      env:
+        PIP_CACHE_DIR: ${{ runner.temp  }}/.cache/pip
+
     steps:
-      with:
-        python-version: '3.8'
-    - uses: pre-commit/action@v2.0.0
+    - name: Checkout
       uses: actions/checkout@v3
+
+    - name: Run pre-commit checks
       uses: pre-commit/action@v3.0.0
