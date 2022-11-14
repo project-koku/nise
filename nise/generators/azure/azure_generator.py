@@ -224,10 +224,12 @@ class AzureGenerator(AbstractGenerator):
     def _get_resource_info(self, meter_id, service_meter, ex_resource, add_info, service_info):
         """Return resource information."""
         service_tier, meter_sub, meter_name, units_of_measure = self._get_cached_meter_values(meter_id, service_meter)
-
+        if meter_sub == "Red Hat Enterprise Linux":
+            service_info_2 = "Red Hat"
+        else:
+            service_info_2 = choice(service_info)
         resource_group, resource_name = choice(ex_resource)
         additional_info = choice(add_info)
-        service_info_2 = choice(service_info)
         if self._instance_id:
             self._consumed, second_part = accts_str = self._get_accts_str(self._service_name)
             self._resource_type = self._consumed + "/" + second_part
@@ -380,8 +382,13 @@ class AzureGenerator(AbstractGenerator):
         # NOTE: Commented out columns exist in the report, but we don't have enough
         # information to date to accurately simulate values.
         if self._service_name == "Virtual Machines":
-            service_family = choice(self.SERVICE_FAMILIES + ("Azure Marketplace Services",))
-            publisher_name = "Red Hat Enterprise Linux"
+            if row.get("MeterSubCategory", "") == "Red Hat Enterprise Linux":
+                publisher_name = "Microsoft"
+                service_family = "Compute"
+                row["MeterCategory"] = "Virtual Machine Licenses"
+            else:
+                publisher_name = "Red Hat Enterprise Linux"
+                service_family = choice(self.SERVICE_FAMILIES + ("Azure Marketplace Services",))
             publisher_type = "Marketplace"
         else:
             service_family = choice(self.SERVICE_FAMILIES)

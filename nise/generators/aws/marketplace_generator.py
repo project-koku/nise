@@ -25,7 +25,7 @@ from nise.generators.aws.aws_generator import AWSGenerator
 class MarketplaceGenerator(AWSGenerator):
     """Defines a generator for AWS Marketplace"""
 
-    LEGAL_ENTITY_CHOICES = ("Red Hat", "Red Hat Inc.", "Amazon Web Services, Inc.")
+    LEGAL_ENTITY_CHOICES = ("Red Hat", "Red Hat, Inc.", "Amazon Web Services, Inc.")
 
     MARKETPLACE_PRODUCTS = (
         "Red Hat OpenShift Service on AWS",
@@ -86,17 +86,19 @@ class MarketplaceGenerator(AWSGenerator):
 
         cost = self._amount * self._rate
         _, aws_region, avail_zone, _ = self._get_location()
-        description = "AWS Marketplace hourly software usage|us-east-1|m5.xlarge"
         amazon_resource_name = f"arn:aws:ec2:{avail_zone}:{self.payer_account}:instance/i-{self._resource_id}"
 
-        row["bill/BillingEntity"] = "AWS Marketplace"
+        legal_entity = self._get_legal_entity()
+        row_data = self._get_marketplace_data(legal_entity)
+
+        row["bill/BillingEntity"] = row_data.get("billingentity")
 
         row["lineItem/UsageAccountId"] = choice(self.usage_accounts)
-        row["lineItem/LegalEntity"] = self._get_legal_entity()
+        row["lineItem/LegalEntity"] = legal_entity
         row["lineItem/LineItemType"] = "Usage"
         row["lineItem/UsageStartDate"] = start
         row["lineItem/UsageEndDate"] = end
-        row["lineItem/ProductCode"] = "5hnnev4d0v7mapf09j0v8of0o2"
+        row["lineItem/ProductCode"] = row_data.get("productcode")
         row["lineItem/UsageType"] = "SoftwareUsage:m5.xlarge"
         row["lineItem/Operation"] = "Hourly"
         row["lineItem/AvailabilityZone"] = avail_zone
@@ -107,9 +109,12 @@ class MarketplaceGenerator(AWSGenerator):
         row["lineItem/UnblendedCost"] = cost
         row["lineItem/BlendedRate"] = self._rate
         row["lineItem/BlendedCost"] = cost
-        row["lineItem/LineItemDescription"] = description
+        row["lineItem/LineItemDescription"] = row_data.get("description")
 
-        row["product/ProductName"] = self._get_product_name()
+        row["product/ProductName"] = self._get_product_name(legal_entity)
+        if legal_entity == "Amazon Web Services, Inc.":
+            row["product/instanceType"] = row_data.get("instancetype")
+            row["product/productFamily"] = row_data.get("productfamily")
         row["product/region"] = aws_region
         row["product/sku"] = self._product_sku
 
@@ -139,11 +144,31 @@ class MarketplaceGenerator(AWSGenerator):
 
         return legal_entity
 
-    def _get_product_name(self):
+    def _get_product_name(self, legal_entity):
         """look for provided 'product_name', if not supplied use defaults."""
         if self.attributes and self.attributes.get("product_name"):
             product_name = self.attributes.get("product_name")
         else:
-            product_name = choice(self.MARKETPLACE_PRODUCTS)
+            products = {
+                "Amazon Web Services, Inc.": "Amazon Elastic Compute Cloud",
+            }
+            product_name = products.get(legal_entity, choice(self.MARKETPLACE_PRODUCTS))
 
         return product_name
+
+    def _get_marketplace_data(self, legal_entity):
+        """Return a dictionary of values based on the legal entity for CCSP vs Private offer testing."""
+        if legal_entity == "Amazon Web Services, Inc.":
+            return {
+                "description": "$0.1158 per On Demand Red Hat Enterprise Linux with HA t3.small Instance Hour",
+                "billingentity": "AWS",
+                "productcode": "AmazonEC2",
+                "productfamily": "Compute Instance",
+                "instancetype": "t3.small",
+            }
+        else:
+            return {
+                "description": "AWS Marketplace hourly software usage|us-east-1|m5.xlarge",
+                "billingentity": "AWS Marketplace",
+                "productcode": "5hnnev4d0v7mapf09j0v8of0o2",
+            }

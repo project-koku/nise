@@ -21,7 +21,11 @@ from nise.generators.azure.azure_generator import AzureGenerator
 class VMGenerator(AzureGenerator):
     """Generator for Virtual Machine data."""
 
-    SERVICE_METER = (("A Series", "A Series", "A0", "100 Hours"), ("BS Series", "BS Series", "B2s", "100 Hours"))
+    SERVICE_METER = (
+        ("A Series", "A Series", "A0", "100 Hours"),
+        ("BS Series", "BS Series", "B2s", "100 Hours"),
+        ("Red Hat Enterprise Linux", "Red Hat Enterprise Linux", "1 vCPU VM License", "1 Hour"),
+    )
     SERVICE_INFO_2 = ("Canonical", "")
     EXAMPLE_RESOURCE = (
         ("RG1", "mysa1"),
