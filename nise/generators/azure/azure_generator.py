@@ -224,10 +224,7 @@ class AzureGenerator(AbstractGenerator):
     def _get_resource_info(self, meter_id, service_meter, ex_resource, add_info, service_info):
         """Return resource information."""
         service_tier, meter_sub, meter_name, units_of_measure = self._get_cached_meter_values(meter_id, service_meter)
-        if meter_sub == "Red Hat Enterprise Linux":
-            service_info_2 = "Red Hat"
-        else:
-            service_info_2 = choice(service_info)
+        service_info_2 = choice(service_info)
         resource_group, resource_name = choice(ex_resource)
         additional_info = choice(add_info)
         if self._instance_id:

@@ -50,6 +50,7 @@ from nise.generators.aws import Route53Generator
 from nise.generators.aws import S3Generator
 from nise.generators.aws import VPCGenerator
 from nise.generators.azure import BandwidthGenerator
+from nise.generators.azure import CCSPGenerator
 from nise.generators.azure import SQLGenerator
 from nise.generators.azure import StorageGenerator
 from nise.generators.azure import VMGenerator
@@ -668,6 +669,7 @@ def azure_create_report(options):  # noqa: C901
     else:
         generators = [
             {"generator": BandwidthGenerator, "attributes": {}},
+            {"generator": CCSPGenerator, "attributes": {}},
             {"generator": SQLGenerator, "attributes": {}},
             {"generator": StorageGenerator, "attributes": {}},
             {"generator": VMGenerator, "attributes": {}},

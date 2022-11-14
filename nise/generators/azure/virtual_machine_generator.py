@@ -24,7 +24,6 @@ class VMGenerator(AzureGenerator):
     SERVICE_METER = (
         ("A Series", "A Series", "A0", "100 Hours"),
         ("BS Series", "BS Series", "B2s", "100 Hours"),
-        ("Red Hat Enterprise Linux", "Red Hat Enterprise Linux", "1 vCPU VM License", "1 Hour"),
     )
     SERVICE_INFO_2 = ("Canonical", "")
     EXAMPLE_RESOURCE = (
