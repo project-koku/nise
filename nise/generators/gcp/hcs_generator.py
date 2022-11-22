@@ -2,7 +2,7 @@ from nise.generators.gcp.compute_engine_generator import ComputeEngineGenerator
 from nise.generators.gcp.compute_engine_generator import JSONLComputeEngineGenerator
 
 
-class CCSPGenerator(ComputeEngineGenerator):
+class HCSGenerator(ComputeEngineGenerator):
     LABELS = (([{"key": "goog-dm", "value": "red-hat-openshift-container-platform-1"}]),)
     SERVICE = ("Red Hat® OpenShift® Container Platform", "7890-9662-83CC")
     SKU = (("DD70-0A3E-6C9F", "Licensing Fee for vCPU-per-hour on VM with 0 VCPU or more", "seconds", "hour"),)
@@ -17,7 +17,7 @@ class CCSPGenerator(ComputeEngineGenerator):
     )
 
 
-class JSONLCCSPGenerator(JSONLComputeEngineGenerator):
+class JSONLHCSGenerator(JSONLComputeEngineGenerator):
     LABELS = (([{"key": "goog-dm", "value": "red-hat-openshift-container-platform-1"}]),)
     SERVICE = ("Red Hat® OpenShift® Container Platform", "7890-9662-83CC")
     SKU = (("DD70-0A3E-6C9F", "Licensing Fee for vCPU-per-hour on VM with 0 VCPU or more", "seconds", "hour"),)
