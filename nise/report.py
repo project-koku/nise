@@ -61,10 +61,12 @@ from nise.generators.gcp import GCP_REPORT_COLUMNS
 from nise.generators.gcp import GCP_RESOURCE_COLUMNS
 from nise.generators.gcp import GCPDatabaseGenerator
 from nise.generators.gcp import GCPNetworkGenerator
+from nise.generators.gcp import HCSGenerator
 from nise.generators.gcp import JSONLCloudStorageGenerator
 from nise.generators.gcp import JSONLComputeEngineGenerator
 from nise.generators.gcp import JSONLGCPDatabaseGenerator
 from nise.generators.gcp import JSONLGCPNetworkGenerator
+from nise.generators.gcp import JSONLHCSGenerator
 from nise.generators.gcp import JSONLProjectGenerator
 from nise.generators.gcp import ProjectGenerator
 from nise.generators.oci import OCIBlockStorageGenerator
@@ -995,6 +997,7 @@ def gcp_create_report(options):  # noqa: C901
                 {"generator": JSONLComputeEngineGenerator, "attributes": {}},
                 {"generator": JSONLGCPNetworkGenerator, "attributes": {}},
                 {"generator": JSONLGCPDatabaseGenerator, "attributes": {}},
+                {"generator": JSONLHCSGenerator, "attributes": {}},
             ]
             account = fake.word()
             project_generator = JSONLProjectGenerator(account)
@@ -1022,6 +1025,7 @@ def gcp_create_report(options):  # noqa: C901
             {"generator": ComputeEngineGenerator, "attributes": {}},
             {"generator": GCPNetworkGenerator, "attributes": {}},
             {"generator": GCPDatabaseGenerator, "attributes": {}},
+            {"generator": HCSGenerator, "attributes": {}},
         ]
         account = fake.word()
 
