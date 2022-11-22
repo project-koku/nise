@@ -21,8 +21,6 @@ from nise.generators.azure.virtual_machine_generator import VMGenerator
 class CCSPGenerator(VMGenerator):
     """Generator for CCSP data."""
 
-    SERVICE_METER = (("Red Hat Enterprise Linux", "Red Hat Enterprise Linux", "1 vCPU VM License", "1 Hour"),)
-    SERVICE_INFO_2 = ("Red Hat",)
     ADDITIONAL_INFO = (
         {
             "UsageType": "ComputeHR",
@@ -33,3 +31,17 @@ class CCSPGenerator(VMGenerator):
             "VCPUs": 1,
         },
     )
+
+    def __init__(self, start_date, end_date, currency, account_info, attributes=None):
+        """Initialize the data transfer generator."""
+        self.SERVICE_METER = (
+            (
+                "Red Hat Enterprise Linux",
+                attributes.get("meter_sub", "Red Hat Enterprise Linux"),
+                "1 vCPU VM License",
+                "1 Hour",
+            ),
+        )
+        self.SERVICE_INFO_2 = (attributes.get("service_info_2", "Red Hat"),)
+        self._CCSP = True
+        super().__init__(start_date, end_date, currency, account_info, attributes)

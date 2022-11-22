@@ -160,7 +160,11 @@ class MarketplaceGenerator(AWSGenerator):
         """Return a dictionary of values based on the legal entity for CCSP vs Private offer testing."""
         if legal_entity == "Amazon Web Services, Inc.":
             return {
-                "description": "$0.1158 per On Demand Red Hat Enterprise Linux with HA t3.small Instance Hour",
+                "description": getattr(
+                    self,
+                    "_lineitem_lineitemdescription",
+                    "$0.1158 per On Demand Red Hat Enterprise Linux with HA t3.small Instance Hour",
+                ),
                 "billingentity": "AWS",
                 "productcode": "AmazonEC2",
                 "productfamily": "Compute Instance",
@@ -168,7 +172,9 @@ class MarketplaceGenerator(AWSGenerator):
             }
         else:
             return {
-                "description": "AWS Marketplace hourly software usage|us-east-1|m5.xlarge",
+                "description": getattr(
+                    self, "_lineitem_lineitemdescription", "AWS Marketplace hourly software usage|us-east-1|m5.xlarge"
+                ),
                 "billingentity": "AWS Marketplace",
                 "productcode": "5hnnev4d0v7mapf09j0v8of0o2",
             }

@@ -25,7 +25,7 @@ class VMGenerator(AzureGenerator):
         ("A Series", "A Series", "A0", "100 Hours"),
         ("BS Series", "BS Series", "B2s", "100 Hours"),
     )
-    SERVICE_INFO_2 = ("Canonical", "")
+    SERVICE_INFO_2 = ("Canonical",)
     EXAMPLE_RESOURCE = (
         ("RG1", "mysa1"),
         ("RG1", "costmgmtacct1234"),

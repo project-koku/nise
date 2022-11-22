@@ -379,7 +379,7 @@ class AzureGenerator(AbstractGenerator):
         # NOTE: Commented out columns exist in the report, but we don't have enough
         # information to date to accurately simulate values.
         if self._service_name == "Virtual Machines":
-            if row.get("MeterSubCategory", "") == "Red Hat Enterprise Linux":
+            if getattr(self, "_CCSP", False):
                 publisher_name = "Microsoft"
                 service_family = "Compute"
                 row["MeterCategory"] = "Virtual Machine Licenses"
