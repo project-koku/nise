@@ -51,6 +51,10 @@ Nise uses tox to standardize the environment used when running tests. Essentiall
 
 This will rebuild the tox virtual env and then run all tests.
 
+To run sanity tests
+
+    tox -e sanity
+
 To run all unit tests specifically::
 
     make test
