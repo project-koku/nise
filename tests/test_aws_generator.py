@@ -193,6 +193,7 @@ class AWSGeneratorTestCase(TestCase):
         self.rate = 0.1
         self.saving = 0.1
         self.currency = "USD"
+        self.legal_entity = "Red Hat"
         self.attributes = {
             "product_sku": self.product_sku,
             "tags": self.tags,
@@ -204,6 +205,7 @@ class AWSGeneratorTestCase(TestCase):
             "rate": self.rate,
             "saving": self.saving,
             "product_family": self.product_family,
+            "legal_entity": self.legal_entity,
         }
         self.two_hours_ago = (self.now - self.one_hour) - self.one_hour
 
