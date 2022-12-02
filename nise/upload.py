@@ -23,13 +23,13 @@ import sys
 import traceback
 
 import boto3
+from azure.core.exceptions import ServiceRequestError
+from azure.core.exceptions import ServiceResponseError
 from azure.storage.blob import BlobServiceClient
 from botocore.exceptions import ClientError
 from google.cloud import bigquery
 from google.cloud import storage
 from google.cloud.exceptions import GoogleCloudError
-from msrestazure.azure_exceptions import ClientException
-from msrestazure.azure_exceptions import CloudError
 from nise.util import LOG
 from oci.config import from_file
 from oci.config import validate_config
@@ -84,7 +84,7 @@ def upload_to_azure_container(storage_file_name, local_path, storage_file_path):
         with open(local_path, "rb") as data:
             blob_client.upload_blob(data=data)
         LOG.info(f"uploaded {storage_file_name} to {storage_file_path}")
-    except (CloudError, ClientException, IOError) as error:
+    except (ServiceRequestError, ServiceResponseError, IOError) as error:
         LOG.error(error)
         traceback.print_exc(file=sys.stderr)
         return False

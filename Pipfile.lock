@@ -489,13 +489,6 @@
             "markers": "python_version >= '3.6'",
             "version": "==0.7.1"
         },
-        "msrestazure": {
-            "hashes": [
-                "sha256:3de50f56147ef529b31e099a982496690468ecef33f0544cb0fa0cfe1e1de5b9",
-                "sha256:a06f0dabc9a6f5efe3b6add4bd8fb623aeadacf816b7a35b0f89107e0544d189"
-            ],
-            "version": "==0.6.4"
-        },
         "numpy": {
             "hashes": [
                 "sha256:0fe563fc8ed9dc4474cbf70742673fc4391d70f4363f917599a7fa99f042d5a8",
