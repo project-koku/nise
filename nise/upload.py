@@ -384,7 +384,7 @@ def upload_to_oci_bucket(bucket_name, report_type, file_name):
             io.open(zipped_file.name, "rb"),
         )
 
-        LOG.warning(f"File {upload_file_name} uploaded to OCI Storage {bucket_name} bucket.")
+        LOG.info(f"File {upload_file_name} uploaded to OCI Storage {bucket_name} bucket.")
         os.remove(zipped_file.name)
         return True
     except (InvalidConfig, InvalidPrivateKey, ServiceError, ConfigFileNotFound) as err:
