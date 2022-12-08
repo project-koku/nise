@@ -39,7 +39,7 @@ class OCIComputeGenerator(OCIGenerator):
         self.usage_consumed_quantity = (
             attributes.get("consumed_quantity")
             if attributes and attributes.get("consumed_quantity")
-            else self.fake.pyint(min_value=3600000, max_value=86400000)
+            else self.fake.pyint(min_value=1000, max_value=86400000)
         )
         self.unit_price = round(uniform(1.0, 10.0), 4)
         self.cost = (

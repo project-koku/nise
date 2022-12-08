@@ -37,12 +37,17 @@ TAG_KEYS = {
     "database": ["tags/free-form-tag"],
     "network": ["tags/free-form-tag"],
 }
+CONSUMED_QUANTITY_DICT = {
+    "compute": FAKER.pyint(min_value=1000, max_value=86400000),
+    "network": FAKER.pyint(max_value=184959),
+    "storage": FAKER.pyint(max_value=167674224),
+    "database": FAKER.pyint(max_value=167674224),
+}
 
 
 def generate_oci_dicta(config, key):
     """Return dicta with common attributes."""
     cost = round(random.uniform(0.1, 0.50), 5)
-    consumed_quantity = FAKER.pyint(min_value=1000, max_value=60000)
     currency = "USD"
     tags = generate_tags(config, key)
 
@@ -50,7 +55,7 @@ def generate_oci_dicta(config, key):
         start_date=str(config.start_date),
         end_date=str(config.end_date),
         cost=cost,
-        consumed_quantity=consumed_quantity,
+        consumed_quantity=CONSUMED_QUANTITY_DICT.get(key),
         currency=currency,
         compartment_name=COMPARTMENT_NAME,
         tenant_id=TENANT_ID,
