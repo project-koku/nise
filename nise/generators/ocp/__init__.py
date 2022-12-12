@@ -21,3 +21,5 @@ from nise.generators.ocp.ocp_generator import OCP_POD_USAGE  # noqa: F401
 from nise.generators.ocp.ocp_generator import OCP_REPORT_TYPE_TO_COLS  # noqa: F401
 from nise.generators.ocp.ocp_generator import OCP_STORAGE_USAGE  # noqa: F401
 from nise.generators.ocp.ocp_generator import OCPGenerator  # noqa: F401
+from nise.generators.ocp.ocp_generator import OCP_ROS_USAGE  # noqa: F401
+

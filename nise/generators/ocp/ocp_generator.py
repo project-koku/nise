@@ -34,6 +34,7 @@ OCP_POD_USAGE = "ocp_pod_usage"
 OCP_STORAGE_USAGE = "ocp_storage_usage"
 OCP_NODE_LABEL = "ocp_node_label"
 OCP_NAMESPACE_LABEL = "ocp_namespace_label"
+OCP_ROS_USAGE = "ocp_ros_usage"
 OCP_POD_USAGE_COLUMNS = (
     "report_period_start",
     "report_period_end",
@@ -88,20 +89,48 @@ OCP_NAMESPACE_LABEL_COLUMNS = (
     "namespace",
     "namespace_labels",
 )
+OCP_ROS_USAGE_COLUMN = (
+    "interval_start",
+    "interval_end",
+    "namespace",
+    "node",
+    "resource_id",
+    "pod",
+    "cpu_request_avg_container",
+    "cpu_request_sum_container",
+    "cpu_limit_avg_container",
+    "cpu_limit_sum_container",
+    "cpu_usage_avg_container",
+    "cpu_usage_min_container",
+    "cpu_usage_max_container",
+    "cpu_throttle_avg_container",
+    "mem_request_avg_container",
+    "mem_request_sum_container",
+    "mem_limit_avg_container",
+    "mem_limit_sum_container",
+    "mem_usage_avg_container",
+    "mem_usage_min_container",
+    "mem_usage_max_container",
+    "mem-rss_usage_avg_container",
+    "mem-rss_usage_min_container",
+    "mem-rss_usage_max_container",
+)
 OCP_REPORT_TYPE_TO_COLS = {
     OCP_POD_USAGE: OCP_POD_USAGE_COLUMNS,
     OCP_STORAGE_USAGE: OCP_STORAGE_COLUMNS,
     OCP_NODE_LABEL: OCP_NODE_LABEL_COLUMNS,
     OCP_NAMESPACE_LABEL: OCP_NAMESPACE_LABEL_COLUMNS,
+    OCP_ROS_USAGE : OCP_ROS_USAGE_COLUMN
 }
 
 
 class OCPGenerator(AbstractGenerator):
     """Defines a abstract class for generators."""
 
-    def __init__(self, start_date, end_date, attributes):
+    def __init__(self, start_date, end_date, attributes, ros_info=False):
         """Initialize the generator."""
         self._nodes = None
+        self.ros_info = ros_info
         if attributes:
             self._nodes = attributes.get("nodes")
 
@@ -133,8 +162,10 @@ class OCPGenerator(AbstractGenerator):
         ]
         self.nodes = self._gen_nodes()
         self.namespaces = self._gen_namespaces(self.nodes)
-        self.pods, self.namespace2pods = self._gen_pods(self.namespaces)
+        self.pods, self.namespace2pods,  self.ros_data = self._gen_pods(self.namespaces)
+
         self.volumes = self._gen_volumes(self.namespaces, self.namespace2pods)
+
         self.ocp_report_generation = {
             OCP_POD_USAGE: {
                 "_generate_hourly_data": self._gen_hourly_pods_usage,
@@ -153,6 +184,13 @@ class OCPGenerator(AbstractGenerator):
                 "_update_data": self._update_namespace_label_data,
             },
         }
+
+        if self.ros_info:
+            self.ocp_report_generation.update({OCP_ROS_USAGE: {
+                "_generate_hourly_data": self._gen_hourly_ros_pods_usage,
+                "_update_data": self._update_ros_pod_data,
+            }}
+            )
 
     @staticmethod
     def timestamp(in_date):
@@ -249,6 +287,7 @@ class OCPGenerator(AbstractGenerator):
     def _gen_pods(self, namespaces):
         """Create pods on specific namespaces and keep relationship."""
         pods = {}
+        ros_data_pods = {}
         namespace2pod = {}
         for namespace, node in namespaces.items():
             namespace2pod[namespace] = []
@@ -323,8 +362,38 @@ class OCPGenerator(AbstractGenerator):
                         "mem_request_gig": mem_request_gig,
                         "mem_limit_gig": mem_limit_gig,
                         "pod_labels": self._gen_openshift_labels(),
+
+
                     }
-        return pods, namespace2pod
+
+
+                    ros_data_pods[pod] = {
+                        "namespace": namespace,
+                        "node": node.get("name"),
+                        "resource_id": node.get("resource_id"),
+                        "pod": pod,
+                        "cpu_request_avg_container": randint(1,100),
+                        "cpu_request_sum_container": randint(1,100),
+                        "cpu_limit_avg_container": randint(1,100),
+                        "cpu_limit_sum_container": randint(1,100),
+                        "cpu_usage_avg_container": randint(1,100),
+                        "cpu_usage_min_container": randint(1,100),
+                        "cpu_usage_max_container": randint(1,100),
+                        "cpu_throttle_avg_container": randint(1,100),
+                        "mem_request_avg_container": randint(1,100),
+                        "mem_request_sum_container": randint(1,100),
+                        "mem_limit_avg_container": randint(1,100),
+                        "mem_limit_sum_container": randint(1,100),
+                        "mem_usage_avg_container": randint(1,100),
+                        "mem_usage_min_container": randint(1,100),
+                        "mem_usage_max_container": randint(1,100),
+                        "mem-rss_usage_avg_container": randint(1,100),
+                        "mem-rss_usage_min_container": randint(1,100),
+                        "mem-rss_usage_max_container": randint(1,100),
+
+                    }
+
+        return pods, namespace2pod, ros_data_pods
 
     def _gen_volumes(self, namespaces, namespace2pods):  # noqa: R0914,C901
         """Create volumes on specific namespaces and keep relationship."""
@@ -455,7 +524,6 @@ class OCPGenerator(AbstractGenerator):
         user_pod_seconds = kwargs.get("pod_seconds")
         pod_seconds = user_pod_seconds if user_pod_seconds else randint(2, HOUR)
         pod = kwargs.get("pod")
-
         cpu_limit = pod.pop("cpu_limit")
         mem_limit_gig = pod.pop("mem_limit_gig")
 
@@ -480,6 +548,13 @@ class OCPGenerator(AbstractGenerator):
         pod["pod_limit_memory_byte_seconds"] = pod_seconds * mem_limit_gig * GIGABYTE
         row.update(pod)
         return row
+
+    def _update_ros_pod_data(self, row, start, end, **kwargs):
+        """Update data with generator specific data."""
+        pod = kwargs.get("pod")
+        row.update(pod)
+        return row
+
 
     def _update_storage_data(self, row, start, end, **kwargs):
         """Update data with generator specific data."""
@@ -566,6 +641,36 @@ class OCPGenerator(AbstractGenerator):
                 for pod_choice in pod_choices:
                     pod_name = pod_keys[pod_choice]
                     pod = deepcopy(self.pods[pod_name])
+                    row = self._init_data_row(start, end, **kwargs)
+                    row = self._update_data(row, start, end, pod=pod, **kwargs)
+                    yield row
+
+    def _gen_hourly_ros_pods_usage(self, **kwargs):
+        """Create hourly data for pod usage."""
+        for hour in self.hours:
+            start = hour.get("start")
+            end = hour.get("end")
+            if self._nodes:
+                for pod_name, _ in self.pods.items():
+                    pod = deepcopy(self.pods[pod_name])
+                    row = self._init_data_row(start, end, **kwargs)
+                    row = self._update_data(
+                        row,
+                        start,
+                        end,
+                        pod=pod,
+                        **kwargs,
+                    )
+                    yield row
+            else:
+                pod_count = len(self.pods)
+                num_pods = randint(2, pod_count)
+                pod_index_list = range(pod_count)
+                pod_choices = list(set(choices(pod_index_list, k=num_pods)))
+                pod_keys = list(self.pods.keys())
+                for pod_choice in pod_choices:
+                    pod_name = pod_keys[pod_choice]
+                    pod = deepcopy(self.ros_data[pod_name])
                     row = self._init_data_row(start, end, **kwargs)
                     row = self._update_data(row, start, end, pod=pod, **kwargs)
                     yield row
