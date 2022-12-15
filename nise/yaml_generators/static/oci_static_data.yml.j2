@@ -4,6 +4,7 @@ generators:
       start_date: {{ compute.start_date }}
       end_date: {{ compute.end_date }}
       cost: {{ compute.cost }}
+      consumed_quantity: {{ compute.consumed_quantity }}
       currency: {{ compute.currency }}
       compartment_name: {{ compute.compartment_name }}
       tenant_id: {{ compute.tenant_id }}
@@ -14,6 +15,7 @@ generators:
       start_date: {{ storage.start_date }}
       end_date: {{ storage.end_date }}
       cost: {{ storage.cost }}
+      consumed_quantity: {{ storage.consumed_quantity }}
       currency: {{ storage.currency }}
       compartment_name: {{ storage.compartment_name }}
       tenant_id: {{ storage.tenant_id }}
@@ -24,6 +26,7 @@ generators:
       start_date: {{ network.start_date }}
       end_date: {{ network.end_date }}
       cost: {{ network.cost }}
+      consumed_quantity: {{ network.consumed_quantity }}
       currency: {{ network.currency }}
       compartment_name: {{ network.compartment_name }}
       tenant_id: {{ network.tenant_id }}
@@ -32,6 +35,7 @@ generators:
 {% endfor %}
 {% for db in generator.database_gens %}  - OCIDatabaseGenerator:
       start_date: {{ db.start_date }}
+      consumed_quantity: {{ db.consumed_quantity }}
       end_date: {{ db.end_date }}
       cost: {{ db.cost }}
       currency: {{ db.currency }}

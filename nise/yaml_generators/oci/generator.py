@@ -37,6 +37,12 @@ TAG_KEYS = {
     "database": ["tags/free-form-tag"],
     "network": ["tags/free-form-tag"],
 }
+CONSUMED_QUANTITY_DICT = {
+    "compute": FAKER.pyint(min_value=1000, max_value=86400000),
+    "network": FAKER.pyint(max_value=184959),
+    "storage": FAKER.pyint(max_value=167674224),
+    "database": FAKER.pyint(max_value=167674224),
+}
 
 
 def generate_oci_dicta(config, key):
@@ -49,6 +55,7 @@ def generate_oci_dicta(config, key):
         start_date=str(config.start_date),
         end_date=str(config.end_date),
         cost=cost,
+        consumed_quantity=CONSUMED_QUANTITY_DICT.get(key),
         currency=currency,
         compartment_name=COMPARTMENT_NAME,
         tenant_id=TENANT_ID,

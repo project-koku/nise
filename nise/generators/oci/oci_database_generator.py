@@ -57,7 +57,11 @@ class OCIDatabaseGenerator(OCIGenerator):
         self.usage_consumed_quant_units = self.select_db_resource.get("usage_consumed_quant_units")
         self.usage_consumed_quant_measure = self.select_db_resource.get("usage_consumed_quant_measure")
         self.usage_product_resource = self.select_db_resource.get("usage_product_resource")
-        self.usage_consumed_quantity = self.fake.pyint(max_value=167674224)
+        self.usage_consumed_quantity = (
+            attributes.get("consumed_quantity")
+            if attributes and attributes.get("consumed_quantity")
+            else self.fake.pyint(max_value=167674224)
+        )
         self.unit_price = round(uniform(1.0, 10.0), 4)
         self.cost = (
             attributes.get("cost")
