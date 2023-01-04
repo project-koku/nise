@@ -25,40 +25,29 @@ import faker
 from dateutil.relativedelta import relativedelta
 from nise.util import LOG
 from nise.yaml_generators.generator import Generator
+from nise.yaml_generators.oci.oci_yaml_constants import OCIYamlConstants
 from nise.yaml_generators.utils import dicta
 
 
 FAKER = faker.Faker()
-COMPARTMENT_NAME = FAKER.name().replace(" ", "").lower()
-TENANT_ID = "ocid1.tenancy.oc1..EfjkUPxyZSYLvd"
-TAG_KEYS = {
-    "storage": ["tags/new-tags.tarnished-tags", "tags/orcl-cloud.free-tier-retained"],
-    "compute": ["tags/free-form-tag", "tags/orcl-cloud.free-tier-retained"],
-    "database": ["tags/free-form-tag"],
-    "network": ["tags/free-form-tag"],
-}
-CONSUMED_QUANTITY_DICT = {
-    "compute": FAKER.pyint(min_value=1000, max_value=86400000),
-    "network": FAKER.pyint(max_value=184959),
-    "storage": FAKER.pyint(max_value=167674224),
-    "database": FAKER.pyint(max_value=167674224),
-}
 
 
 def generate_oci_dicta(config, key):
     """Return dicta with common attributes."""
-    cost = round(random.uniform(0.1, 0.50), 5)
+    consumed_quantity = FAKER.random_number(digits=5)
+    unit_price = round(random.uniform(0.0, 0.9), 3)
     currency = "USD"
     tags = generate_tags(config, key)
 
     return dicta(
         start_date=str(config.start_date),
         end_date=str(config.end_date),
-        cost=cost,
-        consumed_quantity=CONSUMED_QUANTITY_DICT.get(key),
+        unit_price=unit_price,
+        consumed_quantity=consumed_quantity,
         currency=currency,
-        compartment_name=COMPARTMENT_NAME,
-        tenant_id=TENANT_ID,
+        compartment_name=OCIYamlConstants.compartment_name,
+        tenant_id=OCIYamlConstants.tenant_id,
+        subscription_id=OCIYamlConstants.subscription_id,
         tags=tags,
     )
 
@@ -68,7 +57,7 @@ def generate_tags(config, key):
 
     tags = []
     if not config.get("tags"):
-        keys = TAG_KEYS.get(key)
+        keys = OCIYamlConstants.tag_keys.get(key)
         tags = [dicta(key=key, v=FAKER.word()) for key in keys]
     else:
         tags_dict = choice(config.tags.get)

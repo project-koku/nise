@@ -17,9 +17,11 @@
 """Defines the abstract generator."""
 import datetime
 from random import choice
+from random import uniform
 
 from nise.generators.generator import AbstractGenerator
 from nise.generators.generator import REPORT_TYPE
+from nise.generators.oci.oci_constants import OCIReportConstantColumns
 
 
 OCI_COST_REPORT = "cost"
@@ -90,64 +92,26 @@ OCI_REPORT_TYPE_TO_COLS = {
 class OCIGenerator(AbstractGenerator):
     """Defines a abstract class for generators."""
 
-    OCI_REGIONS_TO_DOMAIN = [
-        {"region": "ap-sydney-1", "domain": 1},
-        {"region": "ap-melbourne-1", "domain": 1},
-        {"region": "sa-saopaulo-1", "domain": 1},
-        {"region": "sa-vinhedo-1", "domain": 1},
-        {"region": "ca-montreal-1", "domain": 1},
-        {"region": "ca-toronto-1", "domain": 1},
-        {"region": "sa-santiago-1", "domain": 1},
-        {"region": "eu-marseille-1", "domain": 1},
-        {"region": "eu-frankfurt-1", "domain": 3},
-        {"region": "ap-hyderabad-1", "domain": 1},
-        {"region": "ap-mumbai-1", "domain": 1},
-        {"region": "il-jerusalem-1", "domain": 1},
-        {"region": "eu-milan-1", "domain": 1},
-        {"region": "ap-osaka-1", "domain": 1},
-        {"region": "ap-tokyo-1", "domain": 1},
-        {"region": "eu-amsterdam-1", "domain": 1},
-        {"region": "me-jeddah-1", "domain": 1},
-        {"region": "ap-singapore-1", "domain": 1},
-        {"region": "af-johannesburg-1", "domain": 1},
-        {"region": "ap-seoul-1", "domain": 1},
-        {"region": "ap-chuncheon-1", "domain": 1},
-        {"region": "eu-stockholm-1", "domain": 1},
-        {"region": "eu-zurich-1", "domain": 1},
-        {"region": "me-abudhabi-1", "domain": 1},
-        {"region": "me-dubai-1", "domain": 1},
-        {"region": "uk-london-1", "domain": 1},
-        {"region": "uk-cardiff-1", "domain": 1},
-        {"region": "us-ashburn-1", "domain": 3},
-        {"region": "us-phoenix-1", "domain": 3},
-        {"region": "us-sanjose-1", "domain": 1},
-    ]
-
     def __init__(self, start_date, end_date, currency, attributes=None):
         """Initialize the generator."""
         super().__init__(start_date, end_date)
         self.currency = currency
-        self.tenant_id = (
-            attributes.get("tenant_id")
-            if attributes
-            else f"ocid1.tenancy.oc1..{self.fake.pystr(min_chars=20, max_chars=50)}"
-        )
+        self.tenant_id = attributes.get("tenant_id", OCIReportConstantColumns.tenant_id)
         self.reference_no = self._get_reference_num()
         self.compartment_id = self.tenant_id
-        self.compartment_name = (
-            attributes.get("compartment_name")
-            if attributes and attributes.get("compartment_name")
-            else self.fake.name().replace(" ", "").lower()
-        )
-        self.region_to_domain = choice(self.OCI_REGIONS_TO_DOMAIN)
+        self.compartment_name = attributes.get("compartment_name", OCIReportConstantColumns.compartment_name)
+        self.region_to_domain = choice(OCIReportConstantColumns.oci_regions_to_domain)
         self.product_region = self._get_product_region()
         self.availability_domain = self._get_availability_domain()
         self.is_correction = choice(["true", "false"])
         self.email_domain = self.fake.free_email_domain()
-        self.subscription_id = self.fake.random_number(fix_len=True, digits=8)
+        self.subscription_id = attributes.get("subscription_id", OCIReportConstantColumns.subscription_id)
         self.cost_overage_flag = choice(["N", "", "Y"])
         self.cost_product_sku = f"B{self.fake.random_number(fix_len=True, digits=5)}"
-        self.tags = attributes.get("tags") if attributes and attributes.get("tags") else None
+        self.tags = attributes.get("tags", None)
+        self.usage_consumed_quantity = attributes.get("consumed_quantity", self.fake.random_number(digits=5))
+        self.unit_price = attributes.get("unit_price", round(uniform(0.001, 0.9), 3))
+        self.cost = self.unit_price * self.usage_consumed_quantity
 
     @staticmethod
     def timestamp(in_date):
@@ -182,7 +146,7 @@ class OCIGenerator(AbstractGenerator):
         """Generate data for common columns."""
 
         data = {
-            "lineItem/referenceNo": f"{self.reference_no}+{self.fake.pystr()}==",
+            "lineItem/referenceNo": f"{self.reference_no}+{self.fake.pystr(min_chars=10, max_chars=15)}==",
             "lineItem/tenantId": self.tenant_id,
             "lineItem/intervalUsageStart": OCIGenerator.timestamp(start),
             "lineItem/intervalUsageEnd": OCIGenerator.timestamp(end),
@@ -193,7 +157,7 @@ class OCIGenerator(AbstractGenerator):
             "product/availabilityDomain": self.availability_domain,
             "product/resourceId": "",
             "lineItem/isCorrection": self.is_correction,
-            "lineItem/backreferenceNo": f"{self.reference_no}+{self.fake.pystr()}=="
+            "lineItem/backreferenceNo": f"{self.reference_no}+{self.fake.pystr(min_chars=10, max_chars=15)}=="
             if self.is_correction == "true"
             else "",
             "tags/Oracle-Tags.CreatedBy": f"default/{self.compartment_name}@{self.email_domain}",
@@ -211,7 +175,7 @@ class OCIGenerator(AbstractGenerator):
 
     def _get_reference_num(self):
         """Get reference number"""
-        ref_num = f"V2.{self.fake.pystr(min_chars=20, max_chars=50)}"
+        ref_num = f"V2.{self.fake.pystr(min_chars=10, max_chars=15)}"
         return ref_num
 
     def _tag_timestamp(self, in_date):
@@ -243,7 +207,7 @@ class OCIGenerator(AbstractGenerator):
         """Get cost data"""
         _cost_data = {
             "usage/billedQuantity": self.usage_consumed_quantity,
-            "usage/billedQuantityOverage": self.usage_consumed_quantity,
+            "usage/billedQuantityOverage": choice(["", round(uniform(0.0001, 0.005), 10)]),
             "cost/subscriptionId": self.subscription_id,
             "cost/productSku": self.cost_product_sku,
             "product/Description": self.cost_product_description,

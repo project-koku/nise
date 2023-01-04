@@ -15,8 +15,6 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """Module for OCI network data generation."""
-from random import uniform
-
 from nise.generators.oci.oci_generator import OCIGenerator
 
 
@@ -27,21 +25,10 @@ class OCINetworkGenerator(OCIGenerator):
         """Initialize the network generator."""
         super().__init__(start_date, end_date, currency, attributes)
         self.service_name = "NETWORK"
-        self.resource_id = f"ocid1.vnic.oci.iad.{self.product_region}.{self.fake.pystr(min_chars=25, max_chars=35)}"
+        self.resource_id = f"ocid1.vnic.oci.iad.{self.product_region}.{self.fake.pystr(min_chars=10, max_chars=20)}"
         self.cost_product_description = "Outbound Data Transfer Zone 1"
         self.cost_billing_unit = "ONE GiB HOURS DATA_TRANSFERED"
         self.cost_sku_unit_description = "GB Months"
         self.usage_consumed_quant_units = "BYTES"
         self.usage_consumed_quant_measure = "DATA_TRASFERED"
         self.usage_product_resource = "PIC_COMPUTE_OUTBOUND_DATA_TRANSFER_ZONE1"
-        self.usage_consumed_quantity = (
-            attributes.get("consumed_quantity")
-            if attributes and attributes.get("consumed_quantity")
-            else self.fake.pyint(max_value=184959)
-        )
-        self.unit_price = round(uniform(1.0, 10.0), 4)
-        self.cost = (
-            attributes.get("cost")
-            if attributes and attributes.get("cost")
-            else (self.unit_price * self.usage_consumed_quantity)
-        )
