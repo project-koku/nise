@@ -21,6 +21,7 @@ from unittest import TestCase
 from unittest.mock import patch
 
 from nise.yaml_generators.oci import generator
+from nise.yaml_generators.oci.oci_yaml_constants import OCIYamlConstants
 
 
 FILE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -65,13 +66,13 @@ class OCIGeneratorTestCase(TestCase):
         """Test label string generator."""
 
         dc = self.yg.default_config()
-        for key in self.module.TAG_KEYS.keys():
+        for key in OCIYamlConstants.tag_keys.keys():
             with self.subTest(key=key):
                 tags = self.module.generate_tags(dc, key)
                 mock_choice.assert_not_called()
-                self.assertEqual(len(tags), len(self.module.TAG_KEYS[key]))
+                self.assertEqual(len(tags), len(OCIYamlConstants.tag_keys[key]))
                 for tag in tags:
-                    self.assertTrue(tag.get("key") in self.module.TAG_KEYS[key])
+                    self.assertTrue(tag.get("key") in OCIYamlConstants.tag_keys[key])
 
     @patch("nise.yaml_generators.oci.generator.choice")
     def test_generate_tags_with_random_choice(self, mock_choice):
@@ -111,7 +112,6 @@ class OCIGeneratorTestCase(TestCase):
         def validate_data(data, config, check_func):
             keys = sorted(
                 [
-                    "cost",
                     "end_date",
                     "start_date",
                     "currency",
@@ -119,6 +119,8 @@ class OCIGeneratorTestCase(TestCase):
                     "tenant_id",
                     "tags",
                     "consumed_quantity",
+                    "subscription_id",
+                    "unit_price",
                 ]
             )
             gens = ["compute_gens", "database_gens", "network_gens", "storage_gens"]

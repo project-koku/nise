@@ -92,7 +92,7 @@ OCI_REPORT_TYPE_TO_COLS = {
 class OCIGenerator(AbstractGenerator):
     """Defines a abstract class for generators."""
 
-    def __init__(self, start_date, end_date, currency, attributes=None):
+    def __init__(self, start_date, end_date, currency, attributes={}):
         """Initialize the generator."""
         super().__init__(start_date, end_date)
         self.currency = currency

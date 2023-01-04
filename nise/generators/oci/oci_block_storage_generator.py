@@ -21,7 +21,7 @@ from nise.generators.oci.oci_generator import OCIGenerator
 class OCIBlockStorageGenerator(OCIGenerator):
     """Generator for OCI Block Storage data."""
 
-    def __init__(self, start_date, end_date, currency, attributes=None):
+    def __init__(self, start_date, end_date, currency, attributes={}):
         """Initialize the block storage generator."""
         super().__init__(start_date, end_date, currency, attributes)
         self.service_name = "BLOCK_STORAGE"

@@ -34,7 +34,7 @@ class OCIGeneratorTestCase(TestCase):
 
     def setUp(self):
         self.fake = Faker()
-        self.attributes = None
+        self.attributes = {}
         self.now = datetime.now().replace(microsecond=0, second=0, minute=0)
         self.one_hour = timedelta(minutes=60)
         self.one_day = timedelta(hours=24)
