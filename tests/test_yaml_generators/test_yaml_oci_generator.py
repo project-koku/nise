@@ -21,6 +21,7 @@ from unittest import TestCase
 from unittest.mock import patch
 
 from nise.yaml_generators.oci import generator
+from nise.yaml_generators.oci.oci_yaml_constants import OCI_TAGS
 from nise.yaml_generators.oci.oci_yaml_constants import OCIYamlConstants
 
 
@@ -66,13 +67,13 @@ class OCIGeneratorTestCase(TestCase):
         """Test label string generator."""
 
         dc = self.yg.default_config()
-        for key in OCIYamlConstants.tag_keys.keys():
+        for key in OCI_TAGS:
             with self.subTest(key=key):
                 tags = self.module.generate_tags(dc, key)
                 mock_choice.assert_not_called()
-                self.assertEqual(len(tags), len(OCIYamlConstants.tag_keys[key]))
+                self.assertEqual(len(tags), len(OCIYamlConstants.tag_keys(key)))
                 for tag in tags:
-                    self.assertTrue(tag.get("key") in OCIYamlConstants.tag_keys[key])
+                    self.assertTrue(tag.get("key") in OCIYamlConstants.tag_keys(key))
 
     @patch("nise.yaml_generators.oci.generator.choice")
     def test_generate_tags_with_random_choice(self, mock_choice):

@@ -44,7 +44,7 @@ class OCIDatabaseGenerator(OCIGenerator):
         },
     ]
 
-    def __init__(self, start_date, end_date, currency, attributes={}):
+    def __init__(self, start_date, end_date, currency, attributes=None):
         """Initialize the database generator."""
         super().__init__(start_date, end_date, currency, attributes)
         self.service_name = "DATABASE"

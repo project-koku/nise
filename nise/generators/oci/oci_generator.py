@@ -92,15 +92,17 @@ OCI_REPORT_TYPE_TO_COLS = {
 class OCIGenerator(AbstractGenerator):
     """Defines a abstract class for generators."""
 
-    def __init__(self, start_date, end_date, currency, attributes={}):
+    def __init__(self, start_date, end_date, currency, attributes=None):
         """Initialize the generator."""
         super().__init__(start_date, end_date)
+        if attributes is None or not isinstance(attributes, dict):
+            attributes = {}
         self.currency = currency
         self.tenant_id = attributes.get("tenant_id", OCIReportConstantColumns.tenant_id)
         self.reference_no = self._get_reference_num()
         self.compartment_id = self.tenant_id
         self.compartment_name = attributes.get("compartment_name", OCIReportConstantColumns.compartment_name)
-        self.region_to_domain = choice(OCIReportConstantColumns.oci_regions_to_domain)
+        self.region_to_domain = OCIReportConstantColumns.oci_regions_to_domain()
         self.product_region = self._get_product_region()
         self.availability_domain = self._get_availability_domain()
         self.is_correction = choice(["true", "false"])

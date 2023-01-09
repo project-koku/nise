@@ -15,19 +15,26 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """OCI Yaml File Constants"""
+from dataclasses import dataclass
+from dataclasses import field
+
 from faker import Faker
 
 
-class OCIYamlConstants:
-    """OCI report constant columns"""
+fake = Faker()
+OCI_TAGS = {
+    "storage": ["tags/new-tags.tarnished-tags", "tags/orcl-cloud.free-tier-retained"],
+    "compute": ["tags/free-form-tag", "tags/orcl-cloud.free-tier-retained"],
+    "database": ["tags/free-form-tag"],
+    "network": ["tags/free-form-tag"],
+}
 
-    fake = Faker()
-    compartment_name = fake.name().replace(" ", "").lower()
-    tenant_id = "ocid1.tenancy.oc1..EfjkUPxyZSYLvd"
-    subscription_id = fake.random_number(fix_len=True, digits=8)
-    tag_keys = {
-        "storage": ["tags/new-tags.tarnished-tags", "tags/orcl-cloud.free-tier-retained"],
-        "compute": ["tags/free-form-tag", "tags/orcl-cloud.free-tier-retained"],
-        "database": ["tags/free-form-tag"],
-        "network": ["tags/free-form-tag"],
-    }
+
+@dataclass(frozen=True)
+class OCIYamlConstants:
+    """OCI yaml constant columns"""
+
+    tenant_id: str = field(default="ocid1.tenancy.oc1..EfjkUPxyZSYLvd")
+    compartment_name: str = field(default=fake.name().replace(" ", "").lower())
+    subscription_id: int = field(default=fake.random_number(fix_len=True, digits=8))
+    tag_keys: dict = field(default=lambda key: OCI_TAGS.get(key))

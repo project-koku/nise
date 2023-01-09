@@ -57,7 +57,7 @@ def generate_tags(config, key):
 
     tags = []
     if not config.get("tags"):
-        keys = OCIYamlConstants.tag_keys.get(key)
+        keys = OCIYamlConstants.tag_keys(key)
         tags = [dicta(key=key, v=FAKER.word()) for key in keys]
     else:
         tags_dict = choice(config.tags.get)
