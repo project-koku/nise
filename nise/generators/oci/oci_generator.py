@@ -22,7 +22,6 @@ from random import uniform
 from nise.generators.generator import AbstractGenerator
 from nise.generators.generator import REPORT_TYPE
 from nise.generators.oci.oci_constants import OCIReportConstantColumns
-from nise.generators.oci.oci_constants import random_region_domain
 
 
 OCI_COST_REPORT = "cost"
@@ -99,16 +98,17 @@ class OCIGenerator(AbstractGenerator):
         if attributes is None or not isinstance(attributes, dict):
             attributes = {}
         self.currency = currency
-        self.tenant_id = attributes.get("tenant_id", OCIReportConstantColumns.tenant_id)
+        self.constants = OCIReportConstantColumns()
+        self.tenant_id = attributes.get("tenant_id", self.constants.tenant_id)
         self.reference_no = self._get_reference_num()
         self.compartment_id = self.tenant_id
-        self.compartment_name = attributes.get("compartment_name", OCIReportConstantColumns.compartment_name)
-        self.region_to_domain = random_region_domain()
-        self.product_region = self._get_product_region()
+        self.compartment_name = attributes.get("compartment_name", self.constants.compartment_name)
+        self.region_to_domain = self.constants.oci_region_to_domain
+        self.product_region = self.region_to_domain.region
         self.availability_domain = self._get_availability_domain()
         self.is_correction = choice(["true", "false"])
         self.email_domain = self.fake.free_email_domain()
-        self.subscription_id = attributes.get("subscription_id", OCIReportConstantColumns.subscription_id)
+        self.subscription_id = attributes.get("subscription_id", self.constants.subscription_id)
         self.cost_overage_flag = choice(["N", "", "Y"])
         self.cost_product_sku = f"B{self.fake.random_number(fix_len=True, digits=5)}"
         self.tags = attributes.get("tags", None)
@@ -187,10 +187,6 @@ class OCIGenerator(AbstractGenerator):
         if isinstance(in_date, datetime.datetime):
             tag_date = in_date.strftime("%Y-%m-%dT%H:%M:%S.000Z")
         return tag_date
-
-    def _get_product_region(self):
-        """Get a random region"""
-        return self.region_to_domain.region
 
     def _get_availability_domain(self):
         """Get availability domain of the region"""
