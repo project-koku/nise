@@ -25,7 +25,7 @@ import faker
 from dateutil.relativedelta import relativedelta
 from nise.util import LOG
 from nise.yaml_generators.generator import Generator
-from nise.yaml_generators.oci.oci_yaml_constants import get_tag_keys
+from nise.yaml_generators.oci.oci_yaml_constants import OCITags
 from nise.yaml_generators.oci.oci_yaml_constants import OCIYamlConstants
 from nise.yaml_generators.utils import dicta
 
@@ -39,6 +39,7 @@ def generate_oci_dicta(config, key):
     unit_price = round(random.uniform(0.0, 0.9), 3)
     currency = "USD"
     tags = generate_tags(config, key)
+    constants = OCIYamlConstants()
 
     return dicta(
         start_date=str(config.start_date),
@@ -46,9 +47,9 @@ def generate_oci_dicta(config, key):
         unit_price=unit_price,
         consumed_quantity=consumed_quantity,
         currency=currency,
-        compartment_name=OCIYamlConstants.compartment_name,
-        tenant_id=OCIYamlConstants.tenant_id,
-        subscription_id=OCIYamlConstants.subscription_id,
+        compartment_name=constants.compartment_name,
+        tenant_id=constants.tenant_id,
+        subscription_id=constants.subscription_id,
         tags=tags,
     )
 
@@ -58,7 +59,8 @@ def generate_tags(config, key):
 
     tags = []
     if not config.get("tags"):
-        keys = get_tag_keys(key)
+        oci_tags = OCITags()
+        keys = getattr(oci_tags, key)
         tags = [dicta(key=key, v=FAKER.word()) for key in keys]
     else:
         tags_dict = choice(config.tags.get)

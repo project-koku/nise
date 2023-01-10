@@ -42,7 +42,6 @@ class OCITags:
     database: t.Tuple[str] = ("tags/free-form-tag",)
     network: t.Tuple[str] = ("tags/free-form-tag",)
 
-
-def get_tag_keys(key: str) -> t.List[str]:
-    """Return tag keys for an OCI service"""
-    return getattr(OCITags, key)
+    def get_tag_keys(key: str) -> t.List[str]:
+        """Return tag keys for an OCI service"""
+        return getattr(OCITags, key)
