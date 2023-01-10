@@ -103,7 +103,7 @@ class OCIGenerator(AbstractGenerator):
         self.reference_no = self._get_reference_num()
         self.compartment_id = self.tenant_id
         self.compartment_name = attributes.get("compartment_name", self.constants.compartment_name)
-        self.region_to_domain = self.constants.oci_region_to_domain
+        self.region_to_domain = self.constants.region_to_domain
         self.product_region = self.region_to_domain.region
         self.availability_domain = self._get_availability_domain()
         self.is_correction = choice(["true", "false"])

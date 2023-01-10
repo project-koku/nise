@@ -78,4 +78,4 @@ class OCIReportConstantColumns:
     tenant_id: str = f"ocid1.tenancy.oc1..{FAKE.pystr(min_chars=15, max_chars=25)}"
     subscription_id: int = FAKE.random_number(fix_len=True, digits=8)
     compartment_name: str = FAKE.name().replace(" ", "").lower()
-    oci_region_to_domain: OCIRegionDomain = field(default_factory=random_region_domain)
+    region_to_domain: OCIRegionDomain = field(default_factory=random_region_domain)
