@@ -49,6 +49,18 @@ class OCIGeneratorTestCase(TestCase):
         if os.path.exists(CACHE_PATH):
             shutil.rmtree(CACHE_PATH)
 
+    @patch("nise.yaml_generators.oci.generator.super")
+    def test_init_config(self, mock_super):
+        """Test configuration initialization."""
+        dc = self.yg.default_config()
+        mock_super.return_value.init_config.return_value = dc
+        test_config = self.yg.init_config(dc)
+        mock_super.assert_called_once()
+        self.assertTrue(isinstance(test_config, self.module.dicta))
+        self.assertTrue(self.yg.validate_config(test_config))
+        for key in test_config.keys():
+            self.assertIn(key, dc.keys())
+
     def test_default_config(self):
         """Test default configuration."""
         dc = self.yg.default_config()
