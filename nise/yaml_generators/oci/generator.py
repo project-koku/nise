@@ -57,7 +57,7 @@ def generate_tags(config, key):
 
     tags = []
     if not config.get("tags"):
-        keys = OCIYamlConstants.tag_keys(key)
+        keys = OCIYamlConstants.get_tag_keys(key)
         tags = [dicta(key=key, v=FAKER.word()) for key in keys]
     else:
         tags_dict = choice(config.tags.get)
@@ -78,11 +78,8 @@ class OCIGenerator(Generator):
     def init_config(self, args):
         """Process provider specific args."""
         config = super().init_config(args)
-
         # insert specific config variables
-
         config.tags = self.tags if self.tags else None
-
         return config
 
     def default_config(self, *args, **kwargs):

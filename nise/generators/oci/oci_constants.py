@@ -15,9 +15,9 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """OCI Report Constants"""
+import random
 from dataclasses import dataclass
 from dataclasses import field
-from random import choice
 
 from faker import Faker
 
@@ -26,45 +26,56 @@ fake = Faker()
 
 
 @dataclass(frozen=True)
+class OCIRegions:
+    """OCI Regions"""
+
+    region: str
+    domain: str
+
+
+def random_region_domain():
+    """get random region domain tuple"""
+    return random.choice(
+        (
+            OCIRegions("ap-sydney-1", 1),
+            OCIRegions("ap-melbourne-1", 1),
+            OCIRegions("sa-saopaulo-1", 1),
+            OCIRegions("sa-vinhedo-1", 1),
+            OCIRegions("ca-montreal-1", 1),
+            OCIRegions("ca-toronto-1", 1),
+            OCIRegions("sa-santiago-1", 1),
+            OCIRegions("eu-marseille-1", 1),
+            OCIRegions("eu-frankfurt-1", 3),
+            OCIRegions("ap-hyderabad-1", 1),
+            OCIRegions("ap-mumbai-1", 1),
+            OCIRegions("il-jerusalem-1", 1),
+            OCIRegions("eu-milan-1", 1),
+            OCIRegions("ap-osaka-1", 1),
+            OCIRegions("ap-tokyo-1", 1),
+            OCIRegions("eu-amsterdam-1", 1),
+            OCIRegions("me-jeddah-1", 1),
+            OCIRegions("ap-singapore-1", 1),
+            OCIRegions("af-johannesburg-1", 1),
+            OCIRegions("ap-seoul-1", 1),
+            OCIRegions("ap-chuncheon-1", 1),
+            OCIRegions("eu-stockholm-1", 1),
+            OCIRegions("eu-zurich-1", 1),
+            OCIRegions("me-abudhabi-1", 1),
+            OCIRegions("me-dubai-1", 1),
+            OCIRegions("uk-london-1", 1),
+            OCIRegions("uk-cardiff-1", 1),
+            OCIRegions("us-ashburn-1", 3),
+            OCIRegions("us-phoenix-1", 3),
+            OCIRegions("us-sanjose-1", 1),
+        )
+    )
+
+
+@dataclass(frozen=True)
 class OCIReportConstantColumns:
     """OCI report constant columns"""
 
-    tenant_id: str = field(default=f"ocid1.tenancy.oc1..{fake.pystr(min_chars=15, max_chars=25)}")
-    subscription_id: int = field(default=fake.random_number(fix_len=True, digits=8))
-    compartment_name: str = field(default=fake.name().replace(" ", "").lower())
-    oci_regions_to_domain: dict = field(
-        default=lambda: choice(
-            [
-                {"region": "ap-sydney-1", "domain": 1},
-                {"region": "ap-melbourne-1", "domain": 1},
-                {"region": "sa-saopaulo-1", "domain": 1},
-                {"region": "sa-vinhedo-1", "domain": 1},
-                {"region": "ca-montreal-1", "domain": 1},
-                {"region": "ca-toronto-1", "domain": 1},
-                {"region": "sa-santiago-1", "domain": 1},
-                {"region": "eu-marseille-1", "domain": 1},
-                {"region": "eu-frankfurt-1", "domain": 3},
-                {"region": "ap-hyderabad-1", "domain": 1},
-                {"region": "ap-mumbai-1", "domain": 1},
-                {"region": "il-jerusalem-1", "domain": 1},
-                {"region": "eu-milan-1", "domain": 1},
-                {"region": "ap-osaka-1", "domain": 1},
-                {"region": "ap-tokyo-1", "domain": 1},
-                {"region": "eu-amsterdam-1", "domain": 1},
-                {"region": "me-jeddah-1", "domain": 1},
-                {"region": "ap-singapore-1", "domain": 1},
-                {"region": "af-johannesburg-1", "domain": 1},
-                {"region": "ap-seoul-1", "domain": 1},
-                {"region": "ap-chuncheon-1", "domain": 1},
-                {"region": "eu-stockholm-1", "domain": 1},
-                {"region": "eu-zurich-1", "domain": 1},
-                {"region": "me-abudhabi-1", "domain": 1},
-                {"region": "me-dubai-1", "domain": 1},
-                {"region": "uk-london-1", "domain": 1},
-                {"region": "uk-cardiff-1", "domain": 1},
-                {"region": "us-ashburn-1", "domain": 3},
-                {"region": "us-phoenix-1", "domain": 3},
-                {"region": "us-sanjose-1", "domain": 1},
-            ]
-        ),
-    )
+    tenant_id: str = f"ocid1.tenancy.oc1..{fake.pystr(min_chars=15, max_chars=25)}"
+    subscription_id: int = fake.random_number(fix_len=True, digits=8)
+    compartment_name: str = fake.name().replace(" ", "").lower()
+    oci_regions_to_domain: dict = field(default_factory=(random_region_domain))

@@ -102,7 +102,7 @@ class OCIGenerator(AbstractGenerator):
         self.reference_no = self._get_reference_num()
         self.compartment_id = self.tenant_id
         self.compartment_name = attributes.get("compartment_name", OCIReportConstantColumns.compartment_name)
-        self.region_to_domain = OCIReportConstantColumns.oci_regions_to_domain()
+        self.region_to_domain = OCIReportConstantColumns().oci_regions_to_domain
         self.product_region = self._get_product_region()
         self.availability_domain = self._get_availability_domain()
         self.is_correction = choice(["true", "false"])
@@ -189,12 +189,12 @@ class OCIGenerator(AbstractGenerator):
 
     def _get_product_region(self):
         """Get a random region"""
-        return self.region_to_domain.get("region")
+        return self.region_to_domain.region
 
     def _get_availability_domain(self):
         """Get availability domain of the region"""
         available_domain = (
-            f"{self.fake.pystr(max_chars=4)}:{self.product_region.upper()}-AD-{self.region_to_domain.get('domain')}"
+            f"{self.fake.pystr(max_chars=4)}:{self.product_region.upper()}-AD-{self.region_to_domain.domain}"
         )
         return available_domain
 
