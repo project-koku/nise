@@ -22,8 +22,8 @@ from unittest import TestCase
 from unittest.mock import patch
 
 from nise.yaml_generators.oci import generator
+from nise.yaml_generators.oci.oci_yaml_constants import get_tag_keys
 from nise.yaml_generators.oci.oci_yaml_constants import OCITags
-from nise.yaml_generators.oci.oci_yaml_constants import OCIYamlConstants
 
 
 FILE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -84,9 +84,9 @@ class OCIGeneratorTestCase(TestCase):
             with self.subTest(key=key):
                 tags = self.module.generate_tags(dc, key)
                 mock_choice.assert_not_called()
-                self.assertEqual(len(tags), len(OCIYamlConstants.get_tag_keys(key)))
+                self.assertEqual(len(tags), len(get_tag_keys(key)))
                 for tag in tags:
-                    self.assertTrue(tag.get("key") in OCIYamlConstants.get_tag_keys(key))
+                    self.assertTrue(tag.get("key") in get_tag_keys(key))
 
     @patch("nise.yaml_generators.oci.generator.choice")
     def test_generate_tags_with_random_choice(self, mock_choice):

@@ -17,12 +17,11 @@
 """OCI Report Constants"""
 import random
 from dataclasses import dataclass
-from dataclasses import field
 
 from faker import Faker
 
 
-fake = Faker()
+FAKE = Faker()
 
 
 @dataclass(frozen=True)
@@ -75,7 +74,6 @@ def random_region_domain():
 class OCIReportConstantColumns:
     """OCI report constant columns"""
 
-    tenant_id: str = f"ocid1.tenancy.oc1..{fake.pystr(min_chars=15, max_chars=25)}"
-    subscription_id: int = fake.random_number(fix_len=True, digits=8)
-    compartment_name: str = fake.name().replace(" ", "").lower()
-    oci_regions_to_domain: OCIRegionDomain = field(default_factory=random_region_domain)
+    tenant_id: str = f"ocid1.tenancy.oc1..{FAKE.pystr(min_chars=15, max_chars=25)}"
+    subscription_id: int = FAKE.random_number(fix_len=True, digits=8)
+    compartment_name: str = FAKE.name().replace(" ", "").lower()

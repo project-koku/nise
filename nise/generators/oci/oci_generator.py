@@ -22,6 +22,7 @@ from random import uniform
 from nise.generators.generator import AbstractGenerator
 from nise.generators.generator import REPORT_TYPE
 from nise.generators.oci.oci_constants import OCIReportConstantColumns
+from nise.generators.oci.oci_constants import random_region_domain
 
 
 OCI_COST_REPORT = "cost"
@@ -102,7 +103,7 @@ class OCIGenerator(AbstractGenerator):
         self.reference_no = self._get_reference_num()
         self.compartment_id = self.tenant_id
         self.compartment_name = attributes.get("compartment_name", OCIReportConstantColumns.compartment_name)
-        self.region_to_domain = OCIReportConstantColumns().oci_regions_to_domain
+        self.region_to_domain = random_region_domain()
         self.product_region = self._get_product_region()
         self.availability_domain = self._get_availability_domain()
         self.is_correction = choice(["true", "false"])

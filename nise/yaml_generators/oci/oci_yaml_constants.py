@@ -21,7 +21,16 @@ from dataclasses import dataclass
 from faker import Faker
 
 
-fake = Faker()
+FAKE = Faker()
+
+
+@dataclass(frozen=True)
+class OCIYamlConstants:
+    """OCI yaml constant columns"""
+
+    tenant_id: str = "ocid1.tenancy.oc1..EfjkUPxyZSYLvd"
+    compartment_name: str = FAKE.name().replace(" ", "").lower()
+    subscription_id: int = FAKE.random_number(fix_len=True, digits=8)
 
 
 @dataclass(frozen=True)
@@ -34,13 +43,6 @@ class OCITags:
     network: t.Tuple[str] = ("tags/free-form-tag",)
 
 
-@dataclass(frozen=True)
-class OCIYamlConstants:
-    """OCI yaml constant columns"""
-
-    tenant_id: str = "ocid1.tenancy.oc1..EfjkUPxyZSYLvd"
-    compartment_name: str = fake.name().replace(" ", "").lower()
-    subscription_id: int = fake.random_number(fix_len=True, digits=8)
-
-    def get_tag_keys(key: str) -> t.List[str]:
-        return getattr(OCITags, key)
+def get_tag_keys(key: str) -> t.List[str]:
+    """Return tag keys for an OCI service"""
+    return getattr(OCITags, key)

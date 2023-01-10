@@ -25,6 +25,7 @@ import faker
 from dateutil.relativedelta import relativedelta
 from nise.util import LOG
 from nise.yaml_generators.generator import Generator
+from nise.yaml_generators.oci.oci_yaml_constants import get_tag_keys
 from nise.yaml_generators.oci.oci_yaml_constants import OCIYamlConstants
 from nise.yaml_generators.utils import dicta
 
@@ -57,7 +58,7 @@ def generate_tags(config, key):
 
     tags = []
     if not config.get("tags"):
-        keys = OCIYamlConstants.get_tag_keys(key)
+        keys = get_tag_keys(key)
         tags = [dicta(key=key, v=FAKER.word()) for key in keys]
     else:
         tags_dict = choice(config.tags.get)
