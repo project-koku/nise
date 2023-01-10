@@ -34,7 +34,7 @@ class OCIRegionDomain:
 
 
 def random_region_domain():
-    """get random OCIRegionDomain object"""
+    """Return random region domain"""
     return random.choice(
         (
             OCIRegionDomain("ap-sydney-1", 1),
