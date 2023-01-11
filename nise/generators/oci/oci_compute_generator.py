@@ -15,8 +15,6 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """Module for OCI compute data generation."""
-from random import uniform
-
 from nise.generators.oci.oci_generator import OCIGenerator
 
 
@@ -28,7 +26,7 @@ class OCIComputeGenerator(OCIGenerator):
         super().__init__(start_date, end_date, currency, attributes)
         self.service_name = "COMPUTE"
         self.resource_id = (
-            f"ocid1.instance.oci.iad.{self.product_region}.{self.fake.pystr(min_chars=25, max_chars=35)}"
+            f"ocid1.instance.oci.iad.{self.product_region}.{self.fake.pystr(min_chars=10, max_chars=20)}"
         )
         self.cost_product_description = "Virtual Machine Standard - E2 Micro - Free"
         self.cost_billing_unit = "ONE HOURS OCPUS"
@@ -36,14 +34,3 @@ class OCIComputeGenerator(OCIGenerator):
         self.usage_consumed_quant_units = "MS"
         self.usage_consumed_quant_measure = "STORAGE_SIZE"
         self.usage_product_resource = "PIC_COMPUTE_VM_STANDARD_E2_MICRO_FREE"
-        self.usage_consumed_quantity = (
-            attributes.get("consumed_quantity")
-            if attributes and attributes.get("consumed_quantity")
-            else self.fake.pyint(min_value=1000, max_value=86400000)
-        )
-        self.unit_price = round(uniform(1.0, 10.0), 4)
-        self.cost = (
-            attributes.get("cost")
-            if attributes and attributes.get("cost")
-            else (self.unit_price * self.usage_consumed_quantity)
-        )

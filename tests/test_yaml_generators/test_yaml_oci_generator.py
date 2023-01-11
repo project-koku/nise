@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
+import dataclasses
 import os
 import shutil
 from importlib import import_module
@@ -21,6 +22,7 @@ from unittest import TestCase
 from unittest.mock import patch
 
 from nise.yaml_generators.oci import generator
+from nise.yaml_generators.oci.oci_yaml_constants import OCITags
 
 
 FILE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -46,6 +48,18 @@ class OCIGeneratorTestCase(TestCase):
         if os.path.exists(CACHE_PATH):
             shutil.rmtree(CACHE_PATH)
 
+    @patch("nise.yaml_generators.oci.generator.super")
+    def test_init_config(self, mock_super):
+        """Test configuration initialization."""
+        dc = self.yg.default_config()
+        mock_super.return_value.init_config.return_value = dc
+        test_config = self.yg.init_config(dc)
+        mock_super.assert_called_once()
+        self.assertTrue(isinstance(test_config, self.module.dicta))
+        self.assertTrue(self.yg.validate_config(test_config))
+        for key in test_config.keys():
+            self.assertIn(key, dc.keys())
+
     def test_default_config(self):
         """Test default configuration."""
         dc = self.yg.default_config()
@@ -65,13 +79,15 @@ class OCIGeneratorTestCase(TestCase):
         """Test label string generator."""
 
         dc = self.yg.default_config()
-        for key in self.module.TAG_KEYS.keys():
+        oci_tags = OCITags()
+        for key in (field.name for field in dataclasses.fields(OCITags)):
             with self.subTest(key=key):
                 tags = self.module.generate_tags(dc, key)
                 mock_choice.assert_not_called()
-                self.assertEqual(len(tags), len(self.module.TAG_KEYS[key]))
+                oci_tag_keys = getattr(oci_tags, key)
+                self.assertEqual(len(tags), len(oci_tag_keys))
                 for tag in tags:
-                    self.assertTrue(tag.get("key") in self.module.TAG_KEYS[key])
+                    self.assertIn(tag.get("key"), oci_tag_keys)
 
     @patch("nise.yaml_generators.oci.generator.choice")
     def test_generate_tags_with_random_choice(self, mock_choice):
@@ -111,7 +127,6 @@ class OCIGeneratorTestCase(TestCase):
         def validate_data(data, config, check_func):
             keys = sorted(
                 [
-                    "cost",
                     "end_date",
                     "start_date",
                     "currency",
@@ -119,6 +134,8 @@ class OCIGeneratorTestCase(TestCase):
                     "tenant_id",
                     "tags",
                     "consumed_quantity",
+                    "subscription_id",
+                    "unit_price",
                 ]
             )
             gens = ["compute_gens", "database_gens", "network_gens", "storage_gens"]

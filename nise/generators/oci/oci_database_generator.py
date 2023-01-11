@@ -16,7 +16,6 @@
 #
 """Module for OCI database data generation."""
 from random import choice
-from random import uniform
 
 from nise.generators.oci.oci_generator import OCIGenerator
 
@@ -50,21 +49,10 @@ class OCIDatabaseGenerator(OCIGenerator):
         super().__init__(start_date, end_date, currency, attributes)
         self.service_name = "DATABASE"
         self.select_db_resource = choice(self.database_resource_types)
-        self.resource_id = f"ocid1.{self.select_db_resource.get('resource_id')}.oci.iad.{self.product_region}.{self.fake.pystr(min_chars=25, max_chars=35)}"  # noqa: E501
+        self.resource_id = f"ocid1.{self.select_db_resource.get('resource_id')}.oci.iad.{self.product_region}.{self.fake.pystr(min_chars=10, max_chars=20)}"  # noqa: E501
         self.cost_product_description = self.select_db_resource.get("cost_product_description")
         self.cost_billing_unit = self.select_db_resource.get("cost_billing_unit")
         self.cost_sku_unit_description = self.select_db_resource.get("cost_sku_unit_description")
         self.usage_consumed_quant_units = self.select_db_resource.get("usage_consumed_quant_units")
         self.usage_consumed_quant_measure = self.select_db_resource.get("usage_consumed_quant_measure")
         self.usage_product_resource = self.select_db_resource.get("usage_product_resource")
-        self.usage_consumed_quantity = (
-            attributes.get("consumed_quantity")
-            if attributes and attributes.get("consumed_quantity")
-            else self.fake.pyint(max_value=167674224)
-        )
-        self.unit_price = round(uniform(1.0, 10.0), 4)
-        self.cost = (
-            attributes.get("cost")
-            if attributes and attributes.get("cost")
-            else (self.unit_price * self.usage_consumed_quantity)
-        )
