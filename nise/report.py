@@ -773,14 +773,14 @@ def ocp_create_report(options):  # noqa: C901
     end_date = options.get("end_date")
     cluster_id = options.get("ocp_cluster_id")
     static_report_data = options.get("static_report_data")
-    if "ros_info" in options:
-        if options.get("ros_info") in ["Yes", "yes"]:
-            ros_info = True
+    if "ros_ocp_info" in options:
+        if options.get("ros_ocp_info") in ["Yes", "yes"]:
+            ros_ocp_info = True
         else:
-            LOG.warning("--ros_info parameter only accepting Yes/yes value to create ROS-openshift. If we pass other than that it will ignore data creation for ROS-Openshift.")
-            ros_info = False
+            LOG.warning("--ros_ocp_info parameter only accepting Yes/yes value to create ROS-openshift. If we pass other than that it will ignore data creation for ROS-Openshift.")
+            ros_ocp_info = False
     else:
-        ros_info = False
+        ros_ocp_info = False
 
 
     if static_report_data:
@@ -794,7 +794,7 @@ def ocp_create_report(options):  # noqa: C901
     for month in months:
         data = {OCP_POD_USAGE: [], OCP_STORAGE_USAGE: [], OCP_NODE_LABEL: [], OCP_NAMESPACE_LABEL: []}
         file_numbers = {OCP_POD_USAGE: 0, OCP_STORAGE_USAGE: 0, OCP_NODE_LABEL: 0, OCP_NAMESPACE_LABEL: 0}
-        if ros_info:
+        if ros_ocp_info:
             data.update({OCP_ROS_USAGE: []})
             file_numbers.update({OCP_ROS_USAGE: 0})
         monthly_files = []
@@ -812,7 +812,7 @@ def ocp_create_report(options):  # noqa: C901
 
                 gen_start_date, gen_end_date = _create_generator_dates_from_yaml(attributes, month)
 
-            gen = generator_cls(gen_start_date, gen_end_date, attributes, ros_info)
+            gen = generator_cls(gen_start_date, gen_end_date, attributes, ros_ocp_info)
             for report_type in gen.ocp_report_generation.keys():
                 LOG.info(f"Generating data for {report_type} for {month.get('name')}")
                 for hour in gen.generate_data(report_type):
