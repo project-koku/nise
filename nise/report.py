@@ -773,15 +773,7 @@ def ocp_create_report(options):  # noqa: C901
     end_date = options.get("end_date")
     cluster_id = options.get("ocp_cluster_id")
     static_report_data = options.get("static_report_data")
-    if "ros_ocp_info" in options:
-        if options.get("ros_ocp_info") in ["Yes", "yes"]:
-            ros_ocp_info = True
-        else:
-            LOG.warning("--ros_ocp_info parameter only accepting Yes/yes value to create ROS-openshift. If we pass other than that it will ignore data creation for ROS-Openshift.")
-            ros_ocp_info = False
-    else:
-        ros_ocp_info = False
-
+    ros_ocp_info = options.get("ros_ocp_info")
 
     if static_report_data:
         generators = _get_generators(static_report_data.get("generators"))

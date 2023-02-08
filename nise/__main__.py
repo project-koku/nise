@@ -269,11 +269,10 @@ def add_ocp_parser_args(parser):
     )
     parser.add_argument(
         "--ros-ocp-info",
-        metavar="INSIGHTS_ROS_OCP_INFO",
         dest="ros_ocp_info",
         required=False,
-        type=str,
-        help="Provide Yes/yes value to get ROS for openshift data",
+        action="store_true",
+        help="Generate ROS for Openshift data",
 
     )
 
