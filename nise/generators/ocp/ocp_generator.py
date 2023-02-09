@@ -92,12 +92,12 @@ OCP_NAMESPACE_LABEL_COLUMNS = (
 OCP_ROS_USAGE_COLUMN = (
     "interval_start",
     "interval_end",
+    "report_period_start",
+    "report_period_end",
     "namespace",
     "node",
     "resource_id",
     "pod",
-    "deployment_name",
-    "image_name",
     "container_name",
     "cpu_request_container_avg",
     "cpu_request_container_sum",
@@ -170,7 +170,7 @@ class OCPGenerator(AbstractGenerator):
         ]
         self.nodes = self._gen_nodes()
         self.namespaces = self._gen_namespaces(self.nodes)
-        self.pods, self.namespace2pods,  self.ros_data = self._gen_pods(self.namespaces)
+        self.pods, self.namespace2pods, self.ros_data = self._gen_pods(self.namespaces)
 
         self.volumes = self._gen_volumes(self.namespaces, self.namespace2pods)
 
@@ -373,14 +373,11 @@ class OCPGenerator(AbstractGenerator):
 
 
                     }
-
                     ros_ocp_data_pods[pod] = {
                         "namespace": namespace,
                         "node": node.get("name"),
                         "resource_id": node.get("resource_id"),
                         "pod": pod,
-                        "deployment_name": self.fake.word() + "_" + self.fake.word(),
-                        "image_name": self.fake.word() + "-" + self.fake.word() ,
                         "container_name":pod,
                         "cpu_request_container_avg": randint(75, 100),
                         "cpu_request_container_sum": randint(25, 75),
