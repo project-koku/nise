@@ -22,7 +22,6 @@ import csv
 import gzip
 import importlib
 import json
-import logging
 import os
 import random
 import shutil
@@ -81,8 +80,8 @@ from nise.generators.ocp import OCP_NAMESPACE_LABEL
 from nise.generators.ocp import OCP_NODE_LABEL
 from nise.generators.ocp import OCP_POD_USAGE
 from nise.generators.ocp import OCP_REPORT_TYPE_TO_COLS
-from nise.generators.ocp import OCP_STORAGE_USAGE
 from nise.generators.ocp import OCP_ROS_USAGE
+from nise.generators.ocp import OCP_STORAGE_USAGE
 from nise.generators.ocp import OCPGenerator
 from nise.manifest import aws_generate_manifest
 from nise.manifest import ocp_generate_manifest

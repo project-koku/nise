@@ -273,8 +273,8 @@ def add_ocp_parser_args(parser):
         required=False,
         action="store_true",
         help="Generate ROS for Openshift data",
-
     )
+
 
 def add_oci_parser_args(parser):
     """Add OCI sub-parser args."""
