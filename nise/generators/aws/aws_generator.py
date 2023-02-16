@@ -234,7 +234,7 @@ class AWSGenerator(AbstractGenerator):
         "costCategory/Charge type",
         "costCategory/CostCenter",
         "costCategory/OUs",
-        "costCategory/Organization"
+        "costCategory/Organization",
     }
     AWS_COLUMNS = set(
         IDENTITY_COLS
@@ -255,13 +255,13 @@ class AWSGenerator(AbstractGenerator):
         self.usage_accounts = usage_accounts
         self.attributes = attributes
         self._tags = None
-        self._cost_category= None
+        self._cost_category = None
         self.num_instances = 1 if attributes else randint(2, 60)
         if tag_cols:
             self.RESOURCE_TAG_COLS.update(tag_cols)
             self.AWS_COLUMNS.update(tag_cols)
         if attributes:
-            if (_cost_categories := attributes.get("cost_category")):
+            if _cost_categories := attributes.get("cost_category"):
                 self._cost_category = _cost_categories
                 self.AWS_COLUMNS.update(_cost_categories.keys())
 

@@ -208,7 +208,7 @@ class AWSGeneratorTestCase(TestCase):
             "saving": self.saving,
             "product_family": self.product_family,
             "legal_entity": self.legal_entity,
-            "cost_category": {self.cost_category_key: self.cost_category_value}
+            "cost_category": {self.cost_category_key: self.cost_category_value},
         }
         self.two_hours_ago = (self.now - self.one_hour) - self.one_hour
 
