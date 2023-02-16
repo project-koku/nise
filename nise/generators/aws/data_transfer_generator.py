@@ -114,19 +114,8 @@ class DataTransferGenerator(AWSGenerator):
         row["pricing/unit"] = "GB"
         row["savingsPlan/SavingsPlanEffectiveCost"] = str(saving)
         self._add_tag_data(row)
+        self._add_category_data(row)
         return row
-
-    # def _generate_hourly_data(self, **kwargs):
-    #     """Create houldy data."""
-    #     data = []
-    #     for hour in self.hours:
-    #         start = hour.get("start")
-    #         end = hour.get("end")
-    #         row = self._init_data_row(start, end)
-    #         row = self._update_data(row, start, end)
-    #         if self.fake.pybool():
-    #             data.append(row)
-    #     return data
 
     def generate_data(self, report_type=None):
         """Responsibile for generating data."""

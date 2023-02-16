@@ -176,6 +176,8 @@ class AWSGeneratorTestCase(TestCase):
 
         self.product_sku = "12345"
         self.tags = {"key": "value"}
+        self.cost_category_key = "costCategory/Organization"
+        self.cost_category_value = "Costmanagement"
         self.instance_type = {
             "inst_type": "1",
             "vcpu": "1",
@@ -206,6 +208,7 @@ class AWSGeneratorTestCase(TestCase):
             "saving": self.saving,
             "product_family": self.product_family,
             "legal_entity": self.legal_entity,
+            "cost_category": {self.cost_category_key: self.cost_category_value}
         }
         self.two_hours_ago = (self.now - self.one_hour) - self.one_hour
 
@@ -271,6 +274,7 @@ class TestRDSGenerator(AWSGeneratorTestCase):
         self.assertEqual(row["lineItem/ProductCode"], "AmazonRDS")
         self.assertEqual(row["lineItem/Operation"], "CreateDBInstance")
         self.assertEqual(row["product/ProductName"], "Amazon Relational Database Service")
+        self.assertEqual(row[self.cost_category_key], self.cost_category_value)
 
     def test_generate_data(self):
         """Test that the RDS generate_data method works."""
@@ -306,6 +310,7 @@ class TestDataTransferGenerator(AWSGeneratorTestCase):
 
         self.assertEqual(row["product/servicecode"], "AWSDataTransfer")
         self.assertEqual(row["product/productFamily"], "Data Transfer")
+        self.assertEqual(row[self.cost_category_key], self.cost_category_value)
 
 
 class TestEBSGenerator(AWSGeneratorTestCase):
@@ -333,6 +338,7 @@ class TestEBSGenerator(AWSGeneratorTestCase):
         self.assertEqual(row["product/servicecode"], "AmazonEC2")
         self.assertEqual(row["product/productFamily"], "Storage")
         self.assertEqual(row["lineItem/Operation"], "CreateVolume")
+        self.assertEqual(row[self.cost_category_key], self.cost_category_value)
 
     def test_generate_data(self):
         """Test that the EBS generate_data method works."""
@@ -377,6 +383,7 @@ class TestEC2Generator(AWSGeneratorTestCase):
         self.assertEqual(row["product/servicecode"], "AmazonEC2")
         self.assertEqual(row["product/productFamily"], "Compute Instance")
         self.assertEqual(row["lineItem/Operation"], "RunInstances")
+        self.assertEqual(row[self.cost_category_key], self.cost_category_value)
 
     def test_generate_data(self):
         """Test that the EBS generate_data method works."""
@@ -411,6 +418,7 @@ class TestRoute53Generator(AWSGeneratorTestCase):
         self.assertEqual(row["product/servicecode"], "AmazonRoute53")
         self.assertEqual(row["product/productFamily"], self.product_family)
         self.assertEqual(row["lineItem/ProductCode"], "AmazonRoute53")
+        self.assertEqual(row[self.cost_category_key], self.cost_category_value)
 
     def test_generate_data(self):
         """Test that the Route53 generate_data method works."""
@@ -446,6 +454,7 @@ class TestS3Generator(AWSGeneratorTestCase):
         self.assertEqual(row["product/servicecode"], "AmazonS3")
         self.assertEqual(row["lineItem/Operation"], "GetObject")
         self.assertEqual(row["lineItem/ProductCode"], "AmazonS3")
+        self.assertEqual(row[self.cost_category_key], self.cost_category_value)
 
     def test_generate_data(self):
         """Test that the S3 generate_data method works."""
@@ -480,6 +489,7 @@ class TestVPCGenerator(AWSGeneratorTestCase):
         self.assertEqual(row["product/servicecode"], "AmazonVPC")
         self.assertEqual(row["lineItem/Operation"], "CreateVpnConnection")
         self.assertEqual(row["lineItem/ProductCode"], "AmazonVPC")
+        self.assertEqual(row[self.cost_category_key], self.cost_category_value)
 
     def test_generate_data(self):
         """Test that the VPC generate_data method works."""
@@ -516,6 +526,7 @@ class TestMarketplaceGenerator(AWSGeneratorTestCase):
 
         self.assertEqual(row["bill/BillingEntity"], "AWS Marketplace")
         self.assertIn(row["product/ProductName"], generator.MARKETPLACE_PRODUCTS)
+        self.assertEqual(row[self.cost_category_key], self.cost_category_value)
 
     def test_update_data_with_overrides(self):
         """Test Marketplace specific update data method with override to 'product_name' & 'legal_entity'"""
@@ -531,6 +542,7 @@ class TestMarketplaceGenerator(AWSGeneratorTestCase):
         self.assertEqual(row["bill/BillingEntity"], "AWS Marketplace")
         self.assertIn(row["product/ProductName"], "TESTING_PN")
         self.assertIn(row["lineItem/LegalEntity"], "TESTING_LE")
+        self.assertEqual(row[self.cost_category_key], self.cost_category_value)
 
     def test_generate_data(self):
         """Test that the MarketplaceGenerator generate_data method works."""
@@ -558,3 +570,4 @@ class TestMarketplaceGenerator(AWSGeneratorTestCase):
         self.assertEqual(row["pricing/RateId"], "4981658079")
         self.assertEqual(row["pricing/RateCode"], "VDHYUHU8G2Z5AZY3.4799GE89SK.6YS6EN2CT7")
         self.assertEqual(row["pricing/term"], "OnDemand")
+        self.assertEqual(row[self.cost_category_key], self.cost_category_value)
