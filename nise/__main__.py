@@ -267,6 +267,13 @@ def add_ocp_parser_args(parser):
         required=False,
         help="URL for Insights Upload Service.",
     )
+    parser.add_argument(
+        "--ros-ocp-info",
+        dest="ros_ocp_info",
+        required=False,
+        action="store_true",
+        help="Generate ROS for Openshift data",
+    )
 
 
 def add_oci_parser_args(parser):

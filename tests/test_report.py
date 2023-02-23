@@ -801,7 +801,13 @@ class OCPReportTestCase(TestCase):
         one_day = datetime.timedelta(days=1)
         yesterday = now - one_day
         cluster_id = "11112222"
-        options = {"start_date": yesterday, "end_date": now, "ocp_cluster_id": cluster_id, "write_monthly": True}
+        options = {
+            "start_date": yesterday,
+            "end_date": now,
+            "ocp_cluster_id": cluster_id,
+            "write_monthly": True,
+            "ros_ocp_info": True,
+        }
         ocp_create_report(options)
         for report_type in OCP_REPORT_TYPE_TO_COLS.keys():
             month_output_file_name = "{}-{}-{}-{}".format(
@@ -824,6 +830,7 @@ class OCPReportTestCase(TestCase):
             "insights_upload": local_insights_upload,
             "ocp_cluster_id": cluster_id,
             "write_monthly": True,
+            "ros_ocp_info": True,
         }
         ocp_create_report(options)
         for report_type in OCP_REPORT_TYPE_TO_COLS.keys():
@@ -898,6 +905,8 @@ class OCPReportTestCase(TestCase):
         ocp_create_report(options)
 
         for report_type in OCP_REPORT_TYPE_TO_COLS.keys():
+            if "ocp_ros_usage" == report_type:
+                continue
             month_output_file_name = "{}-{}-{}-{}".format(
                 calendar.month_name[now.month], now.year, cluster_id, report_type
             )
@@ -982,6 +991,8 @@ class OCPReportTestCase(TestCase):
         ocp_create_report(options)
 
         for report_type in OCP_REPORT_TYPE_TO_COLS.keys():
+            if "ocp_ros_usage" == report_type:
+                continue
             month_output_file_name = "{}-{}-{}-{}".format(
                 calendar.month_name[now.month], now.year, cluster_id, report_type
             )
@@ -1019,7 +1030,7 @@ class OCPReportTestCase(TestCase):
         one_day = datetime.timedelta(days=1)
         yesterday = now - one_day
         cluster_id = "11112222"
-        options = {"start_date": yesterday, "end_date": now, "ocp_cluster_id": cluster_id}
+        options = {"start_date": yesterday, "end_date": now, "ocp_cluster_id": cluster_id, "ros_ocp_info": True}
         ocp_create_report(options)
         for report_type in OCP_REPORT_TYPE_TO_COLS.keys():
             month_output_file_name = "{}-{}-{}-{}".format(
@@ -1096,6 +1107,8 @@ class OCPReportTestCase(TestCase):
         ocp_create_report(options)
 
         for report_type in OCP_REPORT_TYPE_TO_COLS.keys():
+            if "ocp_ros_usage" == report_type:
+                continue
             with self.subTest(report=report_type):
                 month_output_file_name = "{}-{}-{}-{}".format(
                     calendar.month_name[now.month], now.year, cluster_id, report_type
@@ -1108,7 +1121,6 @@ class OCPReportTestCase(TestCase):
 
                 print(f"{report_type}: {expected_month_output_file_1}")
                 print(f"{report_type}: {expected_month_output_file_2}")
-
                 self.assertTrue(os.path.isfile(expected_month_output_file_1))
                 self.assertTrue(os.path.isfile(expected_month_output_file_2))
 
