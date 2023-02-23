@@ -25,7 +25,8 @@ from nise.generators.aws.aws_generator import AWSGenerator
 class MarketplaceGenerator(AWSGenerator):
     """Defines a generator for AWS Marketplace"""
 
-    LEGAL_ENTITY_CHOICES = ("Red Hat", "Red Hat, Inc.", "Amazon Web Services, Inc.")
+    LEGAL_ENTITY_CHOICES = ("Red Hat", "Red Hat, Inc.", "Amazon Web Services, Inc.", "AWS")
+    RHEL_DESCRIPTION_CHOICES = ("Red Hat Enterprise Linux", "RHEL")
 
     MARKETPLACE_PRODUCTS = (
         "Red Hat OpenShift Service on AWS",
@@ -112,7 +113,7 @@ class MarketplaceGenerator(AWSGenerator):
         row["lineItem/LineItemDescription"] = row_data.get("description")
 
         row["product/ProductName"] = self._get_product_name(legal_entity)
-        if legal_entity == "Amazon Web Services, Inc.":
+        if legal_entity in ["Amazon Web Services, Inc.", "AWS"]:
             row["product/instanceType"] = row_data.get("instancetype")
             row["product/productFamily"] = row_data.get("productfamily")
         row["product/region"] = aws_region
@@ -159,12 +160,12 @@ class MarketplaceGenerator(AWSGenerator):
 
     def _get_marketplace_data(self, legal_entity):
         """Return a dictionary of values based on the legal entity for CCSP vs Private offer testing."""
-        if legal_entity == "Amazon Web Services, Inc.":
+        if legal_entity in ["Amazon Web Services, Inc.", "AWS"]:
             return {
                 "description": getattr(
                     self,
                     "_lineitem_lineitemdescription",
-                    "$0.1158 per On Demand Red Hat Enterprise Linux with HA t3.small Instance Hour",
+                    f"$0.1158 per On Demand {choice(self.RHEL_DESCRIPTION_CHOICES)} with HA t3.small Instance Hour",
                 ),
                 "billingentity": "AWS",
                 "productcode": "AmazonEC2",
