@@ -230,6 +230,12 @@ class AWSGenerator(AbstractGenerator):
         "resourceTags/user:openshift_project",
         "resourceTags/user:openshift_node",
     }
+    COST_CATEGORY_COLS = {
+        "costCategory/Charge type",
+        "costCategory/CostCenter",
+        "costCategory/OUs",
+        "costCategory/Organization",
+    }
     AWS_COLUMNS = set(
         IDENTITY_COLS
         + BILL_COLS
@@ -239,6 +245,7 @@ class AWSGenerator(AbstractGenerator):
         + RESERVE_COLS
         + SAVINGS_COLS
         + tuple(RESOURCE_TAG_COLS)
+        + tuple(COST_CATEGORY_COLS)
     )
 
     def __init__(self, start_date, end_date, currency, payer_account, usage_accounts, attributes={}, tag_cols=None):
@@ -248,10 +255,16 @@ class AWSGenerator(AbstractGenerator):
         self.usage_accounts = usage_accounts
         self.attributes = attributes
         self._tags = None
+        self._cost_category = None
         self.num_instances = 1 if attributes else randint(2, 60)
         if tag_cols:
             self.RESOURCE_TAG_COLS.update(tag_cols)
             self.AWS_COLUMNS.update(tag_cols)
+        if attributes:
+            if _cost_categories := attributes.get("cost_category"):
+                self._cost_category = _cost_categories
+                self.AWS_COLUMNS.update(_cost_categories.keys())
+
         super().__init__(start_date, end_date)
 
     @staticmethod
@@ -341,6 +354,20 @@ class AWSGenerator(AbstractGenerator):
                 if tag_key not in seen_tags:
                     row[tag_key] = self.fake.word()
                     seen_tags.update([tag_key])
+
+    def _add_category_data(self, row):
+        """Add category data to the row."""
+        if self._cost_category:
+            for category in self._cost_category.keys():
+                row[category] = self._cost_category[category]
+        else:
+            num_category = self.fake.random_int(0, 5)
+            for _ in range(num_category):
+                seen_categories = set()
+                category_key = choice(list(self.COST_CATEGORY_COLS))
+                if category_key not in seen_categories:
+                    row[category_key] = self.fake.word()
+                    seen_categories.update([category_key])
 
     def _generate_region_short_code(self, region):
         """Generate the AWS short code for a region."""

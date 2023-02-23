@@ -128,6 +128,7 @@ class MarketplaceGenerator(AWSGenerator):
         row["reservation/SubscriptionId"] = self.subscription_id
 
         self._add_tag_data(row)
+        self._add_category_data(row)
 
         return row
 

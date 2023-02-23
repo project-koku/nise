@@ -112,6 +112,7 @@ class Route53Generator(AWSGenerator):
         row["pricing/term"] = "OnDemand"
         row["pricing/unit"] = "Hrs"
         self._add_tag_data(row)
+        self._add_category_data(row)
 
         return row
 
