@@ -80,6 +80,7 @@ from nise.generators.ocp import OCP_NAMESPACE_LABEL
 from nise.generators.ocp import OCP_NODE_LABEL
 from nise.generators.ocp import OCP_POD_USAGE
 from nise.generators.ocp import OCP_REPORT_TYPE_TO_COLS
+from nise.generators.ocp import OCP_ROS_USAGE
 from nise.generators.ocp import OCP_STORAGE_USAGE
 from nise.generators.ocp import OCPGenerator
 from nise.manifest import aws_generate_manifest
@@ -771,6 +772,8 @@ def ocp_create_report(options):  # noqa: C901
     end_date = options.get("end_date")
     cluster_id = options.get("ocp_cluster_id")
     static_report_data = options.get("static_report_data")
+    ros_ocp_info = options.get("ros_ocp_info")
+
     if static_report_data:
         generators = _get_generators(static_report_data.get("generators"))
     else:
@@ -782,6 +785,9 @@ def ocp_create_report(options):  # noqa: C901
     for month in months:
         data = {OCP_POD_USAGE: [], OCP_STORAGE_USAGE: [], OCP_NODE_LABEL: [], OCP_NAMESPACE_LABEL: []}
         file_numbers = {OCP_POD_USAGE: 0, OCP_STORAGE_USAGE: 0, OCP_NODE_LABEL: 0, OCP_NAMESPACE_LABEL: 0}
+        if ros_ocp_info:
+            data.update({OCP_ROS_USAGE: []})
+            file_numbers.update({OCP_ROS_USAGE: 0})
         monthly_files = []
         for generator in generators:
             generator_cls = generator.get("generator")
@@ -797,7 +803,7 @@ def ocp_create_report(options):  # noqa: C901
 
                 gen_start_date, gen_end_date = _create_generator_dates_from_yaml(attributes, month)
 
-            gen = generator_cls(gen_start_date, gen_end_date, attributes)
+            gen = generator_cls(gen_start_date, gen_end_date, attributes, ros_ocp_info)
             for report_type in gen.ocp_report_generation.keys():
                 LOG.info(f"Generating data for {report_type} for {month.get('name')}")
                 for hour in gen.generate_data(report_type):

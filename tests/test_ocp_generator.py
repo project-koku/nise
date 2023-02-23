@@ -282,7 +282,7 @@ class OCPGeneratorTestCase(TestCase):
         If namespaces with pods are specified, defined pods are used.
         """
         generator = OCPGenerator(self.two_hours_ago, self.now, self.attributes)
-        out_pods, _ = generator._gen_pods(generator.namespaces)  # gen_pods depends on the output of gen_namespaces.
+        out_pods, _, _ = generator._gen_pods(generator.namespaces)  # gen_pods depends on the output of gen_namespaces.
         self.assertEqual(len(out_pods), 2)
 
         expected = (
@@ -326,7 +326,7 @@ class OCPGeneratorTestCase(TestCase):
         If no namespaces are specified, pods are generated.
         """
         generator = OCPGenerator(self.two_hours_ago, self.now, {})
-        out_pods, _ = generator._gen_pods(generator.namespaces)
+        out_pods, _, _ = generator._gen_pods(generator.namespaces)
 
         # these magic numbers are the random ranges defined in the OCP generator.
         self.assertGreaterEqual(len(out_pods), 2 * 2 * 2)
@@ -375,7 +375,7 @@ class OCPGeneratorTestCase(TestCase):
             with self.subTest(attributes=attributes):
                 generator = OCPGenerator(self.two_hours_ago, self.now, attributes)
                 # gen_pods depends on the output of gen_namespaces.
-                out_pods, _ = generator._gen_pods(generator.namespaces)
+                out_pods, _, _ = generator._gen_pods(generator.namespaces)
                 for pod in out_pods.values():
                     with self.subTest(pod=pod):
                         self.assertLessEqual(pod.get("cpu_limit"), pod.get("node_capacity_cpu_cores"))
