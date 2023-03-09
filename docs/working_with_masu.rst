@@ -24,6 +24,9 @@ To create and ingest OCP sample data, there are three required pieces of informa
    1. :code:`--ocp-cluster-id $(cluster_id)` <string> Ex. my-cluster_id
    2. :code:`--insights-upload testing/pvc_dir/insights_local`
    3. :code:`--static-report-file $(srf_yaml)` Path to a static report `file <https://github.com/project-koku/nise/blob/main/example_aws_static_data.yml>`_
+To create ROS-OCP data along with ROS -RHEL then we have to include below parameter:
+
+   1. :code:`--ros-ocp-info        Generate ROS for Openshift data`
 
 .. highlight:: bash
 
