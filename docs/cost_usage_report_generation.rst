@@ -150,6 +150,10 @@ To use a static yaml to generate data::
     nise report ocp --ocp-cluster-id my-cluster-id --static-report-file ocp_static_data.yml
 
 
+To generate completely random data and save the report files in the local directory along with ROS-OCP metrix data:
+
+    nise report ocp -s 2020-06-03 -w --ocp-cluster-id test-001 --ros-ocp-info
+
 OCP-on-Cloud reports
 --------------------
 

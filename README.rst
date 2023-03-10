@@ -150,6 +150,7 @@ nise is a command line tool::
         --ocp-cluster-id CLUSTER_ID             REQUIRED
         --insights-upload UPLOAD_URL            optional, Use local directory path to populate a
                                                 "local upload directory".
+        --ros-ocp-info                          Optional, Generate ROS for Openshift data.
 
     OCI Report Options:
         --oci-bucket-name BUCKET_NAME           optional, OCI bucket name.
@@ -193,6 +194,8 @@ Notes
 4. If ``--static-report-file`` is used start_date will default to first day of current month.  ``start_date: last_month`` will be first day of previous month.  ``start_date: today`` will start at the first hour of current day.  ``end_date`` can support relative days from the ``start_date``. i.e ``end_date: 2`` is two days after start date.
 
 5. ``--static-report-file`` usage dates has a special ``full_period`` key value which will specify a usage for the entire ``start_date - end_date`` range.
+
+6. ``--ros-ocp-info`` when we generate ros data along with this parameter then we will be getting ros-ocp metrix too.
 
 --------
 Examples
