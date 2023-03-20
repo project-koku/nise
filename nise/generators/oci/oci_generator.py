@@ -112,8 +112,8 @@ class OCIGenerator(AbstractGenerator):
         self.cost_overage_flag = choice(["N", "", "Y"])
         self.cost_product_sku = f"B{self.fake.random_number(fix_len=True, digits=5)}"
         self.tags = attributes.get("tags", None)
-        self.usage_consumed_quantity = attributes.get("consumed_quantity", self.fake.random_number(digits=5))
-        self.unit_price = attributes.get("unit_price", round(uniform(0.001, 0.9), 3))
+        self.usage_consumed_quantity = attributes.get("consumed_quantity", round(uniform(1000, 3000)))
+        self.unit_price = attributes.get("unit_price", round(uniform(0.01, 0.09), 3))
         self.cost = self.unit_price * self.usage_consumed_quantity
 
     @staticmethod

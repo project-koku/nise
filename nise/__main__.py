@@ -292,6 +292,14 @@ def add_oci_parser_args(parser):
         required=False,
         help="Local bucket or path where to upload generated reports.",
     )
+    parser.add_argument(
+        "-d",
+        "--daily-report",
+        dest="oci_daily_report",
+        required=False,
+        action="store_true",
+        help="OCI daily report.",
+    )
 
 
 def create_parser():

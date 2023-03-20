@@ -1144,17 +1144,20 @@ def oci_route_file(report_type, month, year, data, options):
 
     bucket_name = options.get("oci_bucket_name")
     file_name = ""
+    fake = Faker()
+    file_num = fake.random_number(fix_len=True, digits=4)
     if bucket_name is None:
-        file_name = oci_write_file(report_type, month, year, data, options)
+        file_name = oci_write_file(report_type, month, year, file_num, data, options)
     else:
-        file_name = oci_bucket_upload(bucket_name, report_type, month, year, data, options)
+        file_name = oci_bucket_upload(bucket_name, report_type, month, year, file_num, data, options)
     return file_name
 
 
-def oci_write_file(report_type, month, year, data, options):
+def oci_write_file(report_type, month, year, file_num, data, options):
     """Write OCI data to a file."""
+
     month_num = f"0{month}" if month < 10 else month
-    file_name = f"report_{report_type}-0001_{year}-{month_num}.csv"
+    file_name = f"report_{report_type}-{file_num}_{year}-{month_num}.csv"
     full_file_name = f"{os.getcwd()}/{file_name}"
     _write_csv(full_file_name, data, OCI_REPORT_TYPE_TO_COLS[report_type])
 
@@ -1166,11 +1169,11 @@ def oci_write_file(report_type, month, year, data, options):
     return full_file_name
 
 
-def oci_bucket_upload(bucket_name, report_type, month, year, data, options):
-
+def oci_bucket_upload(bucket_name, report_type, month, year, file_num, data, options):
     """Upload data to OCI bucket."""
+
     month_num = f"0{month}" if month < 10 else month
-    file_name = f"report_{report_type}-0001_{year}-{month_num}.csv"
+    file_name = f"report_{report_type}-{file_num}_{year}-{month_num}.csv"
     full_file_name = f"{os.getcwd()}/{file_name}"
     _write_csv(full_file_name, data, OCI_REPORT_TYPE_TO_COLS[report_type])
     _report_type = f"{report_type}-csv"
@@ -1181,8 +1184,9 @@ def oci_bucket_upload(bucket_name, report_type, month, year, data, options):
 def oci_create_report(options):
     """Create cost and usage report files."""
 
+    generate_daily_report = options.get("oci_daily_report", False)
     start_date = options.get("start_date")
-    end_date = options.get("end_date")
+    end_date = start_date if generate_daily_report else options.get("end_date")
     static_report_data = options.get("static_report_data")
 
     if static_report_data:
