@@ -1549,11 +1549,11 @@ class OCIReportTestCase(TestCase):
         now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
         one_day = datetime.timedelta(days=1)
         yesterday = now - one_day
-        options = {"start_date": yesterday, "end_date": now, "write_monthly": False}
+        options = {"start_date": yesterday, "end_date": now, "write_monthly": False, "file_num": 343545}
         oci_create_report(options)
         for report_type in OCI_REPORT_TYPE_TO_COLS:
             month_num = f"0{now.month}" if now.month < 10 else now.month
-            file_name = f"report_{report_type}-0001_{now.year}-{month_num}.csv"
+            file_name = f"report_{report_type}-{options.get('file_num')}_{now.year}-{month_num}.csv"
             expected_output_file_path = f"{os.getcwd()}/{file_name}"
             self.assertTrue(os.path.isfile(expected_output_file_path))
             mock_remove_files.assert_called()
@@ -1564,7 +1564,7 @@ class OCIReportTestCase(TestCase):
         """Test that the oci_write_file method is called."""
         now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
         data = {"cost": [], "usage": []}
-        options = {}
+        options = {"file_num": 343545}
         for report_type in OCI_REPORT_TYPE_TO_COLS:
             oci_write_file(report_type, now.month, now.year, data[report_type], options)
             assert mock_write_csv.called
@@ -1581,13 +1581,14 @@ class OCIReportTestCase(TestCase):
             "end_date": now,
             "oci_local_bucket": local_bucket_path,
             "write_monthly": True,
+            "file_num": 343545,
         }
         oci_create_report(options)
         assert mock_copy_to_local_dir.called
 
         month_num = f"0{now.month}" if now.month < 10 else now.month
-        cost_file_path = f"{os.getcwd()}/report_cost-0001_{now.year}-{month_num}.csv"
-        usage_file_path = f"{os.getcwd()}/report_usage-0001_{now.year}-{month_num}.csv"
+        cost_file_path = f"{os.getcwd()}/report_cost-{options.get('file_num')}_{now.year}-{month_num}.csv"
+        usage_file_path = f"{os.getcwd()}/report_usage-{options.get('file_num')}_{now.year}-{month_num}.csv"
         self.assertTrue(os.path.isfile(cost_file_path))
         self.assertTrue(os.path.isfile(usage_file_path))
         os.remove(cost_file_path)
@@ -1606,13 +1607,14 @@ class OCIReportTestCase(TestCase):
             "end_date": now,
             "oci_local_bucket": local_bucket_path,
             "write_monthly": True,
+            "file_num": 343545,
         }
         oci_create_report(options)
         assert mock_copy_to_local_dir.called
 
         month_num = f"0{now.month}" if now.month < 10 else now.month
-        cost_file_path = f"{os.getcwd()}/report_cost-0001_{now.year}-{month_num}.csv"
-        usage_file_path = f"{os.getcwd()}/report_usage-0001_{now.year}-{month_num}.csv"
+        cost_file_path = f"{os.getcwd()}/report_cost-{options.get('file_num')}_{now.year}-{month_num}.csv"
+        usage_file_path = f"{os.getcwd()}/report_usage-{options.get('file_num')}_{now.year}-{month_num}.csv"
         self.assertTrue(os.path.isfile(cost_file_path))
         self.assertTrue(os.path.isfile(usage_file_path))
         os.remove(cost_file_path)
@@ -1626,7 +1628,7 @@ class OCIReportTestCase(TestCase):
         now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
         bucket_name = "test-bucket"
         data = {"cost": [], "usage": []}
-        options = {"oci_bucket_name": bucket_name}
+        options = {"oci_bucket_name": bucket_name, "file_num": 343545}
         for report_type in OCI_REPORT_TYPE_TO_COLS:
             oci_bucket_upload(bucket_name, report_type, now.month, now.year, data[report_type], options)
             assert mock_write_csv.called
@@ -1708,17 +1710,17 @@ class OCIReportTestCase(TestCase):
                 },
             ],
         }
-        oci_create_report(
-            {
-                "start_date": yesterday,
-                "end_date": now,
-                "write_monthly": True,
-                "static_report_data": static_oci_data,
-            }
-        )
+        options = {
+            "start_date": yesterday,
+            "end_date": now,
+            "write_monthly": True,
+            "static_report_data": static_oci_data,
+            "file_num": 343545,
+        }
+        oci_create_report(options)
         month_num = f"0{now.month}" if now.month < 10 else str(now.month)
-        cost_file_path = f"{os.getcwd()}/report_cost-0001_{now.year}-{month_num}.csv"
-        usage_file_path = f"{os.getcwd()}/report_usage-0001_{now.year}-{month_num}.csv"
+        cost_file_path = f"{os.getcwd()}/report_cost-{options.get('file_num')}_{now.year}-{month_num}.csv"
+        usage_file_path = f"{os.getcwd()}/report_usage-{options.get('file_num')}_{now.year}-{month_num}.csv"
         self.assertTrue(os.path.isfile(cost_file_path))
         self.assertTrue(os.path.isfile(usage_file_path))
         os.remove(cost_file_path)
@@ -1776,17 +1778,17 @@ class OCIReportTestCase(TestCase):
                 },
             ],
         }
-        oci_create_report(
-            {
-                "start_date": yesterday,
-                "end_date": now,
-                "write_monthly": True,
-                "static_report_data": static_oci_data,
-            }
-        )
+        options = {
+            "start_date": yesterday,
+            "end_date": now,
+            "write_monthly": True,
+            "static_report_data": static_oci_data,
+            "file_num": 343545,
+        }
+        oci_create_report(options)
         month_num = f"0{now.month}" if now.month < 10 else str(now.month)
-        cost_file_path = f"{os.getcwd()}/report_cost-0001_{now.year}-{month_num}.csv"
-        usage_file_path = f"{os.getcwd()}/report_usage-0001_{now.year}-{month_num}.csv"
+        cost_file_path = f"{os.getcwd()}/report_cost-{options.get('file_num')}_{now.year}-{month_num}.csv"
+        usage_file_path = f"{os.getcwd()}/report_usage-{options.get('file_num')}_{now.year}-{month_num}.csv"
         self.assertTrue(os.path.isfile(cost_file_path))
         self.assertTrue(os.path.isfile(usage_file_path))
         os.remove(cost_file_path)
@@ -1844,17 +1846,17 @@ class OCIReportTestCase(TestCase):
                 },
             ],
         }
-        oci_create_report(
-            {
-                "start_date": yesterday,
-                "end_date": now,
-                "write_monthly": True,
-                "static_report_data": static_oci_data,
-            }
-        )
+        options = {
+            "start_date": yesterday,
+            "end_date": now,
+            "write_monthly": True,
+            "static_report_data": static_oci_data,
+            "file_num": 343545,
+        }
+        oci_create_report(options)
         month_num = f"0{now.month}" if now.month < 10 else str(now.month)
-        cost_file_path = f"{os.getcwd()}/report_cost-0001_{now.year}-{month_num}.csv"
-        usage_file_path = f"{os.getcwd()}/report_usage-0001_{now.year}-{month_num}.csv"
+        cost_file_path = f"{os.getcwd()}/report_cost-{options.get('file_num')}_{now.year}-{month_num}.csv"
+        usage_file_path = f"{os.getcwd()}/report_usage-{options.get('file_num')}_{now.year}-{month_num}.csv"
         self.assertTrue(os.path.isfile(cost_file_path))
         self.assertTrue(os.path.isfile(usage_file_path))
         os.remove(cost_file_path)

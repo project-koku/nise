@@ -1144,19 +1144,19 @@ def oci_route_file(report_type, month, year, data, options):
 
     bucket_name = options.get("oci_bucket_name")
     file_name = ""
-    fake = Faker()
-    file_num = fake.random_number(fix_len=True, digits=4)
     if bucket_name is None:
-        file_name = oci_write_file(report_type, month, year, file_num, data, options)
+        file_name = oci_write_file(report_type, month, year, data, options)
     else:
-        file_name = oci_bucket_upload(bucket_name, report_type, month, year, file_num, data, options)
+        file_name = oci_bucket_upload(bucket_name, report_type, month, year, data, options)
     return file_name
 
 
-def oci_write_file(report_type, month, year, file_num, data, options):
+def oci_write_file(report_type, month, year, data, options):
     """Write OCI data to a file."""
 
     month_num = f"0{month}" if month < 10 else month
+    fake = Faker()
+    file_num = options.get("file_num", fake.random_number(fix_len=True, digits=4))
     file_name = f"report_{report_type}-{file_num}_{year}-{month_num}.csv"
     full_file_name = f"{os.getcwd()}/{file_name}"
     _write_csv(full_file_name, data, OCI_REPORT_TYPE_TO_COLS[report_type])
@@ -1169,10 +1169,12 @@ def oci_write_file(report_type, month, year, file_num, data, options):
     return full_file_name
 
 
-def oci_bucket_upload(bucket_name, report_type, month, year, file_num, data, options):
+def oci_bucket_upload(bucket_name, report_type, month, year, data, options):
     """Upload data to OCI bucket."""
 
     month_num = f"0{month}" if month < 10 else month
+    fake = Faker()
+    file_num = options.get("file_num", fake.random_number(fix_len=True, digits=4))
     file_name = f"report_{report_type}-{file_num}_{year}-{month_num}.csv"
     full_file_name = f"{os.getcwd()}/{file_name}"
     _write_csv(full_file_name, data, OCI_REPORT_TYPE_TO_COLS[report_type])
