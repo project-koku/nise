@@ -50,6 +50,7 @@ from nise.report import gcp_create_report
 from nise.report import gcp_route_file
 from nise.report import oci_bucket_upload
 from nise.report import oci_create_report
+from nise.report import oci_generate_report_name
 from nise.report import oci_route_file
 from nise.report import oci_write_file
 from nise.report import ocp_create_report
@@ -1565,8 +1566,14 @@ class OCIReportTestCase(TestCase):
         now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
         data = {"cost": [], "usage": []}
         options = {"file_num": 343545}
+        filename_options = {
+            "month": now.month,
+            "year": now.year,
+        }
         for report_type in OCI_REPORT_TYPE_TO_COLS:
-            oci_write_file(report_type, now.month, now.year, data[report_type], options)
+            filename_options["report_type"] = report_type
+            absolute_report_name = oci_generate_report_name(filename_options)
+            oci_write_file(report_type, absolute_report_name, data[report_type], options)
             assert mock_write_csv.called
 
     @patch("nise.report.copy_to_local_dir")
@@ -1629,8 +1636,14 @@ class OCIReportTestCase(TestCase):
         bucket_name = "test-bucket"
         data = {"cost": [], "usage": []}
         options = {"oci_bucket_name": bucket_name, "file_num": 343545}
+        filename_options = {
+            "month": now.month,
+            "year": now.year,
+        }
         for report_type in OCI_REPORT_TYPE_TO_COLS:
-            oci_bucket_upload(bucket_name, report_type, now.month, now.year, data[report_type], options)
+            filename_options["report_type"] = report_type
+            absolute_report_name = oci_generate_report_name(filename_options)
+            oci_bucket_upload(bucket_name, report_type, absolute_report_name, data[report_type], options)
             assert mock_write_csv.called
             assert mock_oci_bucket_upload.called
 
