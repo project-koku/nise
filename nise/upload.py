@@ -321,7 +321,7 @@ def gcp_bucket_to_dataset(gcp_bucket_name, file_name, dataset_name, table_name, 
         # job config does not let you upload to the _PARTITIONTIME because it is a prebuild column in
         # bigquery. However, we do have permission to update it.
         partition_date_sql = f"""
-        UPDATE `{table_id}` SET _PARTITIONTIME=CAST(DATE_TRUNC(DATE(usage_start_time), MONTH) AS timestamp) WHERE 1=1;
+        UPDATE `{table_id}` SET _PARTITIONTIME=CAST(DATE_TRUNC(DATE(usage_start_time), DAY) AS timestamp) WHERE 1=1;
         """
         bigquery_client.query(partition_date_sql)
 
