@@ -1139,7 +1139,7 @@ def _gcp_bigquery_process(
     return monthly_files
 
 
-def oci_generate_report_name(report_name_options: dict) -> str:
+def oci_generate_report_name(report_name_options):
     """return generated oci report name"""
 
     file_num = report_name_options.get("file_num")
