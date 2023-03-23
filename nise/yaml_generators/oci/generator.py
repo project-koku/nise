@@ -16,10 +16,10 @@
 #
 """Utility to generate koku-nise OCI yaml files."""
 import os
-import random
 from calendar import monthrange
 from datetime import date
 from random import choice
+from random import uniform
 
 import faker
 from dateutil.relativedelta import relativedelta
@@ -35,8 +35,8 @@ FAKER = faker.Faker()
 
 def generate_oci_dicta(config, key):
     """Return dicta with common attributes."""
-    consumed_quantity = FAKER.random_number(digits=5)
-    unit_price = round(random.uniform(0.0, 0.9), 3)
+    consumed_quantity = round(uniform(1000, 3000))
+    unit_price = round(uniform(0.01, 0.09), 3)
     currency = "USD"
     tags = generate_tags(config, key)
     constants = OCIYamlConstants()

@@ -1139,50 +1139,68 @@ def _gcp_bigquery_process(
     return monthly_files
 
 
+def oci_generate_report_name(report_name_options):
+    """return generated oci report name"""
+
+    file_num = report_name_options.get("file_num")
+    month = report_name_options.get("month")
+    year = report_name_options.get("year")
+    report_type = report_name_options.get("report_type")
+
+    month_num = f"0{month}" if month < 10 else month
+    file_name = f"report_{report_type}-{file_num}_{year}-{month_num}.csv"
+    absolute_report_name = f"{os.getcwd()}/{file_name}"
+    return absolute_report_name
+
+
 def oci_route_file(report_type, month, year, data, options):
     """Route file to either local file system or OCI bucket."""
 
     bucket_name = options.get("oci_bucket_name")
     file_name = ""
+    filename_options = {
+        "file_num": options.get("file_num", randint(1000, 9999)),
+        "month": month,
+        "year": year,
+        "report_type": report_type,
+    }
+    absolute_report_name = oci_generate_report_name(filename_options)
     if bucket_name is None:
-        file_name = oci_write_file(report_type, month, year, data, options)
+        file_name = oci_write_file(report_type, absolute_report_name, data, options)
     else:
-        file_name = oci_bucket_upload(bucket_name, report_type, month, year, data, options)
+        file_name = oci_bucket_upload(bucket_name, report_type, absolute_report_name, data, options)
     return file_name
 
 
-def oci_write_file(report_type, month, year, data, options):
+def oci_write_file(report_type, absolute_report_name, data, options):
     """Write OCI data to a file."""
-    month_num = f"0{month}" if month < 10 else month
-    file_name = f"report_{report_type}-0001_{year}-{month_num}.csv"
-    full_file_name = f"{os.getcwd()}/{file_name}"
-    _write_csv(full_file_name, data, OCI_REPORT_TYPE_TO_COLS[report_type])
 
+    _write_csv(absolute_report_name, data, OCI_REPORT_TYPE_TO_COLS[report_type])
     local_bucket = options.get("oci_local_bucket")
+    report_path, report_name = os.path.split(absolute_report_name)
     if local_bucket:
         if not os.path.isdir(local_bucket):
             os.mkdir(local_bucket)
-        copy_to_local_dir(local_bucket, full_file_name, file_name)
-    return full_file_name
+        copy_to_local_dir(local_bucket, absolute_report_name, report_name)
+    return report_name
 
 
-def oci_bucket_upload(bucket_name, report_type, month, year, data, options):
-
+def oci_bucket_upload(bucket_name, report_type, absolute_report_name, data, options):
     """Upload data to OCI bucket."""
-    month_num = f"0{month}" if month < 10 else month
-    file_name = f"report_{report_type}-0001_{year}-{month_num}.csv"
-    full_file_name = f"{os.getcwd()}/{file_name}"
-    _write_csv(full_file_name, data, OCI_REPORT_TYPE_TO_COLS[report_type])
+
+    _write_csv(absolute_report_name, data, OCI_REPORT_TYPE_TO_COLS[report_type])
     _report_type = f"{report_type}-csv"
-    upload_to_oci_bucket(bucket_name, _report_type, file_name)
-    return file_name
+    report_path, report_name = os.path.split(absolute_report_name)
+    upload_to_oci_bucket(bucket_name, _report_type, report_name)
+    return report_name
 
 
 def oci_create_report(options):
     """Create cost and usage report files."""
 
+    generate_daily_report = options.get("oci_daily_report", False)
     start_date = options.get("start_date")
-    end_date = options.get("end_date")
+    end_date = start_date if generate_daily_report else options.get("end_date")
     static_report_data = options.get("static_report_data")
 
     if static_report_data:
