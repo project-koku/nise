@@ -21,8 +21,8 @@ from random import choice
 from random import randint
 
 from nise.generators.aws.aws_constants import REGIONS
-from nise.generators.generator import AbstractGenerator
 from nise.generators.common import SameLengthDict
+from nise.generators.generator import AbstractGenerator
 
 
 IDENTITY_COLS = ("identity/LineItemId", "identity/TimeInterval")
@@ -232,7 +232,6 @@ class AWSGenerator(AbstractGenerator):
         "resourceTags/user:openshift_node",
     }
 
-
     AWS_COLUMNS = set(
         IDENTITY_COLS
         + BILL_COLS
@@ -292,12 +291,14 @@ class AWSGenerator(AbstractGenerator):
 
     def _default_cost_category(self):
         """Randomly pick category based on options."""
-        options_mapping = SameLengthDict({
-            "costCategory/Charge type": ["charge1", "charge2", "charge3"],
-            "costCategory/CostCenter": ["734", "724", "902"],
-            "costCategory/OUs": ["Green", "Red", "Blue"],
-            "costCategory/Organization": ["circle", "triangle", "square"]
-        })
+        options_mapping = SameLengthDict(
+            {
+                "costCategory/Charge type": ["charge1", "charge2", "charge3"],
+                "costCategory/CostCenter": ["734", "724", "902"],
+                "costCategory/OUs": ["Green", "Red", "Blue"],
+                "costCategory/Organization": ["circle", "triangle", "square"],
+            }
+        )
         return options_mapping
 
     def _init_data_row(self, start, end, **kwargs):  # noqa: C901

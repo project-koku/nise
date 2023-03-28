@@ -1,5 +1,6 @@
 from collections import UserDict
 
+
 class SameLengthDict(UserDict):
     """
     SameLengthDict is used to build dictionaries where the length of the values
