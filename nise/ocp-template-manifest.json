@@ -4,6 +4,7 @@
     "version": "{{ version }}",
     "date": "{{ report_datetime }}",
     "files": ["{{ files }}"],
+    "resource_optimization_files": {% if ros_files %} ["{{ros_files}}"] {% else %} null {% endif %},
     "start": "{{ start }}",
     "end": "{{ end }}",
     "certified": "{{ certified }}",
