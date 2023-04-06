@@ -136,6 +136,24 @@ OCP_REPORT_TYPE_TO_COLS = {
     OCP_ROS_USAGE: OCP_ROS_USAGE_COLUMN,
 }
 
+OCP_OWNER_WORKLOAD_CHOICES = (
+    ("<none>", "<none>", None, None),  # manually created Pod
+    (None, "ReplicaSet", None, "deployment"),
+    (None, "ReplicaSet", "<none>", "deployment"),  # manually created ReplicaSet
+    (None, "ReplicationController", "<none>", "deploymentconfig"),  # manually created ReplicationController
+    (None, "ReplicationController", None, "deploymentconfig"),
+    (None, "StatefulSet", None, "statefulset"),
+    (None, "DaemonSet", None, "daemonset"),
+    (None, "Job", None, "job"),
+)
+
+
+def get_owner_workload(pod):
+    on, ok, wl, wt = choice(OCP_OWNER_WORKLOAD_CHOICES)
+    if on == "<none>" or wl == "<none>":
+        return on, ok, wl, wt
+    return pod, ok, pod, wt
+
 
 class OCPGenerator(AbstractGenerator):
     """Defines a abstract class for generators."""
@@ -350,16 +368,17 @@ class OCPGenerator(AbstractGenerator):
                         "mem_usage_gig": memory_usage_gig,
                         "pod_seconds": specified_pod.get("pod_seconds"),
                     }
+                    owner_name, owner_kind, workload, workload_type = get_owner_workload(pod)
                     ros_ocp_data_pods[pod] = {
                         "namespace": namespace,
                         "node": node.get("name"),
                         "resource_id": node.get("resource_id"),
                         "pod": pod,
                         "container_name": pod,
-                        "owner_name": self.fake.word() + "_" + self.fake.word(),
-                        "owner_kind": self.fake.word() + "_" + self.fake.word(),
-                        "workload": self.fake.word() + "_" + self.fake.word(),
-                        "workload_type": self.fake.word() + "_" + self.fake.word(),
+                        "owner_name": owner_name,
+                        "owner_kind": owner_kind,
+                        "workload": workload,
+                        "workload_type": workload_type,
                         "image_name": self.fake.word() + "-" + self.fake.word(),
                         "cpu_request_container_avg": randint(75, 100),
                         "cpu_request_container_sum": randint(25, 75),
@@ -415,16 +434,17 @@ class OCPGenerator(AbstractGenerator):
                         "mem_limit_gig": mem_limit_gig,
                         "pod_labels": self._gen_openshift_labels(),
                     }
+                    owner_name, owner_kind, workload, workload_type = get_owner_workload(pod)
                     ros_ocp_data_pods[pod] = {
                         "namespace": namespace,
                         "node": node.get("name"),
                         "resource_id": node.get("resource_id"),
                         "pod": pod,
                         "container_name": pod,
-                        "owner_name": self.fake.word() + "_" + self.fake.word(),
-                        "owner_kind": self.fake.word() + "_" + self.fake.word(),
-                        "workload": self.fake.word() + "_" + self.fake.word(),
-                        "workload_type": self.fake.word() + "_" + self.fake.word(),
+                        "owner_name": owner_name,
+                        "owner_kind": owner_kind,
+                        "workload": workload,
+                        "workload_type": workload_type,
                         "image_name": self.fake.word() + "-" + self.fake.word(),
                         "cpu_request_container_avg": randint(75, 100),
                         "cpu_request_container_sum": randint(25, 75),
