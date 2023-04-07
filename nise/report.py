@@ -789,6 +789,7 @@ def ocp_create_report(options):  # noqa: C901
             data.update({OCP_ROS_USAGE: []})
             file_numbers.update({OCP_ROS_USAGE: 0})
         monthly_files = []
+        monthly_ros_files = []
         for generator in generators:
             generator_cls = generator.get("generator")
             attributes = generator.get("attributes")
@@ -833,19 +834,35 @@ def ocp_create_report(options):  # noqa: C901
                 report_type,
                 data[report_type],
             )
-            monthly_files.append(month_output_file)
+            if report_type == OCP_ROS_USAGE:
+                monthly_ros_files.append(month_output_file)
+            else:
+                monthly_files.append(month_output_file)
 
         if insights_upload:
             # Generate manifest for all files
             ocp_assembly_id = uuid4()
             report_datetime = gen_start_date
             temp_files = {}
+            temp_ros_files = {}
             for num_file in range(len(monthly_files)):
                 temp_filename = f"{ocp_assembly_id}_openshift_report.{num_file}.csv"
-                temp_usage_file = create_temporary_copy(monthly_files[num_file], temp_filename, "payload")
-                temp_files[temp_filename] = temp_usage_file
+                temp_files[temp_filename] = create_temporary_copy(monthly_files[num_file], temp_filename, "payload")
+
+            for num_file in range(len(monthly_ros_files)):
+                temp_filename = f"{ocp_assembly_id}_openshift_report.{num_file + len(monthly_files)}.csv"
+                temp_ros_files[temp_filename] = create_temporary_copy(
+                    monthly_ros_files[num_file], temp_filename, "payload"
+                )
 
             manifest_file_names = ", ".join(f'"{w}"' for w in temp_files)
+            if not temp_ros_files:
+                manifest_ros_data = None
+            elif len(temp_ros_files) == 1:
+                (key,) = temp_ros_files.keys()
+                manifest_ros_data = f"{key}"
+            else:
+                manifest_ros_data = ", ".join(f'"{w}"' for w in temp_ros_files)[1:-1]
             cr_status = {
                 "clusterID": "4e009161-4f40-42c8-877c-3e59f6baea3d",
                 "clusterVersion": "stable-4.6",
@@ -884,6 +901,7 @@ def ocp_create_report(options):  # noqa: C901
                 "ocp_assembly_id": ocp_assembly_id,
                 "report_datetime": report_datetime,
                 "files": manifest_file_names[1:-1],
+                "ros_files": manifest_ros_data,
                 "start": gen_start_date,
                 "end": gen_end_date,
                 "version": __version__,
@@ -902,11 +920,19 @@ def ocp_create_report(options):  # noqa: C901
                 os.remove(temp_usage_file)
                 os.remove(temp_usage_zip)
 
+            for temp_usage_file in temp_ros_files.values():
+                ros_report_files = [temp_usage_file, temp_manifest_name]
+                temp_usage_zip = _tar_gzip_report_files(ros_report_files)
+                ocp_route_file(insights_upload, temp_usage_zip)
+                os.remove(temp_usage_file)
+                os.remove(temp_usage_zip)
+
             os.remove(temp_manifest)
             os.remove(temp_manifest_name)
         if not write_monthly:
             LOG.info("Cleaning up local directory")
             _remove_files(monthly_files)
+            _remove_files(monthly_ros_files)
 
 
 def write_gcp_file(start_date, end_date, data, options):
