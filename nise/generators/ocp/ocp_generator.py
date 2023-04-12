@@ -729,16 +729,9 @@ class OCPGenerator(AbstractGenerator):
             end = hour.get("end")
             if self._nodes:
                 for pod_name, _ in self.pods.items():
-                    pod = deepcopy(self.pods[pod_name])
+                    pod = deepcopy(self.ros_data[pod_name])
                     row = self._init_data_row(start, end, **kwargs)
-                    row = self._update_data(
-                        row,
-                        start,
-                        end,
-                        pod=pod,
-                        **kwargs,
-                    )
-                    yield row
+                    yield self._update_data(row, start, end, pod=pod, **kwargs)
             else:
                 pod_count = len(self.pods)
                 num_pods = randint(2, pod_count)
@@ -749,8 +742,7 @@ class OCPGenerator(AbstractGenerator):
                     pod_name = pod_keys[pod_choice]
                     pod = deepcopy(self.ros_data[pod_name])
                     row = self._init_data_row(start, end, **kwargs)
-                    row = self._update_data(row, start, end, pod=pod, **kwargs)
-                    yield row
+                    yield self._update_data(row, start, end, pod=pod, **kwargs)
 
     def _gen_hourly_storage_usage(self, **kwargs):
         """Create hourly data for storage usage."""
