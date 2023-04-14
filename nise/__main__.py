@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
+# PYTHON_ARGCOMPLETE_OK
 """Cost and Usage Generator CLI."""
 import argparse
 import calendar
@@ -39,6 +40,13 @@ from nise.util import LOG_VERBOSITY
 from nise.yaml_gen import add_yaml_parser_args
 from nise.yaml_gen import yaml_main
 from oci.exceptions import InvalidConfig
+
+HAS_ARGCOMPLETE = False
+try:
+    import argcomplete  # fmt: skip
+    HAS_ARGCOMPLETE = True
+except ImportError:
+    pass
 
 os.environ["TZ"] = "UTC"
 time.tzset()
@@ -764,6 +772,9 @@ def run(provider_type, options):
 def main():
     """Run data generation program."""
     parser = create_parser()
+    if HAS_ARGCOMPLETE:
+        argcomplete.autocomplete(parser)
+
     args = parser.parse_args()
     if args.log_level:
         LOG.setLevel(LOG_VERBOSITY[args.log_level])
