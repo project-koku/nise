@@ -229,6 +229,7 @@ class AWSGenerator(AbstractGenerator):
         "resourceTags/user:openshift_cluster",
         "resourceTags/user:openshift_project",
         "resourceTags/user:openshift_node",
+        "resourceTags/aws:createdBy",
     }
     COST_CATEGORY_COLS = {
         "costCategory/Charge type",
@@ -248,7 +249,7 @@ class AWSGenerator(AbstractGenerator):
         + tuple(COST_CATEGORY_COLS)
     )
 
-    def __init__(self, start_date, end_date, currency, payer_account, usage_accounts, attributes={}, tag_cols=None):
+    def __init__(self, start_date, end_date, currency, payer_account, usage_accounts, attributes=None, tag_cols=None):
         """Initialize the generator."""
         self.payer_account = payer_account
         self.currency = currency
