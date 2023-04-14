@@ -110,7 +110,7 @@ Prereqs
 -----
 Usage
 -----
-nise is a command line tool::
+``nise`` is a command line tool. ::
 
     Usage:
         nise ( report | yaml )
@@ -180,6 +180,13 @@ nise is a command line tool::
                                                 use internal config file
         -n, --num-nodes INT                     optional, Number of nodes to generate (default is 1)
 
+To enable tab completion for ``zsh`` and ``bash``, install ``argcomplete`` in the virtual environment and configure it. ::
+
+      pip install argcomplete
+      activate-global-python-argcomplete
+
+To enable tab completion for other shells, see the `documentation`_.
+
 Notes
 =====
 1. If ``--aws-s3-report-name`` or ``--aws-s3-report-prefix`` are specified they should match what is configured in the AWS cost usage report settings.
@@ -217,6 +224,7 @@ Please refer to Contributing_.
 .. _Flake8: http://flake8.pycqa.org
 .. _Example cost and usage report generation.: docs/cost_usage_report_generation.rst
 .. _Example yaml generation.: docs/yaml_generation.rst
+.. _documentation: https://kislyuk.github.io/argcomplete/#support-for-other-shells
 
 .. |license| image:: https://img.shields.io/github/license/project-koku/nise.svg
    :target: https://github.com/project-koku/nise/blob/main/LICENSE
