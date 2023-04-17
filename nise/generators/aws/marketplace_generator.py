@@ -34,7 +34,7 @@ class MarketplaceGenerator(AWSGenerator):
         "Red Hat Enterprise Linux 8",
     )
 
-    def __init__(self, start_date, end_date, currency, payer_account, usage_accounts, attributes={}, tag_cols=None):
+    def __init__(self, start_date, end_date, currency, payer_account, usage_accounts, attributes=None, tag_cols=None):
         """Initialize the generator."""
         super().__init__(start_date, end_date, currency, payer_account, usage_accounts, attributes, tag_cols)
 
