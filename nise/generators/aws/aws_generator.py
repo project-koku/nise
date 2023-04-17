@@ -254,7 +254,7 @@ class AWSGenerator(AbstractGenerator):
         self.payer_account = payer_account
         self.currency = currency
         self.usage_accounts = usage_accounts
-        self.attributes = attributes
+        self.attributes = attributes if attributes else {}
         self._tags = None
         self._cost_category = None
         self.num_instances = 1 if attributes else randint(2, 60)
