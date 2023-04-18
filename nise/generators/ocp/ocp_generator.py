@@ -155,6 +155,22 @@ def get_owner_workload(pod):
     return pod, ok, pod, wt
 
 
+def generate_randomized_ros_usage(usage_dict, limit_value):
+    # if usage value is provided in yaml -> avg_value = +- 5% of that specified usage value
+    if usage_value := usage_dict.get("full_period"):
+        avg_value = min(round(uniform(usage_value * 0.95, usage_value * 1.05), 2), limit_value * 0.95)
+    # if usage value is not specified in yaml -> random avg_usage from 10% to 95% of the limit
+    else:
+        avg_value = round(uniform(limit_value * 0.1, limit_value * 0.95), 2)
+
+    # min value - random float derived from avg_value,
+    min_value = round(uniform(avg_value * 0.9, avg_value * 0.98), 2)
+    # max_value - random float derived from avg_value, but max of limit_value
+    max_value = min(round(uniform(avg_value * 1.02, avg_value * 1.1), 2), limit_value)
+
+    return avg_value, min_value, max_value
+
+
 class OCPGenerator(AbstractGenerator):
     """Defines a abstract class for generators."""
 
@@ -369,6 +385,14 @@ class OCPGenerator(AbstractGenerator):
                         "pod_seconds": specified_pod.get("pod_seconds"),
                     }
                     owner_name, owner_kind, workload, workload_type = get_owner_workload(pod)
+
+                    cpu_usage_avg, cpu_usage_min, cpu_usage_max = generate_randomized_ros_usage(cpu_usage, cpu_limit)
+                    memory_usage_gig_avg, memory_usage_gig_min, memory_usage_gig_max = generate_randomized_ros_usage(
+                        memory_usage_gig, mem_limit_gig
+                    )
+                    memory_rss_ratio = 1 / round(uniform(1.01, 1.9), 2)
+                    cpu_throttle = choices([0, round(cpu_usage_avg / randint(10, 20), 2)], weights=(3, 1))[0]
+
                     ros_ocp_data_pods[pod] = {
                         "namespace": namespace,
                         "node": node.get("name"),
@@ -380,29 +404,29 @@ class OCPGenerator(AbstractGenerator):
                         "workload": workload,
                         "workload_type": workload_type,
                         "image_name": self.fake.word() + "-" + self.fake.word(),
-                        "cpu_request_container_avg": randint(75, 100),
-                        "cpu_request_container_sum": randint(25, 75),
-                        "cpu_limit_container_avg": randint(25, 75),
-                        "cpu_limit_container_sum": randint(25, 75),
-                        "cpu_usage_container_avg": randint(25, 75),
-                        "cpu_usage_container_min": randint(0, 25),
-                        "cpu_usage_container_max": randint(75, 100),
-                        "cpu_usage_container_sum": randint(25, 75),
-                        "cpu_throttle_container_avg": randint(25, 75),
-                        "cpu_throttle_container_max": randint(75, 100),
-                        "cpu_throttle_container_sum": randint(25, 75),
-                        "memory_request_container_avg": randint(25, 75),
-                        "memory_request_container_sum": randint(25, 75),
-                        "memory_limit_container_avg": randint(25, 75),
-                        "memory_limit_container_sum": randint(25, 75),
-                        "memory_usage_container_avg": randint(25, 75),
-                        "memory_usage_container_min": randint(0, 25),
-                        "memory_usage_container_max": randint(75, 100),
-                        "memory_usage_container_sum": randint(25, 75),
-                        "memory_rss_usage_container_avg": randint(25, 75),
-                        "memory_rss_usage_container_min": randint(0, 25),
-                        "memory_rss_usage_container_max": randint(75, 100),
-                        "memory_rss_usage_container_sum": randint(25, 75),
+                        "cpu_request_container_avg": cpu_request,
+                        "cpu_request_container_sum": cpu_request,
+                        "cpu_limit_container_avg": cpu_limit,
+                        "cpu_limit_container_sum": cpu_limit,
+                        "cpu_usage_container_avg": cpu_usage_avg,
+                        "cpu_usage_container_min": cpu_usage_min,
+                        "cpu_usage_container_max": cpu_usage_max,
+                        "cpu_usage_container_sum": cpu_usage_avg,
+                        "cpu_throttle_container_avg": cpu_throttle,
+                        "cpu_throttle_container_max": cpu_throttle,
+                        "cpu_throttle_container_sum": cpu_throttle,
+                        "memory_request_container_avg": round(mem_request_gig * GIGABYTE),
+                        "memory_request_container_sum": round(mem_request_gig * GIGABYTE),
+                        "memory_limit_container_avg": round(mem_limit_gig * GIGABYTE),
+                        "memory_limit_container_sum": round(mem_limit_gig * GIGABYTE),
+                        "memory_usage_container_avg": round(memory_usage_gig_avg * GIGABYTE),
+                        "memory_usage_container_min": round(memory_usage_gig_min * GIGABYTE),
+                        "memory_usage_container_max": round(memory_usage_gig_max * GIGABYTE),
+                        "memory_usage_container_sum": round(memory_usage_gig_avg * GIGABYTE),
+                        "memory_rss_usage_container_avg": round(memory_usage_gig_avg * memory_rss_ratio * GIGABYTE),
+                        "memory_rss_usage_container_min": round(memory_usage_gig_min * memory_rss_ratio * GIGABYTE),
+                        "memory_rss_usage_container_max": round(memory_usage_gig_avg * memory_rss_ratio * GIGABYTE),
+                        "memory_rss_usage_container_sum": round(memory_usage_gig_avg * memory_rss_ratio * GIGABYTE),
                     }
 
             else:
@@ -457,18 +481,18 @@ class OCPGenerator(AbstractGenerator):
                         "cpu_throttle_container_avg": randint(25, 75),
                         "cpu_throttle_container_max": randint(75, 100),
                         "cpu_throttle_container_sum": randint(25, 75),
-                        "memory_request_container_avg": randint(25, 75),
-                        "memory_request_container_sum": randint(25, 75),
-                        "memory_limit_container_avg": randint(25, 75),
-                        "memory_limit_container_sum": randint(25, 75),
-                        "memory_usage_container_avg": randint(25, 75),
-                        "memory_usage_container_min": randint(0, 25),
-                        "memory_usage_container_max": randint(75, 100),
-                        "memory_usage_container_sum": randint(25, 75),
-                        "memory_rss_usage_container_avg": randint(25, 75),
-                        "memory_rss_usage_container_min": randint(0, 25),
-                        "memory_rss_usage_container_max": randint(75, 100),
-                        "memory_rss_usage_container_sum": randint(25, 75),
+                        "memory_request_container_avg": randint(25, 75) * GIGABYTE,
+                        "memory_request_container_sum": randint(25, 75) * GIGABYTE,
+                        "memory_limit_container_avg": randint(25, 75) * GIGABYTE,
+                        "memory_limit_container_sum": randint(25, 75) * GIGABYTE,
+                        "memory_usage_container_avg": randint(25, 75) * GIGABYTE,
+                        "memory_usage_container_min": randint(0, 25) * GIGABYTE,
+                        "memory_usage_container_max": randint(75, 100) * GIGABYTE,
+                        "memory_usage_container_sum": randint(25, 75) * GIGABYTE,
+                        "memory_rss_usage_container_avg": randint(25, 75) * GIGABYTE,
+                        "memory_rss_usage_container_min": randint(0, 25) * GIGABYTE,
+                        "memory_rss_usage_container_max": randint(75, 100) * GIGABYTE,
+                        "memory_rss_usage_container_sum": randint(25, 75) * GIGABYTE,
                     }
 
         return pods, namespace2pod, ros_ocp_data_pods
