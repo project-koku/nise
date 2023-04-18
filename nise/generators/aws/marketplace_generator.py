@@ -43,8 +43,9 @@ class MarketplaceGenerator(AWSGenerator):
         self._resource_id = "i-{}".format(self.fake.ean8())
         self._product_sku = self.fake.pystr(min_chars=12, max_chars=12).upper()
 
-        for attribute in self.attributes:
-            setattr(self, f"_{attribute}", self.attributes.get(attribute))
+        if self.attributes:
+            for attribute in self.attributes:
+                setattr(self, f"_{attribute}", self.attributes.get(attribute))
 
         if tag_cols:
             self.RESOURCE_TAG_COLS.update(tag_cols)
