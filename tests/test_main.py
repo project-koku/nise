@@ -16,7 +16,9 @@
 #
 import argparse
 import builtins
+import importlib
 import os
+import sys
 from datetime import date
 from datetime import datetime
 from datetime import timedelta
@@ -39,6 +41,51 @@ class MockGen:
 
     def process_template(self, *args, **kwargs):
         return
+
+
+class TestArgcomplete(TestCase):
+    def setUp(self):
+        # Remove nise.__main__ if it was imported before monkeypatching the builtin __import__.
+        try:
+            sys.modules.pop("nise.__main__")
+        except KeyError:
+            pass
+
+    def test_argcomplete_missing(self):
+        dunder_import = __import__
+
+        def _import(*args, **kwargs):
+            if args[0] == "argcomplete":
+                raise ImportError
+            else:
+                return dunder_import(*args, **kwargs)
+
+        with patch("builtins.__import__", _import):
+            mod = importlib.import_module("nise.__main__")
+
+        with self.assertRaises(SystemExit):
+            mod.main()
+
+        self.assertFalse(mod.HAS_ARGCOMPLETE)
+
+    def test_argcomplete_present(self):
+        dunder_import = __import__
+
+        def _import(*args, **kwargs):
+            if args[0] == "argcomplete":
+                return True
+            else:
+                return dunder_import(*args, **kwargs)
+
+        with patch("builtins.__import__", _import):
+            mod = importlib.import_module("nise.__main__")
+
+        with patch("nise.__main__.argcomplete") as mock_argcomplete:
+            with self.assertRaises(SystemExit):
+                mod.main()
+
+        self.assertTrue(mod.HAS_ARGCOMPLETE)
+        mock_argcomplete.autocomplete.assert_called_once()
 
 
 class CommandLineTestCase(TestCase):
