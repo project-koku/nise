@@ -6,7 +6,6 @@
 Status](https://github.com/project-koku/nise/workflows/Publish/badge.svg?branch=main)](https://github.com/project-koku/nise/actions)
 [![Unittests](https://github.com/project-koku/nise/workflows/Unit%20Tests/badge.svg)](https://github.com/project-koku/nise/actions)
 [![codecov](https://codecov.io/gh/project-koku/nise/branch/main/graph/badge.svg)](https://codecov.io/gh/project-koku/nise)
-[![Updates](https://pyup.io/repos/github/project-koku/nise/shield.svg?t=1524249231720)](https://pyup.io/repos/github/project-koku/nise/)
 
 ## About
 
@@ -40,9 +39,7 @@ To build the command line tool run
 
     python setup.py install
 
-For generating sample data for developing or testing Koku, please refer
-to [Ingesting Nise data with
-Koku](https://github.com/project-koku/nise/blob/main/docs/working_with_masu.rst).
+For generating sample data for developing or testing Koku, please refer to [Ingesting Nise data with Koku](docs/working_with_masu.md).
 
 #### Testing
 
@@ -88,13 +85,11 @@ All of the deployment is driven entirely by a Github Action workflow, so if issu
 
 #### Nise, Koku, and IQE Integration
 
-The iqe tests use nise to generate mock data; therefore, we need to ensure that our nise changes do not break the iqe tests. To do this you will need to copy the [.env.example]{.title-ref} to a [.env]{.title-ref} file. After the [.env]{.title-ref} file is configured you will then need to run
+The iqe tests use nise to generate mock data; therefore, we need to ensure that our nise changes do not break the iqe tests. To do this you will need to copy `.env.example` to `.env` and customize as necessary. After the `.env` file is configured you will then need to run
 
     make run-iqe
 
-The [make run-iqe]{.title-ref} command by default will run the smoke
-tests. However, if you want to run a specific iqe test command you can
-pass it in through the [IQE_CMD]{.title-ref} parameter
+The `make run-iqe` command by default will run the smoke tests. However, if you want to run a specific iqe test command you can pass it in through the `IQE_CMD` parameter
 
     make run-iqe IQE_CMD='iqe tests plugin hccm -k test_api_aws_provider_create_foo_resource_name'
 
@@ -104,7 +99,7 @@ pass it in through the [IQE_CMD]{.title-ref} parameter
 
 ## Usage
 
-Nise is a command line tool.
+`nise` is a command line tool.
 
     Usage:
         nise ( report | yaml )
@@ -204,9 +199,9 @@ Nise is a command line tool.
 ## Examples
 
 [Example cost and usage report
-generation.](docs/cost_usage_report_generation.rst)
+generation.](docs/cost_usage_report_generation.md)
 
-[Example yaml generation.](docs/yaml_generation.rst)
+[Example YAML generation.](docs/yaml_generation.md)
 
 
 ## Contributing

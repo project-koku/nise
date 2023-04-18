@@ -1,4 +1,4 @@
-nise is a command line tool:
+`nise` is a command line tool:
 
     Usage:
         nise ( report | yaml )
@@ -146,7 +146,7 @@ local directory along with ROS-OCP metrix data:
 
 ## OCP-on-Cloud reports
 
-Below is an example usage of `nise` for OCP running on AWS data using the [example ocp-on-aws yamls](../examples/ocp_on_aws). This example will save the files to the local directory:
+Below is an example usage of `nise` for OCP running on AWS data using the [example ocp-on-aws YAML](../examples/ocp_on_aws). This example will save the files to the local directory:
 
     # First ensure that the resource_id and dates in both AWS and OCP static report files match
 
@@ -154,7 +154,7 @@ Below is an example usage of `nise` for OCP running on AWS data using the [examp
 
     nise report ocp -w --ocp-cluster-id my-cluster-id --static-report-file examples/ocp_on_aws/ocp_static_data.yml
 
-Below is an example usage of `nise` for OCP running on AZURE data using the [example ocp-on-azure yamls](../examples/ocp_on_azure). This example will save the files to the local directory:
+Below is an example usage of `nise` for OCP running on AZURE data using the [example ocp-on-azure YAML](../examples/ocp_on_azure). This example will save the files to the local directory:
 
     # First ensure that the dates in both AWS and OCP static report files match. Then specify an instance_id for Azure VMs in the Azure format where the string after the final '/' matches the OpenShift node_name.
         e.g. instance_id: '/subscriptions/99999999-9999-9999-9999-999999999999/resourceGroups/koku-99hqd-rg/providers/Microsoft.Compute/virtualMachines/master'
@@ -193,6 +193,6 @@ The bucket must already exist in your OCI storage.
 
     nise report oci -s 2022-04-01 --oci-bucket-name testbucket
 
-To generate less randomized data, supply a `--static-report-file YAML_NAME`. [Example OCI yaml.](../example_oci_static_data.yml):
+To generate less randomized data, supply a `--static-report-file YAML_NAME`. [Example OCI YAML](../example_oci_static_data.yml).
 
     nise report oci --static-report-file example_oci_static_data.yml
