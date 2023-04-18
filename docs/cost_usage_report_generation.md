@@ -1,8 +1,4 @@
-
-Example ``nise report`` usage
-=============================
-
-nise is a command line tool::
+nise is a command line tool:
 
     Usage:
         nise ( report | yaml )
@@ -44,38 +40,37 @@ nise is a command line tool::
     OCI Report Options:
         --oci-bucket-name BUCKET_NAME           REQUIRED, if uploading to an OCI storage bucket
 
-AWS reports
------------
+## AWS reports
 
-Generated reports will be generated in monthly .csv files with the file format <Month>-<Year>-<Report Name>.csv.
+Generated reports will be generated in monthly `.csv` files with the file format `<Month>-<Year>-<Report Name>.csv`.
 
-To generate completely random data and save the report files in the local directory, simply supply a ``--start-date YYYY-MM-DD`` and ``--write-monthly``::
+To generate completely random data and save the report files in the local directory, simply supply a `--start-date YYYY-MM-DD` and `--write-monthly`:
 
     nise report aws --start-date 2020-05-03 --write-monthly
 
-To generate a finalized report, the following will make a copy of the monthly report and append ``-finalized`` to the file name::
+To generate a finalized report, the following will make a copy of the
+monthly report and append `-finalized` to the file name:
 
     nise report aws -s 2020-05-03 --aws-finalize copy
 
-To upload data to an AWS bucket::
+To upload data to an AWS bucket:
 
     nise report aws -s 2020-05-03 --aws-s3-bucket-name testbucket --aws-s3-report-name cur
 
-To move the generated data into a specific local directory, supply ``--aws-s3-bucket-name`` with a ``/path/to/local/dir``::
+To move the generated data into a specific local directory, supply `--aws-s3-bucket-name` with a `/path/to/local/dir`:
 
     nise report aws -s 2020-05-03 --aws-s3-bucket-name /local/path/testbucket --aws-s3-report-name cur
 
-To generate less randomized data, supply a ``--static-report-file YAML_NAME``. `Example aws yaml.`_::
+To generate less randomized data, supply a `--static-report-file YAML_NAME`. [AWS example](../example_aws_static_data.yml):
 
     nise report aws --static-report-file example_aws_static_data.yml
 
+## Azure reports
 
-AZURE reports
--------------
+**Note**: To upload to Azure, you must have `AZURE_STORAGE_ACCOUNT` and
+`AZURE_STORAGE_CONNECTION_STRING` set in your environment.
 
-Note: To upload to AZURE, you must have AZURE_STORAGE_ACCOUNT and AZURE_STORAGE_CONNECTION_STRING set in your environment.
-
-Below are example usages of ``nise`` for AZURE data::
+Below are example usages of `nise` for Azure data:
 
     nise report azure --start-date 2019-08-01
 
@@ -89,30 +84,25 @@ Below are example usages of ``nise`` for AZURE data::
 
     nise report azure --static-report-file azure_static_data.yml
 
-Example upload to AZURE::
+Example upload to Azure:
 
     AZURE_STORAGE_ACCOUNT='my_storage_account' \
     AZURE_STORAGE_CONNECTION_STRING='DefaultEndpointsProtocol=https;AccountName=my_storage_account;AccountKey=XXXXXXXXXXXXXXXXXXXXXXXXXX;EndpointSuffix=core.windows.net' \
     nise --start-date 2019-08-01 --azure --azure-container-name container --azure-report-prefix this_is_prefix  --azure-report-name this_is_report --static-report-file example_azure_static_data.yml
 
-will put the generated reports in the :code:`container` container with the following structure::
+This will put the generated reports in the `container` container with the
+following structure:
 
     this_is_prefix/this_is_report/date_range/costreport_{uuid}.csv
 
-GCP reports
------------
 
-``--gcp-bucket-name`` could be an local file name or a bucket. When ``--gcp-bucket-name`` matches a file on disk,
-the generated reports will be written to that file. If ``--gcp-bucket-name`` does not match a file on disk,
-nise will attempt to upload the generated report to a bucket with that name. When this is the case
-the ``GOOGLE_APPLICATION_CREDENTIALS`` environment variable must be set, and the given bucket-name must match
-and existing bucket that is accessable by the service account indicated in ``GOOGLE_APPLICATION_CREDENTIALS``.
+## GCP reports
 
-For more information about ``GOOGLE_APPLICATION_CREDENTIALS`` see `the Google Authentication Docs.
-<https://cloud.google.com/docs/authentication/getting-started/>`_.
+`--gcp-bucket-name` could be an local file name or a bucket. When `--gcp-bucket-name` matches a file on disk, the generated reports will be written to that file. If `--gcp-bucket-name` does not match a file on disk, nise will attempt to upload the generated report to a bucket with that name. When this is the case the `GOOGLE_APPLICATION_CREDENTIALS` environment variable must be set, and the given bucket-name must match and existing bucket that is accessable by the service account indicated in `GOOGLE_APPLICATION_CREDENTIALS`.
 
+For more information about `GOOGLE_APPLICATION_CREDENTIALS` see [the Google Authentication Docs](https://cloud.google.com/docs/authentication/getting-started/).
 
-Below are example usages of ``nise`` for GCP data::
+Below are example usages of `nise` for GCP data:
 
     nise report gcp --start-date 2018-06-03 --end-date 2018-06-08
 
@@ -122,42 +112,41 @@ Below are example usages of ``nise`` for GCP data::
 
     nise report gcp --static-report-file gcp_static_data.yml
 
+Generated reports will be generated in daily .csv files with the file format `<Report-Prefix>-<Year>-<Month>-<Day>.csv`.
 
-Generated reports will be generated in daily .csv files with the file format <Report-Prefix>-<Year>-<Month>-<Day>.csv.
 
+## OCP reports
 
-OCP reports
------------
+Generated reports will be produced in monthly .csv files with the file format `<Month>-<Year>-<Cluster-ID>-<Report-type>.csv`. Three report types are generated for each month: `ocp_node_label`, `ocp_pod_usage`, and `ocp_storage_usage`.
 
-Generated reports will be produced in monthly .csv files with the file format <Month>-<Year>-<Cluster-ID>-<Report-type>.csv. Three report types are generated for each month: ``ocp_node_label``, ``ocp_pod_usage``, and ``ocp_storage_usage``.
+Below are example usages of `nise` for OCP data:
 
-Below are example usages of ``nise`` for OCP data::
-
-To generate completely random data and save the report files in the local directory::
+To generate completely random data and save the report files in the
+local directory:
 
     nise report ocp -s 2020-06-03 -w --ocp-cluster-id test-001
 
-To upload report files to ingress service::
+To upload report files to ingress service:
 
     nise report ocp -s 2020-06-03 --ocp-cluster-id test-001 --insights-upload  <url to ingress>
 
-To move the generated data into a specific local directory::
+To move the generated data into a specific local directory:
 
     nise report ocp  -s 2020-06-03 --ocp-cluster-id test-001 --insights-upload  /local/path/dir
 
-To use a static yaml to generate data::
+To use a static yaml to generate data:
 
     nise report ocp --ocp-cluster-id my-cluster-id --static-report-file ocp_static_data.yml
 
-
-To generate completely random data and save the report files in the local directory along with ROS-OCP metrix data:
+To generate completely random data and save the report files in the
+local directory along with ROS-OCP metrix data:
 
     nise report ocp -s 2020-06-03 -w --ocp-cluster-id test-001 --ros-ocp-info
 
-OCP-on-Cloud reports
---------------------
 
-Below is an example usage of ``nise`` for OCP running on AWS data using the `example ocp-on-aws yamls`_. This example will save the files to the local directory::
+## OCP-on-Cloud reports
+
+Below is an example usage of `nise` for OCP running on AWS data using the [example ocp-on-aws yamls](../examples/ocp_on_aws). This example will save the files to the local directory:
 
     # First ensure that the resource_id and dates in both AWS and OCP static report files match
 
@@ -165,8 +154,7 @@ Below is an example usage of ``nise`` for OCP running on AWS data using the `exa
 
     nise report ocp -w --ocp-cluster-id my-cluster-id --static-report-file examples/ocp_on_aws/ocp_static_data.yml
 
-
-Below is an example usage of ``nise`` for OCP running on AZURE data using the `example ocp-on-azure yamls`_. This example will save the files to the local directory::
+Below is an example usage of `nise` for OCP running on AZURE data using the [example ocp-on-azure yamls](../examples/ocp_on_azure). This example will save the files to the local directory:
 
     # First ensure that the dates in both AWS and OCP static report files match. Then specify an instance_id for Azure VMs in the Azure format where the string after the final '/' matches the OpenShift node_name.
         e.g. instance_id: '/subscriptions/99999999-9999-9999-9999-999999999999/resourceGroups/koku-99hqd-rg/providers/Microsoft.Compute/virtualMachines/master'
@@ -177,40 +165,34 @@ Below is an example usage of ``nise`` for OCP running on AZURE data using the `e
     nise report ocp -w --ocp-cluster-id my-cluster-id --static-report-file examples/ocp_on_azure/ocp_static_data.yml
 
 
-OCI reports
------------
+## OCI reports
 
+Cost and usage reports will be generated in monthly .csv files with the file format `<reports>_<Report Type>-<csv>_<File Number>_<Year>-<Month>.csv`.
 
-Cost and usage reports will be generated in monthly .csv files with the file format
-<reports>_<Report Type>-<csv>_<File Number>_<Year>-<Month>.csv.
-
-To generate completely random data and save the report files in the local directory, simply supply a ``--start-date YYYY-MM-DD`` and ``--write-monthly``::
+To generate completely random data and save the report files in the local directory, simply supply a `--start-date YYYY-MM-DD` and `--write-monthly`:
 
     nise report oci --start-date 2022-04-01 --write-monthly
 
-To move the generated data into a specific local directory, supply ``--oci-local-bucket`` with a ``/path/to/local/dir``. If the directory does not exist in the path provided, it will be created::
+To move the generated data into a specific local directory, supply `--oci-local-bucket` with a `/path/to/local/dir`. If the directory does not exist in the path provided, it will be created:
 
     nise report oci -s 2022-04-01 --oci-local-bucket /local/path/testbucket
 
-To upload data to an OCI bucket, supply ``--oci-bucket-name``.
+To upload data to an OCI bucket, supply `--oci-bucket-name`.
 
-    Note: To upload to OCI storage bucket, you must have these variables below set in your environment; [OCI_USER, OCI_FINGERPRINT, OCI_TENANCY, OCI_CREDENTIALS, OCI_REGION, OCI_NAMESPACE, OCI_BUCKET_NAME] and the bucket must already exist in your OCI storage.::
+**Note**: To upload to OCI storage bucket, you must have these variables below set in your environment:
+
+    OCI_USER
+    OCI_FINGERPRINT
+    OCI_TENANCY
+    OCI_CREDENTIALS
+    OCI_REGION
+    OCI_NAMESPACE
+    OCI_BUCKET_NAME
+
+The bucket must already exist in your OCI storage.
 
     nise report oci -s 2022-04-01 --oci-bucket-name testbucket
 
-To generate less randomized data, supply a ``--static-report-file YAML_NAME``. `Example oci yaml.`_::
+To generate less randomized data, supply a `--static-report-file YAML_NAME`. [Example OCI yaml.](../example_oci_static_data.yml):
 
     nise report oci --static-report-file example_oci_static_data.yml
-
-
-
-
-.. Links to repo files or directories
-
-.. _`Example aws yaml.`: ../example_aws_static_data.yml
-
-.. _`example ocp-on-aws yamls`: ../examples/ocp_on_aws
-
-.. _`example ocp-on-azure yamls`: ../examples/ocp_on_azure
-
-.. _`Example oci yaml.`: ../example_oci_static_data.yml
