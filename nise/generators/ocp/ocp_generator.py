@@ -425,7 +425,7 @@ class OCPGenerator(AbstractGenerator):
                         "memory_usage_container_sum": round(memory_usage_gig_avg * GIGABYTE),
                         "memory_rss_usage_container_avg": round(memory_usage_gig_avg * memory_rss_ratio * GIGABYTE),
                         "memory_rss_usage_container_min": round(memory_usage_gig_min * memory_rss_ratio * GIGABYTE),
-                        "memory_rss_usage_container_max": round(memory_usage_gig_avg * memory_rss_ratio * GIGABYTE),
+                        "memory_rss_usage_container_max": round(memory_usage_gig_max * memory_rss_ratio * GIGABYTE),
                         "memory_rss_usage_container_sum": round(memory_usage_gig_avg * memory_rss_ratio * GIGABYTE),
                     }
 
