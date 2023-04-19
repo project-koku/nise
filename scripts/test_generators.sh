@@ -22,7 +22,7 @@ test_generator() {
 
 run_tox() {
     log-info "running all unit tests"
-    tox -e py38
+    tox -e py39
 }
 
 
