@@ -169,6 +169,12 @@ The `make run-iqe` command by default will run the smoke tests. However, if you 
                                                 use internal config file
         -n, --num-nodes INT                     optional, Number of nodes to generate (default is 1)
 
+To enable tab completion for `zsh` and `bash`, install `argcomplete` in the virtual environment and configure it.
+
+      pip install argcomplete
+      activate-global-python-argcomplete
+
+To enable tab completion for other shells, see the [documentation][other-shells].
 
 ### Notes
 
@@ -208,3 +214,6 @@ generation.](docs/cost_usage_report_generation.md)
 
 Please refer to
 [Contributing](CONTRIBUTING.md).
+
+
+[other-shells]: https://kislyuk.github.io/argcomplete/#support-for-other-shells
