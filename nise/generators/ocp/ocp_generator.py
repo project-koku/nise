@@ -137,21 +137,23 @@ OCP_REPORT_TYPE_TO_COLS = {
 }
 
 OCP_OWNER_WORKLOAD_CHOICES = (
-    ("<none>", "<none>", None, None),  # manually created Pod
+    # ("<none>", "<none>", None, None),  # manually created Pod - recommendation won't be generated
     (None, "ReplicaSet", None, "deployment"),
     (None, "ReplicaSet", "<none>", "deployment"),  # manually created ReplicaSet
     (None, "ReplicationController", "<none>", "deploymentconfig"),  # manually created ReplicationController
     (None, "ReplicationController", None, "deploymentconfig"),
     (None, "StatefulSet", None, "statefulset"),
     (None, "DaemonSet", None, "daemonset"),
-    (None, "Job", None, "job"),
+    # (None, "Job", None, "job"), # not supported by Kruize
 )
 
 
 def get_owner_workload(pod):
     on, ok, wl, wt = choice(OCP_OWNER_WORKLOAD_CHOICES)
-    if on == "<none>" or wl == "<none>":
+    if on == "<none>" and wl == "<none>":  # manually created Pod
         return on, ok, wl, wt
+    elif wl == "<none>":  # manually created ReplicaSet or ReplicationController
+        return pod, ok, wl, wt
     return pod, ok, pod, wt
 
 
