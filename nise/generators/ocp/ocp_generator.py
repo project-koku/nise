@@ -142,8 +142,8 @@ OCP_OWNER_WORKLOAD_CHOICES = (
     (None, "ReplicaSet", "<none>", "deployment"),  # manually created ReplicaSet
     (None, "ReplicationController", "<none>", "deploymentconfig"),  # manually created ReplicationController
     (None, "ReplicationController", None, "deploymentconfig"),
-    # (None, "StatefulSet", None, "statefulset"), #TODO enable this once it is available in stage
-    # (None, "DaemonSet", None, "daemonset"), #TODO enable this once it is available in stage
+    (None, "StatefulSet", None, "statefulset"),
+    (None, "DaemonSet", None, "daemonset"),
     # (None, "Job", None, "job"), # not supported by Kruize
 )
 
