@@ -160,15 +160,15 @@ def get_owner_workload(pod):
 def generate_randomized_ros_usage(usage_dict, limit_value):
     # if usage value is provided in yaml -> avg_value = +- 5% of that specified usage value
     if usage_value := usage_dict.get("full_period"):
-        avg_value = min(round(uniform(usage_value * 0.95, usage_value * 1.05), 2), limit_value * 0.95)
+        avg_value = min(round(uniform(usage_value * 0.95, usage_value * 1.05), 5), limit_value * 0.95)
     # if usage value is not specified in yaml -> random avg_usage from 10% to 95% of the limit
     else:
-        avg_value = round(uniform(limit_value * 0.1, limit_value * 0.95), 2)
+        avg_value = round(uniform(limit_value * 0.1, limit_value * 0.95), 5)
 
     # min value - random float derived from avg_value,
-    min_value = round(uniform(avg_value * 0.9, avg_value * 0.98), 2)
+    min_value = round(uniform(avg_value * 0.9, avg_value * 0.98), 5)
     # max_value - random float derived from avg_value, but max of limit_value
-    max_value = min(round(uniform(avg_value * 1.02, avg_value * 1.1), 2), limit_value)
+    max_value = min(round(uniform(avg_value * 1.02, avg_value * 1.1), 5), limit_value)
 
     return avg_value, min_value, max_value
 
@@ -393,7 +393,7 @@ class OCPGenerator(AbstractGenerator):
                         memory_usage_gig, mem_limit_gig
                     )
                     memory_rss_ratio = 1 / round(uniform(1.01, 1.9), 2)
-                    cpu_throttle = choices([0, round(cpu_usage_avg / randint(10, 20), 2)], weights=(3, 1))[0]
+                    cpu_throttle = choices([0, round(cpu_usage_avg / randint(10, 20), 5)], weights=(3, 1))[0]
 
                     ros_ocp_data_pods[pod] = {
                         "namespace": namespace,
@@ -467,7 +467,7 @@ class OCPGenerator(AbstractGenerator):
                         {}, mem_limit_gig
                     )
                     memory_rss_ratio = 1 / round(uniform(1.01, 1.9), 2)
-                    cpu_throttle = choices([0, round(cpu_usage_avg / randint(10, 20), 2)], weights=(3, 1))[0]
+                    cpu_throttle = choices([0, round(cpu_usage_avg / randint(10, 20), 5)], weights=(3, 1))[0]
 
                     ros_ocp_data_pods[pod] = {
                         "namespace": namespace,
@@ -641,14 +641,15 @@ class OCPGenerator(AbstractGenerator):
 
         cpu_request = min(pod.pop("cpu_request"), cpu_limit)
         mem_request_gig = min(pod.pop("mem_request_gig"), mem_limit_gig)
-
         cpu_usage = self._get_usage_for_date(kwargs.get("cpu_usage"), start)
         cpu = round(uniform(0.02, cpu_limit), 5)
+        # ensure that cpu usage is not higher than cpu_limit
         if cpu_usage:
             cpu = min(cpu_limit, cpu_usage)
 
         mem_usage_gig = self._get_usage_for_date(kwargs.get("mem_usage_gig"), start)
         mem = round(uniform(1, mem_limit_gig), 2)
+        # ensure that mem usage is not higher than mem_limit
         if mem_usage_gig:
             mem = min(mem_limit_gig, mem_usage_gig)
 
