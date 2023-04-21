@@ -23,7 +23,31 @@ To get started developing against Nise first clone a local copy of the git repos
 
     git clone https://github.com/project-koku/nise
 
-Developing inside a virtual environment is recommended. A Pipfile is provided. Pipenv is recommended for combining virtual environment (virtualenv) and dependency management (pip). To install pipenv, use pip
+Developing inside a virtual environment is recommended.
+
+
+#### Using `venv`
+
+Create a new virtual environment with Python 3.8 or later
+
+    python3 -m venv .venvs/koku-nise-dev
+    source .venvs/koku-nise-dev/bin/activate
+
+Install the requirements
+
+    python3 -m pip install -r requirements.txt
+
+Install the application
+
+    python3 -m setup.py install
+
+Alternatively, install an editable version for development
+
+    python3 -m pip install -e .
+
+#### Using Pipenv
+
+A Pipfile is provided. Pipenv combines a virtual environment and dependency management. To install `pipenv`, use `pip`:
 
     pip3 install pipenv
 
@@ -73,23 +97,26 @@ To run pre-commit checks:
 
 #### Publishing
 
-Please remember to sync your updated dependecies to setup.py with :
+Update requirements for `nise` in `requiremnts.txt` and/or `Pipfile` and run `make requirements`.
 
-    pipenv-setup sync -p
-
-After that, make sure to increment the version in setup.py. As soon as your PR is merged to main, a new koku-nise package will built, tagged, and deployed to PyPI.
+After that, make sure to increment the version in `nise/__init__.py`. As soon as your PR is merged to `main`, a new `koku-nise` package will built, tagged, and deployed to PyPI.
 
 ##### Finer Publishing Details
 
-All of the deployment is driven entirely by a Github Action workflow, so if issues ever crop up, start in `publish-to-pypi.yml`. When a branch is merged into main, the Action will kick off. There are three things that must happen before a deployment is successful, a successful artifact build, dependencies verified in sync between the requirements files, and setup.py, and the tag must not yet exist in git. The dependency syncing/verification is done with the [pipenv-setup](https://github.com/Madoshakalaka/pipenv-setup) tool. After the artifact is deployed, it\'ll be available at [PyPI](https://pypi.org/project/koku-nise/#history).
+All of the deployment is driven entirely by a GitHub Action workflow, so if issues ever crop up, start in `publish-to-pypi.yml`. When a branch is merged into main, the Action will kick off. There are two things that must happen before a deployment is successful:
+
+1. A successful artifact build
+1. The tag must not yet exist in `git`.
+
+After the artifact is deployed, it\'ll be available at [PyPI](https://pypi.org/project/koku-nise/#history).
 
 #### Nise, Koku, and IQE Integration
 
-The iqe tests use nise to generate mock data; therefore, we need to ensure that our nise changes do not break the iqe tests. To do this you will need to copy `.env.example` to `.env` and customize as necessary. After the `.env` file is configured you will then need to run
+The IQE tests use nise to generate mock data; therefore, we need to ensure that our nise changes do not break the IQE tests. To do this you will need to copy `.env.example` to `.env` and customize as necessary. After the `.env` file is configured you will then need to run
 
     make run-iqe
 
-The `make run-iqe` command by default will run the smoke tests. However, if you want to run a specific iqe test command you can pass it in through the `IQE_CMD` parameter
+The `make run-iqe` command by default will run the smoke tests. However, if you want to run a specific IQE test command you can pass it in through the `IQE_CMD` parameter
 
     make run-iqe IQE_CMD='iqe tests plugin hccm -k test_api_aws_provider_create_foo_resource_name'
 
