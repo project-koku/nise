@@ -10,8 +10,7 @@ jobs:
   pre-commit:
     name: Pre-commit
     runs-on: ubuntu-20.04
-    strategy:
-      fail-fast: false
+    continue-on-error: true
 
     steps:
       - name: Checkout
@@ -26,55 +25,23 @@ jobs:
         uses: pre-commit/action@v3.0.0
 
 
-  sanity:
-    name: Sanity - ${{ matrix.py_version.name }}
-    runs-on: ubuntu-20.04
-    strategy:
-      fail-fast: false
-      matrix:
-        py_version:
-          - name: "3.8"
-            tox_env: sanity
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3.2.0
-
-      - name: Set up Python ${{ matrix.py_version.name }}
-        uses: actions/setup-python@v4.4.0
-        with:
-          python-version: ${{ matrix.py_version.name }}
-
-      - name: Install tox
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install tox -c tests/requirements.txt
-
-      - name: Install dependencies
-        if: steps.cache-dependencies.outputs.cache-hit != 'true'
-        run: |
-          tox --notest
-
-      - name: Run tests
-        run: tox
-
-      - name: Run unit tests
-        run: tox
-
-
-  unit:
-    name: Unit - ${{ matrix.py_version.name }}
+  ci:
+    name: ${{ matrix.test.name }} - ${{ matrix.test.py_version }}
     runs-on: ubuntu-20.04
     env:
-      TOXENV: ${{ matrix.py_version.tox_env }}
+      TOXENV: ${{ matrix.test.tox_env }}
 
     strategy:
-      max-parallel: 4
       fail-fast: false
       matrix:
-        py_version:
-          - name: "3.8"
+        test:
+          - name: Unit
+            py_version: "3.8"
             tox_env: unit-py38
+
+          - name: Sanity
+            py_version: "3.8"
+            tox_env: sanity
 
     steps:
       - name: Checkout repsository
@@ -85,10 +52,10 @@ jobs:
       - name: Display build environment
         run: printenv
 
-      - name: Set up Python ${{ matrix.py_version.name }}
+      - name: Install Python ${{ matrix.test.py_version }}
         uses: actions/setup-python@v4.4.0
         with:
-          python-version: ${{ matrix.py_version.name }}
+          python-version: ${{ matrix.test.py_version }}
 
       - name: Install tox
         run: |
@@ -102,7 +69,7 @@ jobs:
           path: |
             ~/.cache/pip
             .tox/
-          key: ${{ runner.os }}-env-${{ matrix.py_version.name }}-${{ hashFiles('tests/requirements.txt') }}-${{ secrets.ACTIONS_CACHE_KEY_UUID }}
+          key: ${{ runner.os }}-env-${{ matrix.test.py_version }}-${{ hashFiles('tests/requirements.txt') }}
 
       - name: Install dependencies
         if: steps.cache-dependencies.outputs.cache-hit != 'true'
@@ -114,9 +81,10 @@ jobs:
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3.1.1
+        if: contains(env.TOXENV, 'unit')
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           file: ./coverage.xml
           flags: unittests
-          name: Python-${{ matrix.py_version.name}}
+          name: Python-${{ matrix.test.py_version}}
           fail_ci_if_error: true
