@@ -7,11 +7,67 @@ on:
       - main
 
 jobs:
-  build:
+  pre-commit:
+    name: Pre-commit
+    runs-on: ubuntu-20.04
+    strategy:
+      fail-fast: false
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3.2.0
+
+      - name: Install Python
+        uses: actions/setup-python@v4.4.0
+        with:
+          python-version: '3.8'
+
+      - name: Run pre-commit checks
+        uses: pre-commit/action@v3.0.0
+
+
+  sanity:
+    name: Sanity - ${{ matrix.py_version.name }}
+    runs-on: ubuntu-20.04
+    strategy:
+      fail-fast: false
+      matrix:
+        py_version:
+          - name: "3.8"
+            tox_env: sanity
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3.2.0
+
+      - name: Set up Python ${{ matrix.py_version.name }}
+        uses: actions/setup-python@v4.4.0
+        with:
+          python-version: ${{ matrix.py_version.name }}
+
+      - name: Install tox
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install tox -c tests/requirements.txt
+
+      - name: Install dependencies
+        if: steps.cache-dependencies.outputs.cache-hit != 'true'
+        run: |
+          tox --notest
+
+      - name: Run tests
+        run: tox
+
+      - name: Run unit tests
+        run: tox
+
+
+  unit:
     name: Unit - ${{ matrix.py_version.name }}
     runs-on: ubuntu-20.04
     env:
       TOXENV: ${{ matrix.py_version.tox_env }}
+
     strategy:
       max-parallel: 4
       fail-fast: false
@@ -44,19 +100,16 @@ jobs:
         uses: actions/cache@v3.2.2
         with:
           path: |
-            ~/.cache/pipenv
-            ~/.local/share/virtualenvs
-          key: ${{ runner.os }}-env-${{ matrix.py_version.name }}-${{ hashFiles('**/Pipfile.lock') }}-${{ secrets.ACTIONS_CACHE_KEY_UUID }}
+            ~/.cache/pip
+            .tox/
+          key: ${{ runner.os }}-env-${{ matrix.py_version.name }}-${{ hashFiles('tests/requirements.txt') }}-${{ secrets.ACTIONS_CACHE_KEY_UUID }}
 
       - name: Install dependencies
         if: steps.cache-dependencies.outputs.cache-hit != 'true'
         run: |
           tox --notest
 
-      - name: Run sanity tests
-        run: tox -e sanity
-
-      - name: Run unit tests
+      - name: Run tests
         run: tox
 
       - name: Upload coverage to Codecov
