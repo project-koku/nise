@@ -29,7 +29,7 @@ jobs:
     name: ${{ matrix.test.name }} - ${{ matrix.test.py_version }}
     runs-on: ubuntu-20.04
     env:
-      TOXENV: ${{ matrix.test.tox_env }}
+      TOX_ENV: ${{ matrix.test.tox_env }}
 
     strategy:
       fail-fast: false
@@ -74,14 +74,14 @@ jobs:
       - name: Install dependencies
         if: steps.cache-dependencies.outputs.cache-hit != 'true'
         run: |
-          tox --notest
+          tox run --notest
 
       - name: Run tests
-        run: tox
+        run: tox run
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3.1.1
-        if: contains(env.TOXENV, 'unit')
+        if: contains(env.TOX_ENV, 'unit')
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           file: ./coverage.xml
