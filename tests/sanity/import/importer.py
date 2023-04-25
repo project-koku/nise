@@ -8,7 +8,7 @@ def main():  # noqa: C901
 
     from importlib import import_module
 
-    def convert_path_to_name(path: str) -> str:
+    def convert_relative_path_to_name(path: str) -> str:
         clean_path = pathlib.Path(path)
         if clean_path.name == "__init__.py":
             clean_path = clean_path.parent
@@ -32,21 +32,20 @@ def main():  # noqa: C901
                     break
 
             if message not in messages:
-                print(f"{path}:{line}: traceback: {exc_type.__name__} {message}")
-                messages.add(message)
+                messages.add(f"{path}:{line}: traceback: {exc_type.__name__} {message}")
 
     messages = set()
     files = sys.argv[1:]
     if not files:
-        source = pathlib.Path(__file__).parent.parent.parent.parent.joinpath("nise")
-        files = [str(file) for file in source.rglob("*.py")]
+        source_path = pathlib.Path("nise")
+        files = [str(file) for file in source_path.rglob("*.py")]
 
     for path in files:
-        name = convert_path_to_name(path)
+        name = convert_relative_path_to_name(path)
         test_module(path, name, messages)
 
     if messages:
-        sys.exit(1)
+        sys.exit("\n".join(messages))
 
 
 if __name__ == "__main__":
