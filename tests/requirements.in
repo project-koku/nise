@@ -1,6 +1,3 @@
-# Direct dependencies
--r ../requirements.txt
-
 coverage>=5.0
 flake8
 importlib-resources>=1.5.0

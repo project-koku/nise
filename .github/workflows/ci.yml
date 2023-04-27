@@ -93,7 +93,7 @@ jobs:
           path: |
             ~/.cache/pip
             .tox/
-          key: ${{ runner.os }}-env-${{ matrix.test.py_version }}-${{ hashFiles('tests/requirements.txt') }}
+          key: ${{ runner.os }}-env-${{ matrix.test.py_version }}-${{ hashFiles('setup.cfg') }}
 
       - name: Install dependencies
         if: steps.cache-dependencies.outputs.cache-hit != 'true'
