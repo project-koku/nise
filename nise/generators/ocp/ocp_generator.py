@@ -238,7 +238,7 @@ class OCPGenerator(AbstractGenerator):
             self.ocp_report_generation.update(
                 {
                     OCP_ROS_USAGE: {
-                        "_generate_hourly_data": self._gen_hourly_ros_ocp_pods_usage,
+                        "_generate_hourly_data": self._gen_quarter_hourly_ros_ocp_pods_usage,
                         "_update_data": self._update_ros_ocp_pod_data,
                     }
                 }
@@ -757,11 +757,11 @@ class OCPGenerator(AbstractGenerator):
                     row = self._update_data(row, start, end, pod=pod, **kwargs)
                     yield row
 
-    def _gen_hourly_ros_ocp_pods_usage(self, **kwargs):
+    def _gen_quarter_hourly_ros_ocp_pods_usage(self, **kwargs):
         """Create hourly data for pod usage."""
-        for hour in self.hours:
-            start = hour.get("start")
-            end = hour.get("end")
+        for quarter_hour in self.quarter_hours:
+            start = quarter_hour.get("start")
+            end = quarter_hour.get("end")
             if self._nodes:
                 for pod_name, _ in self.pods.items():
                     pod = deepcopy(self.ros_data[pod_name])

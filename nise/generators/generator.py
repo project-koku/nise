@@ -32,6 +32,7 @@ class AbstractGenerator(ABC):
         self.start_date = start_date
         self.end_date = end_date
         self.hours = self._set_hours()
+        self.quarter_hours = self._set_quarter_hours()
         self.days = self._set_days()
         self.fake = Faker()
         super().__init__()
@@ -55,6 +56,27 @@ class AbstractGenerator(ABC):
             hours.append(cur_hours)
             cur_date = cur_date + one_hour
         return hours
+
+    def _set_quarter_hours(self):
+        """Create a list of times between the start and end dates for 15 min intervals data."""
+        quarter_hours = []
+        if not self.start_date or not self.end_date:
+            raise ValueError("start_date and end_date must be date objects.")
+        if not isinstance(self.start_date, datetime.datetime):
+            raise ValueError("start_date must be a date object.")
+        if not isinstance(self.end_date, datetime.datetime):
+            raise ValueError("end_date must be a date object.")
+        if self.end_date < self.start_date:
+            raise ValueError("start_date must be a date object less than end_date.")
+
+        one_quarter_hour = datetime.timedelta(minutes=15)
+        one_second = datetime.timedelta(seconds=1)
+        cur_date = self.start_date
+        while (cur_date + one_quarter_hour) <= self.end_date:
+            cur_quarter_hours = {"start": cur_date + one_second, "end": cur_date + one_quarter_hour}
+            quarter_hours.append(cur_quarter_hours)
+            cur_date = cur_date + one_quarter_hour
+        return quarter_hours
 
     def _set_days(self):
         """Create a list of days between the start and end dates for daily azure data."""
