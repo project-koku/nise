@@ -153,7 +153,9 @@ OCP_OWNER_WORKLOAD_CHOICES = {
 }
 
 
-def get_owner_workload(pod, workload=choice(list(OCP_OWNER_WORKLOAD_CHOICES.keys()))):
+def get_owner_workload(pod, workload=None):
+    if not workload:
+        workload = choice(list(OCP_OWNER_WORKLOAD_CHOICES.keys()))
     on, ok, wl, wt = OCP_OWNER_WORKLOAD_CHOICES.get(
         workload.lower(), choice(list(OCP_OWNER_WORKLOAD_CHOICES.values()))
     )
