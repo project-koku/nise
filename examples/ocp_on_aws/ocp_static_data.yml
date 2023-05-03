@@ -43,7 +43,7 @@ generators:
                   mem_limit_gig: 4
                   pod_seconds: 3600
                   labels: label_environment:dev|label_app:catalog|label_version:prod
-                  workload: deployment
+                  workload: replicaset
               volumes:
                 - volume:
                   volume_name: pvc-volume_2
@@ -72,7 +72,7 @@ generators:
                   mem_limit_gig: 4
                   pod_seconds: 3600
                   labels: label_environment:qe|label_app:cost|label_version:beta
-                  workload: deployment
+                  workload: replicationcontroller
               volumes:
                 - volume:
                   volume_name: pvc-volume_3
@@ -101,7 +101,7 @@ generators:
                   mem_limit_gig: 4
                   pod_seconds: 3600
                   labels: label_environment:prod|label_app:analytics|label_version:gamma
-                  workload: deployment
+                  workload: deploymentconfig
               volumes:
                 - volume:
                   volume_name: pvc-volume_4
@@ -130,7 +130,7 @@ generators:
                   mem_limit_gig: 4
                   pod_seconds: 3600
                   labels: label_environment:prod|label_app:master|label_version:master
-                  workload: deployment
+                  workload: statefulset
             openshift:
               pods:
                 - pod:
@@ -141,4 +141,4 @@ generators:
                   mem_limit_gig: 4
                   pod_seconds: 3600
                   labels: label_environment:dev|label_app:master|label_version:master
-                  workload: deployment
+                  workload: daemonset
