@@ -415,6 +415,9 @@ class AzureGenerator(AbstractGenerator):
         # row['PlanName'] =
         # row['PartNumber'] =
         # row['CostCenter'] =
+
+        if hasattr(self, "product_id"):
+            row["ProductId"] = self.product_id
         return row
 
     def _map_header_to_report_version(self, row, meter_sub, amount, rate, cost, instance_id, service_tier):
