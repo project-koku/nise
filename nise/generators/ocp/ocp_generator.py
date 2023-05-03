@@ -136,20 +136,29 @@ OCP_REPORT_TYPE_TO_COLS = {
     OCP_ROS_USAGE: OCP_ROS_USAGE_COLUMN,
 }
 
-OCP_OWNER_WORKLOAD_CHOICES = (
-    # ("<none>", "<none>", None, None),  # manually created Pod - recommendation won't be generated
-    (None, "ReplicaSet", None, "deployment"),
-    (None, "ReplicaSet", "<none>", "deployment"),  # manually created ReplicaSet
-    (None, "ReplicationController", "<none>", "deploymentconfig"),  # manually created ReplicationController
-    (None, "ReplicationController", None, "deploymentconfig"),
-    (None, "StatefulSet", None, "statefulset"),
-    (None, "DaemonSet", None, "daemonset"),
-    # (None, "Job", None, "job"), # not supported by Kruize
-)
+OCP_OWNER_WORKLOAD_CHOICES = {
+    # "pod": ("<none>", "<none>", None, None),  # manually created Pod - recommendation won't be generated
+    "deployment": (None, "ReplicaSet", None, "deployment"),
+    "replicaset": (None, "ReplicaSet", "<none>", "deployment"),  # manually created ReplicaSet
+    "replicationcontroller": (
+        None,
+        "ReplicationController",
+        "<none>",
+        "deploymentconfig",
+    ),  # manually created ReplicationController
+    "deploymentconfig": (None, "ReplicationController", None, "deploymentconfig"),
+    "statefulset": (None, "StatefulSet", None, "statefulset"),
+    "daemonset": (None, "DaemonSet", None, "daemonset"),
+    # "job": (None, "Job", None, "job"), # not supported by Kruize
+}
 
 
-def get_owner_workload(pod):
-    on, ok, wl, wt = choice(OCP_OWNER_WORKLOAD_CHOICES)
+def get_owner_workload(pod, workload=None):
+    if not workload:
+        workload = choice(list(OCP_OWNER_WORKLOAD_CHOICES.keys()))
+    on, ok, wl, wt = OCP_OWNER_WORKLOAD_CHOICES.get(
+        workload.lower(), choice(list(OCP_OWNER_WORKLOAD_CHOICES.values()))
+    )
     if on == "<none>" and wl == "<none>":  # manually created Pod
         return on, ok, wl, wt
     elif wl == "<none>":  # manually created ReplicaSet or ReplicationController
@@ -386,7 +395,9 @@ class OCPGenerator(AbstractGenerator):
                         "mem_usage_gig": memory_usage_gig,
                         "pod_seconds": specified_pod.get("pod_seconds"),
                     }
-                    owner_name, owner_kind, workload, workload_type = get_owner_workload(pod)
+                    owner_name, owner_kind, workload, workload_type = get_owner_workload(
+                        pod, specified_pod.get("workload")
+                    )
 
                     cpu_usage_avg, cpu_usage_min, cpu_usage_max = generate_randomized_ros_usage(cpu_usage, cpu_limit)
                     memory_usage_gig_avg, memory_usage_gig_min, memory_usage_gig_max = generate_randomized_ros_usage(
