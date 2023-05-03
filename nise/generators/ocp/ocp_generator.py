@@ -153,7 +153,7 @@ OCP_OWNER_WORKLOAD_CHOICES = {
 }
 
 
-def get_owner_workload(pod, workload):
+def get_owner_workload(pod, workload=choice(list(OCP_OWNER_WORKLOAD_CHOICES.keys()))):
     on, ok, wl, wt = OCP_OWNER_WORKLOAD_CHOICES.get(
         workload.lower(), choice(list(OCP_OWNER_WORKLOAD_CHOICES.values()))
     )
@@ -345,7 +345,6 @@ class OCPGenerator(AbstractGenerator):
 
     def _gen_pods(self, namespaces):
         """Create pods on specific namespaces and keep relationship."""
-        ros_pods_cache = {}
         pods = {}
         ros_ocp_data_pods = {}
         namespace2pod = {}
@@ -471,7 +470,7 @@ class OCPGenerator(AbstractGenerator):
                         "mem_limit_gig": mem_limit_gig,
                         "pod_labels": self._gen_openshift_labels(),
                     }
-                    owner_name, owner_kind, workload, workload_type = get_owner_workload(pod, ros_pods_cache)
+                    owner_name, owner_kind, workload, workload_type = get_owner_workload(pod)
                     cpu_usage_avg, cpu_usage_min, cpu_usage_max = generate_randomized_ros_usage({}, cpu_limit)
                     memory_usage_gig_avg, memory_usage_gig_min, memory_usage_gig_max = generate_randomized_ros_usage(
                         {}, mem_limit_gig
