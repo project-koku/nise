@@ -17,12 +17,12 @@ usage() {
 test_generator() {
     local _source_type=$1
     log-info "Running unit tests for ${_source_type}"
-    python3 -m unittest tests.test_${_source_type}_generator
+    tox run -e unit -- tests.test_${_source_type}_generator
 }
 
 run_tox() {
     log-info "running all unit tests"
-    tox -e py38
+    tox run -e unit
 }
 
 

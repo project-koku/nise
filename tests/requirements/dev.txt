@@ -1,0 +1,17 @@
+cachetools==5.3.0
+cfgv==3.3.1
+chardet==5.1.0
+colorama==0.4.6
+distlib==0.3.6
+filelock==3.12.0
+identify==2.5.24
+nodeenv==1.7.0
+packaging==23.1
+platformdirs==3.5.0
+pluggy==1.0.0
+pre-commit==3.3.1
+pyproject_api==1.5.1
+PyYAML==6.0
+tomli==2.0.1
+tox==4.5.1
+virtualenv==20.23.0

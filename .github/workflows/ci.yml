@@ -1,4 +1,4 @@
-name: Unit Tests
+name: CI
 
 on:
   pull_request:
@@ -19,53 +19,37 @@ jobs:
       - name: Install Python
         uses: actions/setup-python@v4.4.0
         with:
-          python-version: '3.8'
+          python-version: "3.11"
 
       - name: Run pre-commit checks
         uses: pre-commit/action@v3.0.0
 
 
   ci:
-    name: ${{ matrix.test.name }} - ${{ matrix.test.py_version }}
+    name: ${{ matrix.name }} - ${{ matrix.py_version }}
     runs-on: ubuntu-20.04
     env:
-      TOX_ENV: ${{ matrix.test.tox_env }}
+      TOX_ENV: ${{ matrix.tox_env }}
 
     strategy:
       fail-fast: false
       matrix:
-        test:
-          - name: Unit
-            py_version: "3.8"
-            tox_env: unit
+        name:
+          - Sanity
+          - Unit
 
-          - name: Unit
-            py_version: "3.9"
-            tox_env: unit
+        py_version:
+          - "3.8"
+          - "3.9"
+          - "3.10"
+          - "3.11"
 
-          - name: Unit
-            py_version: "3.10"
-            tox_env: unit
-
-          - name: Unit
-            py_version: "3.11"
-            tox_env: unit
-
+        include:
           - name: Sanity
-            py_version: "3.8"
             tox_env: sanity
 
-          - name: Sanity
-            py_version: "3.9"
-            tox_env: sanity
-
-          - name: Sanity
-            py_version: "3.10"
-            tox_env: sanity
-
-          - name: Sanity
-            py_version: "3.11"
-            tox_env: sanity
+          - name: Unit
+            tox_env: unit
 
     steps:
       - name: Checkout repsository
@@ -76,15 +60,15 @@ jobs:
       - name: Display build environment
         run: printenv
 
-      - name: Install Python ${{ matrix.test.py_version }}
+      - name: Install Python ${{ matrix.py_version }}
         uses: actions/setup-python@v4.4.0
         with:
-          python-version: ${{ matrix.test.py_version }}
+          python-version: ${{ matrix.py_version }}
 
       - name: Install tox
         run: |
           python -m pip install --upgrade pip
-          python -m pip install tox -c tests/requirements.txt
+          python -m pip install tox -c tests/requirements/dev.txt
 
       - name: Cache dependencies
         id: cache-dependencies
@@ -93,7 +77,7 @@ jobs:
           path: |
             ~/.cache/pip
             .tox/
-          key: ${{ runner.os }}-env-${{ matrix.test.py_version }}-${{ hashFiles('setup.cfg') }}
+          key: ${{ runner.os }}-env-${{ matrix.py_version }}-${{ hashFiles('tests/requirements/dev.txt') }}
 
       - name: Install dependencies
         if: steps.cache-dependencies.outputs.cache-hit != 'true'
@@ -110,5 +94,5 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           file: ./coverage.xml
           flags: unittests
-          name: Python-${{ matrix.test.py_version}}
+          name: Python-${{ matrix.py_version}}
           fail_ci_if_error: true

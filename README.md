@@ -7,124 +7,22 @@ Status](https://github.com/project-koku/nise/workflows/Publish/badge.svg?branch=
 [![Unittests](https://github.com/project-koku/nise/workflows/Unit%20Tests/badge.svg)](https://github.com/project-koku/nise/actions)
 [![codecov](https://codecov.io/gh/project-koku/nise/branch/main/graph/badge.svg)](https://codecov.io/gh/project-koku/nise)
 
-## About
+### About
 
 A tool for generating sample cost and usage data for testing purposes.
 
 To submit an issue please visit https://issues.redhat.com/projects/COST/.
 
-## Getting Started
+### Installation
 
-This is a Python project developed using Python 3.8. Make sure you have at least this version installed.
+```
+pip install koku-nise
+```
 
-### Development
+### Usage
 
-To get started developing against Nise first clone a local copy of the git repository.
+AWS population requires prior setup of AWS Cost and Usage Report of same name to be created, as well as associated Bucket, Policy, Role, etc.
 
-    git clone https://github.com/project-koku/nise
-
-Developing inside a virtual environment is recommended.
-
-
-#### Using `venv`
-
-Create a new virtual environment with Python 3.8 or later
-
-    python3 -m venv .venvs/koku-nise-dev
-    source .venvs/koku-nise-dev/bin/activate
-
-Install the requirements
-
-    python3 -m pip install -r requirements.txt
-
-Install the application
-
-    python3 -m setup.py install
-
-Alternatively, install an editable version for development
-
-    python3 -m pip install -e .
-
-#### Using Pipenv
-
-A Pipfile is provided. Pipenv combines a virtual environment and dependency management. To install `pipenv`, use `pip`:
-
-    pip3 install pipenv
-
-Then project dependencies and a virtual environment can be created using
-
-    pipenv install --dev
-
-To activate the virtual environment run
-
-    pipenv shell
-
-To build the command line tool run
-
-    python setup.py install
-
-For generating sample data for developing or testing Koku, please refer to [Ingesting Nise data with Koku](docs/working_with_masu.md).
-
-#### Testing
-
-Nise uses tox to standardize the environment used when running tests. Essentially, tox manages its own virtual environment and a copy of required dependencies to run tests. To ensure a clean tox environment run
-
-    tox -r
-
-This will rebuild the tox virtual env and then run all tests.
-
-To run sanity tests
-
-    tox -e sanity
-
-To run all unit tests specifically:
-
-    make test
-
-To run unit tests for a single provider:
-
-    make test test_source=<aws|azure|gcp|ocp|oci>
-
-
-#### Linting
-
-This repository uses [pre-commit](https://pre-commit.com) to check and enforce code style. It uses [Black](https://github.com/psf/black) to reformat the Python code and [Flake8](http://flake8.pycqa.org) to check it afterwards. Other formats and text files are linted as well.
-
-To run pre-commit checks:
-
-    pre-commit run --all-files
-
-
-#### Publishing
-
-Update requirements for `nise` in `requiremnts.txt` and/or `Pipfile` and run `make requirements`.
-
-After that, make sure to increment the version in `nise/__init__.py`. As soon as your PR is merged to `main`, a new `koku-nise` package will built, tagged, and deployed to PyPI.
-
-##### Finer Publishing Details
-
-All of the deployment is driven entirely by a GitHub Action workflow, so if issues ever crop up, start in `publish-to-pypi.yml`. When a branch is merged into main, the Action will kick off. There are two things that must happen before a deployment is successful:
-
-1. A successful artifact build
-1. The tag must not yet exist in `git`.
-
-After the artifact is deployed, it\'ll be available at [PyPI](https://pypi.org/project/koku-nise/#history).
-
-#### Nise, Koku, and IQE Integration
-
-The IQE tests use nise to generate mock data; therefore, we need to ensure that our nise changes do not break the IQE tests. To do this you will need to copy `.env.example` to `.env` and customize as necessary. After the `.env` file is configured you will then need to run
-
-    make run-iqe
-
-The `make run-iqe` command by default will run the smoke tests. However, if you want to run a specific IQE test command you can pass it in through the `IQE_CMD` parameter
-
-    make run-iqe IQE_CMD='iqe tests plugin hccm -k test_api_aws_provider_create_foo_resource_name'
-
-### Prereqs
-
-- AWS population requires prior setup of AWS Cost and Usage Report of same name to be created, as well as associated Bucket, Policy, Role, etc.
-
-## Usage
 
 `nise` is a command line tool.
 
@@ -199,31 +97,17 @@ The `make run-iqe` command by default will run the smoke tests. However, if you 
 
 ### Notes
 
-1.  If `--aws-s3-report-name` or `--aws-s3-report-prefix` are specified
-    they should match what is configured in the AWS cost usage report
-    settings.
-1.  For `--aws-finalize`:
-    -   `copy` will create a local copy of the data with a `-finalized`
-        suffix and invoice id populated.
-    -   `overwrite` will generate a regular report with the invoice id
-        populated.
-1.  If `--insights-upload` is specified and pointing to a URL endpoint,
-    you must have `INSIGHTS_USER` and `INSIGHTS_PASSWORD` set in your
-    environment. Payloads for insights uploads will be split on a
-    per-file basis.
-1.  If `--static-report-file` is used start_date will default to first
-    day of current month. `start_date: last_month` will be first day of
-    previous month. `start_date: today` will start at the first hour of
-    current day. `end_date` can support relative days from the
-    `start_date`. i.e `end_date: 2` is two days after start date.
-1.  `--static-report-file` usage dates has a special `full_period` key
-    value which will specify a usage for the entire
-    `start_date - end_date` range.
-1.  `--ros-ocp-info` when we generate ros data along with this parameter
-    then we will be getting ros-ocp metrix too.
+-  If `--aws-s3-report-name` or `--aws-s3-report-prefix` are specified they should match what is configured in the AWS cost usage report settings.
+-  For `--aws-finalize`:
+    - `copy` will create a local copy of the data with a `-finalized` suffix and invoice id populated.
+    - `overwrite` will generate a regular report with the invoice id populated.
+-  If `--insights-upload` is specified and pointing to a URL endpoint, you must have `INSIGHTS_USER` and `INSIGHTS_PASSWORD` set in your environment. Payloads for insights uploads will be split on a per-file basis.
+-  If `--static-report-file` is used start_date will default to first day of current month. `start_date: last_month` will be first day of previous month. `start_date: today` will start at the first hour of current day. `end_date` can support relative days from the `start_date`. i.e `end_date: 2` is two days after start date.
+-  `--static-report-file` usage dates has a special `full_period` key value which will specify a usage for the entire `start_date - end_date` range.
+-  `--ros-ocp-info` when we generate ros data along with this parameter then we will be getting ros-ocp metrix too.
 
 
-## Examples
+### Examples
 
 [Example cost and usage report
 generation.](docs/cost_usage_report_generation.md)
@@ -231,7 +115,105 @@ generation.](docs/cost_usage_report_generation.md)
 [Example YAML generation.](docs/yaml_generation.md)
 
 
-## Contributing
+### Contributing
 
 Please refer to
 [Contributing](CONTRIBUTING.md).
+
+
+## Development
+
+This is a Python project developed using Python 3.8. Make sure you have at least this version installed.
+
+To get started developing against Nise first clone a local copy of the git repository.
+
+    git clone https://github.com/project-koku/nise
+
+Developing inside a virtual environment is recommended.
+
+
+#### Using `venv`
+
+Create a new virtual environment with Python 3.8 or later
+
+    python3 -m venv .venvs/koku-nise-dev
+    source .venvs/koku-nise-dev/bin/activate
+
+Install the package in editable mode
+
+    python3 -m pip install --editable .[dev]
+
+#### Using Pipenv
+
+A Pipfile is provided. Pipenv combines a virtual environment and dependency management. To install `pipenv`, use `pip`:
+
+    pip3 install pipenv
+
+Then project dependencies and a virtual environment can be created using
+
+    pipenv install --dev
+
+To activate the virtual environment run
+
+    pipenv shell
+
+To build the command line tool run
+
+    python sm pip install --editable .[dev]
+
+For generating sample data for developing or testing Koku, please refer to [Ingesting Nise data with Koku](docs/working_with_masu.md).
+
+#### Testing
+
+Nise uses tox to standardize the environment used when running tests. Essentially, tox manages its own virtual environment and a copy of required dependencies to run tests. To ensure a clean tox environment run
+
+    tox run -r
+
+This will rebuild the tox virtual env and then run all tests.
+
+To run sanity tests
+
+    tox run -e sanity
+
+To run all unit tests specifically:
+
+    make test
+
+To run unit tests for a single provider:
+
+    make test test_source=<aws|azure|gcp|ocp|oci>
+
+
+#### Linting
+
+This repository uses [pre-commit](https://pre-commit.com) to check and enforce code style. It uses [Black](https://github.com/psf/black) to reformat the Python code and [Flake8](http://flake8.pycqa.org) to check it afterwards. Other formats and text files are linted as well.
+
+To run pre-commit checks:
+
+    pre-commit run --all-files
+
+
+### Publishing
+
+Update requirements for `nise` in `requiremnts.txt` and/or `Pipfile` and run `make requirements`.
+
+After that, make sure to increment the version in `nise/__init__.py`. As soon as your PR is merged to `main`, a new `koku-nise` package will built, tagged, and deployed to PyPI.
+
+#### Finer Publishing Details
+
+All of the deployment is driven entirely by a GitHub Action workflow, so if issues ever crop up, start in `publish-to-pypi.yml`. When a branch is merged into main, the Action will kick off. There are two things that must happen before a deployment is successful:
+
+1. A successful artifact build
+1. The tag must not yet exist in `git`.
+
+After the artifact is deployed, it\'ll be available at [PyPI](https://pypi.org/project/koku-nise/#history).
+
+#### Nise, Koku, and IQE Integration
+
+The IQE tests use nise to generate mock data; therefore, we need to ensure that our nise changes do not break the IQE tests. To do this you will need to copy `.env.example` to `.env` and customize as necessary. After the `.env` file is configured you will then need to run
+
+    make run-iqe
+
+The `make run-iqe` command by default will run the smoke tests. However, if you want to run a specific IQE test command you can pass it in through the `IQE_CMD` parameter
+
+    make run-iqe IQE_CMD='iqe tests plugin hccm -k test_api_aws_provider_create_foo_resource_name'
