@@ -34,7 +34,7 @@ class MarketplaceGenerator(AWSGenerator):
         "Red Hat Enterprise Linux 8",
     )
 
-    def __init__(self, start_date, end_date, currency, payer_account, usage_accounts, attributes={}, tag_cols=None):
+    def __init__(self, start_date, end_date, currency, payer_account, usage_accounts, attributes=None, tag_cols=None):
         """Initialize the generator."""
         super().__init__(start_date, end_date, currency, payer_account, usage_accounts, attributes, tag_cols)
 
@@ -43,8 +43,9 @@ class MarketplaceGenerator(AWSGenerator):
         self._resource_id = "i-{}".format(self.fake.ean8())
         self._product_sku = self.fake.pystr(min_chars=12, max_chars=12).upper()
 
-        for attribute in self.attributes:
-            setattr(self, f"_{attribute}", self.attributes.get(attribute))
+        if self.attributes:
+            for attribute in self.attributes:
+                setattr(self, f"_{attribute}", self.attributes.get(attribute))
 
         if tag_cols:
             self.RESOURCE_TAG_COLS.update(tag_cols)

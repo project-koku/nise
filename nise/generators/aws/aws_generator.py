@@ -230,6 +230,7 @@ class AWSGenerator(AbstractGenerator):
         "resourceTags/user:openshift_cluster",
         "resourceTags/user:openshift_project",
         "resourceTags/user:openshift_node",
+        "resourceTags/aws:createdBy",
     }
 
     AWS_COLUMNS = set(
@@ -243,12 +244,12 @@ class AWSGenerator(AbstractGenerator):
         + tuple(RESOURCE_TAG_COLS)
     )
 
-    def __init__(self, start_date, end_date, currency, payer_account, usage_accounts, attributes={}, tag_cols=None):
+    def __init__(self, start_date, end_date, currency, payer_account, usage_accounts, attributes=None, tag_cols=None):
         """Initialize the generator."""
         self.payer_account = payer_account
         self.currency = currency
         self.usage_accounts = usage_accounts
-        self.attributes = attributes
+        self.attributes = attributes if attributes else {}
         self._tags = None
         self._cost_category = None
         self.num_instances = 1 if attributes else randint(2, 60)
