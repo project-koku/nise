@@ -21,6 +21,7 @@ from random import choice
 from random import randint
 
 from nise.generators.aws.aws_constants import REGIONS
+from nise.generators.common import SameLengthDict
 from nise.generators.generator import AbstractGenerator
 
 
@@ -231,12 +232,7 @@ class AWSGenerator(AbstractGenerator):
         "resourceTags/user:openshift_node",
         "resourceTags/aws:createdBy",
     }
-    COST_CATEGORY_COLS = {
-        "costCategory/Charge type",
-        "costCategory/CostCenter",
-        "costCategory/OUs",
-        "costCategory/Organization",
-    }
+
     AWS_COLUMNS = set(
         IDENTITY_COLS
         + BILL_COLS
@@ -246,7 +242,6 @@ class AWSGenerator(AbstractGenerator):
         + RESERVE_COLS
         + SAVINGS_COLS
         + tuple(RESOURCE_TAG_COLS)
-        + tuple(COST_CATEGORY_COLS)
     )
 
     def __init__(self, start_date, end_date, currency, payer_account, usage_accounts, attributes=None, tag_cols=None):
@@ -265,6 +260,9 @@ class AWSGenerator(AbstractGenerator):
             if _cost_categories := attributes.get("cost_category"):
                 self._cost_category = _cost_categories
                 self.AWS_COLUMNS.update(_cost_categories.keys())
+            else:
+                default = self._default_cost_category()
+                self.AWS_COLUMNS.update(default.keys())
 
         super().__init__(start_date, end_date)
 
@@ -291,6 +289,18 @@ class AWSGenerator(AbstractGenerator):
         else:
             tags = choice(options)
         return tags
+
+    def _default_cost_category(self):
+        """Randomly pick category based on options."""
+        options_mapping = SameLengthDict(
+            {
+                "costCategory/Charge type": ["charge1", "charge2", "charge3"],
+                "costCategory/CostCenter": ["734", "724", "902"],
+                "costCategory/OUs": ["Green", "Red", "Blue"],
+                "costCategory/Organization": ["circle", "triangle", "square"],
+            }
+        )
+        return options_mapping
 
     def _init_data_row(self, start, end, **kwargs):  # noqa: C901
         """Create a row of data with placeholder for all headers."""
@@ -362,13 +372,10 @@ class AWSGenerator(AbstractGenerator):
             for category in self._cost_category.keys():
                 row[category] = self._cost_category[category]
         else:
-            num_category = self.fake.random_int(0, 5)
-            for _ in range(num_category):
-                seen_categories = set()
-                category_key = choice(list(self.COST_CATEGORY_COLS))
-                if category_key not in seen_categories:
-                    row[category_key] = self.fake.word()
-                    seen_categories.update([category_key])
+            num_category = self.fake.random_int(0, 2)
+            default = self._default_cost_category()
+            for key in default.keys():
+                row[key] = default[key][num_category]
 
     def _generate_region_short_code(self, region):
         """Generate the AWS short code for a region."""
