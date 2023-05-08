@@ -65,9 +65,7 @@ def main():
     args = parser.parse_args()
 
     requested_files: set[str] = set(args.requested_tests or [])
-    requirements = [
-        req for req in requirements if req.name in requested_files
-    ] if requested_files else requirements
+    requirements = [req for req in requirements if req.name in requested_files] if requested_files else requirements
 
     for file in requirements:
         print(f"=== Freezing {file.name} requirements at {file.freeze_file} ===")
