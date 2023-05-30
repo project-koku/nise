@@ -157,10 +157,10 @@ OCP_OWNER_WORKLOAD_CHOICES = {
 
 def get_owner_workload(pod, workload=None):
     if not workload:
-        workload = choice(list(OCP_OWNER_WORKLOAD_CHOICES.keys())[:-2])  # omit job and pod from random choices
+        workload = choice(list(OCP_OWNER_WORKLOAD_CHOICES.keys())[:-2])  # omit job and manual_pod from random choices
     on, ok, wl, wt = OCP_OWNER_WORKLOAD_CHOICES.get(
         workload.lower(),
-        choice(list(OCP_OWNER_WORKLOAD_CHOICES.values())[:-2]),  # omit job and pod from random choices
+        choice(list(OCP_OWNER_WORKLOAD_CHOICES.values())[:-2]),  # omit job and manual_pod from random choices
     )
     if on == "<none>" and wl == "<none>":  # manually created Pod
         return on, ok, wl, wt
