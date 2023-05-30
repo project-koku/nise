@@ -136,7 +136,7 @@ OCP_REPORT_TYPE_TO_COLS = {
     OCP_ROS_USAGE: OCP_ROS_USAGE_COLUMN,
 }
 
-# No recommendations are generated for job and pod workloads! Keep these two options as the last two items
+# No recommendations are generated for job and manual_pod workloads! Keep these two options as the last two items
 # in the dict to guarantee they are not randomly picked in get_owner_workload function.
 OCP_OWNER_WORKLOAD_CHOICES = {
     "deployment": (None, "ReplicaSet", None, "deployment"),
@@ -151,7 +151,7 @@ OCP_OWNER_WORKLOAD_CHOICES = {
     "statefulset": (None, "StatefulSet", None, "statefulset"),
     "daemonset": (None, "DaemonSet", None, "daemonset"),
     "job": (None, "Job", None, "job"),  # not supported by Kruize - recommendation won't be generated!
-    "pod": ("<none>", "<none>", None, None),  # manually created Pod - recommendation won't be generated!
+    "manual_pod": ("<none>", "<none>", None, None),  # manually created Pod - recommendation won't be generated!
 }
 
 
