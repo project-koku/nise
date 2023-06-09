@@ -151,6 +151,11 @@ class EC2Generator(AWSGenerator):
         row["pricing/term"] = "OnDemand"
         row["pricing/unit"] = "Hrs"
         row["savingsPlan/SavingsPlanEffectiveCost"] = saving
+
+        # Overwrite lineItem/LineItemType for items with applied Savings plan
+        if saving is not None:
+            row["lineItem/LineItemType"] = "SavingsPlanCoveredUsage"
+
         self._add_tag_data(row)
         self._add_category_data(row)
         return row
