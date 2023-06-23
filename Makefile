@@ -54,3 +54,7 @@ run-iqe-local:
 
 requirements:
 	pipenv lock
+	freeze-test-requirements
+
+freeze-test-requirements:
+	$(PYTHON) scripts/freeze.py
