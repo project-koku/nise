@@ -29,6 +29,7 @@ generators:
       processor_arch: {{  ec2.processor_arch }}
       instance_type:
         inst_type: {{ ec2.instance_type.inst_type }}
+        physical_cores: {{ ec2.instance_type.physical_cores }}
         vcpu: {{ ec2.instance_type.vcpu }}
         memory: {{ ec2.instance_type.memory }}
         storage: {{ ec2.instance_type.storage }}

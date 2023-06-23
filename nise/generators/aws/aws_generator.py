@@ -121,6 +121,7 @@ PRODUCT_COLS = (
     "product/operation",
     "product/operationsSupport",
     "product/origin",
+    "product/physicalCores",
     "product/physicalProcessor",
     "product/platousagetype",
     "product/platovolumetype",

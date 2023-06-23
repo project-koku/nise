@@ -11,6 +11,7 @@
           resourceTags/user:version: alpha
         instance_type:
           inst_type: m5.large
+          physical_cores: 1
           vcpu: 2
           memory: '8 GiB'
           storage: 'EBS Only'
@@ -28,6 +29,7 @@
           resourceTags/user:version: alpha
         instance_type:
           inst_type: m5.large
+          physical_cores: 1
           vcpu: 2
           memory: '8 GiB'
           storage: 'EBS Only'
