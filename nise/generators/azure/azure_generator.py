@@ -18,6 +18,7 @@
 import calendar
 import datetime
 import json
+import random
 from random import choice
 from random import randint
 from random import uniform
@@ -379,14 +380,20 @@ class AzureGenerator(AbstractGenerator):
         # NOTE: Commented out columns exist in the report, but we don't have enough
         # information to date to accurately simulate values.
         if self._service_name == "Virtual Machines":
+            # Marketplace CCSP
             if getattr(self, "_CCSP", False):
-                publisher_name = "Microsoft"
+                publisher_type = random.choice(["Marketplace", "Azure"])
+                if publisher_type == "Marketplace":
+                    publisher_name = random.choice(["Microsoft", "Azure"])
+                else:
+                    publisher_name = ""
                 service_family = "Compute"
                 row["MeterCategory"] = "Virtual Machine Licenses"
+            # Marketplace private offer
             else:
                 publisher_name = "Red Hat Enterprise Linux"
                 service_family = choice(self.SERVICE_FAMILIES + ("Azure Marketplace Services",))
-            publisher_type = "Marketplace"
+                publisher_type = "Marketplace"
         else:
             service_family = choice(self.SERVICE_FAMILIES)
             publisher_name = ""
