@@ -1420,7 +1420,7 @@ class GCPReportTestCase(TestCase):
         self.assertTrue(os.path.isfile(expected_output_file_path))
         os.remove(expected_output_file_path)
 
-    @patch("nise.report.uuid4", side_effect=["nise"])
+    @patch("nise.report.uuid4", return_value="25150e4f-bfe5-406b-aaa9-b19f59875420")
     def test_gcp_create_report_no_report_prefix(self, patch_etag):
         """Test the gcp report creation method."""
         now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
@@ -1432,7 +1432,7 @@ class GCPReportTestCase(TestCase):
         invoice_month = yesterday.strftime("%Y%m")
         scan_start = yesterday.date()
         scan_end = now.date()
-        expected_file_name = f"{invoice_month}_nise_{scan_start}:{scan_end}.csv"
+        expected_file_name = f"{invoice_month}_{patch_etag.return_value}_{scan_start}:{scan_end}.csv"
         expected_output_file_path = "{}/{}".format(os.getcwd(), expected_file_name)
         self.assertTrue(os.path.isfile(expected_output_file_path))
         os.remove(expected_output_file_path)
