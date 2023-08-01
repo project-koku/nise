@@ -665,12 +665,19 @@ class AWSReportTestCase(TestCase):
         }
         fix_dates(options, "aws")
         aws_create_report(options)
-        month_output_file_name = "{}-{}-{}".format(calendar.month_name[now.month], now.year, "cur_report")
-        expected_month_output_file_1 = "{}/{}-1.csv".format(os.getcwd(), month_output_file_name)
-        expected_month_output_file_2 = "{}/{}-2.csv".format(os.getcwd(), month_output_file_name)
+        month_output_file_name = f"{calendar.month_name[now.month]}-{now.year}-cur_report"
+        expected_month_output_file_1 = f"{os.path.join(os.getcwd(), month_output_file_name)}-1"
+        expected_month_output_file_2 = f"{os.path.join(os.getcwd(), month_output_file_name)}-2"
 
-        self.assertTrue(os.path.isfile(expected_month_output_file_1))
-        self.assertTrue(os.path.isfile(expected_month_output_file_2))
+        if now.day == 1:
+            # First of the month will have numbered files for the previous month but not the current month
+            expected_month_output_file_1 = f"{os.path.join(os.getcwd(), month_output_file_name)}"
+            expected_month_output_file_2 = os.path.join(
+                os.getcwd(), f"{calendar.month_name[yesterday.month]}-{yesterday.year}-cur_report-1"
+            )
+
+        self.assertTrue(os.path.isfile(f"{expected_month_output_file_1}.csv"))
+        self.assertTrue(os.path.isfile(f"{expected_month_output_file_2}.csv"))
 
         # cleanup any leftover files
         regex = re.compile(month_output_file_name)
@@ -1138,19 +1145,24 @@ class OCPReportTestCase(TestCase):
             if "ocp_ros_usage" == report_type:
                 continue
             with self.subTest(report=report_type):
-                month_output_file_name = "{}-{}-{}-{}".format(
-                    calendar.month_name[now.month], now.year, cluster_id, report_type
-                )
+                month_output_file_name = f"{calendar.month_name[now.month]}-{now.year}-{cluster_id}-{report_type}"
                 month_output_file_pt_1 = f"{month_output_file_name}-1"
                 month_output_file_pt_2 = f"{month_output_file_name}-2"
 
-                expected_month_output_file_1 = "{}/{}.csv".format(os.getcwd(), month_output_file_pt_1)
-                expected_month_output_file_2 = "{}/{}.csv".format(os.getcwd(), month_output_file_pt_2)
+                if now.day == 1:
+                    # First of the month will have numbered files for the previous month but not the current month
+                    month_output_file_pt_1 = month_output_file_name
+                    month_output_file_pt_2 = (
+                        f"{calendar.month_name[yesterday.month]}-{yesterday.year}-{cluster_id}-{report_type}-1"
+                    )
+
+                expected_month_output_file_1 = os.path.join(os.getcwd(), month_output_file_pt_1)
+                expected_month_output_file_2 = os.path.join(os.getcwd(), month_output_file_pt_2)
 
                 print(f"{report_type}: {expected_month_output_file_1}")
                 print(f"{report_type}: {expected_month_output_file_2}")
-                self.assertTrue(os.path.isfile(expected_month_output_file_1))
-                self.assertTrue(os.path.isfile(expected_month_output_file_2))
+                self.assertTrue(os.path.isfile(f"{expected_month_output_file_1}.csv"))
+                self.assertTrue(os.path.isfile(f"{expected_month_output_file_2}.csv"))
 
                 # cleanup any leftover files
                 regex = re.compile(month_output_file_name)
