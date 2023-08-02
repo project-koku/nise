@@ -1194,7 +1194,8 @@ class AzureReportTestCase(TestCase):
                         "end_date": str(now.date() + relativedelta(months=+2)),
                     }
                 },
-            ]
+            ],
+            "accounts": {"payer": 9999999999999, "user": [9999999999999], "subscription_name": "static_subs_name"},
         }
         options = {
             "start_date": yesterday,
@@ -1205,6 +1206,7 @@ class AzureReportTestCase(TestCase):
             "static_report_data": static_azure_data,
             "write_monthly": True,
         }
+
         azure_create_report(options)
         local_path = self.MOCK_AZURE_REPORT_FILENAME
         self.assertTrue(os.path.isfile(local_path))
