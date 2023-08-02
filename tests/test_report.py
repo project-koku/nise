@@ -1195,7 +1195,11 @@ class AzureReportTestCase(TestCase):
                     }
                 },
             ],
-            "accounts": {"payer": 9999999999999, "user": [9999999999999], "subscription_name": "static_subs_name"},
+            "accounts": {
+                "payer": "38f1d748-3ac7-4b7f-a5ae-8b5ff16db82c",
+                "user": ["38f1d748-3ac7-4b7f-a5ae-8b5ff16db82c"],
+                "subscription_name": "static_subscription_name",
+            },
         }
         options = {
             "start_date": yesterday,
