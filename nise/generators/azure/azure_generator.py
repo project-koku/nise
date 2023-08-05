@@ -126,6 +126,8 @@ AZURE_COLUMNS_V2 = (
     "exchangeRateDate",
 )
 
+DATE_FMT = "%Y-%m-%d"
+
 
 class AzureGenerator(AbstractGenerator):
     """Defines an abstract class for generators."""
@@ -305,9 +307,9 @@ class AzureGenerator(AbstractGenerator):
             row["BillingAccountName"] = self.account_info.get("billing_account_name")
             row["BillingProfileId"] = self.account_info.get("billing_account_id")
             row["BillingProfileName"] = self.account_info.get("billing_account_name")
-            row["Date"] = start.date().strftime("%m/%d/%Y")
-            row["BillingPeriodStartDate"] = self.first_day_of_month(start).strftime("%m/%d/%Y")
-            row["BillingPeriodEndDate"] = self.last_day_of_month(start).strftime("%m/%d/%Y")
+            row["Date"] = start.date().strftime(DATE_FMT)
+            row["BillingPeriodStartDate"] = self.first_day_of_month(start).strftime(DATE_FMT)
+            row["BillingPeriodEndDate"] = self.last_day_of_month(start).strftime(DATE_FMT)
         else:
             row["SubscriptionGuid"] = self.subscription_guid
             row["UsageDateTime"] = start
