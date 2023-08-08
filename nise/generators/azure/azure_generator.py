@@ -62,7 +62,7 @@ AZURE_COLUMNS_V2 = (
     "Date",
     "ProductName",
     "MeterCategory",
-    "MeterSubCategory",
+    "MeterSubcategory",
     "MeterId",
     "MeterName",
     "MeterRegion",
@@ -297,9 +297,9 @@ class AzureGenerator(AbstractGenerator):
 
     def _add_common_usage_info(self, row, start, end, **kwargs):
         """Add common usage information."""
+        row["SubscriptionGuid"] = self.subscription_guid
         if self.azure_columns == AZURE_COLUMNS_V2:
             usage_account = choice(self.usage_accounts)
-            row["SubscriptionId"] = self.subscription_guid
             row["SubscriptionName"] = self.account_info.get("subscription_name")
             row["AccountName"] = usage_account[0]
             row["AccountOwnerId"] = usage_account[1]
@@ -311,7 +311,6 @@ class AzureGenerator(AbstractGenerator):
             row["BillingPeriodStartDate"] = self.first_day_of_month(start).strftime(DATE_FMT)
             row["BillingPeriodEndDate"] = self.last_day_of_month(start).strftime(DATE_FMT)
         else:
-            row["SubscriptionGuid"] = self.subscription_guid
             row["UsageDateTime"] = start
         return row
 
