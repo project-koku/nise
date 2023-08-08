@@ -1194,7 +1194,12 @@ class AzureReportTestCase(TestCase):
                         "end_date": str(now.date() + relativedelta(months=+2)),
                     }
                 },
-            ]
+            ],
+            "accounts": {
+                "payer": "38f1d748-3ac7-4b7f-a5ae-8b5ff16db82c",
+                "user": ["38f1d748-3ac7-4b7f-a5ae-8b5ff16db82c"],
+                "subscription_name": "static_subscription_name",
+            },
         }
         options = {
             "start_date": yesterday,
@@ -1205,6 +1210,7 @@ class AzureReportTestCase(TestCase):
             "static_report_data": static_azure_data,
             "write_monthly": True,
         }
+
         azure_create_report(options)
         local_path = self.MOCK_AZURE_REPORT_FILENAME
         self.assertTrue(os.path.isfile(local_path))
