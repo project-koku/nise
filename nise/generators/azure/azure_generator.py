@@ -52,6 +52,7 @@ AZURE_COLUMNS = (
 )
 
 AZURE_COLUMNS_V2 = (
+    "SubscriptionGuid",
     "InvoiceSectionName",
     "AccountName",
     "AccountOwnerId",
@@ -423,7 +424,7 @@ class AzureGenerator(AbstractGenerator):
 
     def _map_header_to_report_version(self, row, meter_sub, amount, rate, cost, instance_id, service_tier):
         if self.azure_columns == AZURE_COLUMNS_V2:
-            row["MeterSubCategory"] = meter_sub
+            row["MeterSubcategory"] = meter_sub
             row["Quantity"] = amount
             row["EffectivePrice"] = rate
             row["UnitPrice"] = rate
