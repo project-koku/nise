@@ -24,8 +24,11 @@ class EC2Generator(AWSGenerator):
     """Generator for EC2 data."""
 
     INSTANCE_TYPES = (
+        # NOTE: Each tuple represents
+        # (instance type, physical_cores, vCPUs, memory, storage, family, cost, rate, savings, description)
         (
             "m5.large",
+            "1",
             "2",
             "8 GiB",
             "EBS Only",
@@ -37,6 +40,7 @@ class EC2Generator(AWSGenerator):
         ),
         (
             "c5d.2xlarge",
+            "4",
             "8",
             "16 GiB",
             "1 x 200 NVMe SSD",
@@ -48,6 +52,7 @@ class EC2Generator(AWSGenerator):
         ),
         (
             "c4.xlarge",
+            "2",
             "4",
             "7.5 GiB",
             "EBS-Only",
@@ -59,6 +64,7 @@ class EC2Generator(AWSGenerator):
         ),
         (
             "r4.large",
+            "1",
             "2",
             "15.25 GiB",
             "EBS-Only",
@@ -92,6 +98,7 @@ class EC2Generator(AWSGenerator):
             if instance_type:
                 self._instance_type = (
                     instance_type.get("inst_type"),
+                    instance_type.get("physical_cores"),
                     instance_type.get("vcpu"),
                     instance_type.get("memory"),
                     instance_type.get("storage"),
@@ -104,7 +111,7 @@ class EC2Generator(AWSGenerator):
 
     def _update_data(self, row, start, end, **kwargs):
         """Update data with generator specific data."""
-        inst_type, vcpu, memory, storage, family, cost, rate, saving, description = self._instance_type
+        inst_type, physical_cores, vcpu, memory, storage, family, cost, rate, saving, description = self._instance_type
         inst_description = description.format(cost, inst_type)
         location, aws_region, avail_zone, _ = self._get_location()
         row = self._add_common_usage_info(row, start, end)
@@ -134,6 +141,7 @@ class EC2Generator(AWSGenerator):
         row["product/networkPerformance"] = "Moderate"
         row["product/operatingSystem"] = "Linux"
         row["product/operation"] = "RunInstances"
+        row["product/physicalCores"] = physical_cores
         row["product/physicalProcessor"] = "Intel Xeon Family"
         row["product/preInstalledSw"] = "NA"
         row["product/processorArchitecture"] = self._processor_arch
@@ -151,6 +159,11 @@ class EC2Generator(AWSGenerator):
         row["pricing/term"] = "OnDemand"
         row["pricing/unit"] = "Hrs"
         row["savingsPlan/SavingsPlanEffectiveCost"] = saving
+
+        # Overwrite lineItem/LineItemType for items with applied Savings plan
+        if saving is not None:
+            row["lineItem/LineItemType"] = "SavingsPlanCoveredUsage"
+
         self._add_tag_data(row)
         self._add_category_data(row)
         return row

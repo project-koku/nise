@@ -356,7 +356,7 @@ def _generate_azure_account_info(static_report_data=None):
     company_name = fake.company()
     company_email = company_name.replace(" ", "").replace(",", "")
     email_suffix = f"@{company_email}.com"
-    subscription_name = f"{company_name} Azure Subscription"
+
     billing_account_id = fake.ean(length=8)
     billing_account_name = company_name
     accounts = []
@@ -364,6 +364,7 @@ def _generate_azure_account_info(static_report_data=None):
         subscription_guid = static_report_data.get("payer")
         usage_accounts = tuple(static_report_data.get("user"))
         currency_code = static_report_data.get("currency_code", "USD")
+        subscription_name = static_report_data.get("subscription_name", f"{company_name} Azure Subscription")
         for _ in usage_accounts:
             account_name = fake.city()
             trimmed_account_name = account_name.replace(" ", "")
@@ -379,6 +380,7 @@ def _generate_azure_account_info(static_report_data=None):
             fake.ean(length=13),
         )
         currency_code = "USD"
+        subscription_name = f"{company_name} Azure Subscription"
         for _ in usage_accounts:
             account_name = fake.city()
             trimmed_account_name = account_name.replace(" ", "")

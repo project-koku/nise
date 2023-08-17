@@ -136,8 +136,9 @@ OCP_REPORT_TYPE_TO_COLS = {
     OCP_ROS_USAGE: OCP_ROS_USAGE_COLUMN,
 }
 
+# No recommendations are generated for job and manual_pod workloads! Keep these two options as the last two items
+# in the dict to guarantee they are not randomly picked in get_owner_workload function.
 OCP_OWNER_WORKLOAD_CHOICES = {
-    # "pod": ("<none>", "<none>", None, None),  # manually created Pod - recommendation won't be generated
     "deployment": (None, "ReplicaSet", None, "deployment"),
     "replicaset": (None, "ReplicaSet", "<none>", "deployment"),  # manually created ReplicaSet
     "replicationcontroller": (
@@ -149,15 +150,17 @@ OCP_OWNER_WORKLOAD_CHOICES = {
     "deploymentconfig": (None, "ReplicationController", None, "deploymentconfig"),
     "statefulset": (None, "StatefulSet", None, "statefulset"),
     "daemonset": (None, "DaemonSet", None, "daemonset"),
-    # "job": (None, "Job", None, "job"), # not supported by Kruize
+    "job": (None, "Job", None, "job"),  # not supported by Kruize - recommendation won't be generated!
+    "manual_pod": ("<none>", "<none>", None, None),  # manually created Pod - recommendation won't be generated!
 }
 
 
 def get_owner_workload(pod, workload=None):
     if not workload:
-        workload = choice(list(OCP_OWNER_WORKLOAD_CHOICES.keys()))
+        workload = choice(list(OCP_OWNER_WORKLOAD_CHOICES.keys())[:-2])  # omit job and manual_pod from random choices
     on, ok, wl, wt = OCP_OWNER_WORKLOAD_CHOICES.get(
-        workload.lower(), choice(list(OCP_OWNER_WORKLOAD_CHOICES.values()))
+        workload.lower(),
+        choice(list(OCP_OWNER_WORKLOAD_CHOICES.values())[:-2]),  # omit job and manual_pod from random choices
     )
     if on == "<none>" and wl == "<none>":  # manually created Pod
         return on, ok, wl, wt

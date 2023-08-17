@@ -354,6 +354,7 @@ class TestEC2Generator(AWSGeneratorTestCase):
         """Test the unique init options for Data Transfer."""
         self.instance_type = {
             "inst_type": "1",
+            "physical_cores": "1",
             "vcpu": "1",
             "memory": "1",
             "storage": "1",
