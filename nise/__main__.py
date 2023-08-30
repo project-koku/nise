@@ -275,6 +275,13 @@ def add_ocp_parser_args(parser):
         action="store_true",
         help="Generate ROS for Openshift data",
     )
+    parser.add_argument(
+        "--daily-reports",
+        dest="daily_reports",
+        required=False,
+        action="store_true",
+        help="Flag used to add the `daily_reports` marker to manifests.",
+    )
 
 
 def add_oci_parser_args(parser):

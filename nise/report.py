@@ -861,14 +861,8 @@ def ocp_create_report(options):  # noqa: C901
                     monthly_ros_files[num_file], temp_filename, "payload"
                 )
 
-            manifest_file_names = ", ".join(f'"{w}"' for w in temp_files)
-            if not temp_ros_files:
-                manifest_ros_data = None
-            elif len(temp_ros_files) == 1:
-                (key,) = temp_ros_files.keys()
-                manifest_ros_data = f"{key}"
-            else:
-                manifest_ros_data = ", ".join(f'"{w}"' for w in temp_ros_files)[1:-1]
+            manifest_file_names = list(temp_files)
+            manifest_ros_data = list(temp_ros_files) if temp_ros_files else None
             cr_status = {
                 "clusterID": "4e009161-4f40-42c8-877c-3e59f6baea3d",
                 "clusterVersion": "stable-4.6",
@@ -903,17 +897,21 @@ def ocp_create_report(options):  # noqa: C901
             }
             cr_status = json.dumps(cr_status)
             manifest_values = {
-                "ocp_cluster_id": cluster_id,
-                "ocp_assembly_id": ocp_assembly_id,
-                "report_datetime": report_datetime,
-                "files": manifest_file_names[1:-1],
-                "ros_files": manifest_ros_data,
+                "cluster_id": cluster_id,
+                "uuid": ocp_assembly_id,
+                "date": report_datetime,
+                "files": manifest_file_names,
                 "start": gen_start_date,
                 "end": gen_end_date,
                 "version": __version__,
                 "certified": False,
                 "cr_status": cr_status,
             }
+            if manifest_ros_data:
+                manifest_values["resource_optimization_files"] = manifest_ros_data
+            if options.get("daily_reports"):
+                manifest_values["daily_reports"] = True
+
             manifest_data = ocp_generate_manifest(manifest_values)
             temp_manifest = _write_manifest(manifest_data)
             temp_manifest_name = create_temporary_copy(temp_manifest, "manifest.json", "payload")
