@@ -90,7 +90,7 @@ class GCPDatabaseGenerator(GCPGenerator):
         credit, credit_total = self._gen_credit(self.credit_total, self._credit_amount)
         self.credit_total = credit_total
         row["credits"] = credit
-        usage_date = datetime.strptime(row.get("usage_start_time"), "%Y-%m-%dT%H:%M:%S")
+        usage_date = datetime.strptime(row.get("usage_start_time"), "%Y-%m-%dT%H:%M:%S%z")
         row["invoice.month"] = f"{usage_date.year}{usage_date.month:02d}"
 
         if self.attributes:
@@ -157,9 +157,9 @@ class JSONLGCPDatabaseGenerator(GCPDatabaseGenerator):
         credit, credit_total = self._gen_credit(self.credit_total, self._credit_amount, True)
         self.credit_total = credit_total
         row["credits"] = credit
-        usage_date = datetime.strptime(row.get("usage_start_time"), "%Y-%m-%dT%H:%M:%S")
+        usage_date = datetime.strptime(row.get("usage_start_time"), "%Y-%m-%dT%H:%M:%S%z")
         invoice = {}
-        usage_date = datetime.strptime(row.get("usage_start_time"), "%Y-%m-%dT%H:%M:%S")
+        usage_date = datetime.strptime(row.get("usage_start_time"), "%Y-%m-%dT%H:%M:%S%z")
         invoice["month"] = f"{usage_date.year}{usage_date.month:02d}"
         row["invoice"] = invoice
         if self.resource_level:
