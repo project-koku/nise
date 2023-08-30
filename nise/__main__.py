@@ -21,6 +21,7 @@ import datetime
 import os
 import sys
 import time
+from datetime import timezone
 from pathlib import Path
 from pprint import pformat
 
@@ -334,21 +335,21 @@ def create_parser():
     parent_parser.add_argument(
         "-s",
         "--start-date",
-        metavar="YYYY-MM-DD",
+        metavar="YYYY-MM-DD[THH:MM:SS +0000]",
         dest="start_date",
         required=False,
         type=valid_date,
-        help="Date to start generating data (YYYY-MM-DD)",
+        help="Date to start generating data (YYYY-MM-DD[THH:MM:SS +0000])",
     )
     parent_parser.add_argument(
         "-e",
         "--end-date",
-        metavar="YYYY-MM-DD",
+        metavar="YYYY-MM-DD[THH:MM:SS +0000]",
         dest="end_date",
         required=False,
         type=valid_date,
         default=today(),
-        help="Date to end generating data (YYYY-MM-DD). Default is today.",
+        help="Date to end generating data (YYYY-MM-DD[THH:MM:SS +0000]). Default is today.",
     )
     parent_parser.add_argument(
         "--file-row-limit",
@@ -665,6 +666,8 @@ def _load_static_report_data(options):
             generated_start_date = calculate_start_date(start_date)
             start_dates.append(generated_start_date)
 
+            print(start_dates)
+
             if attributes.get("end_date"):
                 generated_end_date = calculate_end_date(generated_start_date, attributes.get("end_date"))
             elif options.get("end_date") and options.get("end_date").date() != today().date():
@@ -705,6 +708,7 @@ def get_start_date(attributes, options):
 
 def calculate_start_date(start_date):
     """Return a datetime for the start date."""
+    print(f"calculate_start_date: start_date: {start_date}")
     if start_date == "last_month":
         generated_start_date = today().replace(day=1, hour=0, minute=0, second=0) + relativedelta(months=-1)
     elif start_date == "today":
@@ -715,6 +719,8 @@ def calculate_start_date(start_date):
         generated_start_date = date_parser.parse(start_date)
     else:
         generated_start_date = today().replace(day=1, hour=0, minute=0, second=0)
+    if generated_start_date.tzinfo is None:
+        generated_start_date = generated_start_date.replace(tzinfo=timezone.utc)
     return generated_start_date
 
 
@@ -736,6 +742,8 @@ def calculate_end_date(start_date, end_date):
             generated_end_date = offset_date
         else:
             generated_end_date = min(start_date + relativedelta(days=offset), today())
+    if generated_end_date.tzinfo is None:
+        generated_end_date = generated_end_date.replace(tzinfo=timezone.utc)
     if generated_end_date < start_date:
         raise ValueError("Static yaml error: End date must be after start date.")
     return generated_end_date
@@ -744,8 +752,15 @@ def calculate_end_date(start_date, end_date):
 def fix_dates(options, provider_type):
     """Correct any unique dates."""
     # Azure end_date is always the following day
+    if options["start_date"].tzinfo is None:
+        options["start_date"] = options["start_date"].replace(tzinfo=timezone.utc)
+    if options["end_date"].tzinfo is None:
+        options["end_date"] = options["end_date"].replace(tzinfo=timezone.utc)
     if provider_type == "azure":
         options["end_date"] += relativedelta(days=1)
+
+    if options["end_date"] < options["start_date"]:
+        raise ValueError("End date must be after start date.")
 
 
 def run(provider_type, options):
@@ -755,6 +770,8 @@ def run(provider_type, options):
         raise NiseError("'start_date' is required in static files.")
     if not static_data_bool:
         fix_dates(options, provider_type)
+
+    LOG.debug("Options are: %s", pformat(options))
 
     LOG.info("Creating reports...")
     if provider_type == "aws":
