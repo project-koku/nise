@@ -298,7 +298,7 @@ def _create_month_list(start_date, end_date):
                 minute=59,
             ),
         }
-        if current.year == end_date.year and current.month == start_date.month:
+        if current.year == start_date.year and current.month == start_date.month:
             # First month start with start_date
             month["start"] = start_date
         if current < end_month_first_day:

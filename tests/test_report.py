@@ -156,7 +156,7 @@ class MiscReportTestCase(TestCase):
         test_matrix = [
             {
                 "start_date": datetime.datetime(year=2018, month=1, day=15),
-                "end_date": datetime.datetime(year=2018, month=1, day=30),
+                "end_date": datetime.datetime(year=2018, month=1, day=30, hour=23, minute=59),
                 "expected_list": [
                     {
                         "name": "January",
@@ -167,7 +167,7 @@ class MiscReportTestCase(TestCase):
             },
             {
                 "start_date": datetime.datetime(year=2018, month=11, day=15),
-                "end_date": datetime.datetime(year=2019, month=1, day=5),
+                "end_date": datetime.datetime(year=2019, month=1, day=5, hour=23, minute=59),
                 "expected_list": [
                     {
                         "name": "November",
@@ -198,15 +198,16 @@ class MiscReportTestCase(TestCase):
                     {
                         "name": "July",
                         "start": datetime.datetime(year=2021, month=7, day=1),
-                        "end": datetime.datetime(year=2021, month=7, day=29, hour=23, minute=59),
+                        "end": datetime.datetime(year=2021, month=7, day=29, hour=0, minute=0),
                     },
                 ],
             },
         ]
 
         for test_case in test_matrix:
-            output = _create_month_list(test_case["start_date"], test_case["end_date"])
-            self.assertCountEqual(output, test_case["expected_list"])
+            with self.subTest(test=test_case):
+                output = _create_month_list(test_case["start_date"], test_case["end_date"])
+                self.assertCountEqual(output, test_case["expected_list"])
 
     def test_get_generators(self):
         """Test the _get_generators helper function."""
