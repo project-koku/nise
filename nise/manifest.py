@@ -50,7 +50,7 @@ def _manifest_datetime_range(start, end):
     """
     start_str = start.strftime("%Y%m%d")
     end_str = end.strftime("%Y%m%d")
-    return start_str + "-" + end_str
+    return f"{start_str}-{end_str}"
 
 
 def aws_generate_manifest(fake, template_data):
@@ -110,4 +110,5 @@ def ocp_generate_manifest(template_data):
         (String): Rendered template data
 
     """
-    return json.dumps(template_data, indent=4, default=str)
+    # template_data["cr_status"] = json.dumps(template_data["cr_status"], indent=2)
+    return json.dumps(template_data, indent=2)

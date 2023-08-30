@@ -776,16 +776,12 @@ def ocp_create_report(options):  # noqa: C901
     static_report_data = options.get("static_report_data")
     ros_ocp_info = options.get("ros_ocp_info")
 
-    LOG.info(f"end_date {end_date}")
-
     if static_report_data:
         generators = _get_generators(static_report_data.get("generators"))
     else:
         generators = [{"generator": OCPGenerator, "attributes": {}}]
 
     months = _create_month_list(start_date, end_date)
-
-    LOG.info(f"months {months}")
     insights_upload = options.get("insights_upload")
     write_monthly = options.get("write_monthly", False)
     for month in months:
@@ -895,14 +891,13 @@ def ocp_create_report(options):  # noqa: C901
                     "check_cycle": 1440,
                 },
             }
-            cr_status = json.dumps(cr_status)
             manifest_values = {
-                "cluster_id": cluster_id,
-                "uuid": ocp_assembly_id,
-                "date": report_datetime,
+                "cluster_id": str(cluster_id),
+                "uuid": str(ocp_assembly_id),
+                "date": report_datetime.isoformat(timespec="microseconds"),
                 "files": manifest_file_names,
-                "start": gen_start_date,
-                "end": gen_end_date,
+                "start": gen_start_date.isoformat(timespec="microseconds"),
+                "end": gen_end_date.isoformat(timespec="microseconds"),
                 "version": __version__,
                 "certified": False,
                 "cr_status": cr_status,

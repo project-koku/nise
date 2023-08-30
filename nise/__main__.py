@@ -51,6 +51,8 @@ class NiseError(Exception):
 
 def valid_date(date_string):
     """Create date from date string."""
+    if not date_string.endswith("+0000"):
+        date_string += " +0000"
     try:
         valid = date_parser.parse(date_string)
     except ParserError as e:
