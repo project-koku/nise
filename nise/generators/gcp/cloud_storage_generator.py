@@ -85,7 +85,7 @@ class CloudStorageGenerator(GCPGenerator):
         credit, credit_total = self._gen_credit(self.credit_total, self._credit_amount)
         self.credit_total = credit_total
         row["credits"] = credit
-        usage_date = datetime.strptime(row.get("usage_start_time"), "%Y-%m-%dT%H:%M:%S%z")
+        usage_date = datetime.strptime(row.get("usage_start_time")[:7], "%Y-%m")
         row["invoice.month"] = f"{usage_date.year}{usage_date.month:02d}"
 
         if self.attributes:
@@ -151,8 +151,8 @@ class JSONLCloudStorageGenerator(CloudStorageGenerator):
         row["cost_type"] = "regular"
         row["currency_conversion_rate"] = 1
         invoice = {}
-        year = datetime.strptime(row.get("usage_start_time"), "%Y-%m-%dT%H:%M:%S%z").year
-        month = datetime.strptime(row.get("usage_start_time"), "%Y-%m-%dT%H:%M:%S%z").month
+        year = datetime.strptime(row.get("usage_start_time")[:7], "%Y-%m").year
+        month = datetime.strptime(row.get("usage_start_time")[:7], "%Y-%m").month
         invoice["month"] = f"{year}{month:02d}"
         row["invoice"] = invoice
         if self.resource_level:
