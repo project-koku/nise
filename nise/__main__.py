@@ -89,7 +89,7 @@ def valid_currency(currency):
 
 def today():
     """Create the date of today."""
-    return datetime.datetime.now().replace(microsecond=0, second=0, minute=0)
+    return datetime.datetime.now(tz=timezone.utc).replace(microsecond=0, second=0, minute=0)
 
 
 def add_aws_parser_args(parser):
