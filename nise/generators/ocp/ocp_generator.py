@@ -195,7 +195,7 @@ class OCPGenerator(AbstractGenerator):
         if attributes:
             self._nodes = attributes.get("nodes")
 
-        super().__init__(start_date, end_date)
+        super().__init__(start_date, end_date, hour_delta=datetime.timedelta(minutes=59, seconds=59))
         self.apps = [
             self.fake.word(),
             self.fake.word(),

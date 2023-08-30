@@ -298,15 +298,15 @@ def _create_month_list(start_date, end_date):
                 minute=59,
             ),
         }
-        if current.month == start_date.month:
+        if current.year == end_date.year and current.month == start_date.month:
             # First month start with start_date
             month["start"] = start_date
         if current < end_month_first_day:
             # can not compare months in this case - January < December
             month["end"] = (month.get("end") + relativedelta(days=1)).replace(hour=0, minute=0)
-        if current.month == end_date.month:
+        if current.year == end_date.year and current.month == end_date.month:
             # Last month ends with end_date
-            month["end"] = end_date.replace(hour=23, minute=59)
+            month["end"] = end_date
 
         months.append(month)
         current += relativedelta(months=+1)
@@ -776,12 +776,16 @@ def ocp_create_report(options):  # noqa: C901
     static_report_data = options.get("static_report_data")
     ros_ocp_info = options.get("ros_ocp_info")
 
+    LOG.info(f"end_date {end_date}")
+
     if static_report_data:
         generators = _get_generators(static_report_data.get("generators"))
     else:
         generators = [{"generator": OCPGenerator, "attributes": {}}]
 
     months = _create_month_list(start_date, end_date)
+
+    LOG.info(f"months {months}")
     insights_upload = options.get("insights_upload")
     write_monthly = options.get("write_monthly", False)
     for month in months:
@@ -808,7 +812,7 @@ def ocp_create_report(options):  # noqa: C901
 
             gen = generator_cls(gen_start_date, gen_end_date, attributes, ros_ocp_info)
             for report_type in gen.ocp_report_generation.keys():
-                LOG.info(f"Generating data for {report_type} for {month.get('name')}")
+                LOG.info(f"Generating data for {report_type} for {month}")
                 for hour in gen.generate_data(report_type):
                     data[report_type] += [hour]
                     if len(data[report_type]) == options.get("row_limit"):

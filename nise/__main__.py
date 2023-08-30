@@ -25,6 +25,7 @@ from pathlib import Path
 from pprint import pformat
 
 from dateutil import parser as date_parser
+from dateutil.parser import ParserError
 from dateutil.relativedelta import relativedelta
 from nise import __version__
 from nise.report import aws_create_marketplace_report
@@ -51,10 +52,10 @@ class NiseError(Exception):
 def valid_date(date_string):
     """Create date from date string."""
     try:
-        valid = datetime.datetime.strptime(date_string, "%Y-%m-%d")
-    except ValueError:
+        valid = date_parser.parse(date_string)
+    except ParserError as e:
         msg = f"{date_string} is an unsupported date format."
-        raise argparse.ArgumentTypeError(msg)
+        raise argparse.ArgumentTypeError(msg) from e
     return valid
 
 

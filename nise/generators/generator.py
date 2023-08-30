@@ -27,10 +27,11 @@ REPORT_TYPE = "report_type"
 class AbstractGenerator(ABC):
     """Defines a abstract class for generators."""
 
-    def __init__(self, start_date, end_date):
+    def __init__(self, start_date, end_date, hour_delta=datetime.timedelta(minutes=60)):
         """Initialize the generator."""
         self.start_date = start_date
         self.end_date = end_date
+        self.hour_delta = hour_delta
         self.hours = self._set_hours()
         self.quarter_hours = self._set_quarter_hours()
         self.days = self._set_days()
@@ -49,12 +50,11 @@ class AbstractGenerator(ABC):
         if self.end_date < self.start_date:
             raise ValueError("start_date must be a date object less than end_date.")
 
-        one_hour = datetime.timedelta(minutes=60)
         cur_date = self.start_date
-        while (cur_date + one_hour) <= self.end_date:
-            cur_hours = {"start": cur_date, "end": cur_date + one_hour}
+        while (cur_date + self.hour_delta) <= self.end_date:
+            cur_hours = {"start": cur_date, "end": cur_date + self.hour_delta}
             hours.append(cur_hours)
-            cur_date = cur_date + one_hour
+            cur_date = cur_date + datetime.timedelta(minutes=60)
         return hours
 
     def _set_quarter_hours(self):
