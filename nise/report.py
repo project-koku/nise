@@ -313,6 +313,8 @@ def _create_month_list(start_date, end_date):
         months.append(month)
         current += relativedelta(months=+1)
 
+    LOG.warning(months)
+
     return months
 
 
@@ -423,9 +425,9 @@ def _get_jsonl_generators(generator_list):
             for generator_cls, attributes in item.items():
                 generator_obj = {"generator": getattr(importlib.import_module(__name__), "JSONL" + generator_cls)}
                 if attributes.get("start_date"):
-                    attributes["start_date"] = parser.parse(attributes.get("start_date"))
+                    attributes["start_date"] = parser.parse(attributes.get("start_date")).replace(tzinfo=timezone.utc)
                 if attributes.get("end_date"):
-                    attributes["end_date"] = parser.parse(attributes.get("end_date"))
+                    attributes["end_date"] = parser.parse(attributes.get("end_date")).replace(tzinfo=timezone.utc)
                 if attributes.get("currency"):
                     attributes["currency"] = attributes.get("currency")
                 generator_obj["attributes"] = attributes

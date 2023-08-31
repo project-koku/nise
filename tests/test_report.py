@@ -30,7 +30,7 @@ from unittest.mock import patch
 
 import faker
 from dateutil.relativedelta import relativedelta
-from nise.__main__ import run
+from nise.__main__ import fix_dates
 from nise.generators.oci.oci_generator import OCI_REPORT_TYPE_TO_COLS
 from nise.generators.ocp.ocp_generator import OCP_REPORT_TYPE_TO_COLS
 from nise.report import _convert_bytes
@@ -366,6 +366,7 @@ class AWSReportTestCase(TestCase):
             "aws_report_name": "cur_report",
             "write_monthly": True,
         }
+        fix_dates(options, "aws")
         aws_create_report(options)
         month_output_file_name = "{}-{}-{}".format(calendar.month_name[now.month], now.year, "cur_report")
         expected_month_output_file = "{}/{}.csv".format(os.getcwd(), month_output_file_name)
@@ -385,6 +386,7 @@ class AWSReportTestCase(TestCase):
             "aws_report_name": "cur_report",
             "write_monthly": True,
         }
+        fix_dates(options, "aws")
         aws_create_report(options)
         month_output_file_name = "{}-{}-{}".format(calendar.month_name[now.month], now.year, "cur_report")
         expected_month_output_file = "{}/{}.csv".format(os.getcwd(), month_output_file_name)
@@ -406,6 +408,7 @@ class AWSReportTestCase(TestCase):
             "aws_prefix_name": "my_prefix",
             "write_monthly": True,
         }
+        fix_dates(options, "aws")
         aws_create_report(options)
         month_output_file_name = "{}-{}-{}".format(calendar.month_name[now.month], now.year, "cur_report")
         expected_month_output_file = "{}/{}.csv".format(os.getcwd(), month_output_file_name)
@@ -544,6 +547,7 @@ class AWSReportTestCase(TestCase):
             "static_report_data": static_aws_data,
             "write_monthly": True,
         }
+        fix_dates(options, "aws")
         aws_create_report(options)
         month_output_file_name = "{}-{}-{}".format(calendar.month_name[now.month], now.year, "cur_report")
         expected_month_output_file = "{}/{}.csv".format(os.getcwd(), month_output_file_name)
@@ -570,6 +574,7 @@ class AWSReportTestCase(TestCase):
             "static_report_data": static_aws_data,
             "write_monthly": True,
         }
+        fix_dates(options, "aws")
         aws_create_report(options)
         month_output_file_name = "{}-{}-{}".format(calendar.month_name[now.month], now.year, "cur_report")
         expected_month_output_file = "{}/{}.csv".format(os.getcwd(), month_output_file_name)
@@ -658,6 +663,7 @@ class AWSReportTestCase(TestCase):
             "row_limit": 20,
             "write_monthly": True,
         }
+        fix_dates(options, "aws")
         aws_create_report(options)
         month_output_file_name = "{}-{}-{}".format(calendar.month_name[now.month], now.year, "cur_report")
         expected_month_output_file_1 = "{}/{}-1.csv".format(os.getcwd(), month_output_file_name)
@@ -824,6 +830,7 @@ class OCPReportTestCase(TestCase):
             "write_monthly": True,
             "ros_ocp_info": True,
         }
+        fix_dates(options, "ocp")
         ocp_create_report(options)
         for report_type in OCP_REPORT_TYPE_TO_COLS.keys():
             month_output_file_name = "{}-{}-{}-{}".format(
@@ -848,6 +855,7 @@ class OCPReportTestCase(TestCase):
             "write_monthly": True,
             "ros_ocp_info": True,
         }
+        fix_dates(options, "ocp")
         ocp_create_report(options)
         for report_type in OCP_REPORT_TYPE_TO_COLS.keys():
             month_output_file_name = "{}-{}-{}-{}".format(
@@ -918,6 +926,7 @@ class OCPReportTestCase(TestCase):
             "static_report_data": static_ocp_data,
             "write_monthly": True,
         }
+        fix_dates(options, "ocp")
         ocp_create_report(options)
 
         for report_type in OCP_REPORT_TYPE_TO_COLS.keys():
@@ -1004,6 +1013,7 @@ class OCPReportTestCase(TestCase):
             "static_report_data": static_ocp_data,
             "write_monthly": True,
         }
+        fix_dates(options, "ocp")
         ocp_create_report(options)
 
         for report_type in OCP_REPORT_TYPE_TO_COLS.keys():
@@ -1047,6 +1057,7 @@ class OCPReportTestCase(TestCase):
         yesterday = now - one_day
         cluster_id = "11112222"
         options = {"start_date": yesterday, "end_date": now, "ocp_cluster_id": cluster_id, "ros_ocp_info": True}
+        fix_dates(options, "ocp")
         ocp_create_report(options)
         for report_type in OCP_REPORT_TYPE_TO_COLS.keys():
             month_output_file_name = "{}-{}-{}-{}".format(
@@ -1120,6 +1131,7 @@ class OCPReportTestCase(TestCase):
             "row_limit": 5,
             "write_monthly": True,
         }
+        fix_dates(options, "ocp")
         ocp_create_report(options)
 
         for report_type in OCP_REPORT_TYPE_TO_COLS.keys():
@@ -1182,6 +1194,7 @@ class AzureReportTestCase(TestCase):
         one_day = datetime.timedelta(days=1)
         yesterday = now - one_day
         options = {"start_date": yesterday, "end_date": now, "write_monthly": True}
+        fix_dates(options, "azure")
         azure_create_report(options)
         local_path = self.MOCK_AZURE_REPORT_FILENAME
         self.assertTrue(os.path.isfile(local_path))
@@ -1225,7 +1238,7 @@ class AzureReportTestCase(TestCase):
             "static_report_data": static_azure_data,
             "write_monthly": True,
         }
-
+        fix_dates(options, "azure")
         azure_create_report(options)
         local_path = self.MOCK_AZURE_REPORT_FILENAME
         self.assertTrue(os.path.isfile(local_path))
@@ -1246,6 +1259,7 @@ class AzureReportTestCase(TestCase):
             "azure_report_name": "cur_report",
             "write_monthly": True,
         }
+        fix_dates(options, "azure")
         azure_create_report(options)
         expected_month_output_file = self.MOCK_AZURE_REPORT_FILENAME
         self.assertTrue(os.path.isfile(expected_month_output_file))
@@ -1283,6 +1297,7 @@ class AzureReportTestCase(TestCase):
             "azure_report_name": "cur_report",
             "write_monthly": True,
         }
+        fix_dates(options, "azure")
         azure_create_report(options)
         mock_upload.assert_called()
         os.remove(self.MOCK_AZURE_REPORT_FILENAME)
@@ -1295,6 +1310,7 @@ class AzureReportTestCase(TestCase):
         one_day = datetime.timedelta(days=1)
         yesterday = now - one_day
         options = {"start_date": yesterday, "end_date": now}
+        fix_dates(options, "azure")
         azure_create_report(options)
         local_path = self.MOCK_AZURE_REPORT_FILENAME
         self.assertFalse(os.path.isfile(local_path))
@@ -1311,9 +1327,9 @@ class GCPReportTestCase(TestCase):
         one_day = datetime.timedelta(days=1)
         yesterday = now - one_day
         report_prefix = "test_report"
-        gcp_create_report(
-            {"start_date": yesterday, "end_date": now, "gcp_report_prefix": report_prefix, "write_monthly": True}
-        )
+        options = {"start_date": yesterday, "end_date": now, "gcp_report_prefix": report_prefix, "write_monthly": True}
+        fix_dates(options, "gcp")
+        gcp_create_report(options)
         output_file_name = f"{report_prefix}.csv"
         expected_output_file_path = "{}/{}".format(os.getcwd(), output_file_name)
 
@@ -1326,16 +1342,16 @@ class GCPReportTestCase(TestCase):
         one_day = datetime.timedelta(days=1)
         yesterday = now - one_day
         report_prefix = "test_report"
-        gcp_create_report(
-            {
-                "start_date": yesterday,
-                "end_date": now,
-                "gcp_report_prefix": report_prefix,
-                "write_monthly": True,
-                "gcp_dataset_name": "gcp-resource-dataset",
-                "gcp_resource_level": True,
-            }
-        )
+        options = {
+            "start_date": yesterday,
+            "end_date": now,
+            "gcp_report_prefix": report_prefix,
+            "write_monthly": True,
+            "gcp_dataset_name": "gcp-resource-dataset",
+            "gcp_resource_level": True,
+        }
+        fix_dates(options, "gcp")
+        gcp_create_report(options)
         output_file_name = f"{report_prefix}.json"
         expected_output_file_path = "{}/{}".format(os.getcwd(), output_file_name)
 
@@ -1349,16 +1365,17 @@ class GCPReportTestCase(TestCase):
         yesterday = now - one_day
         report_prefix = "test_report"
         dataset_name = "test_name"
-        gcp_create_report(
-            {
-                "start_date": yesterday,
-                "end_date": now,
-                "currency": "USD",
-                "gcp_report_prefix": report_prefix,
-                "write_monthly": True,
-                "gcp_dataset_name": dataset_name,
-            }
-        )
+        options = {
+            "start_date": yesterday,
+            "end_date": now,
+            "currency": "USD",
+            "gcp_report_prefix": report_prefix,
+            "write_monthly": True,
+            "gcp_dataset_name": dataset_name,
+        }
+
+        fix_dates(options, "gcp")
+        gcp_create_report(options)
         output_file_name = f"{report_prefix}.json"
         expected_output_file_path = "{}/{}".format(os.getcwd(), output_file_name)
 
@@ -1372,16 +1389,17 @@ class GCPReportTestCase(TestCase):
         yesterday = now - one_day
         dataset_name = "test_name"
         etag = "test_tag"
-        gcp_create_report(
-            {
-                "start_date": yesterday,
-                "end_date": now,
-                "currency": "USD",
-                "write_monthly": True,
-                "gcp_dataset_name": dataset_name,
-                "gcp_etag": etag,
-            }
-        )
+        options = {
+            "start_date": yesterday,
+            "end_date": now,
+            "currency": "USD",
+            "write_monthly": True,
+            "gcp_dataset_name": dataset_name,
+            "gcp_etag": etag,
+        }
+
+        fix_dates(options, "gcp")
+        gcp_create_report(options)
         invoice_month = yesterday.strftime("%Y%m")
         scan_start = yesterday.date()
         scan_end = now.date()
@@ -1396,7 +1414,9 @@ class GCPReportTestCase(TestCase):
         now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
         one_day = datetime.timedelta(days=1)
         yesterday = now - one_day
-        gcp_create_report({"start_date": yesterday, "end_date": now, "write_monthly": True})
+        options = {"start_date": yesterday, "end_date": now, "write_monthly": True}
+        fix_dates(options, "gcp")
+        gcp_create_report(options)
         invoice_month = yesterday.strftime("%Y%m")
         scan_start = yesterday.date()
         scan_end = now.date()
@@ -1436,7 +1456,9 @@ class GCPReportTestCase(TestCase):
         one_day = datetime.timedelta(days=1)
         yesterday = now - one_day
         report_prefix = "test_report"
-        gcp_create_report({"start_date": yesterday, "end_date": now, "gcp_report_prefix": report_prefix})
+        options = {"start_date": yesterday, "end_date": now, "gcp_report_prefix": report_prefix}
+        fix_dates(options, "gcp")
+        gcp_create_report(options)
         output_file_name = "{}-{}.csv".format(report_prefix, yesterday.strftime("%Y-%m-%d"))
         expected_output_file_path = "{}/{}".format(os.getcwd(), output_file_name)
 
@@ -1480,16 +1502,17 @@ class GCPReportTestCase(TestCase):
                 }
             ],
         }
-        gcp_create_report(
-            {
-                "start_date": yesterday,
-                "end_date": now,
-                "gcp_report_prefix": report_prefix,
-                "write_monthly": True,
-                "gcp_dataset_name": dataset_name,
-                "static_report_data": static_gcp_data,
-            }
-        )
+
+        options = {
+            "start_date": yesterday,
+            "end_date": now,
+            "gcp_report_prefix": report_prefix,
+            "write_monthly": True,
+            "gcp_dataset_name": dataset_name,
+            "static_report_data": static_gcp_data,
+        }
+        fix_dates(options, "gcp")
+        gcp_create_report(options)
         output_file_name = f"{report_prefix}.json"
         expected_output_file_path = "{}/{}".format(os.getcwd(), output_file_name)
 
@@ -1533,15 +1556,15 @@ class GCPReportTestCase(TestCase):
                 }
             ],
         }
-        gcp_create_report(
-            {
-                "start_date": yesterday,
-                "end_date": now,
-                "gcp_report_prefix": report_prefix,
-                "write_monthly": True,
-                "static_report_data": static_gcp_data,
-            }
-        )
+        options = {
+            "start_date": yesterday,
+            "end_date": now,
+            "gcp_report_prefix": report_prefix,
+            "write_monthly": True,
+            "static_report_data": static_gcp_data,
+        }
+        fix_dates(options, "gcp")
+        gcp_create_report(options)
         output_file_name = f"{report_prefix}.csv"
         expected_output_file_path = "{}/{}".format(os.getcwd(), output_file_name)
 
@@ -1572,6 +1595,7 @@ class OCIReportTestCase(TestCase):
         one_day = datetime.timedelta(days=1)
         yesterday = now - one_day
         options = {"start_date": yesterday, "end_date": now, "write_monthly": False, "file_num": 343545}
+        fix_dates(options, "oci")
         oci_create_report(options)
         for report_type in OCI_REPORT_TYPE_TO_COLS:
             month_num = f"0{now.month}" if now.month < 10 else now.month
@@ -1611,6 +1635,7 @@ class OCIReportTestCase(TestCase):
             "write_monthly": True,
             "file_num": 343545,
         }
+        fix_dates(options, "oci")
         oci_create_report(options)
         assert mock_copy_to_local_dir.called
 
@@ -1637,6 +1662,7 @@ class OCIReportTestCase(TestCase):
             "write_monthly": True,
             "file_num": 343545,
         }
+        fix_dates(options, "oci")
         oci_create_report(options)
         assert mock_copy_to_local_dir.called
 
@@ -1751,6 +1777,7 @@ class OCIReportTestCase(TestCase):
             "static_report_data": static_oci_data,
             "file_num": 343545,
         }
+        fix_dates(options, "oci")
         oci_create_report(options)
         month_num = f"0{now.month}" if now.month < 10 else str(now.month)
         cost_file_path = f"{os.getcwd()}/report_cost-{options.get('file_num')}_{now.year}-{month_num}.csv"
@@ -1819,6 +1846,7 @@ class OCIReportTestCase(TestCase):
             "static_report_data": static_oci_data,
             "file_num": 343545,
         }
+        fix_dates(options, "oci")
         oci_create_report(options)
         month_num = f"0{now.month}" if now.month < 10 else str(now.month)
         cost_file_path = f"{os.getcwd()}/report_cost-{options.get('file_num')}_{now.year}-{month_num}.csv"
@@ -1887,8 +1915,8 @@ class OCIReportTestCase(TestCase):
             "static_report_data": static_oci_data,
             "file_num": 343545,
         }
-        run("oci", options)
-        # oci_create_report(options)
+        fix_dates(options, "oci")
+        oci_create_report(options)
         month_num = f"0{now.month}" if now.month < 10 else str(now.month)
         cost_file_path = f"{os.getcwd()}/report_cost-{options.get('file_num')}_{now.year}-{month_num}.csv"
         usage_file_path = f"{os.getcwd()}/report_usage-{options.get('file_num')}_{now.year}-{month_num}.csv"
