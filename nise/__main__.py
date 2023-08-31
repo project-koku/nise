@@ -665,9 +665,6 @@ def _load_static_report_data(options):
             start_date = get_start_date(attributes, options)
             generated_start_date = calculate_start_date(start_date)
             start_dates.append(generated_start_date)
-
-            print(start_dates)
-
             if attributes.get("end_date"):
                 generated_end_date = calculate_end_date(generated_start_date, attributes.get("end_date"))
             elif options.get("end_date") and options.get("end_date").date() != today().date():
@@ -708,7 +705,6 @@ def get_start_date(attributes, options):
 
 def calculate_start_date(start_date):
     """Return a datetime for the start date."""
-    print(f"calculate_start_date: start_date: {start_date}")
     if start_date == "last_month":
         generated_start_date = today().replace(day=1, hour=0, minute=0, second=0) + relativedelta(months=-1)
     elif start_date == "today":

@@ -28,6 +28,7 @@ import shutil
 import string
 import tarfile
 from datetime import datetime
+from datetime import timezone
 from random import randint
 from tempfile import gettempdir
 from tempfile import NamedTemporaryFile
@@ -289,13 +290,14 @@ def _create_month_list(start_date, end_date):
     while current <= end_date:
         month = {
             "name": calendar.month_name[current.month],
-            "start": datetime(year=current.year, month=current.month, day=1),
+            "start": datetime(year=current.year, month=current.month, day=1, tzinfo=timezone.utc),
             "end": datetime(
                 year=current.year,
                 month=current.month,
                 day=calendar.monthrange(year=current.year, month=current.month)[1],
                 hour=23,
                 minute=59,
+                tzinfo=timezone.utc,
             ),
         }
         if current.year == start_date.year and current.month == start_date.month:
