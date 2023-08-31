@@ -30,6 +30,7 @@ from unittest.mock import patch
 
 import faker
 from dateutil.relativedelta import relativedelta
+from nise.__main__ import run
 from nise.generators.oci.oci_generator import OCI_REPORT_TYPE_TO_COLS
 from nise.generators.ocp.ocp_generator import OCP_REPORT_TYPE_TO_COLS
 from nise.report import _convert_bytes
@@ -153,6 +154,7 @@ class MiscReportTestCase(TestCase):
 
     def test_create_month_list(self):
         """Test to create month lists."""
+        self.maxDiff = None
         test_matrix = [
             {
                 "start_date": datetime.datetime(year=2018, month=1, day=15),
@@ -160,8 +162,10 @@ class MiscReportTestCase(TestCase):
                 "expected_list": [
                     {
                         "name": "January",
-                        "start": datetime.datetime(year=2018, month=1, day=15),
-                        "end": datetime.datetime(year=2018, month=1, day=30, hour=23, minute=59),
+                        "start": datetime.datetime(year=2018, month=1, day=15, tzinfo=datetime.timezone.utc),
+                        "end": datetime.datetime(
+                            year=2018, month=1, day=30, hour=23, minute=59, tzinfo=datetime.timezone.utc
+                        ),
                     }
                 ],
             },
@@ -171,18 +175,24 @@ class MiscReportTestCase(TestCase):
                 "expected_list": [
                     {
                         "name": "November",
-                        "start": datetime.datetime(year=2018, month=11, day=15),
-                        "end": datetime.datetime(year=2018, month=12, day=1, hour=0, minute=0),
+                        "start": datetime.datetime(year=2018, month=11, day=15, tzinfo=datetime.timezone.utc),
+                        "end": datetime.datetime(
+                            year=2018, month=12, day=1, hour=0, minute=0, tzinfo=datetime.timezone.utc
+                        ),
                     },
                     {
                         "name": "December",
-                        "start": datetime.datetime(year=2018, month=12, day=1),
-                        "end": datetime.datetime(year=2019, month=1, day=1, hour=0, minute=0),
+                        "start": datetime.datetime(year=2018, month=12, day=1, tzinfo=datetime.timezone.utc),
+                        "end": datetime.datetime(
+                            year=2019, month=1, day=1, hour=0, minute=0, tzinfo=datetime.timezone.utc
+                        ),
                     },
                     {
                         "name": "January",
-                        "start": datetime.datetime(year=2019, month=1, day=1),
-                        "end": datetime.datetime(year=2019, month=1, day=5, hour=23, minute=59),
+                        "start": datetime.datetime(year=2019, month=1, day=1, tzinfo=datetime.timezone.utc),
+                        "end": datetime.datetime(
+                            year=2019, month=1, day=5, hour=23, minute=59, tzinfo=datetime.timezone.utc
+                        ),
                     },
                 ],
             },
@@ -192,13 +202,17 @@ class MiscReportTestCase(TestCase):
                 "expected_list": [
                     {
                         "name": "June",
-                        "start": datetime.datetime(year=2021, month=6, day=1),
-                        "end": datetime.datetime(year=2021, month=7, day=1, hour=0, minute=0),
+                        "start": datetime.datetime(year=2021, month=6, day=1, tzinfo=datetime.timezone.utc),
+                        "end": datetime.datetime(
+                            year=2021, month=7, day=1, hour=0, minute=0, tzinfo=datetime.timezone.utc
+                        ),
                     },
                     {
                         "name": "July",
-                        "start": datetime.datetime(year=2021, month=7, day=1),
-                        "end": datetime.datetime(year=2021, month=7, day=29, hour=0, minute=0),
+                        "start": datetime.datetime(year=2021, month=7, day=1, tzinfo=datetime.timezone.utc),
+                        "end": datetime.datetime(
+                            year=2021, month=7, day=29, hour=0, minute=0, tzinfo=datetime.timezone.utc
+                        ),
                     },
                 ],
             },
@@ -1873,7 +1887,8 @@ class OCIReportTestCase(TestCase):
             "static_report_data": static_oci_data,
             "file_num": 343545,
         }
-        oci_create_report(options)
+        run("oci", options)
+        # oci_create_report(options)
         month_num = f"0{now.month}" if now.month < 10 else str(now.month)
         cost_file_path = f"{os.getcwd()}/report_cost-{options.get('file_num')}_{now.year}-{month_num}.csv"
         usage_file_path = f"{os.getcwd()}/report_usage-{options.get('file_num')}_{now.year}-{month_num}.csv"
