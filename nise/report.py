@@ -312,9 +312,6 @@ def _create_month_list(start_date, end_date):
 
         months.append(month)
         current += relativedelta(months=+1)
-
-    LOG.warning(months)
-
     return months
 
 

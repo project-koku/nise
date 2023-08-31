@@ -676,9 +676,7 @@ def _load_static_report_data(options):
             end_dates.append(generated_end_date)
 
             attributes["start_date"] = str(generated_start_date)
-            print(attributes["start_date"])
             attributes["end_date"] = str(generated_end_date)
-            print(attributes["end_date"])
 
             if options.get("provider") == "aws":
                 aws_tags.update(attributes.get("tags", {}).keys())
