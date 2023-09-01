@@ -24,7 +24,6 @@ from dateutil.relativedelta import relativedelta
 
 TEMPLATE_DIR = os.path.dirname(__file__)
 AWS_TEMPLATE_FILE = "aws-template-manifest.json"
-OCP_TEMPLATE_FILE = "ocp-template-manifest.json"
 
 
 def _manifest_datetime_str(date_time):
@@ -51,7 +50,7 @@ def _manifest_datetime_range(start, end):
     """
     start_str = start.strftime("%Y%m%d")
     end_str = end.strftime("%Y%m%d")
-    return start_str + "-" + end_str
+    return f"{start_str}-{end_str}"
 
 
 def aws_generate_manifest(fake, template_data):
@@ -111,8 +110,5 @@ def ocp_generate_manifest(template_data):
         (String): Rendered template data
 
     """
-    template_loader = jinja2.FileSystemLoader(searchpath=TEMPLATE_DIR)
-    template_env = jinja2.Environment(loader=template_loader)
-    template = template_env.get_template(OCP_TEMPLATE_FILE)
-    output = template.render(template_data)
-    return output
+    # template_data["cr_status"] = json.dumps(template_data["cr_status"], indent=2)
+    return json.dumps(template_data, indent=2)

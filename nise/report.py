@@ -28,6 +28,7 @@ import shutil
 import string
 import tarfile
 from datetime import datetime
+from datetime import timezone
 from random import randint
 from tempfile import gettempdir
 from tempfile import NamedTemporaryFile
@@ -289,28 +290,28 @@ def _create_month_list(start_date, end_date):
     while current <= end_date:
         month = {
             "name": calendar.month_name[current.month],
-            "start": datetime(year=current.year, month=current.month, day=1),
+            "start": datetime(year=current.year, month=current.month, day=1, tzinfo=timezone.utc),
             "end": datetime(
                 year=current.year,
                 month=current.month,
                 day=calendar.monthrange(year=current.year, month=current.month)[1],
                 hour=23,
                 minute=59,
+                tzinfo=timezone.utc,
             ),
         }
-        if current.month == start_date.month:
+        if current.year == start_date.year and current.month == start_date.month:
             # First month start with start_date
-            month["start"] = start_date
+            month["start"] = start_date.replace(tzinfo=timezone.utc)
         if current < end_month_first_day:
             # can not compare months in this case - January < December
             month["end"] = (month.get("end") + relativedelta(days=1)).replace(hour=0, minute=0)
-        if current.month == end_date.month:
+        if current.year == end_date.year and current.month == end_date.month:
             # Last month ends with end_date
-            month["end"] = end_date.replace(hour=23, minute=59)
+            month["end"] = end_date.replace(tzinfo=timezone.utc)
 
         months.append(month)
         current += relativedelta(months=+1)
-
     return months
 
 
@@ -405,9 +406,9 @@ def _get_generators(generator_list):
             for generator_cls, attributes in item.items():
                 generator_obj = {"generator": getattr(importlib.import_module(__name__), generator_cls)}
                 if attributes.get("start_date"):
-                    attributes["start_date"] = parser.parse(attributes.get("start_date"))
+                    attributes["start_date"] = parser.parse(attributes.get("start_date")).replace(tzinfo=timezone.utc)
                 if attributes.get("end_date"):
-                    attributes["end_date"] = parser.parse(attributes.get("end_date"))
+                    attributes["end_date"] = parser.parse(attributes.get("end_date")).replace(tzinfo=timezone.utc)
                 generator_obj["attributes"] = attributes
                 generators.append(generator_obj)
     return generators
@@ -421,9 +422,9 @@ def _get_jsonl_generators(generator_list):
             for generator_cls, attributes in item.items():
                 generator_obj = {"generator": getattr(importlib.import_module(__name__), "JSONL" + generator_cls)}
                 if attributes.get("start_date"):
-                    attributes["start_date"] = parser.parse(attributes.get("start_date"))
+                    attributes["start_date"] = parser.parse(attributes.get("start_date")).replace(tzinfo=timezone.utc)
                 if attributes.get("end_date"):
-                    attributes["end_date"] = parser.parse(attributes.get("end_date"))
+                    attributes["end_date"] = parser.parse(attributes.get("end_date")).replace(tzinfo=timezone.utc)
                 if attributes.get("currency"):
                     attributes["currency"] = attributes.get("currency")
                 generator_obj["attributes"] = attributes
@@ -808,7 +809,7 @@ def ocp_create_report(options):  # noqa: C901
 
             gen = generator_cls(gen_start_date, gen_end_date, attributes, ros_ocp_info)
             for report_type in gen.ocp_report_generation.keys():
-                LOG.info(f"Generating data for {report_type} for {month.get('name')}")
+                LOG.info(f"Generating data for {report_type} for {month}")
                 for hour in gen.generate_data(report_type):
                     data[report_type] += [hour]
                     if len(data[report_type]) == options.get("row_limit"):
@@ -857,14 +858,8 @@ def ocp_create_report(options):  # noqa: C901
                     monthly_ros_files[num_file], temp_filename, "payload"
                 )
 
-            manifest_file_names = ", ".join(f'"{w}"' for w in temp_files)
-            if not temp_ros_files:
-                manifest_ros_data = None
-            elif len(temp_ros_files) == 1:
-                (key,) = temp_ros_files.keys()
-                manifest_ros_data = f"{key}"
-            else:
-                manifest_ros_data = ", ".join(f'"{w}"' for w in temp_ros_files)[1:-1]
+            manifest_file_names = list(temp_files)
+            manifest_ros_data = list(temp_ros_files) if temp_ros_files else None
             cr_status = {
                 "clusterID": "4e009161-4f40-42c8-877c-3e59f6baea3d",
                 "clusterVersion": "stable-4.6",
@@ -897,19 +892,22 @@ def ocp_create_report(options):  # noqa: C901
                     "check_cycle": 1440,
                 },
             }
-            cr_status = json.dumps(cr_status)
             manifest_values = {
-                "ocp_cluster_id": cluster_id,
-                "ocp_assembly_id": ocp_assembly_id,
-                "report_datetime": report_datetime,
-                "files": manifest_file_names[1:-1],
-                "ros_files": manifest_ros_data,
-                "start": gen_start_date,
-                "end": gen_end_date,
+                "cluster_id": str(cluster_id),
+                "uuid": str(ocp_assembly_id),
+                "date": report_datetime.isoformat(timespec="microseconds"),
+                "files": manifest_file_names,
+                "start": gen_start_date.isoformat(timespec="microseconds"),
+                "end": gen_end_date.isoformat(timespec="microseconds"),
                 "version": __version__,
                 "certified": False,
                 "cr_status": cr_status,
             }
+            if manifest_ros_data:
+                manifest_values["resource_optimization_files"] = manifest_ros_data
+            if options.get("daily_reports"):
+                manifest_values["daily_reports"] = True
+
             manifest_data = ocp_generate_manifest(manifest_values)
             temp_manifest = _write_manifest(manifest_data)
             temp_manifest_name = create_temporary_copy(temp_manifest, "manifest.json", "payload")

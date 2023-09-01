@@ -96,7 +96,7 @@ class GCPNetworkGenerator(GCPGenerator):
         credit, credit_total = self._gen_credit(self.credit_total, self._credit_amount)
         self.credit_total = credit_total
         row["credits"] = credit
-        usage_date = datetime.strptime(row.get("usage_start_time"), "%Y-%m-%dT%H:%M:%S")
+        usage_date = datetime.strptime(row.get("usage_start_time")[:7], "%Y-%m")
         row["invoice.month"] = f"{usage_date.year}{usage_date.month:02d}"
 
         if self.attributes:
@@ -162,9 +162,9 @@ class JSONLGCPNetworkGenerator(GCPNetworkGenerator):
         credit, credit_total = self._gen_credit(self.credit_total, self._credit_amount, True)
         self.credit_total = credit_total
         row["credits"] = credit
-        usage_date = datetime.strptime(row.get("usage_start_time"), "%Y-%m-%dT%H:%M:%S")
+        usage_date = datetime.strptime(row.get("usage_start_time")[:7], "%Y-%m")
         invoice = {}
-        usage_date = datetime.strptime(row.get("usage_start_time"), "%Y-%m-%dT%H:%M:%S")
+        usage_date = datetime.strptime(row.get("usage_start_time")[:7], "%Y-%m")
         invoice["month"] = f"{usage_date.year}{usage_date.month:02d}"
         row["invoice"] = invoice
         if self.resource_level:

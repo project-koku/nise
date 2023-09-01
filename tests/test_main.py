@@ -20,6 +20,7 @@ import os
 from datetime import date
 from datetime import datetime
 from datetime import timedelta
+from datetime import timezone
 from unittest import TestCase
 from unittest.mock import patch
 
@@ -367,11 +368,12 @@ class CommandLineTestCase(TestCase):
         _load_static_report_data(options)
         gen_values = dict(*options.get("static_report_data").get("generators")[0].values())
         self.assertEqual(
-            gen_values.get("start_date"), str(datetime.now().replace(microsecond=0, second=0, minute=0, hour=0))
+            gen_values.get("start_date"),
+            str(datetime.now(tz=timezone.utc).replace(microsecond=0, second=0, minute=0, hour=0)),
         )
         self.assertEqual(
             gen_values.get("end_date"),
-            str(datetime.now().replace(microsecond=0, second=0, minute=0) + timedelta(hours=24)),
+            str(datetime.now(tz=timezone.utc).replace(microsecond=0, second=0, minute=0) + timedelta(hours=24)),
         )
 
     def test_invalid_gcp_inputs(self):
@@ -557,14 +559,26 @@ class MainDateTest(TestCase):
         ]
         static_report_data = {"generators": aws_gens}
         expected = {
-            "aws_gen_first": {"start_date": datetime(2020, 6, 1, 0, 0), "end_date": datetime(2020, 6, 1, 0, 0)},
-            "aws_gen_first_second": {"start_date": datetime(2020, 6, 1, 0, 0), "end_date": datetime(2020, 6, 2, 0, 0)},
-            "aws_gen_first_start": {
-                "start_date": datetime(2020, 6, 1, 0, 0),
-                "end_date": datetime.now().replace(minute=0, second=0, microsecond=0),
+            "aws_gen_first": {
+                "start_date": datetime(2020, 6, 1, 0, 0, tzinfo=timezone.utc),
+                "end_date": datetime(2020, 6, 1, 0, 0, tzinfo=timezone.utc),
             },
-            "aws_gen_last": {"start_date": datetime(2020, 5, 31, 0, 0), "end_date": datetime(2020, 5, 31, 0, 0)},
-            "aws_gen_last_first": {"start_date": datetime(2020, 5, 31, 0, 0), "end_date": datetime(2020, 6, 1, 0, 0)},
+            "aws_gen_first_second": {
+                "start_date": datetime(2020, 6, 1, 0, 0, tzinfo=timezone.utc),
+                "end_date": datetime(2020, 6, 2, 0, 0, tzinfo=timezone.utc),
+            },
+            "aws_gen_first_start": {
+                "start_date": datetime(2020, 6, 1, 0, 0, tzinfo=timezone.utc),
+                "end_date": datetime.now(tz=timezone.utc).replace(minute=0, second=0, microsecond=0),
+            },
+            "aws_gen_last": {
+                "start_date": datetime(2020, 5, 31, 0, 0, tzinfo=timezone.utc),
+                "end_date": datetime(2020, 5, 31, 0, 0, tzinfo=timezone.utc),
+            },
+            "aws_gen_last_first": {
+                "start_date": datetime(2020, 5, 31, 0, 0, tzinfo=timezone.utc),
+                "end_date": datetime(2020, 6, 1, 0, 0, tzinfo=timezone.utc),
+            },
         }
         options = {"provider": "aws", "static_report_file": "tests/aws_static_report.yml"}
         mock_load.return_value = static_report_data
@@ -602,19 +616,25 @@ class MainDateTest(TestCase):
         ]
         static_report_data = {"generators": aws_mp_gens}
         expected = {
-            "aws_mp_gen_first": {"start_date": datetime(2020, 6, 1, 0, 0), "end_date": datetime(2020, 6, 1, 0, 0)},
+            "aws_mp_gen_first": {
+                "start_date": datetime(2020, 6, 1, 0, 0, tzinfo=timezone.utc),
+                "end_date": datetime(2020, 6, 1, 0, 0, tzinfo=timezone.utc),
+            },
             "aws_mp_gen_first_second": {
-                "start_date": datetime(2020, 6, 1, 0, 0),
-                "end_date": datetime(2020, 6, 2, 0, 0),
+                "start_date": datetime(2020, 6, 1, 0, 0, tzinfo=timezone.utc),
+                "end_date": datetime(2020, 6, 2, 0, 0, tzinfo=timezone.utc),
             },
             "aws_mp_gen_first_start": {
-                "start_date": datetime(2020, 6, 1, 0, 0),
-                "end_date": datetime.now().replace(minute=0, second=0, microsecond=0),
+                "start_date": datetime(2020, 6, 1, 0, 0, tzinfo=timezone.utc),
+                "end_date": datetime.now(tz=timezone.utc).replace(minute=0, second=0, microsecond=0),
             },
-            "aws_mp_gen_last": {"start_date": datetime(2020, 5, 31, 0, 0), "end_date": datetime(2020, 5, 31, 0, 0)},
+            "aws_mp_gen_last": {
+                "start_date": datetime(2020, 5, 31, 0, 0, tzinfo=timezone.utc),
+                "end_date": datetime(2020, 5, 31, 0, 0, tzinfo=timezone.utc),
+            },
             "aws_mp_gen_last_first": {
-                "start_date": datetime(2020, 5, 31, 0, 0),
-                "end_date": datetime(2020, 6, 1, 0, 0),
+                "start_date": datetime(2020, 5, 31, 0, 0, tzinfo=timezone.utc),
+                "end_date": datetime(2020, 6, 1, 0, 0, tzinfo=timezone.utc),
             },
         }
         options = {"provider": "aws-marketplace", "static_report_file": "tests/aws_static_report.yml"}
@@ -630,7 +650,7 @@ class MainDateTest(TestCase):
     def test_ocp_dates(self, mock_load):
         """Test that select static-data-file dates return correct dates."""
         ocp_gens = [
-            {"ocp_gen_first": {"start_date": datetime(2020, 6, 1).date(), "end_date": datetime(2020, 6, 1).date()}},
+            {"ocp_gen_first": {"start_date": "2020-06-01", "end_date": datetime(2020, 6, 1).date()}},
             {
                 "ocp_gen_first_second": {
                     "start_date": datetime(2020, 6, 1).date(),
@@ -645,17 +665,34 @@ class MainDateTest(TestCase):
                     "end_date": datetime(2020, 6, 1).date(),
                 }
             },
+            {"ocp_gen_times": {"start_date": "2023-08-01T05", "end_date": "2023-08-02T23:45"}},
         ]
         static_report_data = {"generators": ocp_gens}
         expected = {
-            "ocp_gen_first": {"start_date": datetime(2020, 6, 1, 0, 0), "end_date": datetime(2020, 6, 1, 0, 0)},
-            "ocp_gen_first_second": {"start_date": datetime(2020, 6, 1, 0, 0), "end_date": datetime(2020, 6, 2, 0, 0)},
-            "ocp_gen_first_start": {
-                "start_date": datetime(2020, 6, 1, 0, 0),
-                "end_date": datetime.now().replace(minute=0, second=0, microsecond=0),
+            "ocp_gen_first": {
+                "start_date": datetime(2020, 6, 1, 0, 0, tzinfo=timezone.utc),
+                "end_date": datetime(2020, 6, 1, 0, 0, tzinfo=timezone.utc),
             },
-            "ocp_gen_last": {"start_date": datetime(2020, 5, 31, 0, 0), "end_date": datetime(2020, 5, 31, 0, 0)},
-            "ocp_gen_last_first": {"start_date": datetime(2020, 5, 31, 0, 0), "end_date": datetime(2020, 6, 1, 0, 0)},
+            "ocp_gen_first_second": {
+                "start_date": datetime(2020, 6, 1, 0, 0, tzinfo=timezone.utc),
+                "end_date": datetime(2020, 6, 2, 0, 0, tzinfo=timezone.utc),
+            },
+            "ocp_gen_first_start": {
+                "start_date": datetime(2020, 6, 1, 0, 0, tzinfo=timezone.utc),
+                "end_date": datetime.now(tz=timezone.utc).replace(minute=0, second=0, microsecond=0),
+            },
+            "ocp_gen_last": {
+                "start_date": datetime(2020, 5, 31, 0, 0, tzinfo=timezone.utc),
+                "end_date": datetime(2020, 5, 31, 0, 0, tzinfo=timezone.utc),
+            },
+            "ocp_gen_last_first": {
+                "start_date": datetime(2020, 5, 31, 0, 0, tzinfo=timezone.utc),
+                "end_date": datetime(2020, 6, 1, 0, 0, tzinfo=timezone.utc),
+            },
+            "ocp_gen_times": {
+                "start_date": datetime(2023, 8, 1, 5, 0, tzinfo=timezone.utc),
+                "end_date": datetime(2023, 8, 2, 23, 45, tzinfo=timezone.utc),
+            },
         }
         options = {"provider": "ocp", "static_report_file": "tests/ocp_static_report.yml"}
         mock_load.return_value = static_report_data
@@ -688,19 +725,26 @@ class MainDateTest(TestCase):
         ]
         static_report_data = {"generators": azure_gens}
         expected = {
-            "azure_gen_first": {"start_date": datetime(2020, 6, 1, 0, 0), "end_date": datetime(2020, 6, 2, 0, 0)},
+            "azure_gen_first": {
+                "start_date": datetime(2020, 6, 1, 0, 0, tzinfo=timezone.utc),
+                "end_date": datetime(2020, 6, 2, 0, 0, tzinfo=timezone.utc),
+            },
             "azure_gen_first_second": {
-                "start_date": datetime(2020, 6, 1, 0, 0),
-                "end_date": datetime(2020, 6, 3, 0, 0),
+                "start_date": datetime(2020, 6, 1, 0, 0, tzinfo=timezone.utc),
+                "end_date": datetime(2020, 6, 3, 0, 0, tzinfo=timezone.utc),
             },
             "azure_gen_first_start": {
-                "start_date": datetime(2020, 6, 1, 0, 0),
-                "end_date": datetime.now().replace(microsecond=0, second=0, minute=0) + timedelta(hours=24),
+                "start_date": datetime(2020, 6, 1, 0, 0, tzinfo=timezone.utc),
+                "end_date": datetime.now(tz=timezone.utc).replace(microsecond=0, second=0, minute=0)
+                + timedelta(hours=24),
             },
-            "azure_gen_last": {"start_date": datetime(2020, 5, 31, 0, 0), "end_date": datetime(2020, 6, 1, 0, 0)},
+            "azure_gen_last": {
+                "start_date": datetime(2020, 5, 31, 0, 0, tzinfo=timezone.utc),
+                "end_date": datetime(2020, 6, 1, 0, 0, tzinfo=timezone.utc),
+            },
             "azure_gen_last_first": {
-                "start_date": datetime(2020, 5, 31, 0, 0),
-                "end_date": datetime(2020, 6, 2, 0, 0),
+                "start_date": datetime(2020, 5, 31, 0, 0, tzinfo=timezone.utc),
+                "end_date": datetime(2020, 6, 2, 0, 0, tzinfo=timezone.utc),
             },
         }
         options = {"provider": "azure", "static_report_file": "tests/azure_static_report.yml"}
@@ -734,14 +778,26 @@ class MainDateTest(TestCase):
         ]
         static_report_data = {"generators": oci_gens}
         expected = {
-            "oci_gen_first": {"start_date": datetime(2020, 6, 1, 0, 0), "end_date": datetime(2020, 6, 1, 0, 0)},
-            "oci_gen_first_second": {"start_date": datetime(2020, 6, 1, 0, 0), "end_date": datetime(2020, 6, 2, 0, 0)},
-            "oci_gen_first_start": {
-                "start_date": datetime(2020, 6, 1, 0, 0),
-                "end_date": datetime.now().replace(minute=0, second=0, microsecond=0),
+            "oci_gen_first": {
+                "start_date": datetime(2020, 6, 1, 0, 0, tzinfo=timezone.utc),
+                "end_date": datetime(2020, 6, 1, 0, 0, tzinfo=timezone.utc),
             },
-            "oci_gen_last": {"start_date": datetime(2020, 5, 31, 0, 0), "end_date": datetime(2020, 5, 31, 0, 0)},
-            "oci_gen_last_first": {"start_date": datetime(2020, 5, 31, 0, 0), "end_date": datetime(2020, 6, 1, 0, 0)},
+            "oci_gen_first_second": {
+                "start_date": datetime(2020, 6, 1, 0, 0, tzinfo=timezone.utc),
+                "end_date": datetime(2020, 6, 2, 0, 0, tzinfo=timezone.utc),
+            },
+            "oci_gen_first_start": {
+                "start_date": datetime(2020, 6, 1, 0, 0, tzinfo=timezone.utc),
+                "end_date": datetime.now(tz=timezone.utc).replace(minute=0, second=0, microsecond=0),
+            },
+            "oci_gen_last": {
+                "start_date": datetime(2020, 5, 31, 0, 0, tzinfo=timezone.utc),
+                "end_date": datetime(2020, 5, 31, 0, 0, tzinfo=timezone.utc),
+            },
+            "oci_gen_last_first": {
+                "start_date": datetime(2020, 5, 31, 0, 0, tzinfo=timezone.utc),
+                "end_date": datetime(2020, 6, 1, 0, 0, tzinfo=timezone.utc),
+            },
         }
         options = {"provider": "oci", "static_report_file": "tests/oci_static_report.yml"}
         mock_load.return_value = static_report_data

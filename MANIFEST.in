@@ -1,3 +1,2 @@
 include nise/aws-template-manifest.json
-include nise/ocp-template-manifest.json
 include nise/yaml_generators/static/*
