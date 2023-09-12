@@ -356,7 +356,7 @@ class OCPGenerator(AbstractGenerator):
         for namespace, node in namespaces.items():
             namespace2pod[namespace] = []
             if node.get("namespaces"):
-                specified_pods = node.get("namespaces").get(namespace).get("pods")
+                specified_pods = node.get("namespaces").get(namespace).get("pods") or []
                 for specified_pod in specified_pods:
                     pod = specified_pod.get("pod_name", self.fake.word())
                     namespace2pod[namespace].append(pod)
