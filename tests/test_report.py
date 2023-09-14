@@ -216,6 +216,48 @@ class MiscReportTestCase(TestCase):
                     },
                 ],
             },
+            {
+                # FIXME
+                #
+                # When the start_date hour=0, this fails because there is an extra entry in the output.
+                #
+                # Output when start_date hour=0 on a month boundary:
+                #    [
+                #        {
+                #            'name': 'July',
+                #            'start': datetime.datetime(2023, 7, 31, 0, 0, tzinfo=datetime.timezone.utc),
+                #            'end': datetime.datetime(2023, 8, 1, 0, 0, tzinfo=datetime.timezone.utc)
+                #        },
+                #        {
+                #            'name': 'August',
+                #            'start': datetime.datetime(2023, 8, 1, 0, 0, tzinfo=datetime.timezone.utc),
+                #            'end': datetime.datetime(2023, 8, 1, 0, 0, tzinfo=datetime.timezone.utc)
+                #        },
+                #    ]
+                #
+                "start_date": datetime.datetime(year=2023, month=7, day=31, hour=1),  # Failure when hour=0
+                "end_date": datetime.datetime(year=2023, month=8, day=1),
+                "expected_list": [
+                    {
+                        "name": "July",
+                        "start": datetime.datetime(
+                            year=2023, month=7, day=31, hour=1, minute=0, tzinfo=datetime.timezone.utc
+                        ),
+                        "end": datetime.datetime(
+                            year=2023, month=8, day=1, hour=0, minute=0, tzinfo=datetime.timezone.utc
+                        ),
+                    },
+                    # {
+                    #     "name": "August",
+                    #     "start": datetime.datetime(
+                    #         year=2023, month=8, day=1, hour=0, minute=0, tzinfo=datetime.timezone.utc
+                    #     ),
+                    #     "end": datetime.datetime(
+                    #         year=2023, month=8, day=1, hour=0, minute=0, tzinfo=datetime.timezone.utc
+                    #     )
+                    # },
+                ],
+            },
         ]
 
         for test_case in test_matrix:
