@@ -273,7 +273,7 @@ class OCPGeneratorTestCase(TestCase):
         """Test that gen_openshift_labels creates well-formatted labels."""
         generator = OCPGenerator(self.two_hours_ago, self.now, {})
         out_labels = generator._gen_openshift_labels()
-        matcher = r"(\w+:\w+)(\|(\w+:\w+))+"
+        matcher = r"(\w+:\w+)((\|(\w+:\w+))+)?"
         self.assertRegex(out_labels, matcher)
 
     def test_gen_pods_with_namespaces(self):

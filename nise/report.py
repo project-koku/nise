@@ -1078,7 +1078,7 @@ def gcp_create_report(options):  # noqa: C901
         )
     else:
         months = _create_month_list(start_date, end_date)
-        monthly_files = []
+        monthly_files = set()
         output_files = []
         for month in months:
             data = []
@@ -1112,7 +1112,7 @@ def gcp_create_report(options):  # noqa: C901
 
             local_file_path, output_file_name = write_gcp_file(gen_start_date, gen_end_date, data, options)
             output_files.append(output_file_name)
-            monthly_files.append(local_file_path)
+            monthly_files.update([local_file_path])
 
         for index, month_file in enumerate(monthly_files):
             if gcp_bucket_name:
