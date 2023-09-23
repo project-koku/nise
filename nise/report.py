@@ -35,6 +35,7 @@ from tempfile import NamedTemporaryFile
 from tempfile import TemporaryDirectory
 from uuid import uuid4
 
+import boto3
 import requests
 from dateutil import parser
 from dateutil.relativedelta import relativedelta
@@ -227,6 +228,38 @@ def ocp_route_file(insights_upload, local_path):
         LOG.info(response.text)
 
 
+def ocp_route_file_minio(minio_upload, local_path, key):
+    """Route file to either Upload Service or local filesystem."""
+    response = post_payload_to_minio(minio_upload, local_path, key)
+    if response.status_code == 200:
+        LOG.info("File uploaded successfully.")
+        LOG.info(f"File key: {key}")
+    else:
+        LOG.error(f"{response.status_code} File upload failed.")
+        LOG.info(response.text)
+
+
+def get_s3_signature(url, file_name):
+    s3 = boto3.client(
+        "s3",
+        endpoint_url=url,
+        aws_access_key_id=os.environ.get("S3_ACCESS_KEY"),
+        aws_secret_access_key=os.environ.get("S3_SECRET_KEY"),
+        region_name="us-east-1",
+    )
+    return s3.generate_presigned_url(
+        ClientMethod="put_object",
+        Params={"Bucket": os.environ.get("S3_BUCKET_NAME"), "Key": file_name},
+        ExpiresIn=86400,
+    )
+
+
+def upload_file_to_s3(signature, file_path):
+    with open(file_path, "rb") as f:
+        response = requests.put(signature, data=f)
+    return response
+
+
 def gcp_route_file(bucket_name, bucket_file_path, local_path):
     """Route file to either GCP bucket or local filesystem."""
     if os.path.isdir(bucket_name):
@@ -280,6 +313,12 @@ def post_payload_to_ingest_service(insights_upload, local_path):
             auth=(insights_user, insights_password),
             verify=False,
         )
+
+
+def post_payload_to_minio(minio_upload, local_path, key):
+    """Upload the payload to Minio (or S3)."""
+    signature = get_s3_signature(minio_upload, key)
+    return upload_file_to_s3(signature, local_path)
 
 
 def _create_month_list(start_date, end_date):
@@ -784,6 +823,7 @@ def ocp_create_report(options):  # noqa: C901
 
     months = _create_month_list(start_date, end_date)
     insights_upload = options.get("insights_upload")
+    minio_upload = options.get("minio_upload")
     write_monthly = options.get("write_monthly", False)
     for month in months:
         data = {OCP_POD_USAGE: [], OCP_STORAGE_USAGE: [], OCP_NODE_LABEL: [], OCP_NAMESPACE_LABEL: []}
@@ -842,7 +882,7 @@ def ocp_create_report(options):  # noqa: C901
             else:
                 monthly_files.append(month_output_file)
 
-        if insights_upload:
+        if insights_upload or minio_upload:
             # Generate manifest for all files
             ocp_assembly_id = uuid4()
             report_datetime = gen_start_date
@@ -912,23 +952,32 @@ def ocp_create_report(options):  # noqa: C901
             temp_manifest = _write_manifest(manifest_data)
             temp_manifest_name = create_temporary_copy(temp_manifest, "manifest.json", "payload")
 
-            # Tarball and upload files individually
-            for temp_usage_file in temp_files.values():
-                report_files = [temp_usage_file, temp_manifest_name]
-                temp_usage_zip = _tar_gzip_report_files(report_files)
-                ocp_route_file(insights_upload, temp_usage_zip)
-                os.remove(temp_usage_file)
-                os.remove(temp_usage_zip)
+            # Tarball and upload files individually for insights upload:
+            if insights_upload:
+                for temp_usage_file in temp_files.values():
+                    report_files = [temp_usage_file, temp_manifest_name]
+                    temp_usage_zip = _tar_gzip_report_files(report_files)
+                    ocp_route_file(insights_upload, temp_usage_zip)
+                    os.remove(temp_usage_file)
+                    os.remove(temp_usage_zip)
 
-            for temp_usage_file in temp_ros_files.values():
-                ros_report_files = [temp_usage_file, temp_manifest_name]
-                temp_usage_zip = _tar_gzip_report_files(ros_report_files)
-                ocp_route_file(insights_upload, temp_usage_zip)
-                os.remove(temp_usage_file)
+                for temp_usage_file in temp_ros_files.values():
+                    ros_report_files = [temp_usage_file, temp_manifest_name]
+                    temp_usage_zip = _tar_gzip_report_files(ros_report_files)
+                    ocp_route_file(insights_upload, temp_usage_zip)
+                    os.remove(temp_usage_file)
+                    os.remove(temp_usage_zip)
+                os.remove(temp_manifest_name)
+            else:
+                report_files = list(temp_files.values()) + list(temp_ros_files.values()) + [temp_manifest_name]
+                temp_usage_zip = _tar_gzip_report_files(report_files)
+                payload_key = f"{ocp_assembly_id.hex}.tar.gz"
+                ocp_route_file_minio(minio_upload, temp_usage_zip, payload_key)
                 os.remove(temp_usage_zip)
+                for file in report_files:
+                    os.remove(file)
 
             os.remove(temp_manifest)
-            os.remove(temp_manifest_name)
         if not write_monthly:
             LOG.info("Cleaning up local directory")
             _remove_files(monthly_files)

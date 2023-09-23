@@ -272,6 +272,13 @@ def add_ocp_parser_args(parser):
         help="URL for Insights Upload Service.",
     )
     parser.add_argument(
+        "--minio-upload",
+        metavar="MINIO_UPLOAD_ENDPOINT",
+        dest="minio_upload",
+        required=False,
+        help="URL for Minio (S3).",
+    )
+    parser.add_argument(
         "--ros-ocp-info",
         dest="ros_ocp_info",
         required=False,
@@ -458,7 +465,8 @@ def _get_ocp_options(options):
     """
     ocp_cluster_id = options.get("ocp_cluster_id")
     insights_upload = options.get("insights_upload")
-    return (ocp_cluster_id, insights_upload)
+    minio_upload = options.get("minio_upload")
+    return (ocp_cluster_id, insights_upload, minio_upload)
 
 
 def _get_gcp_options(options):
@@ -533,9 +541,8 @@ def _validate_ocp_arguments(parser, options):
         (ParserError): If combination is invalid.
 
     """
-    ocp_valid = False
 
-    ocp_cluster_id, insights_upload = _get_ocp_options(options)
+    ocp_cluster_id, insights_upload, minio_upload = _get_ocp_options(options)
     if ocp_cluster_id is None:
         msg = "{} must be supplied."
         msg = msg.format("--ocp-cluster-id")
@@ -556,11 +563,20 @@ def _validate_ocp_arguments(parser, options):
             )
             msg = msg.format("--insights-upload", insights_upload)
             parser.error(msg)
-        # Either set of acceptable credentials are acceptable
-        ocp_valid = True
-    else:
-        ocp_valid = True
-    return ocp_valid
+    elif minio_upload:
+        access_key = os.environ.get("S3_ACCESS_KEY")
+        secret_key = os.environ.get("S3_SECRET_KEY")
+        bucket_name = os.environ.get("S3_BUCKET_NAME")
+        if access_key is None or secret_key is None or bucket_name is None:
+            msg = (
+                f"\n\t--minio-upload {minio_upload} was supplied as an argument\n"
+                "\tbut the environment must have \n\t\tS3_ACCESS_KEY and S3_SECRET_KEY and S3_BUCKET_NAME\n"
+                "\tdefined when attempting an upload to Minio (or S3).\n"
+            )
+            msg = msg.format("--minio-upload", minio_upload)
+            parser.error(msg)
+
+    return True
 
 
 def _validate_gcp_arguments(parser, options):
