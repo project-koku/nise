@@ -214,7 +214,7 @@ def azure_route_file(storage_account_name, storage_file_name, local_path, storag
         copy_to_local_dir(storage_account_name, local_path, storage_file_name)
 
 
-def ocp_route_file(insights_upload, local_path, *args):
+def ocp_route_file(insights_upload, local_path):
     """Route file to either Upload Service or local filesystem."""
     if os.path.isdir(insights_upload):
         extract_payload(insights_upload, local_path)
