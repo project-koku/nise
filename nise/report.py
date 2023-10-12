@@ -655,10 +655,15 @@ def aws_create_report(options):  # noqa: C901
                 attributes,
                 options.get("aws_tags"),
             )
-            num_instances = 1 if attributes else randint(2, 60)
-            for _ in range(num_instances):
+            # num_instances - spec. how many times you want to multiple the yaml file - use 25000 for subs pref testing (have 2 rhel instance in yaml)
+            num_instances = 1000 if attributes else randint(2, 60)
+            for i in range(num_instances):
+                resource_id = "i-{}".format(fake.ean8())
                 for hour in gen.generate_data():
+                    hour['lineItem/ResourceId'] = resource_id
                     data += [hour]
+
+
                     if len(data) == options.get("row_limit"):
                         file_number += 1
                         month_output_file = write_aws_file(
