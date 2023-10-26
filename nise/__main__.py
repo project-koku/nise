@@ -279,6 +279,13 @@ def add_ocp_parser_args(parser):
         help="URL for Minio (S3).",
     )
     parser.add_argument(
+        "--payload-name",
+        metavar="PAYLOAD_NAME",
+        dest="payload_name",
+        required=False,
+        help="The name used to save a payload.",
+    )
+    parser.add_argument(
         "--ros-ocp-info",
         dest="ros_ocp_info",
         required=False,
@@ -466,7 +473,8 @@ def _get_ocp_options(options):
     ocp_cluster_id = options.get("ocp_cluster_id")
     insights_upload = options.get("insights_upload")
     minio_upload = options.get("minio_upload")
-    return (ocp_cluster_id, insights_upload, minio_upload)
+    payload_name = options.get("payload_name")
+    return (ocp_cluster_id, insights_upload, minio_upload, payload_name)
 
 
 def _get_gcp_options(options):
@@ -542,7 +550,7 @@ def _validate_ocp_arguments(parser, options):
 
     """
 
-    ocp_cluster_id, insights_upload, minio_upload = _get_ocp_options(options)
+    ocp_cluster_id, insights_upload, minio_upload, payload_name = _get_ocp_options(options)
     if ocp_cluster_id is None:
         msg = "{} must be supplied."
         msg = msg.format("--ocp-cluster-id")
@@ -575,6 +583,10 @@ def _validate_ocp_arguments(parser, options):
             )
             msg = msg.format("--minio-upload", minio_upload)
             parser.error(msg)
+    if payload_name and not minio_upload:
+        msg = "\n\t--payload-name is only used with --minio-upload\n"
+        msg = msg.format("--payload-name", payload_name)
+        parser.error(msg)
 
     return True
 

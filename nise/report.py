@@ -964,7 +964,7 @@ def ocp_create_report(options):  # noqa: C901
             else:
                 report_files = list(temp_files.values()) + list(temp_ros_files.values()) + [temp_manifest_name]
                 temp_usage_zip = _tar_gzip_report_files(report_files)
-                payload_key = f"{ocp_assembly_id.hex}.tar.gz"
+                payload_key = f"{options.get('payload_name') or ocp_assembly_id.hex}.tar.gz"
                 ocp_route_file_minio(minio_upload, temp_usage_zip, payload_key)
                 os.remove(temp_usage_zip)
 
