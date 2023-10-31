@@ -907,10 +907,8 @@ class OCPReportTestCase(TestCase):
         fix_dates(options, "ocp")
         ocp_create_report(options)
         for report_type in OCP_REPORT_TYPE_TO_COLS.keys():
-            month_output_file_name = "{}-{}-{}-{}".format(
-                calendar.month_name[now.month], now.year, cluster_id, report_type
-            )
-            expected_month_output_file = "{}/{}.csv".format(os.getcwd(), month_output_file_name)
+            month_output_file_name = f"{calendar.month_name[now.month]}-{now.year}-{cluster_id}-{report_type}"
+            expected_month_output_file = f"{os.getcwd()}/{month_output_file_name}.csv"
             self.assertTrue(os.path.isfile(expected_month_output_file))
             os.remove(expected_month_output_file)
         shutil.rmtree(local_insights_upload)
@@ -981,9 +979,7 @@ class OCPReportTestCase(TestCase):
         for report_type in OCP_REPORT_TYPE_TO_COLS.keys():
             if "ocp_ros_usage" == report_type:
                 continue
-            month_output_file_name = "{}-{}-{}-{}".format(
-                calendar.month_name[now.month], now.year, cluster_id, report_type
-            )
+            month_output_file_name = f"{calendar.month_name[now.month]}-{now.year}-{cluster_id}-{report_type}"
             expected_month_output_file = "{}/{}.csv".format(os.getcwd(), month_output_file_name)
             self.assertTrue(os.path.isfile(expected_month_output_file))
             os.remove(expected_month_output_file)

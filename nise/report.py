@@ -826,7 +826,6 @@ def ocp_create_report(options):  # noqa: C901
     minio_upload = options.get("minio_upload")
     write_monthly = options.get("write_monthly", False)
     for month in months:
-        print(month)
         data = {OCP_POD_USAGE: [], OCP_STORAGE_USAGE: [], OCP_NODE_LABEL: [], OCP_NAMESPACE_LABEL: []}
         file_numbers = {OCP_POD_USAGE: 0, OCP_STORAGE_USAGE: 0, OCP_NODE_LABEL: 0, OCP_NAMESPACE_LABEL: 0}
         if ros_ocp_info:
@@ -957,8 +956,8 @@ def ocp_create_report(options):  # noqa: C901
             if insights_upload:
                 report_files = list(temp_files.values()) + list(temp_ros_files.values())
                 for temp_usage_file in report_files:
-                    report_files = [temp_usage_file, temp_manifest_name]
-                    temp_usage_zip = _tar_gzip_report_files(report_files)
+                    files_to_zip = [temp_usage_file, temp_manifest_name]
+                    temp_usage_zip = _tar_gzip_report_files(files_to_zip)
                     ocp_route_file(insights_upload, temp_usage_zip)
                     os.remove(temp_usage_zip)
                 os.remove(temp_manifest_name)
