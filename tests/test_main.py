@@ -21,6 +21,7 @@ from datetime import date
 from datetime import datetime
 from datetime import timedelta
 from datetime import timezone
+from itertools import combinations
 from unittest import TestCase
 from unittest.mock import patch
 
@@ -235,47 +236,92 @@ class CommandLineTestCase(TestCase):
             args = ["report", "ocp", "--start-date", str(date.today()), "--gcp-report-prefix", "gcp-report"]
             self.parser.parse_args(args)
 
-    @patch.dict(os.environ, {"INSIGHTS_ACCOUNT_ID": "12345", "INSIGHTS_ORG_ID": "54321"})
-    def test_ocp_inputs_insights_upload_account_org_ids(self):
+    def test_ocp_inputs_insights_upload_env_vars(self):
         """
         Test where user passes an invalid ocp argument combination.
         """
-
-        args = [
-            "report",
-            "ocp",
-            "--start-date",
-            str(date.today()),
-            "--insights-upload",
-            "true",
-            "--ocp-cluster-id",
-            "123",
+        test_table = [
+            {"INSIGHTS_ACCOUNT_ID": "12345", "INSIGHTS_ORG_ID": "54321"},
+            {"INSIGHTS_USER": "12345", "INSIGHTS_PASSWORD": "54321"},
         ]
-        options = vars(self.parser.parse_args(args))
-        is_valid, _ = _validate_provider_inputs(self.parser, options)
-        self.assertTrue(is_valid)
+        for test in test_table:
+            with self.subTest(test=test), patch.dict(os.environ, test):
+                args = [
+                    "report",
+                    "ocp",
+                    "--start-date",
+                    str(date.today()),
+                    "--insights-upload",
+                    "true",
+                    "--ocp-cluster-id",
+                    "123",
+                ]
+                options = vars(self.parser.parse_args(args))
+                is_valid, _ = _validate_provider_inputs(self.parser, options)
+                self.assertTrue(is_valid)
 
-    @patch.dict(os.environ, {"INSIGHTS_USER": "12345", "INSIGHTS_PASSWORD": "54321"})
-    def test_ocp_inputs_insights_upload_user_pass(self):
+    def test_ocp_inputs_minio_upload_env_vars(self):
         """
         Test where user passes an invalid ocp argument combination.
         """
+        env = {"S3_ACCESS_KEY": "12345", "S3_SECRET_KEY": "54321", "S3_BUCKET_NAME": "12345"}
+        with patch.dict(os.environ, env):
+            args = [
+                "report",
+                "ocp",
+                "--start-date",
+                str(date.today()),
+                "--minio-upload",
+                "true",
+                "--ocp-cluster-id",
+                "123",
+            ]
+            options = vars(self.parser.parse_args(args))
+            is_valid, _ = _validate_provider_inputs(self.parser, options)
+            self.assertTrue(is_valid)
 
-        args = [
-            "report",
-            "ocp",
-            "--start-date",
-            str(date.today()),
-            "--insights-upload",
-            "true",
-            "--ocp-cluster-id",
-            "123",
-        ]
-        options = vars(self.parser.parse_args(args))
-        is_valid, _ = _validate_provider_inputs(self.parser, options)
-        self.assertTrue(is_valid)
+    def test_ocp_inputs_insights_minio_upload_no_envs(self):
+        """
+        Test where user passes an invalid ocp argument combination.
+        """
+        test_table = ["--insights-upload", "--minio-upload"]
+        for test in test_table:
+            with self.subTest(test=test), self.assertRaises(SystemExit):
+                args = [
+                    "report",
+                    "ocp",
+                    "--start-date",
+                    str(date.today()),
+                    test,
+                    "true",
+                    "--ocp-cluster-id",
+                    "123",
+                ]
+                options = vars(self.parser.parse_args(args))
+                _validate_provider_inputs(self.parser, options)
 
-    def test_ocp_inputs_insights_upload_no_envs(self):
+    def test_ocp_inputs_minio_upload_some_envs(self):
+        """
+        Test where user passes an invalid ocp argument combination.
+        """
+        test_table = [{"S3_ACCESS_KEY": "12345"}, {"S3_SECRET_KEY": "54321"}, {"S3_BUCKET_NAME": "12345"}]
+        for test in combinations(test_table, 2):
+            envs = {k: v for d in test for k, v in d.items()}
+            with patch.dict(os.environ, envs), self.subTest(test=envs), self.assertRaises(SystemExit):
+                args = [
+                    "report",
+                    "ocp",
+                    "--start-date",
+                    str(date.today()),
+                    "--minio-upload",
+                    "true",
+                    "--ocp-cluster-id",
+                    "123",
+                ]
+                options = vars(self.parser.parse_args(args))
+                _validate_provider_inputs(self.parser, options)
+
+    def test_ocp_inputs_payload_name_without_minio_upload(self):
         """
         Test where user passes an invalid ocp argument combination.
         """
@@ -285,7 +331,7 @@ class CommandLineTestCase(TestCase):
                 "ocp",
                 "--start-date",
                 str(date.today()),
-                "--insights-upload",
+                "--payload-name",
                 "true",
                 "--ocp-cluster-id",
                 "123",

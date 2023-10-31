@@ -228,7 +228,7 @@ def ocp_route_file(insights_upload, local_path):
         LOG.info(response.text)
 
 
-def ocp_route_file_minio(minio_upload, local_path, key):
+def ocp_route_file_minio(minio_upload, local_path, key):  # pragma: no cover
     """Route file to either Upload Service or local filesystem."""
     response = post_payload_to_minio(minio_upload, local_path, key)
     if response.status_code == 200:
@@ -239,7 +239,7 @@ def ocp_route_file_minio(minio_upload, local_path, key):
         LOG.info(response.text)
 
 
-def get_s3_signature(url, file_name):
+def get_s3_signature(url, file_name):  # pragma: no cover
     s3 = boto3.client(
         "s3",
         endpoint_url=url,
@@ -254,7 +254,7 @@ def get_s3_signature(url, file_name):
     )
 
 
-def upload_file_to_s3(signature, file_path):
+def upload_file_to_s3(signature, file_path):  # pragma: no cover
     with open(file_path, "rb") as f:
         response = requests.put(signature, data=f)
     return response
@@ -315,7 +315,7 @@ def post_payload_to_ingest_service(insights_upload, local_path):
         )
 
 
-def post_payload_to_minio(minio_upload, local_path, key):
+def post_payload_to_minio(minio_upload, local_path, key):  # pragma: no cover
     """Upload the payload to Minio (or S3)."""
     signature = get_s3_signature(minio_upload, key)
     return upload_file_to_s3(signature, local_path)
