@@ -26,6 +26,7 @@ from tempfile import mkdtemp
 from tempfile import NamedTemporaryFile
 from tempfile import TemporaryDirectory
 from unittest import TestCase
+from unittest.mock import ANY
 from unittest.mock import patch
 
 import faker
@@ -882,12 +883,37 @@ class OCPReportTestCase(TestCase):
         fix_dates(options, "ocp")
         ocp_create_report(options)
         for report_type in OCP_REPORT_TYPE_TO_COLS.keys():
-            month_output_file_name = "{}-{}-{}-{}".format(
-                calendar.month_name[now.month], now.year, cluster_id, report_type
-            )
-            expected_month_output_file = "{}/{}.csv".format(os.getcwd(), month_output_file_name)
+            month_output_file_name = f"{calendar.month_name[now.month]}-{now.year}-{cluster_id}-{report_type}"
+            expected_month_output_file = f"{os.getcwd()}/{month_output_file_name}.csv"
             self.assertTrue(os.path.isfile(expected_month_output_file))
             os.remove(expected_month_output_file)
+
+    def test_ocp_create_report_minio_upload(self):
+        """Test the ocp report creation method."""
+        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
+        one_day = datetime.timedelta(days=1)
+        yesterday = now - one_day
+        cluster_id = "11112222"
+        mock_minio_url = "fake-minio-url"
+        options = {
+            "start_date": yesterday,
+            "end_date": now,
+            "ocp_cluster_id": cluster_id,
+            "write_monthly": True,
+            "ros_ocp_info": True,
+            "minio_upload": mock_minio_url,
+        }
+        fix_dates(options, "ocp")
+        with patch("nise.report.post_payload_to_minio") as mock_upload:
+            mock_upload.return_value.status_code = 200
+            ocp_create_report(options)
+        for report_type in OCP_REPORT_TYPE_TO_COLS.keys():
+            month_output_file_name = f"{calendar.month_name[now.month]}-{now.year}-{cluster_id}-{report_type}"
+            expected_month_output_file = f"{os.getcwd()}/{month_output_file_name}.csv"
+            self.assertTrue(os.path.isfile(expected_month_output_file))
+            os.remove(expected_month_output_file)
+        mock_upload.assert_called()
+        mock_upload.assert_called_with(mock_minio_url, ANY, ANY)
 
     def test_ocp_create_report_with_local_dir(self):
         """Test the ocp report creation method with local directory."""
@@ -980,7 +1006,7 @@ class OCPReportTestCase(TestCase):
             if "ocp_ros_usage" == report_type:
                 continue
             month_output_file_name = f"{calendar.month_name[now.month]}-{now.year}-{cluster_id}-{report_type}"
-            expected_month_output_file = "{}/{}.csv".format(os.getcwd(), month_output_file_name)
+            expected_month_output_file = f"{os.getcwd()}/{month_output_file_name}.csv"
             self.assertTrue(os.path.isfile(expected_month_output_file))
             os.remove(expected_month_output_file)
         shutil.rmtree(local_insights_upload)
