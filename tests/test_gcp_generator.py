@@ -369,9 +369,10 @@ class TestGCPGenerator(TestCase):
         for generator in generators_list:
             gen_handler = generator(self.yesterday, self.now, self.currency, self.project, attributes=attributes)
             generated_data = gen_handler.generate_data()
+            num_invoice_months = gen_handler._gcp_find_invoice_months_in_date_range()
             list_data = list(generated_data)
             credit_rows = []
             for row in list_data:
                 credit_amount = row.get("credits", {}).get("amount", 0)
                 credit_rows.append(credit_amount)
-            self.assertEqual(sum(credit_rows), expected_credit_amount)
+            self.assertEqual(sum(credit_rows), expected_credit_amount * len(num_invoice_months))
