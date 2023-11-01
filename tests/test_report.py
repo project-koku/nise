@@ -605,7 +605,7 @@ class AWSReportTestCase(TestCase):
         local_bucket_path = mkdtemp()
 
         static_aws_data = {
-            "generators": [{"EC2Generator": {"start_date": str(now), "end_date": str(now)}}],
+            "generators": [{"EC2Generator": {"start_date": str(yesterday), "end_date": str(now)}}],
             "accounts": {"payer": 9999999999999, "user": [9999999999999]},
         }
         options = {
@@ -618,8 +618,8 @@ class AWSReportTestCase(TestCase):
         }
         fix_dates(options, "aws")
         aws_create_report(options)
-        month_output_file_name = "{}-{}-{}".format(calendar.month_name[now.month], now.year, "cur_report")
-        expected_month_output_file = "{}/{}.csv".format(os.getcwd(), month_output_file_name)
+        month_output_file_name = f"{calendar.month_name[now.month]}-{now.year}-cur_report"
+        expected_month_output_file = f"{os.getcwd()}/{month_output_file_name}.csv"
         self.assertTrue(os.path.isfile(expected_month_output_file))
         os.remove(expected_month_output_file)
         shutil.rmtree(local_bucket_path)
