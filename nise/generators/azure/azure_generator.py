@@ -312,7 +312,7 @@ class AzureGenerator(AbstractGenerator):
             row["BillingPeriodEndDate"] = self.last_day_of_month(start).strftime(DATE_FMT)
         else:
             row["SubscriptionGuid"] = self.subscription_guid
-            row["UsageDateTime"] = start.strftime(DATE_FMT)
+            row["UsageDateTime"] = start.strftime("%Y-%m-%d %H:%M:%S")
         return row
 
     def _add_tag_data(self, row):
