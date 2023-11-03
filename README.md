@@ -181,7 +181,7 @@ The `make run-iqe` command by default will run the smoke tests. However, if you 
     -   `overwrite` will generate a regular report with the invoice id
         populated.
 1.  If `--insights-upload` is specified and pointing to a URL endpoint,
-    you must have `INSIGHTS_USER` and `INSIGHTS_PASSWORD` set in your
+    you must have `HCC_SERVICE_ACCOUNT_ID` and `HCC_SERVICE_ACCOUNT_SECRET` set in your
     environment. Payloads for insights uploads will be split on a
     per-file basis.
 1.  If `--static-report-file` is used start_date will default to first
