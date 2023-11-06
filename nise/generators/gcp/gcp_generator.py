@@ -135,7 +135,8 @@ class GCPGenerator(AbstractGenerator):
         """Provide timestamp for a date."""
         if not in_date or not isinstance(in_date, datetime.datetime):
             raise ValueError("in_date must be a date object.")
-        # Local reports doesn't work with tz info, Bigquery uses UTC by default
+        # can't use tz info - local reports doesn't work with "UTC",
+        # BigQuery doesn't support UTC offset in the form of +HHMM
         return in_date.strftime("%Y-%m-%dT%H:%M:%S")
 
     @abstractmethod
