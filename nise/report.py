@@ -283,6 +283,12 @@ def post_payload_to_ingest_service(insights_upload, local_path):
     insights_org_id = os.environ.get("INSIGHTS_ORG_ID")
     insights_user = os.environ.get("INSIGHTS_USER")
     insights_password = os.environ.get("INSIGHTS_PASSWORD")
+    hcc_service_account_id = os.environ.get("HCC_SERVICE_ACCOUNT_ID")
+    hcc_service_account_secret = os.environ.get("HCC_SERVICE_ACCOUNT_SECRET")
+    hcc_token_url = os.environ.get(
+        "HCC_TOKEN_URL", "https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/token"
+    )
+    hcc_token_scope = os.environ.get("HCC_TOKEN_SCOPE", "api.console")
     content_type = "application/vnd.redhat.hccm.tar+tgz"
     if os.path.isfile(local_path):
         file_info = os.stat(local_path)
@@ -306,11 +312,30 @@ def post_payload_to_ingest_service(insights_upload, local_path):
                 headers=headers,
             )
 
+        if insights_user and insights_password:
+            return requests.post(
+                insights_upload,
+                data={},
+                files={"file": ("payload.tar.gz", upload_file, content_type)},
+                auth=(insights_user, insights_password),
+                verify=False,
+            )
+
+        headers = {"Content-Type": "application/x-www-form-urlencoded"}
+        data = f"client_id={hcc_service_account_id}&client_secret={hcc_service_account_secret}"
+        data += f"&grant_type=client_credentials&scope={hcc_token_scope}"
+        token_resp = requests.post(hcc_token_url, data=data, headers=headers)
+        token = None
+        if token_resp.ok:
+            token_json = token_resp.json()
+            token = token_json.get("access_token")
+
+        headers = {"Authorization": f"Bearer {token}"}
         return requests.post(
             insights_upload,
             data={},
             files={"file": ("payload.tar.gz", upload_file, content_type)},
-            auth=(insights_user, insights_password),
+            headers=headers,
             verify=False,
         )
 

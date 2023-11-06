@@ -558,15 +558,19 @@ def _validate_ocp_arguments(parser, options):
     elif insights_upload is not None and not os.path.isdir(insights_upload):
         insights_user = os.environ.get("INSIGHTS_USER")
         insights_password = os.environ.get("INSIGHTS_PASSWORD")
+        hcc_service_account_id = os.environ.get("HCC_SERVICE_ACCOUNT_ID")
+        hcc_service_account_secret = os.environ.get("HCC_SERVICE_ACCOUNT_SECRET")
         insights_account_id = os.environ.get("INSIGHTS_ACCOUNT_ID")
         insights_org_id = os.environ.get("INSIGHTS_ORG_ID")
-        if (insights_account_id is None or insights_org_id is None) and (
-            insights_user is None or insights_password is None
+        if (
+            (insights_account_id is None or insights_org_id is None)
+            and (insights_user is None or insights_password is None)
+            and (hcc_service_account_id is None or hcc_service_account_secret is None)
         ):
             msg = (
                 f"\n\t--insights-upload {insights_upload} was supplied as an argument\n"
                 "\tbut this directory does not exist locally. Attempting to upload to Ingress instead, but\n"
-                "\tthe environment must have \n\t\tINSIGHTS_USER and INSIGHTS_PASSWORD\n\tor\n"
+                "\tthe environment must have \n\t\\HCC_SERVICE_ACCOUNT_ID and HCC_SERVICE_ACCOUNT_SECRET\n\tor\n"
                 "\t\tINSIGHTS_ACCOUNT_ID and INSIGHTS_ORG_ID\n\tdefined when attempting an upload to Ingress.\n"
             )
             msg = msg.format("--insights-upload", insights_upload)

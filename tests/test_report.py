@@ -337,7 +337,7 @@ class MiscReportTestCase(TestCase):
     @patch.dict(os.environ, {"INSIGHTS_USER": "12345", "INSIGHTS_PASSWORD": "54321"})
     @patch("nise.report.requests.post")
     def test_post_payload_to_ingest_service_with_basic_auth(self, mock_post):
-        """Test that the identity header path is taken."""
+        """Test that the basic auth path is taken."""
         insights_user = os.environ.get("INSIGHTS_USER")
         insights_password = os.environ.get("INSIGHTS_PASSWORD")
 
@@ -353,6 +353,21 @@ class MiscReportTestCase(TestCase):
         post_payload_to_ingest_service(insights_upload, temp_file.name)
         self.assertEqual(mock_post.call_args[1].get("auth"), auth)
         self.assertNotIn("headers", mock_post.call_args[1])
+
+    @patch.dict(os.environ, {"HCC_SERVICE_ACCOUNT_ID": "12345", "HCC_SERVICE_ACCOUNT_SECRET": "54321"})
+    @patch("nise.report.requests.post")
+    def test_post_payload_to_ingest_service_with_service_account(self, mock_post):
+        """Test that the service account path is taken."""
+        temp_file = NamedTemporaryFile(mode="w", delete=False)
+        headers = ["col1", "col2"]
+        data = [{"col1": "r1c1", "col2": "r1c2"}, {"col1": "r2c1", "col2": "r2c2"}]
+        _write_csv(temp_file.name, data, headers)
+
+        insights_upload = {}
+        data = {}
+
+        post_payload_to_ingest_service(insights_upload, temp_file.name)
+        self.assertEqual(mock_post.call_args[1].get("data"), data)
 
     def test_defaulting_currency(self):
         """Test that if no currency is provide in options or static it defaults to USD."""
