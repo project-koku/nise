@@ -1020,7 +1020,6 @@ def write_gcp_file(start_date, end_date, data, options):
     if options.get("gcp_resource_level", False):
         columns += GCP_RESOURCE_COLUMNS
     _write_csv(local_file_path, data, columns)
-    LOG.info(local_file_path)
     return local_file_path, output_file_name
 
 
