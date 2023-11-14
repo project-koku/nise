@@ -1020,6 +1020,7 @@ def write_gcp_file(start_date, end_date, data, options):
     if options.get("gcp_resource_level", False):
         columns += GCP_RESOURCE_COLUMNS
     _write_csv(local_file_path, data, columns)
+    LOG.info(local_file_path)
     return local_file_path, output_file_name
 
 
@@ -1146,7 +1147,7 @@ def gcp_create_report(options):  # noqa: C901
         )
     else:
         months = _create_month_list(start_date, end_date)
-        monthly_files = set()
+        monthly_files = []
         output_files = []
         for month in months:
             data = []
@@ -1180,7 +1181,7 @@ def gcp_create_report(options):  # noqa: C901
 
             local_file_path, output_file_name = write_gcp_file(gen_start_date, gen_end_date, data, options)
             output_files.append(output_file_name)
-            monthly_files.update([local_file_path])
+            monthly_files.append(local_file_path)
 
         for index, month_file in enumerate(monthly_files):
             if gcp_bucket_name:
