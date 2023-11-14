@@ -742,7 +742,7 @@ def calculate_start_date(start_date):
     elif start_date == "today":
         generated_start_date = today().replace(hour=0, minute=0, second=0)
     elif start_date and isinstance(start_date, datetime.date):
-        generated_start_date = datetime.datetime.fromordinal(start_date.toordinal())
+        generated_start_date = start_date
     elif start_date:
         generated_start_date = date_parser.parse(start_date)
     else:
@@ -760,7 +760,7 @@ def calculate_end_date(start_date, end_date):
         elif end_date == "today":
             generated_end_date = today().replace(hour=0, minute=0, second=0)
         elif end_date and isinstance(end_date, datetime.date):
-            generated_end_date = datetime.datetime.fromordinal(end_date.toordinal())
+            generated_end_date = end_date
         else:
             generated_end_date = date_parser.parse(end_date)
     except TypeError:
