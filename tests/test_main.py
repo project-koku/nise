@@ -587,19 +587,19 @@ class MainDateTest(TestCase):
     def test_aws_dates(self, mock_load):
         """Test that select static-data-file dates return correct dates."""
         aws_gens = [
-            {"aws_gen_first": {"start_date": datetime(2020, 6, 1).date(), "end_date": datetime(2020, 6, 1).date()}},
+            {"aws_gen_first": {"start_date": datetime(2020, 6, 1), "end_date": datetime(2020, 6, 1)}},
             {
                 "aws_gen_first_second": {
-                    "start_date": datetime(2020, 6, 1).date(),
-                    "end_date": datetime(2020, 6, 2).date(),
+                    "start_date": datetime(2020, 6, 1),
+                    "end_date": datetime(2020, 6, 2),
                 }
             },
-            {"aws_gen_first_start": {"start_date": datetime(2020, 6, 1).date()}},
-            {"aws_gen_last": {"start_date": datetime(2020, 5, 31).date(), "end_date": datetime(2020, 5, 31).date()}},
+            {"aws_gen_first_start": {"start_date": datetime(2020, 6, 1)}},
+            {"aws_gen_last": {"start_date": datetime(2020, 5, 31), "end_date": datetime(2020, 5, 31)}},
             {
                 "aws_gen_last_first": {
-                    "start_date": datetime(2020, 5, 31).date(),
-                    "end_date": datetime(2020, 6, 1).date(),
+                    "start_date": datetime(2020, 5, 31),
+                    "end_date": datetime(2020, 6, 1),
                 }
             },
         ]
@@ -639,24 +639,24 @@ class MainDateTest(TestCase):
     def test_aws_market_dates(self, mock_load):
         """Test that select static-data-file dates return correct dates."""
         aws_mp_gens = [
-            {"aws_mp_gen_first": {"start_date": datetime(2020, 6, 1).date(), "end_date": datetime(2020, 6, 1).date()}},
+            {"aws_mp_gen_first": {"start_date": datetime(2020, 6, 1), "end_date": datetime(2020, 6, 1)}},
             {
                 "aws_mp_gen_first_second": {
-                    "start_date": datetime(2020, 6, 1).date(),
-                    "end_date": datetime(2020, 6, 2).date(),
+                    "start_date": datetime(2020, 6, 1),
+                    "end_date": datetime(2020, 6, 2),
                 }
             },
-            {"aws_mp_gen_first_start": {"start_date": datetime(2020, 6, 1).date()}},
+            {"aws_mp_gen_first_start": {"start_date": datetime(2020, 6, 1)}},
             {
                 "aws_mp_gen_last": {
-                    "start_date": datetime(2020, 5, 31).date(),
-                    "end_date": datetime(2020, 5, 31).date(),
+                    "start_date": datetime(2020, 5, 31),
+                    "end_date": datetime(2020, 5, 31),
                 }
             },
             {
                 "aws_mp_gen_last_first": {
-                    "start_date": datetime(2020, 5, 31).date(),
-                    "end_date": datetime(2020, 6, 1).date(),
+                    "start_date": datetime(2020, 5, 31),
+                    "end_date": datetime(2020, 6, 1),
                 }
             },
         ]
@@ -696,19 +696,19 @@ class MainDateTest(TestCase):
     def test_ocp_dates(self, mock_load):
         """Test that select static-data-file dates return correct dates."""
         ocp_gens = [
-            {"ocp_gen_first": {"start_date": "2020-06-01", "end_date": datetime(2020, 6, 1).date()}},
+            {"ocp_gen_first": {"start_date": "2020-06-01", "end_date": datetime(2020, 6, 1)}},
             {
                 "ocp_gen_first_second": {
-                    "start_date": datetime(2020, 6, 1).date(),
-                    "end_date": datetime(2020, 6, 2).date(),
+                    "start_date": datetime(2020, 6, 1),
+                    "end_date": datetime(2020, 6, 2),
                 }
             },
-            {"ocp_gen_first_start": {"start_date": datetime(2020, 6, 1).date()}},
-            {"ocp_gen_last": {"start_date": datetime(2020, 5, 31).date(), "end_date": datetime(2020, 5, 31).date()}},
+            {"ocp_gen_first_start": {"start_date": datetime(2020, 6, 1)}},
+            {"ocp_gen_last": {"start_date": datetime(2020, 5, 31), "end_date": datetime(2020, 5, 31)}},
             {
                 "ocp_gen_last_first": {
-                    "start_date": datetime(2020, 5, 31).date(),
-                    "end_date": datetime(2020, 6, 1).date(),
+                    "start_date": datetime(2020, 5, 31),
+                    "end_date": datetime(2020, 6, 1),
                 }
             },
             {"ocp_gen_times": {"start_date": "2023-08-01T05", "end_date": "2023-08-02T23:45"}},
@@ -753,19 +753,19 @@ class MainDateTest(TestCase):
     def test_azure_dates(self, mock_load):
         """Test that select static-data-file dates return correct dates."""
         azure_gens = [
-            {"azure_gen_first": {"start_date": datetime(2020, 6, 1).date(), "end_date": datetime(2020, 6, 1).date()}},
+            {"azure_gen_first": {"start_date": datetime(2020, 6, 1), "end_date": datetime(2020, 6, 1)}},
             {
                 "azure_gen_first_second": {
-                    "start_date": datetime(2020, 6, 1).date(),
-                    "end_date": datetime(2020, 6, 2).date(),
+                    "start_date": datetime(2020, 6, 1),
+                    "end_date": datetime(2020, 6, 2),
                 }
             },
-            {"azure_gen_first_start": {"start_date": datetime(2020, 6, 1).date()}},
-            {"azure_gen_last": {"start_date": datetime(2020, 5, 31).date(), "end_date": datetime(2020, 5, 31).date()}},
+            {"azure_gen_first_start": {"start_date": datetime(2020, 6, 1)}},
+            {"azure_gen_last": {"start_date": datetime(2020, 5, 31), "end_date": datetime(2020, 5, 31)}},
             {
                 "azure_gen_last_first": {
-                    "start_date": datetime(2020, 5, 31).date(),
-                    "end_date": datetime(2020, 6, 1).date(),
+                    "start_date": datetime(2020, 5, 31),
+                    "end_date": datetime(2020, 6, 1),
                 }
             },
         ]
@@ -806,19 +806,19 @@ class MainDateTest(TestCase):
     def test_oci_dates(self, mock_load):
         """Test that select static-data-file dates return correct dates."""
         oci_gens = [
-            {"oci_gen_first": {"start_date": datetime(2020, 6, 1).date(), "end_date": datetime(2020, 6, 1).date()}},
+            {"oci_gen_first": {"start_date": datetime(2020, 6, 1), "end_date": datetime(2020, 6, 1)}},
             {
                 "oci_gen_first_second": {
-                    "start_date": datetime(2020, 6, 1).date(),
-                    "end_date": datetime(2020, 6, 2).date(),
+                    "start_date": datetime(2020, 6, 1),
+                    "end_date": datetime(2020, 6, 2),
                 }
             },
-            {"oci_gen_first_start": {"start_date": datetime(2020, 6, 1).date()}},
-            {"oci_gen_last": {"start_date": datetime(2020, 5, 31).date(), "end_date": datetime(2020, 5, 31).date()}},
+            {"oci_gen_first_start": {"start_date": datetime(2020, 6, 1)}},
+            {"oci_gen_last": {"start_date": datetime(2020, 5, 31), "end_date": datetime(2020, 5, 31)}},
             {
                 "oci_gen_last_first": {
-                    "start_date": datetime(2020, 5, 31).date(),
-                    "end_date": datetime(2020, 6, 1).date(),
+                    "start_date": datetime(2020, 5, 31),
+                    "end_date": datetime(2020, 6, 1),
                 }
             },
         ]
