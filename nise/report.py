@@ -1294,7 +1294,7 @@ def oci_create_report(options):
 
     generate_daily_report = options.get("oci_daily_report", False)
     start_date = options.get("start_date")
-    end_date = start_date if generate_daily_report else options.get("end_date")
+    end_date = start_date.replace(hour=23) if generate_daily_report else options.get("end_date")
     static_report_data = options.get("static_report_data")
 
     if static_report_data:
