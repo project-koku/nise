@@ -295,7 +295,7 @@ class AzureGenerator(AbstractGenerator):
         else:
             location = choice(self.RESOURCE_LOCATION)
         return location
-    
+
     def _get_additional_info(self):
         """Pick additional info."""
         if self._additional_info:
@@ -349,9 +349,7 @@ class AzureGenerator(AbstractGenerator):
             units_of_measure,
             additional_info,
             service_info_2,
-        ) = self._get_resource_info(
-            meter_id, self.SERVICE_METER, self.EXAMPLE_RESOURCE, self.SERVICE_INFO_2
-        )
+        ) = self._get_resource_info(meter_id, self.SERVICE_METER, self.EXAMPLE_RESOURCE, self.SERVICE_INFO_2)
         if not additional_info:
             additional_info = ""
         if not service_info_2:
