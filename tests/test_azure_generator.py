@@ -177,7 +177,7 @@ class AbstractGeneratorTestCase(TestCase):
         two_hours_ago = (self.now - self.one_hour) - self.one_hour
         generator = TestGenerator(two_hours_ago, self.now, self.currency, self.account_info)
         add_info = generator._get_additional_info()
-        self.assertIsInstance(add_info, tuple)
+        self.assertIsNone(add_info)
 
         attributes = {}
         attributes["additional_info"] = {"VCPU": "1"}
