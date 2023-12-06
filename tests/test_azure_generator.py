@@ -182,7 +182,7 @@ class AbstractGeneratorTestCase(TestCase):
         attributes = {}
         attributes["additional_info"] = {"VCPU": "1"}
         generator = TestGenerator(two_hours_ago, self.now, self.currency, self.account_info, attributes)
-        add_info = generator._get_additional_info
+        add_info = generator._get_additional_info()
         self.assertIn("VCPU", add_info)
 
 
