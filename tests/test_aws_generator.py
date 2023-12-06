@@ -155,7 +155,7 @@ class AbstractGeneratorTestCase(TestCase):
         )
         location = generator._get_location()
         self.assertIn("us-west-1", location)
-    
+
     def test_get_legal_entity(self):
         """Test the _get_legal_entity method."""
         two_hours_ago = (self.now - self.one_hour) - self.one_hour

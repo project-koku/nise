@@ -332,7 +332,7 @@ class AWSGenerator(AbstractGenerator):
         else:
             location = choice(REGIONS)
         return location
-    
+
     def _get_legal_entity(self):
         """Pick legal entity."""
         if self.attributes and self.attributes.get("legal_entity"):
