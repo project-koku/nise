@@ -190,6 +190,7 @@ class AzureGenerator(AbstractGenerator):
         self._resource_type = None
         self._meter_cache = {}
         self._billing_currency = currency
+        self._additional_info = None
         # Version 2 fields
         self._invoice_section_id = None
         self._invoice_section_name = None
@@ -223,12 +224,12 @@ class AzureGenerator(AbstractGenerator):
             self._meter_cache[meter_id] = choice(service_meter)
         return self._meter_cache.get(meter_id)
 
-    def _get_resource_info(self, meter_id, service_meter, ex_resource, add_info, service_info):
+    def _get_resource_info(self, meter_id, service_meter, ex_resource, service_info):
         """Return resource information."""
         service_tier, meter_sub, meter_name, units_of_measure = self._get_cached_meter_values(meter_id, service_meter)
         service_info_2 = choice(service_info)
         resource_group, resource_name = choice(ex_resource)
-        additional_info = choice(add_info)
+        additional_info = self._get_additional_info()
         if self._instance_id:
             self._consumed, second_part = accts_str = self._get_accts_str(self._service_name)
             self._resource_type = self._consumed + "/" + second_part
@@ -294,6 +295,13 @@ class AzureGenerator(AbstractGenerator):
         else:
             location = choice(self.RESOURCE_LOCATION)
         return location
+    
+    def _get_additional_info(self):
+        """Pick additional info."""
+        if self._additional_info:
+            return self._additional_info
+        else:
+            return choice(self.ADDITIONAL_INFO)
 
     def _add_common_usage_info(self, row, start, end, **kwargs):
         """Add common usage information."""
@@ -342,7 +350,7 @@ class AzureGenerator(AbstractGenerator):
             additional_info,
             service_info_2,
         ) = self._get_resource_info(
-            meter_id, self.SERVICE_METER, self.EXAMPLE_RESOURCE, self.ADDITIONAL_INFO, self.SERVICE_INFO_2
+            meter_id, self.SERVICE_METER, self.EXAMPLE_RESOURCE, self.SERVICE_INFO_2
         )
         if not additional_info:
             additional_info = ""
