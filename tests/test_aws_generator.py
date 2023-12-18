@@ -156,6 +156,21 @@ class AbstractGeneratorTestCase(TestCase):
         location = generator._get_location()
         self.assertIn("us-west-1", location)
 
+    def test_get_legal_entity(self):
+        """Test the _get_legal_entity method."""
+        two_hours_ago = (self.now - self.one_hour) - self.one_hour
+        generator = TestGenerator(two_hours_ago, self.now, self.currency, self.payer_account, self.usage_accounts)
+        legal_entity = generator._get_legal_entity()
+        self.assertEqual(legal_entity, "Amazon Web Services, Inc.")
+
+        attributes = {}
+        attributes["legal_entity"] = "Corey"
+        generator = TestGenerator(
+            two_hours_ago, self.now, self.currency, self.payer_account, self.usage_accounts, attributes
+        )
+        legal_entity = generator._get_legal_entity()
+        self.assertEqual(legal_entity, "Corey")
+
 
 class AWSGeneratorTestCase(TestCase):
     """Test Base for specific generator classes."""

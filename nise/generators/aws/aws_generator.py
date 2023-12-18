@@ -333,6 +333,12 @@ class AWSGenerator(AbstractGenerator):
             location = choice(REGIONS)
         return location
 
+    def _get_legal_entity(self):
+        """Pick legal entity."""
+        if self.attributes and self.attributes.get("legal_entity"):
+            return self.attributes.get("legal_entity")
+        return "Amazon Web Services, Inc."
+
     def _add_common_usage_info(self, row, start, end, **kwargs):
         """Add common usage information."""
         row["lineItem/UsageAccountId"] = choice(self.usage_accounts)
@@ -340,7 +346,7 @@ class AWSGenerator(AbstractGenerator):
         row["lineItem/UsageStartDate"] = start
         row["lineItem/UsageEndDate"] = end
         row["lineItem/CurrencyCode"] = self.currency
-        row["lineItem/LegalEntity"] = "Amazon Web Services, Inc."
+        row["lineItem/LegalEntity"] = self._get_legal_entity()
         return row
 
     def _add_tag_data(self, row):
