@@ -299,11 +299,13 @@ class OCPGenerator(AbstractGenerator):
     def _gen_namespaces(self, nodes):
         """Create namespaces on specific nodes and keep relationship."""
         namespaces = {}
+        # TODO EVADEBUG
         for node in nodes:
             if node.get("namespaces"):
                 for name, _ in node.get("namespaces").items():
-                    namespace = name
-                    namespaces[namespace] = node
+                    for i in range(250):   # todo update this
+                        namespace = f"{name}_eva_{i}"
+                        namespaces[namespace] = node
             else:
                 num_namespaces = randint(2, 12)
                 for _ in range(num_namespaces):
@@ -356,9 +358,10 @@ class OCPGenerator(AbstractGenerator):
         for namespace, node in namespaces.items():
             namespace2pod[namespace] = []
             if node.get("namespaces"):
-                specified_pods = node.get("namespaces").get(namespace).get("pods") or []
+                orig_namespace, eva_suffix = namespace.split("_eva_")
+                specified_pods = node.get("namespaces").get(orig_namespace).get("pods") or []
                 for specified_pod in specified_pods:
-                    pod = specified_pod.get("pod_name", self.fake.word())
+                    pod = f"{specified_pod.get('pod_name', self.fake.word())}_{eva_suffix}"
                     namespace2pod[namespace].append(pod)
                     cpu_cores = node.get("cpu_cores")
                     memory_bytes = node.get("memory_bytes")
@@ -527,7 +530,8 @@ class OCPGenerator(AbstractGenerator):
         for namespace, node in namespaces.items():
             storage_class_default = choice(("gp2", "fast", "slow", "gold"))
             if node.get("namespaces"):
-                specified_volumes = node.get("namespaces").get(namespace).get("volumes", [])
+                orig_namespace = namespace.split("_eva_")[0]
+                specified_volumes = node.get("namespaces").get(orig_namespace).get("volumes", [])
                 for specified_volume in specified_volumes:
                     volume = specified_volume.get("volume_name", self.fake.word())
                     volume_request_gig = specified_volume.get("volume_request_gig")

@@ -97,7 +97,8 @@ from nise.util import LOG
 
 def create_temporary_copy(path, temp_file_name, temp_dir_name="None"):
     """Create temporary copy of a file."""
-    temp_dir = gettempdir()
+    temp_dir = "/home/esebesto/work/tasks/2024_01_30_ocp_perf/tmp_nise"
+    # temp_dir = gettempdir()
     if temp_dir_name:
         new_dir = os.path.join(temp_dir, temp_dir_name)
         if not os.path.exists(new_dir):
