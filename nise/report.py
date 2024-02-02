@@ -501,31 +501,29 @@ def _create_generator_dates_from_yaml(attributes, month):
     gen_start_date = None
     gen_end_date = None
 
+    # distinguish real month end from "fake" month end (i.e, first of the following month)
+    if month.get("end").day != 1:
+        month_end_to_compare = month.get("end").replace(hour=23, minute=59, second=59)
+    else:
+        month_end_to_compare = month.get("end")
+
     # Generator range is larger then current month on both start and end
-    if attributes.get("start_date") < month.get("start") and attributes.get("end_date") > month.get("end").replace(
-        hour=23, minute=59, second=59
-    ):
+    if attributes.get("start_date") < month.get("start") and attributes.get("end_date") > month_end_to_compare:
         gen_start_date = month.get("start")
         gen_end_date = month.get("end")
 
     # Generator starts before month start and ends within month
-    if attributes.get("start_date") <= month.get("start") and attributes.get("end_date") <= month.get("end").replace(
-        hour=23, minute=59, second=59
-    ):
+    elif attributes.get("start_date") < month.get("start") and attributes.get("end_date") <= month_end_to_compare:
         gen_start_date = month.get("start")
         gen_end_date = attributes.get("end_date")
 
     # Generator is within month
-    if attributes.get("start_date") >= month.get("start") and attributes.get("end_date") <= month.get("end").replace(
-        hour=23, minute=59, second=59
-    ):
+    elif attributes.get("start_date") >= month.get("start") and attributes.get("end_date") <= month_end_to_compare:
         gen_start_date = attributes.get("start_date")
         gen_end_date = attributes.get("end_date")
 
     # Generator starts within month and ends in next month
-    if attributes.get("start_date") >= month.get("start") and attributes.get("end_date") > month.get("end").replace(
-        hour=23, minute=59, second=59
-    ):
+    elif attributes.get("start_date") >= month.get("start") and attributes.get("end_date") > month_end_to_compare:
         gen_start_date = attributes.get("start_date")
         gen_end_date = month.get("end")
 
@@ -593,7 +591,6 @@ def aws_create_marketplace_report(options):  # noqa: C901
 
 def aws_create_report(options):  # noqa: C901
     """Create a cost usage report file."""
-    data = []
     start_date = options.get("start_date")
     end_date = options.get("end_date")
     aws_finalize_report = options.get("aws_finalize_report")
