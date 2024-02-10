@@ -741,6 +741,8 @@ def calculate_start_date(start_date):
         generated_start_date = today().replace(day=1, hour=0, minute=0, second=0) + relativedelta(months=-1)
     elif start_date == "today":
         generated_start_date = today().replace(hour=0, minute=0, second=0)
+    elif start_date and isinstance(start_date, datetime.datetime):
+        generated_start_date = start_date
     elif start_date and isinstance(start_date, datetime.date):
         generated_start_date = datetime.datetime(start_date.year, start_date.month, start_date.day)
     elif start_date:
@@ -759,6 +761,8 @@ def calculate_end_date(start_date, end_date):
             generated_end_date = today().replace(day=1, hour=0, minute=0, second=0) + relativedelta(months=-1)
         elif end_date == "today":
             generated_end_date = today().replace(hour=0, minute=0, second=0)
+        elif end_date and isinstance(end_date, datetime.datetime):
+            generated_end_date = end_date
         elif end_date and isinstance(end_date, datetime.date):
             generated_end_date = datetime.datetime(end_date.year, end_date.month, end_date.day)
         else:
