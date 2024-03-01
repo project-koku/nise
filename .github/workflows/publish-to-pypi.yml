@@ -23,7 +23,8 @@ jobs:
       - name: Install dependencies
         run: |
           python3 -m pip install --upgrade pip
-          python3 -m pip install pipenv-setup setuptools wheel twine chardet vistir==0.6.1
+          python3 -m pip install pipenv-setup setuptools wheel twine chardet vistir==0.6.1 -c requirements/build-constraints.txt
+
       - name: Build and publish
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
