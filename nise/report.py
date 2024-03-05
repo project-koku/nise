@@ -521,7 +521,7 @@ def _create_generator_dates_from_yaml(attributes, month):
         gen_end_date = month_end
 
     # Generator starts before month start and ends within month
-    elif start_date <= month_start and end_date <= month_end_compare:
+    elif start_date < month_start and end_date <= month_end_compare:
         gen_start_date = month_start
         gen_end_date = end_date
 
