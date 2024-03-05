@@ -184,9 +184,13 @@ class MiscReportTestCase(TestCase):
 
     def test_create_generator_for_dates_from_yaml_first_month(self):
         """Test that correct dates are generated on the first of the month"""
-        month = {
+        previous_month = {
             "start": datetime.datetime(2024, 2, 1, 0, 0, tzinfo=datetime.timezone.utc),
             "end": datetime.datetime(2024, 3, 1, 0, 0, tzinfo=datetime.timezone.utc),
+        }
+        current_month = {
+            "start": datetime.datetime(2024, 3, 1, 0, 0, tzinfo=datetime.timezone.utc),
+            "end": datetime.datetime(2024, 4, 1, 0, 0, tzinfo=datetime.timezone.utc),
         }
 
         attributes = {
@@ -194,10 +198,15 @@ class MiscReportTestCase(TestCase):
             "end_date": datetime.datetime(2024, 3, 1, 23, 0, tzinfo=datetime.timezone.utc),
         }
 
-        start_date, end_date = _create_generator_dates_from_yaml(attributes, month)
+        start_date_previous, end_date_previous = _create_generator_dates_from_yaml(attributes, previous_month)
 
-        self.assertEqual(start_date, datetime.datetime(2024, 2, 1, 0, 0, tzinfo=datetime.timezone.utc))
-        self.assertEqual(end_date, datetime.datetime(2024, 3, 1, 0, 0, tzinfo=datetime.timezone.utc))
+        self.assertEqual(start_date_previous, datetime.datetime(2024, 2, 1, 0, 0, tzinfo=datetime.timezone.utc))
+        self.assertEqual(end_date_previous, datetime.datetime(2024, 3, 1, 0, 0, tzinfo=datetime.timezone.utc))
+
+        start_date_current, end_date_current = _create_generator_dates_from_yaml(attributes, current_month)
+
+        self.assertEqual(start_date_current, datetime.datetime(2024, 3, 1, 0, 0, tzinfo=datetime.timezone.utc))
+        self.assertEqual(end_date_current, datetime.datetime(2024, 3, 1, 23, 0, tzinfo=datetime.timezone.utc))
 
     def test_create_generator_for_dates_from_yaml_middle_month(self):
         """Test helper function for generating dates verifying the middle month in a 3 month range."""
