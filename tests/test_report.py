@@ -120,7 +120,6 @@ class MiscReportTestCase(TestCase):
     def test_create_generator_for_dates_from_yaml(self):
         """Test helper function for generating dates."""
         month = {
-            "name": "June",
             "start": datetime.datetime(2021, 6, 30, 0, 0),
             "end": datetime.datetime(2021, 6, 30, 23, 59),
         }
@@ -135,10 +134,57 @@ class MiscReportTestCase(TestCase):
         self.assertEqual(start_date, datetime.datetime(2021, 6, 30, 0, 0))
         self.assertEqual(end_date, datetime.datetime(2021, 6, 30, 23, 59))
 
+    def test_create_generator_for_dates_from_yaml_within_month(self):
+        month = {
+            "start": datetime.datetime(2023, 5, 1, 0, 0),
+            "end": datetime.datetime(2023, 5, 31, 23, 59),
+        }
+
+        attributes = {
+            "start_date": datetime.datetime(2023, 5, 5, 0, 0),
+            "end_date": datetime.datetime(2023, 5, 15, 15, 0),
+        }
+
+        start_date, end_date = _create_generator_dates_from_yaml(attributes, month)
+
+        self.assertEqual(start_date, datetime.datetime(2023, 5, 5, 0, 0))
+        self.assertEqual(end_date, datetime.datetime(2023, 5, 15, 15, 0))
+
+    def test_create_generator_for_dates_from_yaml_within_month_before_month_start(self):
+        month = {
+            "start": datetime.datetime(2023, 5, 1, 0, 0),
+            "end": datetime.datetime(2023, 5, 31, 23, 59),
+        }
+
+        attributes = {
+            "start_date": datetime.datetime(2023, 4, 5, 0, 0),
+            "end_date": datetime.datetime(2023, 5, 15, 15, 0),
+        }
+
+        start_date, end_date = _create_generator_dates_from_yaml(attributes, month)
+
+        self.assertEqual(start_date, datetime.datetime(2023, 5, 1, 0, 0))
+        self.assertEqual(end_date, datetime.datetime(2023, 5, 15, 15, 0))
+
+    def test_create_generator_for_dates_from_yaml_within_month_ends_next_month(self):
+        month = {
+            "start": datetime.datetime(2023, 5, 1, 0, 0),
+            "end": datetime.datetime(2023, 5, 31, 23, 59),
+        }
+
+        attributes = {
+            "start_date": datetime.datetime(2023, 5, 5, 0, 0),
+            "end_date": datetime.datetime(2023, 8, 15, 15, 0),
+        }
+
+        start_date, end_date = _create_generator_dates_from_yaml(attributes, month)
+
+        self.assertEqual(start_date, datetime.datetime(2023, 5, 5, 0, 0))
+        self.assertEqual(end_date, datetime.datetime(2023, 5, 31, 23, 59))
+
     def test_create_generator_for_dates_from_yaml_first_month(self):
         """Test that correct dates are generated on the first of the month"""
         month = {
-            "name": "February",
             "start": datetime.datetime(2024, 2, 1, 0, 0, tzinfo=datetime.timezone.utc),
             "end": datetime.datetime(2024, 3, 1, 0, 0, tzinfo=datetime.timezone.utc),
         }
@@ -156,7 +202,6 @@ class MiscReportTestCase(TestCase):
     def test_create_generator_for_dates_from_yaml_middle_month(self):
         """Test helper function for generating dates verifying the middle month in a 3 month range."""
         month = {
-            "name": "June",
             "start": datetime.datetime(2021, 6, 30, 0, 0),
             "end": datetime.datetime(2021, 6, 30, 23, 59),
         }
