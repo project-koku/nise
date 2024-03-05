@@ -135,6 +135,24 @@ class MiscReportTestCase(TestCase):
         self.assertEqual(start_date, datetime.datetime(2021, 6, 30, 0, 0))
         self.assertEqual(end_date, datetime.datetime(2021, 6, 30, 23, 59))
 
+    def test_create_generator_for_dates_from_yaml_first_month(self):
+        """Test that correct dates are generated on the first of the month"""
+        month = {
+            "name": "February",
+            "start": datetime.datetime(2024, 2, 1, 0, 0, tzinfo=datetime.timezone.utc),
+            "end": datetime.datetime(2024, 3, 1, 0, 0, tzinfo=datetime.timezone.utc),
+        }
+
+        attributes = {
+            "start_date": datetime.datetime(2024, 2, 1, 0, 0, tzinfo=datetime.timezone.utc),
+            "end_date": datetime.datetime(2024, 3, 1, 23, 0, tzinfo=datetime.timezone.utc),
+        }
+
+        start_date, end_date = _create_generator_dates_from_yaml(attributes, month)
+
+        self.assertEqual(start_date, datetime.datetime(2024, 2, 1, 0, 0, tzinfo=datetime.timezone.utc))
+        self.assertEqual(end_date, datetime.datetime(2024, 3, 1, 0, 0, tzinfo=datetime.timezone.utc))
+
     def test_create_generator_for_dates_from_yaml_middle_month(self):
         """Test helper function for generating dates verifying the middle month in a 3 month range."""
         month = {
