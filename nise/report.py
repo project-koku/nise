@@ -501,31 +501,39 @@ def _create_generator_dates_from_yaml(attributes, month):
     gen_start_date = None
     gen_end_date = None
 
-    # distinguish real month end from "fake" month end (i.e, first of the following month)
-    if month.get("end").day != 1:
-        month_end_to_compare = month.get("end").replace(hour=23, minute=59, second=59)
-    else:
-        month_end_to_compare = month.get("end")
+    start_date = attributes.get("start_date")
+    end_date = attributes.get("end_date")
+    month_start = month.get("start")
+    month_end = month.get("end")
+
+    # Use a different variable for the end of month comparison. This matters
+    # when the end_date is the same as the month_end, which can happen based
+    # on the specified --end-date parameter or on the first of the month.
+    month_end_compare = month_end
+    if (month_end.month, month_end.day) != (end_date.month, end_date.day):
+        # Create a new datetime object and store it, leaving the original
+        # month_end object unmodified.
+        month_end_compare = month_end_compare.replace(hour=23, minute=59, second=59)
 
     # Generator range is larger then current month on both start and end
-    if attributes.get("start_date") < month.get("start") and attributes.get("end_date") > month_end_to_compare:
-        gen_start_date = month.get("start")
-        gen_end_date = month.get("end")
+    if start_date < month_start and end_date > month_end_compare:
+        gen_start_date = month_start
+        gen_end_date = month_end
 
     # Generator starts before month start and ends within month
-    elif attributes.get("start_date") < month.get("start") and attributes.get("end_date") <= month_end_to_compare:
-        gen_start_date = month.get("start")
-        gen_end_date = attributes.get("end_date")
+    elif start_date <= month_start and end_date <= month_end_compare:
+        gen_start_date = month_start
+        gen_end_date = end_date
 
     # Generator is within month
-    elif attributes.get("start_date") >= month.get("start") and attributes.get("end_date") <= month_end_to_compare:
-        gen_start_date = attributes.get("start_date")
-        gen_end_date = attributes.get("end_date")
+    elif start_date >= month_start and end_date <= month_end_compare:
+        gen_start_date = start_date
+        gen_end_date = end_date
 
     # Generator starts within month and ends in next month
-    elif attributes.get("start_date") >= month.get("start") and attributes.get("end_date") > month_end_to_compare:
-        gen_start_date = attributes.get("start_date")
-        gen_end_date = month.get("end")
+    elif start_date >= month_start and end_date > month_end_compare:
+        gen_start_date = start_date
+        gen_end_date = month_end
 
     return gen_start_date, gen_end_date
 
