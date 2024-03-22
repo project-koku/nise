@@ -510,7 +510,7 @@ def _create_generator_dates_from_yaml(attributes, month):
     # when the end_date is the same as the month_end, which can happen based
     # on the specified --end-date parameter or on the first of the month.
     month_end_compare = month_end
-    if (month_end.month, month_end.day) != (end_date.month, end_date.day):
+    if month_end.day != 1:
         # Create a new datetime object and store it, leaving the original
         # month_end object unmodified.
         month_end_compare = month_end_compare.replace(hour=23, minute=59, second=59)
