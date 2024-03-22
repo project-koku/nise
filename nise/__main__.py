@@ -701,7 +701,8 @@ def _load_static_report_data(options):
             end_date = attributes.get("end_date", options.get("end_date"))
             generated_end_date = today()
             if end_date and (
-                end_date.date() != today().date() or (isinstance(end_date, datetime.datetime) and end_date.hour != 0)
+                end_date != today().date() or
+                (isinstance(end_date, datetime.datetime) and (end_date.date() != today().date() or end_date.hour != 0))
             ):
                 generated_end_date = calculate_end_date(generated_start_date, end_date)
 
