@@ -693,18 +693,25 @@ def _load_static_report_data(options):
     end_dates = []
     static_report_data = load_yaml(static_file)
     for generator_dict in static_report_data.get("generators"):
-        for _, attributes in generator_dict.items():
+        for attributes in generator_dict.values():
             start_date = get_start_date(attributes, options)
             generated_start_date = calculate_start_date(start_date)
             start_dates.append(generated_start_date)
-            if attributes.get("end_date"):
-                generated_end_date = calculate_end_date(generated_start_date, attributes.get("end_date"))
-            elif options.get("end_date") and options.get("end_date").date() != today().date():
-                generated_end_date = calculate_end_date(generated_start_date, options.get("end_date"))
-            else:
-                generated_end_date = today()
+
+            end_date = attributes.get("end_date", options.get("end_date"))
+            generated_end_date = today()
+            if end_date and (
+                end_date != today().date()
+                or (
+                    isinstance(end_date, datetime.datetime)
+                    and (end_date.date() != today().date() or end_date.hour != 0)
+                )
+            ):
+                generated_end_date = calculate_end_date(generated_start_date, end_date)
+
             if options.get("provider") == "azure":
                 generated_end_date += datetime.timedelta(hours=24)
+
             end_dates.append(generated_end_date)
 
             attributes["start_date"] = str(generated_start_date)
