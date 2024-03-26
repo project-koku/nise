@@ -723,6 +723,7 @@ def _load_static_report_data(options):
     options["start_date"] = min(start_dates)
     latest_date = max(end_dates)
     last_day_of_month = calendar.monthrange(year=latest_date.year, month=latest_date.month)[1]
+    # TODO WHY IS THIS HERE?
     options["end_date"] = latest_date.replace(day=last_day_of_month, hour=0, minute=0)
     options["static_report_data"] = static_report_data
 

@@ -364,6 +364,7 @@ def _create_month_list(start_date, end_date):
                 tzinfo=timezone.utc,
             ),
         }
+
         if current.year == start_date.year and current.month == start_date.month:
             # First month start with start_date
             month["start"] = start_date.replace(tzinfo=timezone.utc)
@@ -1059,7 +1060,6 @@ def gcp_create_report(options):  # noqa: C901
 
     start_date = options.get("start_date")
     end_date = options.get("end_date")
-
     static_report_data = options.get("static_report_data")
     resource_level = options.get("gcp_resource_level", False)
 
@@ -1153,37 +1153,32 @@ def gcp_create_report(options):  # noqa: C901
         months = _create_month_list(start_date, end_date)
         monthly_files = []
         output_files = []
+
         for month in months:
             data = []
-            gen_start_date = month.get("start")
-            gen_end_date = month.get("end")
+
             for project in projects:
                 num_gens = len(generators)
                 ten_percent = int(num_gens * 0.1) if num_gens > 50 else 5
-                LOG.info(
-                    f"Producing data for {num_gens} generators for start: {gen_start_date} and end: {gen_end_date}."
-                )
+                LOG.info(f"Producing data for {num_gens} generators for start: {start_date} and end: {end_date}.")
                 for count, generator in enumerate(generators):
                     attributes = generator.get("attributes", {})
                     if attributes:
-                        start_date = attributes.get("start_date", start_date)
-                        end_date = attributes.get("end_date", end_date)
+                        start_date, end_date = _create_generator_dates_from_yaml(attributes, month)
                         currency = default_currency(options.get("currency"), attributes.get("currency"))
                     else:
                         currency = default_currency(options.get("currency"), None)
-                    if gen_end_date > end_date:
-                        gen_end_date = end_date
                     attributes["resource_level"] = resource_level
-
                     generator_cls = generator.get("generator")
-                    gen = generator_cls(gen_start_date, gen_end_date, currency, project, attributes=attributes)
+
+                    gen = generator_cls(start_date, end_date, currency, project, attributes=attributes)
                     for hour in gen.generate_data():
                         data += [hour]
                     count += 1
                     if count % ten_percent == 0:
                         LOG.info(f"Done with {count} of {num_gens} generators.")
 
-            local_file_path, output_file_name = write_gcp_file(gen_start_date, gen_end_date, data, options)
+            local_file_path, output_file_name = write_gcp_file(start_date, end_date, data, options)
             output_files.append(output_file_name)
             monthly_files.append(local_file_path)
 
