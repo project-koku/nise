@@ -56,10 +56,12 @@ jobs:
         run: pipenv run coverage xml
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3.1.1
+        uses: codecov/codecov-action@v4.2.0
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
           file: ./coverage.xml
           flags: unittests
           name: Python-${{ matrix.python-version}}
           fail_ci_if_error: true
+          plugin: pycoverage  # Only run one plugin even though we don't want any to run.
