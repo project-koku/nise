@@ -1,0 +1,4 @@
+[allowlist]
+regexes = [
+    '''AssumedRole:AROAYSLL3JVQ6DYUNKWQJ:1637692740557658269''',
+]
