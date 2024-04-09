@@ -1,0 +1,6 @@
+[allowlist]
+paths = [
+    '''example_.*\.ya??ml$''',
+    # Commit fa9e67244167af885995468eb5e6a42daaa261cd had a placeholder secret
+    '''nise\/generators\/aws\/marketplace_generator\.py''',
+]
