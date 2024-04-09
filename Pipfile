@@ -18,9 +18,6 @@ oci = ">=2.64.0"
 tox = ">=3.14"
 coverage = ">=5.0"
 pipenv-setup = "*"
-setuptools = ">=44.0"
-twine = ">=3.1"
-secretstorage = {markers = "sys_platform == 'linux'",version = ">=3.1"}
 importlib-resources = ">=1.5.0"
 pre-commit = ">=2.0"
 
