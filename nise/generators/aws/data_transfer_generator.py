@@ -25,8 +25,14 @@ class DataTransferGenerator(AWSGenerator):
     """Generator for Data Transfer data."""
 
     DATA_TRANSFER = (
+        # (usage type, operation, transfer type)
         ("{}-{}-AWS-In-Bytes", "PublicIP-In", "InterRegion Inbound"),
         ("{}-{}-AWS-Out-Bytes", "PublicIP-Out", "InterRegion Outbound"),
+        ("DataTransfer-Out-Bytes", "RunInstances", ""),
+        ("DataTransfer-In-Bytes", "RunInstances", ""),
+        ("{}-DataTransfer-Regional-Bytes", "PublicIP-In", ""),
+        ("{}-DataTransfer-Regional-Bytes", "PublicIP-Out", ""),
+        ("{}-DataTransfer-Regional-Bytes", "InterZone-In", ""),
     )
 
     def __init__(self, start_date, end_date, currency, payer_account, usage_accounts, attributes=None, tag_cols=None):
