@@ -480,20 +480,24 @@ class TestDTGenerator(AzureGeneratorTestCase):
 
     def test_update_data_with_attributes(self):
         """Test that row is updated."""
+        directional_attributes = {"data_direction": "in"}
+        directional_attributes.update(self.attributes)
+        directional_attributes_v2 = {"data_direction": "in"}
+        directional_attributes_v2.update(self.attributes_v2)
         default_generators = [
             VNGenerator(
                 self.two_hours_ago,
                 self.now,
                 self.currency,
                 self.account_info,
-                self.attributes.update({"data_direction": "in"}),
+                directional_attributes,
             ),
             VNGenerator(
                 self.two_hours_ago,
                 self.now,
                 self.currency,
                 self.account_info,
-                self.attributes_v2.update({"data_direction": "in"}),
+                directional_attributes_v2,
             ),
         ]
         for generator in default_generators:
