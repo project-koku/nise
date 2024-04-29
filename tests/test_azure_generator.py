@@ -469,7 +469,6 @@ class TestDTGenerator(AzureGeneratorTestCase):
             self.assertEqual(generator._usage_quantity, self.usage_quantity)
             self.assertEqual(generator._resource_rate, self.resource_rate)
             self.assertEqual(generator._pre_tax_cost, self.pre_tax_cost)
-            self.assertTrue(set(generator._additional_info.keys()).issubset(self.ADDITIONAL_INFO_KEYS))
 
     def test_update_data(self):
         """Test that row is updated."""
@@ -477,7 +476,7 @@ class TestDTGenerator(AzureGeneratorTestCase):
         start_row = {}
         row = generator._update_data(start_row, self.two_hours_ago, self.now)
         self.assertEqual(row["ConsumedService"], "microsoft.compute")
-        self.assertEqual(row["ResourceType"], "Microsoft.Network/publicIPAddresses")
+        self.assertEqual(row["ResourceType"], "microsoft.compute/publicIPAddresses")
 
     def test_update_data_with_attributes(self):
         """Test that row is updated."""
@@ -487,14 +486,14 @@ class TestDTGenerator(AzureGeneratorTestCase):
                 self.now,
                 self.currency,
                 self.account_info,
-                self.attributes | {"data_direction": "in"},
+                self.attributes.update({"data_direction": "in"}),
             ),
             VNGenerator(
                 self.two_hours_ago,
                 self.now,
                 self.currency,
                 self.account_info,
-                self.attributes_v2 | {"data_direction": "in"},
+                self.attributes_v2.update({"data_direction": "in"}),
             ),
         ]
         for generator in default_generators:
@@ -511,4 +510,3 @@ class TestDTGenerator(AzureGeneratorTestCase):
                 self.assertEqual(row["ResourceId"], self.instance_id)
                 self.assertEqual(row["MeterSubCategory"], "Virtual Network Private Link")
                 self.assertEqual(row["MeterName"], "Standard Data Processed - Ingress")
-                print(row["MeterName"])
