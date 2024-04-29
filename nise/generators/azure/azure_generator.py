@@ -187,6 +187,7 @@ class AzureGenerator(AbstractGenerator):
         self._meter_cache = {}
         self._billing_currency = currency
         self._additional_info = None
+        self._data_direction = None
         # Version 2 fields
         self._invoice_section_id = None
         self._invoice_section_name = None
@@ -225,7 +226,7 @@ class AzureGenerator(AbstractGenerator):
         service_tier, meter_sub, meter_name, units_of_measure = self._get_cached_meter_values(meter_id, service_meter)
         service_info_2 = choice(service_info)
         resource_group, resource_name = choice(ex_resource)
-        additional_info = self._get_additional_info()
+        additional_info = self._get_additional_info(meter_name)
         if self._instance_id:
             self._consumed, second_part = accts_str = self._get_accts_str(self._service_name)
             self._resource_type = self._consumed + "/" + second_part
@@ -292,7 +293,7 @@ class AzureGenerator(AbstractGenerator):
             location = choice(self.RESOURCE_LOCATION)
         return location
 
-    def _get_additional_info(self):
+    def _get_additional_info(self, meter_name):
         """Pick additional info."""
         if self._additional_info:
             return self._additional_info
