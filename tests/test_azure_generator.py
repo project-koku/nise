@@ -507,7 +507,7 @@ class TestDTGenerator(AzureGeneratorTestCase):
             if generator.azure_columns == AZURE_COLUMNS:
                 self.assertEqual(row["SubscriptionGuid"], self.payer_account)
                 self.assertEqual(row["InstanceId"], self.instance_id)
-                self.assertEqual(row["MeterSubCategory"], "Virtual Network Private Link")
+                self.assertEqual(row["MeterSubcategory"], "Virtual Network Private Link")
                 self.assertEqual(row["MeterName"], "Standard Data Processed - Ingress")
             else:
                 self.assertEqual(row["SubscriptionId"], self.payer_account)
