@@ -485,14 +485,14 @@ class TestDTGenerator(AzureGeneratorTestCase):
         directional_attributes_v2 = {"data_direction": "in"}
         directional_attributes_v2.update(self.attributes_v2)
         default_generators = [
-            VNGenerator(
+            DTGenerator(
                 self.two_hours_ago,
                 self.now,
                 self.currency,
                 self.account_info,
                 directional_attributes,
             ),
-            VNGenerator(
+            DTGenerator(
                 self.two_hours_ago,
                 self.now,
                 self.currency,
