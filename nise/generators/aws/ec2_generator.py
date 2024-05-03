@@ -78,6 +78,22 @@ class EC2Generator(AWSGenerator):
 
     ARCHS = ("32-bit", "64-bit")
 
+    OPERATING_SYSTEM = (
+        "Amazon Linux",
+        "Ubuntu",
+        "Windows Server",
+        "Red Hat Enterprise Linux",
+        "SUSE Linux Enterprise Server",
+        "openSUSE Leap",
+        "Fedora",
+        "Fedora CoreOS",
+        "Debian",
+        "CentOS",
+        "Gentoo Linux",
+        "Oracle Linux",
+        "FreeBSD",
+    )
+
     def __init__(self, start_date, end_date, currency, payer_account, usage_accounts, attributes=None, tag_cols=None):
         """Initialize the EC2 generator."""
         super().__init__(start_date, end_date, currency, payer_account, usage_accounts, attributes, tag_cols)
@@ -85,6 +101,7 @@ class EC2Generator(AWSGenerator):
         self._resource_id = "i-{}".format(self.fake.ean8())
         self._product_sku = self.fake.pystr(min_chars=12, max_chars=12).upper()
         self._instance_type = choice(self.INSTANCE_TYPES)
+        self._operating_system = choice(self.OPERATING_SYSTEM)
         if self.attributes:
             if self.attributes.get("processor_arch"):
                 self._processor_arch = self.attributes.get("processor_arch")
@@ -94,6 +111,8 @@ class EC2Generator(AWSGenerator):
                 self._product_sku = self.attributes.get("product_sku")
             if self.attributes.get("tags"):
                 self._tags = self.attributes.get("tags")
+            if self.attributes.get("operating_system"):
+                self._tags = self.attributes.get("operating_system")
             instance_type = self.attributes.get("instance_type")
             if instance_type:
                 self._instance_type = (
@@ -139,7 +158,7 @@ class EC2Generator(AWSGenerator):
         row["product/locationType"] = "AWS Region"
         row["product/memory"] = memory
         row["product/networkPerformance"] = "Moderate"
-        row["product/operatingSystem"] = "Linux"
+        row["product/operatingSystem"] = self._operating_system
         row["product/operation"] = "RunInstances"
         row["product/physicalCores"] = physical_cores
         row["product/physicalProcessor"] = "Intel Xeon Family"
