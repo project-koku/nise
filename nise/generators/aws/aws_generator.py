@@ -324,8 +324,7 @@ class AWSGenerator(AbstractGenerator):
     def _get_location(self):
         """Pick instance location."""
         options = None
-        if self.attributes and self.attributes.get("region"):
-            region = self.attributes.get("region")
+        if region := self.attributes.get("region"):
             options = [option for option in REGIONS if region in option]
         if options:
             location = choice(options)
