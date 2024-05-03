@@ -78,7 +78,7 @@ class EC2Generator(AWSGenerator):
 
     ARCHS = ("32-bit", "64-bit")
 
-    OPERATING_SYSTEM = (
+    OPERATING_SYSTEMS = (
         "Amazon Linux",
         "Ubuntu",
         "Windows Server",
@@ -101,7 +101,7 @@ class EC2Generator(AWSGenerator):
         self._resource_id = "i-{}".format(self.fake.ean8())
         self._product_sku = self.fake.pystr(min_chars=12, max_chars=12).upper()
         self._instance_type = choice(self.INSTANCE_TYPES)
-        self._operating_system = choice(self.OPERATING_SYSTEM)
+        self._operating_system = choice(self.OPERATING_SYSTEMS)
         if self.attributes:
             if self.attributes.get("processor_arch"):
                 self._processor_arch = self.attributes.get("processor_arch")
