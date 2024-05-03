@@ -26,13 +26,10 @@ class DataTransferGenerator(AWSGenerator):
 
     DATA_TRANSFER = (
         # (usage type, operation, transfer type)
-        ("{}-{}-AWS-In-Bytes", "PublicIP-In", "InterRegion Inbound"),
-        ("{}-{}-AWS-Out-Bytes", "PublicIP-Out", "InterRegion Outbound"),
-        ("DataTransfer-Out-Bytes", "RunInstances", ""),
-        ("DataTransfer-In-Bytes", "RunInstances", ""),
-        ("{}-DataTransfer-Regional-Bytes", "PublicIP-In", ""),
-        ("{}-DataTransfer-Regional-Bytes", "PublicIP-Out", ""),
-        ("{}-DataTransfer-Regional-Bytes", "InterZone-In", ""),
+        ("{region1}-{region2}-AWS-{direction}-Bytes", "PublicIP-{direction}", "InterRegion {direction}bound"),
+        ("DataTransfer-{direction}-Bytes", "RunInstances", ""),
+        ("{region1}-DataTransfer-Regional-Bytes", "PublicIP-{direction}", ""),
+        ("{region1}-DataTransfer-Regional-Bytes", "InterZone-{direction}", ""),
     )
 
     def __init__(self, start_date, end_date, currency, payer_account, usage_accounts, attributes=None, tag_cols=None):
@@ -54,6 +51,9 @@ class DataTransferGenerator(AWSGenerator):
         location2, _, _, storage_region2 = self._get_location()
         trans_desc, operation, trans_type = choice(self.DATA_TRANSFER)
         trans_desc = trans_desc.format(storage_region1, storage_region2)
+        trans_desc = trans_desc.format(region1=storage_region1, region2=storage_region2, direction=self.direction)
+        operation = operation.format(direction=self.direction)
+        trans_type = trans_type.format(direction=self.direction)
         description = f"${rate} per GB - {location1} data transfer to {location2}"
         return trans_desc, operation, description, location1, location2, trans_type, aws_region
 
