@@ -38,31 +38,16 @@ class DataTransferGenerator(AWSGenerator):
     def __init__(self, start_date, end_date, currency, payer_account, usage_accounts, attributes=None, tag_cols=None):
         """Initialize the data transfer generator."""
         super().__init__(start_date, end_date, currency, payer_account, usage_accounts, attributes, tag_cols)
-        self._amount = None
-        self._rate = None
-        self._saving = None
-        self._product_sku = None
-        self._resource_id = None
-        self._product_code = "AmazonEC2"
-        self._product_name = "Amazon Elastic Compute Cloud"
-        if attributes:
-            if attributes.get("product_code"):
-                self._product_code = attributes.get("product_code")
-            if attributes.get("product_name"):
-                self._product_name = attributes.get("product_name")
-            if attributes.get("resource_id"):
-                self._resource_id = attributes.get("resource_id")
-            if attributes.get("amount"):
-                self._amount = float(attributes.get("amount"))
-            if attributes.get("rate"):
-                self._rate = float(attributes.get("rate"))
-            if attributes.get("product_sku"):
-                self._product_sku = attributes.get("product_sku")
-            if attributes.get("tags"):
-                self._tags = attributes.get("tags")
-            if attributes.get("saving"):
-                self._saving = float(attributes.get("saving"))
 
+        self._amount = float(self.attributes.get("amount", 0)) or None
+        self._direction = self.attributes.get("direction")
+        self._product_code = self.attributes.get("product_code", "AmazonEC2")
+        self._product_name = self.attributes.get("product_name", "Amazon Elastic Compute Cloud")
+        self._product_sku = self.attributes.get("product_sku")
+        self._rate = float(self.attributes.get("rate", 0)) or None
+        self._resource_id = self.attributes.get("resource_id")
+        self._saving = float(self.attributes.get("saving", 0)) or None
+        self._tags = self.attributes.get("tags", self._tags)
     def _get_data_transfer(self, rate):
         """Get data transfer info."""
         location1, aws_region, _, storage_region1 = self._get_location()
