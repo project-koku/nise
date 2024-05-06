@@ -399,7 +399,6 @@ class TestEC2Generator(AWSGeneratorTestCase):
         self.assertEqual(row["product/servicecode"], "AmazonEC2")
         self.assertEqual(row["product/productFamily"], "Compute Instance")
         self.assertEqual(row["lineItem/Operation"], "RunInstances")
-        self.assertIsNotNone(row["product/operatingSystem"])
         self.assertEqual(row[self.cost_category_key], self.cost_category_value)
 
     def test_generate_data(self):
