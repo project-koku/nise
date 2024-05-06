@@ -102,36 +102,29 @@ class EC2Generator(AWSGenerator):
         self._product_sku = self.fake.pystr(min_chars=12, max_chars=12).upper()
         self._instance_type = choice(self.INSTANCE_TYPES)
         self._operating_system = choice(self.OPERATING_SYSTEMS)
-        if self.attributes:
-            if self.attributes.get("processor_arch"):
-                self._processor_arch = self.attributes.get("processor_arch")
-            if self.attributes.get("resource_id"):
-                self._resource_id = "i-{}".format(self.attributes.get("resource_id"))
-            if self.attributes.get("product_sku"):
-                self._product_sku = self.attributes.get("product_sku")
-            if self.attributes.get("tags"):
-                self._tags = self.attributes.get("tags")
-            if self.attributes.get("operating_system"):
-                self._tags = self.attributes.get("operating_system")
-            instance_type = self.attributes.get("instance_type")
-            if instance_type:
-                self._instance_type = (
-                    instance_type.get("inst_type"),
-                    instance_type.get("physical_cores"),
-                    instance_type.get("vcpu"),
-                    instance_type.get("memory"),
-                    instance_type.get("storage"),
-                    instance_type.get("family"),
-                    instance_type.get("cost"),
-                    instance_type.get("rate"),
-                    instance_type.get("saving"),
-                    "${} per On Demand Linux {} Instance Hour",
-                )
+        self._processor_arch = self.attributes.get("processor_arch")
+        self._resource_id = "i-{}".format(self.attributes.get("resource_id"))
+        self._product_sku = self.attributes.get("product_sku")
+        self._tags = self.attributes.get("tags")
+
+        if instance_type := self.attributes.get("instance_type"):
+            self._instance_type = (
+                instance_type.get("inst_type"),
+                instance_type.get("physical_cores"),
+                instance_type.get("vcpu"),
+                instance_type.get("memory"),
+                instance_type.get("storage"),
+                instance_type.get("family"),
+                instance_type.get("cost"),
+                instance_type.get("rate"),
+                instance_type.get("saving"),
+                "${} per On Demand Linux {} Instance Hour",
+            )
 
     def _update_data(self, row, start, end, **kwargs):
         """Update data with generator specific data."""
         inst_type, physical_cores, vcpu, memory, storage, family, cost, rate, saving, description = self._instance_type
-        inst_description = description.format(cost, inst_type)
+        inst_description = description.format(cost=cost, inst_type=inst_type)
         location, aws_region, avail_zone, _ = self._get_location()
         row = self._add_common_usage_info(row, start, end)
 
