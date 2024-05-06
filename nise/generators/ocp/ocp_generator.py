@@ -172,15 +172,15 @@ def get_owner_workload(pod, workload=None):
 def generate_randomized_ros_usage(usage_dict, limit_value):
     # if usage value is provided in yaml -> avg_value = +- 5% of that specified usage value
     if usage_value := usage_dict.get("full_period"):
-        avg_value = min(round(uniform(usage_value * 0.95, usage_value * 1.05), 5), limit_value)
+        avg_value = min(round(usage_value, 5), limit_value)
     # if usage value is not specified in yaml -> random avg_usage from 10% to 100% of the limit
     else:
         avg_value = round(uniform(limit_value * 0.1, limit_value), 5)
 
     # min value - random float derived from avg_value,
-    min_value = round(uniform(avg_value * 0.8, avg_value), 5)
+    min_value = round(usage_value, 5)
     # max_value - random float derived from avg_value, but max of limit_value
-    max_value = min(round(uniform(avg_value, avg_value * 1.2), 5), limit_value)
+    max_value = min(round(usage_value, 5), limit_value)
 
     return avg_value, min_value, max_value
 
@@ -406,9 +406,8 @@ class OCPGenerator(AbstractGenerator):
                     memory_usage_gig_avg, memory_usage_gig_min, memory_usage_gig_max = generate_randomized_ros_usage(
                         memory_usage_gig, mem_limit_gig
                     )
-                    memory_rss_ratio = 1 / round(uniform(1.01, 1.9), 2)
+                    memory_rss_ratio = 1 / round(1, 2)
                     cpu_throttle = choices([0, round(cpu_usage_avg / randint(10, 20), 5)], weights=(3, 1))[0]
-
                     ros_ocp_data_pods[pod] = {
                         "namespace": namespace,
                         "node": node.get("name"),
