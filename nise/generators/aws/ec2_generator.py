@@ -36,7 +36,7 @@ class EC2Generator(AWSGenerator):
             "0.096",
             "0.096",
             "0.045",
-            "${} per On Demand Linux {} Instance Hour",
+            "${cost} per On Demand Linux {inst_type} Instance Hour",
         ),
         (
             "c5d.2xlarge",
@@ -48,7 +48,7 @@ class EC2Generator(AWSGenerator):
             "0.34",
             "0.34",
             "0.17",
-            "${} per On Demand Linux {} Instance Hour",
+            "${cost} per On Demand Linux {inst_type} Instance Hour",
         ),
         (
             "c4.xlarge",
@@ -60,7 +60,7 @@ class EC2Generator(AWSGenerator):
             "0.199",
             "0.199",
             "0.099",
-            "${} per On Demand Linux {} Instance Hour",
+            "${cost} per On Demand Linux {inst_type} Instance Hour",
         ),
         (
             "r4.large",
@@ -72,7 +72,7 @@ class EC2Generator(AWSGenerator):
             "0.133",
             "0.133",
             "0.067",
-            "${} per On Demand Linux {} Instance Hour",
+            "${cost} per On Demand Linux {inst_type} Instance Hour",
         ),
     )
 
@@ -118,7 +118,7 @@ class EC2Generator(AWSGenerator):
                 instance_type.get("cost"),
                 instance_type.get("rate"),
                 instance_type.get("saving"),
-                "${} per On Demand Linux {} Instance Hour",
+                "${cost} per On Demand Linux {inst_type} Instance Hour",
             )
 
     def _update_data(self, row, start, end, **kwargs):
