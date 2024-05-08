@@ -103,7 +103,7 @@ class EC2Generator(AWSGenerator):
         self._instance_type = choice(self.INSTANCE_TYPES)
         self._operating_system = choice(self.OPERATING_SYSTEMS)
         self._processor_arch = self.attributes.get("processor_arch", choice(self.ARCHS))
-        self._resource_id = f"i-{self.attributes.get("resource_id", self.fake.ean8())}"
+        self._resource_id = f"i-{self.attributes.get('resource_id', self.fake.ean8())}"
         self._product_sku = self.attributes.get("product_sku", self.fake.pystr(min_chars=12, max_chars=12).upper())
         self._tags = self.attributes.get("tags", [])
 
