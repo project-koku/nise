@@ -49,9 +49,10 @@ class DataTransferGenerator(AWSGenerator):
 
     @property
     def direction(self):
-        if self._direction:
+        if self._direction is not None:
             return self._direction.capitalize()
 
+        # Purposefully not caching this value so a different value is returned on each call
         return choice(self.DATA_TRANSFER_DIRECTIONS).capitalize()
 
     def _get_data_transfer(self, rate):
