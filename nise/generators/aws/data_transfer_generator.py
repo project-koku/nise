@@ -38,7 +38,7 @@ class DataTransferGenerator(AWSGenerator):
         super().__init__(start_date, end_date, currency, payer_account, usage_accounts, attributes, tag_cols)
 
         self._amount = float(self.attributes.get("amount", 0)) or None
-        self._direction = self.attributes.get("direction")
+        self._data_direction = self.attributes.get("data_direction")
         self._product_code = self.attributes.get("product_code", "AmazonEC2")
         self._product_name = self.attributes.get("product_name", "Amazon Elastic Compute Cloud")
         self._product_sku = self.attributes.get("product_sku")
@@ -48,9 +48,9 @@ class DataTransferGenerator(AWSGenerator):
         self._tags = self.attributes.get("tags", self._tags)
 
     @property
-    def direction(self):
-        if self._direction is not None:
-            return self._direction.capitalize()
+    def data_direction(self):
+        if self._data_direction is not None:
+            return self._data_direction.capitalize()
 
         # Purposefully not caching this value so a different value is returned on each call
         return choice(self.DATA_TRANSFER_DIRECTIONS).capitalize()
@@ -60,9 +60,9 @@ class DataTransferGenerator(AWSGenerator):
         location1, aws_region, _, storage_region1 = self._get_location()
         location2, _, _, storage_region2 = self._get_location()
         trans_desc, operation, trans_type = choice(self.DATA_TRANSFER)
-        trans_desc = trans_desc.format(region1=storage_region1, region2=storage_region2, direction=self.direction)
-        operation = operation.format(direction=self.direction)
-        trans_type = trans_type.format(direction=self.direction)
+        trans_desc = trans_desc.format(region1=storage_region1, region2=storage_region2, direction=self.data_direction)
+        operation = operation.format(direction=self.data_direction)
+        trans_type = trans_type.format(direction=self.data_direction)
         description = f"${rate} per GB - {location1} data transfer to {location2}"
 
         return trans_desc, operation, description, location1, location2, trans_type, aws_region
