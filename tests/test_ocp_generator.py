@@ -109,7 +109,15 @@ class OCPGeneratorTestCase(TestCase):
                                         f"label_{self.fake.word()}:{self.fake.word()}",
                                         f"|label_{self.fake.word()}:{self.fake.word()}",
                                     ),
-                                }
+                                },
+                                {
+                                    "volume_name": f"vol_{self.fake.word()}",
+                                    "volume_request_gig": self.fake.pyint(1, MAX_VOL_GIGS),
+                                    "labels": (
+                                        f"label_claimless:{self.fake.word()}",
+                                        f"|label_{self.fake.word()}:{self.fake.word()}",
+                                    ),
+                                },
                             ],
                         }
                     },
@@ -449,8 +457,7 @@ class OCPGeneratorTestCase(TestCase):
 
     def test_gen_volumes_usage_lt_capacity(self):
         """Test that gen_volumes generates requests and usage values which don't exceed capacity."""
-        # for attributes in [self.attributes, {}]:
-        for attributes in [{}]:
+        for attributes in [self.attributes, {}]:
             with self.subTest(attributes=attributes):
                 generator = OCPGenerator(self.two_hours_ago, self.now, attributes)
                 for volume_dict in generator.volumes:
