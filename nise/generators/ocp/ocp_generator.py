@@ -597,7 +597,7 @@ class OCPGenerator(AbstractGenerator):
                             break
                         vol_claim = self.fake.word()
                         pod = choice(namespace2pods[namespace])
-                        claim_capacity = round(uniform(1.0, vol_request_gig), 2) * GIGABYTE
+                        claim_capacity = round(uniform(1.0, (vol_request_gig - total_claims / GIGABYTE)), 2) * GIGABYTE
                         volume_claims[vol_claim] = {
                             "namespace": namespace,
                             "volume": volume,
