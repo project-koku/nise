@@ -66,6 +66,8 @@ OCP_STORAGE_COLUMNS = (
     "persistentvolumeclaim",
     "persistentvolume",
     "storageclass",
+    "csi_driver",
+    "csi_volume_handle",
     "persistentvolumeclaim_capacity_bytes",
     "persistentvolumeclaim_capacity_byte_seconds",
     "volume_request_storage_byte_seconds",
@@ -525,7 +527,14 @@ class OCPGenerator(AbstractGenerator):
         """Create volumes on specific namespaces and keep relationship."""
         volumes = []
         for namespace, node in namespaces.items():
-            storage_class_default = choice(("gp2", "fast", "slow", "gold"))
+            storage_class_default, csi_default = choice(
+                (
+                    ("gp3-csi", "ebs.csi.aws.com"),
+                    ("fast", "disk.csi.azure.com"),
+                    ("slow", "disk.csi.azure.com"),
+                    ("gold", "pd.csi.storage.gke.io"),
+                )
+            )
             if node.get("namespaces"):
                 specified_volumes = node.get("namespaces").get(namespace).get("volumes", [])
                 for specified_volume in specified_volumes:
@@ -563,6 +572,10 @@ class OCPGenerator(AbstractGenerator):
                                 "namespace": namespace,
                                 "volume": volume,
                                 "storage_class": specified_volume.get("storage_class", storage_class_default),
+                                "csi_driver": specified_volume.get("csi_driver", csi_default),
+                                "csi_volume_handle": specified_volume.get(
+                                    "csi_volume_handle", f"vol-{self.fake.word()}"
+                                ),
                                 "volume_request": volume_request,
                                 "labels": specified_volume.get("labels", None),
                                 "volume_claims": volume_claims,
@@ -580,7 +593,7 @@ class OCPGenerator(AbstractGenerator):
                     volume_claims = {}
                     total_claims = 0
                     for _ in range(num_vol_claims):
-                        if vol_request_gig - total_claims <= GIGABYTE:
+                        if vol_request - total_claims <= GIGABYTE:
                             break
                         vol_claim = self.fake.word()
                         pod = choice(namespace2pods[namespace])
@@ -593,12 +606,22 @@ class OCPGenerator(AbstractGenerator):
                             "pod": pod,
                         }
                         total_claims += claim_capacity
+                    storage_class_default, csi_default = choice(
+                        (
+                            ("gp3-csi", "ebs.csi.aws.com"),
+                            ("fast", "disk.csi.azure.com"),
+                            ("slow", "disk.csi.azure.com"),
+                            ("gold", "pd.csi.storage.gke.io"),
+                        )
+                    )
                     volumes.append(
                         {
                             volume: {
                                 "namespace": namespace,
                                 "volume": volume,
-                                "storage_class": choice(("gp2", "fast", "slow", "gold")),
+                                "storage_class": storage_class_default,
+                                "csi_driver": csi_default,
+                                "csi_volume_handle": f"vol-{self.fake.word()}",
                                 "volume_request": vol_request,
                                 "labels": self._gen_openshift_labels(),
                                 "volume_claims": volume_claims,
@@ -700,6 +723,8 @@ class OCPGenerator(AbstractGenerator):
             "persistentvolumeclaim": kwargs.get("volume_claim"),
             "persistentvolume": kwargs.get("volume_name"),
             "storageclass": kwargs.get("storage_class"),
+            "csi_driver": kwargs.get("csi_driver"),
+            "csi_volume_handle": kwargs.get("csi_volume_handle"),
             "persistentvolumeclaim_capacity_bytes": kwargs.get("vc_capacity"),
             "persistentvolumeclaim_capacity_byte_seconds": vc_capacity_gig * GIGABYTE * HOUR,
             "volume_request_storage_byte_seconds": volume_request * HOUR,
@@ -802,6 +827,8 @@ class OCPGenerator(AbstractGenerator):
                 for volume_name, volume in volume_dict.items():
                     namespace = volume.get("namespace", None)
                     storage_class = volume.get("storage_class", None)
+                    csi_driver = volume.get("csi_driver", None)
+                    csi_volume_handle = volume.get("csi_volume_handle", None)
                     volume_request = volume.get("volume_request", None)
                     vol_labels = volume.get("labels", None)
                     volume_claims = volume.get("volume_claims", [])
@@ -811,7 +838,7 @@ class OCPGenerator(AbstractGenerator):
                         capacity = volume_claim.get("capacity")
                         volume_claim_usage_gig = volume_claim.get("volume_claim_usage_gig", None)
                         row = self._init_data_row(start, end, **kwargs)
-                        row = self._update_data(
+                        yield self._update_data(
                             row,
                             start,
                             end,
@@ -821,13 +848,28 @@ class OCPGenerator(AbstractGenerator):
                             vc_capacity=capacity,
                             volume_claim_usage_gig=volume_claim_usage_gig,
                             storage_class=storage_class,
+                            csi_driver=csi_driver,
+                            csi_volume_handle=csi_volume_handle,
                             volume_name=volume_name,
                             volume_request=volume_request,
                             volume_labels=vol_labels,
                             namespace=namespace,
                             **kwargs,
                         )
-                        yield row
+                    if not volume_claims:
+                        row = self._init_data_row(start, end, **kwargs)
+                        yield self._update_data(
+                            row,
+                            start,
+                            end,
+                            storage_class=storage_class,
+                            csi_driver=csi_driver,
+                            csi_volume_handle=csi_volume_handle,
+                            volume_name=volume_name,
+                            volume_request=volume_request,
+                            volume_labels=vol_labels,
+                            **kwargs,
+                        )
 
     def _gen_hourly_node_label_usage(self, **kwargs):
         """Create hourly data for nodel label report."""

@@ -1,7 +1,7 @@
 ---
 generators:
   - OCPGenerator:
-      start_date: 2020-04-01
+      start_date: 2024-05-01
       nodes:
         - node:
           node_name: alpha
@@ -36,7 +36,7 @@ generators:
                   volume_name: pvc-volume_1
                   storage_class: gp2
                   volume_request_gig: 20
-                  labels: label_key3:label_value3|label_key4:label_value4|label_storageclass:bravo
+                  labels: label_key3:label_value3|label_key4:label_value4|label_storageclass:gp2
                   volume_claims:
                   - volume_claim:
                     volume_claim_name: pod_name1_data
@@ -51,3 +51,10 @@ generators:
                       # 2-4-2019: 4
                       # 2-5-2019: 3
                       # 2-6-2019: 4
+                - volume:
+                  volume_name: pvc-volume_2
+                  storage_class: gp2
+                  csi_driver:
+                  csi_volume_handle:
+                  volume_request_gig: 20
+                  labels: label_key5:label_value5|label_key6:label_value6|label_storageclass:gp2
