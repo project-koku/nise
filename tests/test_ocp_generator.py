@@ -403,7 +403,16 @@ class OCPGeneratorTestCase(TestCase):
         for vol_dict in out_volumes:
             self.assertEqual(list(vol_dict.keys()), volume_names)
 
-        expected = ["namespace", "volume", "storage_class", "volume_request", "labels", "volume_claims"]
+        expected = [
+            "namespace",
+            "volume",
+            "storage_class",
+            "csi_driver",
+            "csi_volume_handle",
+            "volume_request",
+            "labels",
+            "volume_claims",
+        ]
         for vol_dict in out_volumes:
             for vol in vol_dict.values():
                 with self.subTest(volume=vol):
@@ -423,7 +432,16 @@ class OCPGeneratorTestCase(TestCase):
         self.assertGreaterEqual(len(out_volumes), 2 * 2 * 1)
         self.assertLessEqual(len(out_volumes), 6 * 12 * 3)
 
-        expected = ["namespace", "volume", "storage_class", "volume_request", "labels", "volume_claims"]
+        expected = [
+            "namespace",
+            "volume",
+            "storage_class",
+            "csi_driver",
+            "csi_volume_handle",
+            "volume_request",
+            "labels",
+            "volume_claims",
+        ]
         for vol_dict in out_volumes:
             for vol in vol_dict.values():
                 with self.subTest(volume=vol):
@@ -603,6 +621,8 @@ class OCPGeneratorTestCase(TestCase):
             "persistentvolumeclaim",
             "persistentvolume",
             "storageclass",
+            "csi_driver",
+            "csi_volume_handle",
             "persistentvolumeclaim_capacity_bytes",
             "persistentvolumeclaim_capacity_byte_seconds",
             "volume_request_storage_byte_seconds",
