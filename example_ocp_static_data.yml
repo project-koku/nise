@@ -35,6 +35,8 @@ generators:
                 - volume:
                   volume_name: pvc-volume_1
                   storage_class: gp2
+                  csi_driver:
+                  csi_volume_handle:
                   volume_request_gig: 20
                   labels: label_key3:label_value3|label_key4:label_value4|label_storageclass:gp2
                   volume_claims:
@@ -57,4 +59,4 @@ generators:
                   csi_driver: ebs.csi.aws.com
                   csi_volume_handle: vol-55555555
                   volume_request_gig: 20
-                  labels: label_key5:label_value5|label_key6:label_value6|label_storageclass:gp2
+                  labels: label_key5:label_value5|label_key6:label_value6|label_storageclass:gp3-csi
