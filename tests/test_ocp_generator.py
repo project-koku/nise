@@ -220,6 +220,10 @@ class OCPGeneratorTestCase(TestCase):
                             with self.subTest(row=row):
                                 with self.subTest(col=col):
                                     self.assertIn(col, row)
+                        # the following columns are not required to be not-null for claimless persistent-volumes
+                        for col in set(OCP_STORAGE_COLUMNS).difference({"pod", "namespace", "persistentvolumeclaim"}):
+                            with self.subTest(row=row):
+                                with self.subTest(col=col):
                                     self.assertIsNotNone(row[col])
                         break  # only test one row
 
@@ -409,7 +413,7 @@ class OCPGeneratorTestCase(TestCase):
         namespaces = self.attributes.get("nodes")[0].get("namespaces")
         volume_names = [vol.get("volume_name") for ns in namespaces for vol in namespaces.get(ns).get("volumes")]
         for vol_dict in out_volumes:
-            self.assertEqual(list(vol_dict.keys()), volume_names)
+            self.assertTrue(all(v in volume_names for v in vol_dict.keys()))
 
         expected = [
             "namespace",
