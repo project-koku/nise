@@ -221,11 +221,18 @@ class OCPGeneratorTestCase(TestCase):
                                 with self.subTest(col=col):
                                     self.assertIn(col, row)
                         # the following columns are not required to be not-null for claimless persistent-volumes
-                        for col in set(OCP_STORAGE_COLUMNS).difference({"pod", "namespace", "persistentvolumeclaim"}):
+                        for col in set(OCP_STORAGE_COLUMNS).difference(
+                            {
+                                "pod",
+                                "namespace",
+                                "persistentvolumeclaim",
+                                "persistentvolumeclaim_capacity_bytes",
+                                "persistentvolumeclaim_labels",
+                            }
+                        ):
                             with self.subTest(row=row):
                                 with self.subTest(col=col):
                                     self.assertIsNotNone(row[col])
-                        break  # only test one row
 
     def test_gen_namespaces_with_namespace(self):
         """Test that gen_namespaces arranges the output dict in the expected way.
