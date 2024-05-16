@@ -709,13 +709,16 @@ class OCPGenerator(AbstractGenerator):
         """Update data with generator specific data."""
         volume_claim_usage_gig = self._get_usage_for_date(kwargs.get("volume_claim_usage_gig"), start)
 
-        volume_request = kwargs.get("volume_request")
+        volume_request = kwargs.get("volume_request", 0)
+        # volume_request_storage_byte_seconds is empty for claimless PersistentVolumes
+        volume_request_storage_byte_seconds = volume_request * HOUR if volume_request > 0 else None
         vc_capacity_gig = max(kwargs.get("vc_capacity", 10.0), volume_request) / GIGABYTE
 
         vc_usage_gig = round(uniform(2.0, vc_capacity_gig), 2)
         if volume_claim_usage_gig:
             vc_usage_gig = min(volume_claim_usage_gig, vc_capacity_gig)
-        vc_usage = vc_usage_gig * GIGABYTE
+        # persistentvolumeclaim_usage_byte_seconds is empty for claimless PersistentVolumes
+        vc_usage = vc_usage_gig * GIGABYTE * HOUR if volume_request_storage_byte_seconds else None
 
         data = {
             "namespace": kwargs.get("namespace"),
@@ -725,12 +728,12 @@ class OCPGenerator(AbstractGenerator):
             "storageclass": kwargs.get("storage_class"),
             "csi_driver": kwargs.get("csi_driver"),
             "csi_volume_handle": kwargs.get("csi_volume_handle"),
-            "persistentvolumeclaim_capacity_bytes": kwargs.get("vc_capacity"),
+            "persistentvolumeclaim_capacity_bytes": vc_capacity_gig * GIGABYTE,
             "persistentvolumeclaim_capacity_byte_seconds": vc_capacity_gig * GIGABYTE * HOUR,
-            "volume_request_storage_byte_seconds": volume_request * HOUR,
+            "volume_request_storage_byte_seconds": volume_request_storage_byte_seconds,
+            "persistentvolumeclaim_usage_byte_seconds": vc_usage,
             "persistentvolume_labels": kwargs.get("volume_labels"),
             "persistentvolumeclaim_labels": kwargs.get("volume_claim_labels"),
-            "persistentvolumeclaim_usage_byte_seconds": vc_usage * HOUR,
         }
         row.update(data)
         return row
@@ -866,7 +869,7 @@ class OCPGenerator(AbstractGenerator):
                             csi_driver=csi_driver,
                             csi_volume_handle=csi_volume_handle,
                             volume_name=volume_name,
-                            volume_request=volume_request,
+                            vc_capacity=volume_request,
                             volume_labels=vol_labels,
                             **kwargs,
                         )
