@@ -425,6 +425,7 @@ class OCPGeneratorTestCase(TestCase):
             self.assertTrue(all(v in volume_names for v in vol_dict.keys()))
 
         expected = [
+            "node",
             "namespace",
             "volume",
             "storage_class",
@@ -455,6 +456,7 @@ class OCPGeneratorTestCase(TestCase):
 
         expected = [
             "namespace",
+            "node",
             "volume",
             "storage_class",
             "csi_driver",
