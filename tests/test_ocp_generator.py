@@ -223,10 +223,12 @@ class OCPGeneratorTestCase(TestCase):
                         # the following columns are not required to be not-null for claimless persistent-volumes
                         for col in set(OCP_STORAGE_COLUMNS).difference(
                             {
-                                "pod",
                                 "namespace",
+                                "pod",
+                                "node",
                                 "persistentvolumeclaim",
-                                "persistentvolumeclaim_capacity_bytes",
+                                "volume_request_storage_byte_seconds",
+                                "persistentvolumeclaim_usage_byte_seconds",
                                 "persistentvolumeclaim_labels",
                             }
                         ):

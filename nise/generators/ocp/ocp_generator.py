@@ -63,6 +63,7 @@ OCP_STORAGE_COLUMNS = (
     "interval_end",
     "namespace",
     "pod",
+    "node",
     "persistentvolumeclaim",
     "persistentvolume",
     "storageclass",
@@ -569,6 +570,7 @@ class OCPGenerator(AbstractGenerator):
                     volumes.append(
                         {
                             volume: {
+                                "node": node.get("name"),
                                 "namespace": namespace,
                                 "volume": volume,
                                 "storage_class": specified_volume.get("storage_class", storage_class_default),
@@ -618,6 +620,7 @@ class OCPGenerator(AbstractGenerator):
                         {
                             volume: {
                                 "namespace": namespace,
+                                "node": node.get("name"),
                                 "volume": volume,
                                 "storage_class": storage_class_default,
                                 "csi_driver": csi_default,
@@ -723,6 +726,7 @@ class OCPGenerator(AbstractGenerator):
         data = {
             "namespace": kwargs.get("namespace"),
             "pod": kwargs.get("pod"),
+            "node": kwargs.get("node"),
             "persistentvolumeclaim": kwargs.get("volume_claim"),
             "persistentvolume": kwargs.get("volume_name"),
             "storageclass": kwargs.get("storage_class"),
@@ -828,6 +832,7 @@ class OCPGenerator(AbstractGenerator):
             end = hour.get("end")
             for volume_dict in self.volumes:
                 for volume_name, volume in volume_dict.items():
+                    node = volume.get("node")
                     namespace = volume.get("namespace", None)
                     storage_class = volume.get("storage_class", None)
                     csi_driver = volume.get("csi_driver", None)
@@ -847,6 +852,7 @@ class OCPGenerator(AbstractGenerator):
                             end,
                             volume_claim=vc_name,
                             pod=pod,
+                            node=node,
                             volume_claim_labels=vc_labels,
                             vc_capacity=capacity,
                             volume_claim_usage_gig=volume_claim_usage_gig,
