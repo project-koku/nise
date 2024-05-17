@@ -109,7 +109,15 @@ class OCPGeneratorTestCase(TestCase):
                                         f"label_{self.fake.word()}:{self.fake.word()}",
                                         f"|label_{self.fake.word()}:{self.fake.word()}",
                                     ),
-                                }
+                                },
+                                {
+                                    "volume_name": f"vol_{self.fake.word()}",
+                                    "volume_request_gig": self.fake.pyint(1, MAX_VOL_GIGS),
+                                    "labels": (
+                                        f"label_claimless:{self.fake.word()}",
+                                        f"|label_{self.fake.word()}:{self.fake.word()}",
+                                    ),
+                                },
                             ],
                         }
                     },
@@ -212,8 +220,21 @@ class OCPGeneratorTestCase(TestCase):
                             with self.subTest(row=row):
                                 with self.subTest(col=col):
                                     self.assertIn(col, row)
+                        # the following columns are not required to be not-null for claimless persistent-volumes
+                        for col in set(OCP_STORAGE_COLUMNS).difference(
+                            {
+                                "namespace",
+                                "pod",
+                                "node",
+                                "persistentvolumeclaim",
+                                "volume_request_storage_byte_seconds",
+                                "persistentvolumeclaim_usage_byte_seconds",
+                                "persistentvolumeclaim_labels",
+                            }
+                        ):
+                            with self.subTest(row=row):
+                                with self.subTest(col=col):
                                     self.assertIsNotNone(row[col])
-                        break  # only test one row
 
     def test_gen_namespaces_with_namespace(self):
         """Test that gen_namespaces arranges the output dict in the expected way.
@@ -401,9 +422,19 @@ class OCPGeneratorTestCase(TestCase):
         namespaces = self.attributes.get("nodes")[0].get("namespaces")
         volume_names = [vol.get("volume_name") for ns in namespaces for vol in namespaces.get(ns).get("volumes")]
         for vol_dict in out_volumes:
-            self.assertEqual(list(vol_dict.keys()), volume_names)
+            self.assertTrue(all(v in volume_names for v in vol_dict.keys()))
 
-        expected = ["namespace", "volume", "storage_class", "volume_request", "labels", "volume_claims"]
+        expected = [
+            "node",
+            "namespace",
+            "volume",
+            "storage_class",
+            "csi_driver",
+            "csi_volume_handle",
+            "volume_request",
+            "labels",
+            "volume_claims",
+        ]
         for vol_dict in out_volumes:
             for vol in vol_dict.values():
                 with self.subTest(volume=vol):
@@ -423,7 +454,17 @@ class OCPGeneratorTestCase(TestCase):
         self.assertGreaterEqual(len(out_volumes), 2 * 2 * 1)
         self.assertLessEqual(len(out_volumes), 6 * 12 * 3)
 
-        expected = ["namespace", "volume", "storage_class", "volume_request", "labels", "volume_claims"]
+        expected = [
+            "namespace",
+            "node",
+            "volume",
+            "storage_class",
+            "csi_driver",
+            "csi_volume_handle",
+            "volume_request",
+            "labels",
+            "volume_claims",
+        ]
         for vol_dict in out_volumes:
             for vol in vol_dict.values():
                 with self.subTest(volume=vol):
@@ -434,9 +475,7 @@ class OCPGeneratorTestCase(TestCase):
         for attributes in [self.attributes, {}]:
             with self.subTest(attributes=attributes):
                 generator = OCPGenerator(self.two_hours_ago, self.now, attributes)
-                # gen_volumes depends on the output formatting of gen_namespaces and gen_pods.
-                out_volumes = generator._gen_volumes(generator.namespaces, generator.namespace2pods)
-                for volume_dict in out_volumes:
+                for volume_dict in generator.volumes:
                     for volume in volume_dict.values():
                         with self.subTest(volume=volume):
                             total_capacity = 0
@@ -603,6 +642,8 @@ class OCPGeneratorTestCase(TestCase):
             "persistentvolumeclaim",
             "persistentvolume",
             "storageclass",
+            "csi_driver",
+            "csi_volume_handle",
             "persistentvolumeclaim_capacity_bytes",
             "persistentvolumeclaim_capacity_byte_seconds",
             "volume_request_storage_byte_seconds",
