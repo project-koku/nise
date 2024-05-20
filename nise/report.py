@@ -54,11 +54,11 @@ from nise.generators.aws import VPCGenerator
 from nise.generators.azure import BandwidthGenerator
 from nise.generators.azure import CCSPGenerator
 from nise.generators.azure import DTGenerator
+from nise.generators.azure import ManagedDiskGenerator
 from nise.generators.azure import SQLGenerator
 from nise.generators.azure import StorageGenerator
 from nise.generators.azure import VMGenerator
 from nise.generators.azure import VNGenerator
-from nise.generators.azure import ManagedDiskGenerator
 from nise.generators.gcp import CloudStorageGenerator
 from nise.generators.gcp import ComputeEngineGenerator
 from nise.generators.gcp import GCP_REPORT_COLUMNS
@@ -752,7 +752,7 @@ def azure_create_report(options):  # noqa: C901
             {"generator": VMGenerator, "attributes": {}},
             {"generator": VNGenerator, "attributes": {}},
             {"generator": DTGenerator, "attributes": {}},
-            {"generator": ManagedDiskGenerator, "attributes": {}}
+            {"generator": ManagedDiskGenerator, "attributes": {}},
         ]
         accounts_list = None
 

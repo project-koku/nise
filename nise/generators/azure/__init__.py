@@ -21,8 +21,8 @@ from nise.generators.azure.azure_generator import AzureGenerator  # noqa: F401
 from nise.generators.azure.bandwidth_generator import BandwidthGenerator  # noqa: F401
 from nise.generators.azure.ccsp_generator import CCSPGenerator  # noqa: F401
 from nise.generators.azure.data_transfer_generator import DTGenerator  # noqa: F401
+from nise.generators.azure.managed_disk_generator import ManagedDiskGenerator  # noqa: F401
 from nise.generators.azure.sql_database_generator import SQLGenerator  # noqa: F401
 from nise.generators.azure.storage_generator import StorageGenerator  # noqa: F401
 from nise.generators.azure.virtual_machine_generator import VMGenerator  # noqa: F401
 from nise.generators.azure.virtual_network_generator import VNGenerator  # noqa: F401
-from nise.generators.azure.managed_disk_generator import ManagedDiskGenerator

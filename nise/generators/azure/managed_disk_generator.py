@@ -44,4 +44,3 @@ class ManagedDiskGenerator(AzureGenerator):
         """Initialize the data transfer generator."""
         self._service_name = "Storage"
         super().__init__(start_date, end_date, currency, account_info, attributes)
-
