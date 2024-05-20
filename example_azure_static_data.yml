@@ -23,6 +23,13 @@ generators:
       resource_location: "US West"
       tags: {"environment": "prod", "project":"p3"}
       additional_info: {"ConsumptionMeter": "1111aaaa-22bb-33cc-44dd-555555eeeeee"}
+  - ManagedDiskGenerator:
+      start_date: last_month
+      meter_id: 55555555-4444-3333-2222-111111111116
+      resource_location: "US North Central"
+      tags: {"environment": "prod", "project":"p3"}
+      meter_name: "P4 LRS Disk"
+      resource_name: "azure-cloud-prefix-pvc-volume_2"
 
 
 # SubscriptionGuid

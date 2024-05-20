@@ -25,3 +25,4 @@ from nise.generators.azure.sql_database_generator import SQLGenerator  # noqa: F
 from nise.generators.azure.storage_generator import StorageGenerator  # noqa: F401
 from nise.generators.azure.virtual_machine_generator import VMGenerator  # noqa: F401
 from nise.generators.azure.virtual_network_generator import VNGenerator  # noqa: F401
+from nise.generators.azure.managed_disk_generator import ManagedDiskGenerator

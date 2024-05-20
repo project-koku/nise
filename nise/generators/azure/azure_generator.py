@@ -352,11 +352,13 @@ class AzureGenerator(AbstractGenerator):
         if not service_info_2:
             service_info_2 = ""
 
+        _meter_name = self._meter_name if self._meter_name else meter_name
+
         row["ResourceGroup"] = resource_group
         row["ResourceLocation"] = azure_region
         row["MeterCategory"] = self._service_name
         row["MeterId"] = str(meter_id)
-        row["MeterName"] = meter_name
+        row["MeterName"] = _meter_name
         row["MeterRegion"] = meter_region
         row["ConsumedService"] = self._consumed
         row["OfferId"] = ""
