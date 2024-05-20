@@ -18,10 +18,10 @@
 import calendar
 import datetime
 import json
+import uuid
 from random import choice
 from random import randint
 from random import uniform
-import uuid
 
 from nise.generators.generator import AbstractGenerator
 
@@ -365,8 +365,6 @@ class AzureGenerator(AbstractGenerator):
             additional_info = ""
         if not service_info_2:
             service_info_2 = ""
-
-        _meter_name = self._meter_name if self._meter_name else meter_name
 
         row["ResourceGroup"] = resource_group
         row["ResourceLocation"] = azure_region
