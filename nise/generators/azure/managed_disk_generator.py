@@ -21,6 +21,7 @@ from nise.generators.azure.azure_generator import AzureGenerator
 class ManagedDiskGenerator(AzureGenerator):
     """Generator for Storage data."""
 
+    # service_tier, meter_subject, meter_name, units_of_measure
     SERVICE_METER = (
         ("Standard SSD Managed Disks", "Standard SSD Managed Disks", "E4 Disks", "1 /Month"),
         ("Standard SSD Managed Disks", "Standard SSD Managed Disks", "Disk Operations", "100000000"),
