@@ -18,6 +18,7 @@
 import calendar
 import datetime
 import json
+import uuid
 from random import choice
 from random import randint
 from random import uniform
@@ -164,6 +165,19 @@ class AzureGenerator(AbstractGenerator):
     SERVICE_FAMILIES = ("Compute", "Storage", "Networking")
 
     INVOICE_SECTION_NAMES = ("IT Services",)
+
+    @property
+    def meter_id(self):
+        if self._meter_id is None:
+            self._meter_id = uuid.uuid4()
+        return self._meter_id
+
+    @property
+    def meter_name(self):
+        if self._meter_name is None:
+            _, _, meter_name, _ = self._get_cached_meter_values(self.meter_id, self.SERVICE_METER)
+            self._meter_name = meter_name
+        return self._meter_name
 
     def __init__(self, start_date, end_date, currency, account_info, attributes=None):  # noqa: C901
         """Initialize the generator."""
@@ -355,8 +369,8 @@ class AzureGenerator(AbstractGenerator):
         row["ResourceGroup"] = resource_group
         row["ResourceLocation"] = azure_region
         row["MeterCategory"] = self._service_name
-        row["MeterId"] = str(meter_id)
-        row["MeterName"] = meter_name
+        row["MeterId"] = str(self.meter_id)
+        row["MeterName"] = self.meter_name
         row["MeterRegion"] = meter_region
         row["ConsumedService"] = self._consumed
         row["OfferId"] = ""
