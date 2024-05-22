@@ -98,7 +98,7 @@ class EC2Generator(AWSGenerator):
         """Initialize the EC2 generator."""
         super().__init__(start_date, end_date, currency, payer_account, usage_accounts, attributes, tag_cols)
         self._instance_type = choice(self.INSTANCE_TYPES)
-        self._operating_system = self.attributes.get("_operating_system", choice(self.OPERATING_SYSTEMS))
+        self._operating_system = self.attributes.get("operating_system", choice(self.OPERATING_SYSTEMS))
         self._processor_arch = self.attributes.get("processor_arch", choice(self.ARCHS))
         self._resource_id = f"i-{self.attributes.get('resource_id', self.fake.ean8())}"
         self._product_sku = self.attributes.get("product_sku", self.fake.pystr(min_chars=12, max_chars=12).upper())
