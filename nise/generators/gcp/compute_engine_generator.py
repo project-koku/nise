@@ -47,7 +47,12 @@ class ComputeEngineGenerator(GCPGenerator):
         ("2F99-3A90-373B", "Network Internet Data Transfer In from EMEA to Americas", "bytes", "gibibyte"),
         ("92CB-C25F-B1D1", "Network Data Transfer to Google Services from Americas to Americas", "bytes", "gibibyte"),
         ("227B-5B2B-A75A", "Network Internet Data Transfer In from China to Americas", "bytes", "gibibyte"),
-        ("123C-0EFC-B7C8", "Network Data Transfer In from Google Services from Americas to Americas", "bytes", "gibibyte"),
+        (
+            "123C-0EFC-B7C8",
+            "Network Data Transfer In from Google Services from Americas to Americas",
+            "bytes",
+            "gibibyte",
+        ),
         ("F274-1692-F213", "Network Internet Data Transfer Out from Americas to Americas", "bytes", "gibibyte"),
     )
 
