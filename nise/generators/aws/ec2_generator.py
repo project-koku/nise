@@ -121,10 +121,17 @@ class EC2Generator(AWSGenerator):
     def _update_data(self, row, start, end, **kwargs):
         """Update data with generator specific data."""
         inst_type, physical_cores, vcpu, memory, storage, family, cost, rate, saving, description = self._instance_type
+
         inst_description = description.format(cost=cost, inst_type=inst_type)
+        product_name = "Amazon Elastic Compute Cloud"
+        billing_entity = "AWS"
+        if self.attributes:
+            inst_description = self.attributes.get("lineitem_lineitemdescription", inst_description)
+            product_name = self.attributes.get("product_name", product_name)
+            billing_entity = self.attributes.get("billing_entity", billing_entity)
         location, aws_region, avail_zone, _ = self._get_location()
         row = self._add_common_usage_info(row, start, end)
-
+        row["bill/BillingEntity"] = billing_entity
         row["lineItem/ProductCode"] = "AmazonEC2"
         row["lineItem/UsageType"] = f"BoxUsage:{inst_type}"
         row["lineItem/Operation"] = "RunInstances"
@@ -136,7 +143,7 @@ class EC2Generator(AWSGenerator):
         row["lineItem/BlendedRate"] = rate
         row["lineItem/BlendedCost"] = cost
         row["lineItem/LineItemDescription"] = inst_description
-        row["product/ProductName"] = "Amazon Elastic Compute Cloud"
+        row["product/ProductName"] = product_name
         row["product/clockSpeed"] = "2.8 GHz"
         row["product/currentGeneration"] = "Yes"
         row["product/ecu"] = "14"
