@@ -99,6 +99,7 @@ from nise.util import LOG
 
 def create_temporary_copy(path, temp_file_name, temp_dir_name="None"):
     """Create temporary copy of a file."""
+    # PERF_NOTE - if your /tmp dir doesn't have enough space, you may need to specify different temp_dir
     temp_dir = gettempdir()
     if temp_dir_name:
         new_dir = os.path.join(temp_dir, temp_dir_name)
