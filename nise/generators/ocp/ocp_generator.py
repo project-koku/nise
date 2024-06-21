@@ -727,7 +727,7 @@ class OCPGenerator(AbstractGenerator):
 
         pod_out = pod_in.copy()
         for pod_key in values_to_randomize:
-            if pod_value := pod_in.get("pod_key"):
+            if pod_value := pod_in.get(pod_key):
                 if pod_key.startswith("cpu"):
                     pod_out[pod_key] = round(min(randomization_value * pod_value, cpu_limit), 5)
                 else:
@@ -737,7 +737,6 @@ class OCPGenerator(AbstractGenerator):
     def _update_ros_ocp_pod_data(self, row, start, end, **kwargs):
         """Update data with generator specific data."""
         pod = kwargs.get("pod")
-
         if pod:
             pod = self._randomize_ros_ocp_line_values(pod)
         row.update(pod)
