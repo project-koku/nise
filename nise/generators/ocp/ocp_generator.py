@@ -722,23 +722,24 @@ class OCPGenerator(AbstractGenerator):
             "memory_rss_usage_container_sum",
         ]
         randomization_value = uniform(0.9, 1.1)
+        cpu_limit = pod_in.get("cpu_limit_container_avg", 1000000)
+        memory_limit = pod_in.get("memory_limit_container_avg", 1e20)
+
         pod_out = pod_in.copy()
         for pod_key in values_to_randomize:
-            if pod_key.startswith("cpu"):
-                pod_out[pod_key] = round(
-                    min(randomization_value * pod_in[pod_key], pod_in["cpu_limit_container_avg"]), 5
-                )
-            else:
-                pod_out[pod_key] = round(
-                    min(randomization_value * pod_in[pod_key], pod_in["memory_limit_container_avg"])
-                )
+            if pod_value := pod_in.get("pod_key"):
+                if pod_key.startswith("cpu"):
+                    pod_out[pod_key] = round(min(randomization_value * pod_value, cpu_limit), 5)
+                else:
+                    pod_out[pod_key] = round(min(randomization_value * pod_value, memory_limit))
         return pod_out
 
     def _update_ros_ocp_pod_data(self, row, start, end, **kwargs):
         """Update data with generator specific data."""
         pod = kwargs.get("pod")
 
-        pod = self._randomize_ros_ocp_line_values(pod)
+        if pod:
+            pod = self._randomize_ros_ocp_line_values(pod)
         row.update(pod)
         return row
 
