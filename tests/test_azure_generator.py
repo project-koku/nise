@@ -20,8 +20,8 @@ from datetime import timedelta
 from unittest import TestCase
 
 from faker import Faker
-from nise.generators.azure import AZURE_COLUMNS_V2_SUBSCRIPTION
 from nise.generators.azure import AZURE_COLUMNS_V2_RESOURCE_GROUP
+from nise.generators.azure import AZURE_COLUMNS_V2_SUBSCRIPTION
 from nise.generators.azure import AzureGenerator
 from nise.generators.azure import BandwidthGenerator
 from nise.generators.azure import DTGenerator

@@ -392,10 +392,11 @@ class AzureGenerator(AbstractGenerator):
         if not service_info_2:
             service_info_2 = ""
 
-        usage_account = choice(self.usage_accounts)
-        row["AccountName"] = usage_account[0]
+        if self.usage_accounts:
+            usage_account = choice(self.usage_accounts)
+            row["AccountName"] = usage_account[0]
+            row["AccountOwnerId"] = usage_account[1]
         row["SubscriptionName"] = self.account_info.get("subscription_name")
-        row["AccountOwnerId"] = usage_account[1]
         row["BillingAccountId"] = self.account_info.get("billing_account_id")
         row["BillingAccountName"] = self.account_info.get("billing_account_name")
         row["BillingProfileId"] = self.account_info.get("billing_account_id")
