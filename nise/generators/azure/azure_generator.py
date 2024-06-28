@@ -313,6 +313,9 @@ class AzureGenerator(AbstractGenerator):
             service_info_2,
         )
 
+    def _add_common_usage_info(self, row, start, end, **kwargs):
+        """Not needed for Azure."""
+
     def _get_location_info(self):
         """Get bandwidth info."""
         azure_region, meter_region = self._get_location()
@@ -456,6 +459,7 @@ class AzureGenerator(AbstractGenerator):
         row["Frequency"] = "UsageBased"
         row["PublisherType"] = publisher_type
         row["ChargeType"] = "Usage"
+        row["PublisherName"] = publisher_name
         # row['PricingModel'] =
         # row['ReservationId'] =
         # row['ReservationName'] =
@@ -463,7 +467,6 @@ class AzureGenerator(AbstractGenerator):
         # row['ProductOrderName'] =
         # row['AvailabilityZone'] =
         # row['Term'] =
-        row["PublisherName"] = publisher_name
         # row['PlanName'] =
         # row['PartNumber'] =
         # row['CostCenter'] =
