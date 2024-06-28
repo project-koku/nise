@@ -467,6 +467,26 @@ class AzureGenerator(AbstractGenerator):
         # row['PlanName'] =
         # row['PartNumber'] =
         # row['CostCenter'] =
+        # row['previousInvoiceId'] =
+        # row['resellerName'] =
+        # row['resellerMpnId'] =
+        # row['servicePeriodEndDate'] =
+        # row['servicePeriodStartDate'] =
+        # row['Product'] =
+        # row['ProductId'] =
+        # row['publisherId'] =
+        # row['Location'] =
+        # row['pricingCurrencyCode'] =
+        # row['costInPricingCurrency'] =
+        # row['costInUsd'] =
+        # row['paygCostInBillingCurrency'] =
+        # row['paygCostInUsd'] =
+        # row['exchangeRate'] =
+        # row['exchangeRateDate'] =
+        # row['offerid'] =
+        # row['serviceinfo1'] =
+        # row['instancename'] =
+        # row['invoiceId'] =
 
         if hasattr(self, "_product_id"):
             row["ProductId"] = self._product_id
