@@ -15,8 +15,8 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """Module for azure data generators."""
-from nise.generators.azure.azure_generator import AZURE_COLUMNS  # noqa: F401
-from nise.generators.azure.azure_generator import AZURE_COLUMNS_V2  # noqa: F401
+from nise.generators.azure.azure_generator import AZURE_COLUMNS_V2_SUBSCRIPTION  # noqa: F401
+from nise.generators.azure.azure_generator import AZURE_COLUMNS_V2_RESOURCE_GROUP  # noqa: F401
 from nise.generators.azure.azure_generator import AzureGenerator  # noqa: F401
 from nise.generators.azure.bandwidth_generator import BandwidthGenerator  # noqa: F401
 from nise.generators.azure.ccsp_generator import CCSPGenerator  # noqa: F401

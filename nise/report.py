@@ -768,7 +768,7 @@ def azure_create_report(options):  # noqa: C901
     storage_account_name = options.get("azure_account_name")
     azure_prefix_name = options.get("azure_prefix_name")
     azure_report_name = options.get("azure_report_name")
-    version_two = options.get("version_two", False)
+    resource_group = options.get("resource_group", False)
     write_monthly = options.get("write_monthly", False)
     for month in months:
         data = []
