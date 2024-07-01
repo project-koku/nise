@@ -432,8 +432,10 @@ class TestVNGenerator(AzureGeneratorTestCase):
             if generator.azure_columns == AZURE_COLUMNS_V2_SUBSCRIPTION:
                 self.assertEqual(row["SubscriptionId"], self.payer_account)
                 self.assertEqual(row["ResourceId"], self.instance_id)
+                row["BillingCurrency"] = self.currency
             else:
                 self.assertEqual(row["SubscriptionGuid"], self.payer_account)
+                row["BillingCurrencyCode"] = self.currency
 
 
 class TestDTGenerator(AzureGeneratorTestCase):
