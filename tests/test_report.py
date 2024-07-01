@@ -1619,9 +1619,6 @@ class GCPReportTestCase(TestCase):
         one_day = datetime.timedelta(days=1)
         yesterday = now - one_day
         report_prefix = "test_report"
-
-        now = datetime.datetime(2024, 6, 30, 0, 0)
-        yesterday = datetime.datetime(2024, 6, 29, 0, 0)
         options = {"start_date": yesterday, "end_date": now, "gcp_report_prefix": report_prefix}
         fix_dates(options, "gcp")
         gcp_create_report(options)
