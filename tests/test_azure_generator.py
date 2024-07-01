@@ -222,7 +222,7 @@ class AzureGeneratorTestCase(TestCase):
             "usage_quantity": self.usage_quantity,
             "resource_rate": self.resource_rate,
             "pre_tax_cost": self.pre_tax_cost,
-            "version_two": True,
+            "resource_group": True,
         }
         self.two_hours_ago = (self.now - self.one_hour) - self.one_hour
 
