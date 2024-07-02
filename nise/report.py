@@ -1189,7 +1189,8 @@ def gcp_create_report(options):  # noqa: C901
 
             local_file_path, output_file_name = write_gcp_file(gen_start_date, gen_end_date, data, options)
             output_files.append(output_file_name)
-            monthly_files.append(local_file_path)
+            if local_file_path not in monthly_files:
+                monthly_files.append(local_file_path)
 
         for index, month_file in enumerate(monthly_files):
             if gcp_bucket_name:
