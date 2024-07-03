@@ -22,7 +22,6 @@ import json
 import os
 import re
 import shutil
-from datetime import date
 from tempfile import mkdtemp
 from tempfile import NamedTemporaryFile
 from tempfile import TemporaryDirectory
