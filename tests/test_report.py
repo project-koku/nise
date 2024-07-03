@@ -1631,24 +1631,17 @@ class GCPReportTestCase(TestCase):
     def test_gcp_create_report_monthly_files(self):
         """Test adding local_file_path to monthly_files."""
 
-        options = {
-            "gcp_bucket_name": mkdtemp(),
-            "start_date": date(2023, 2, 1),
-            "end_date": date(2023, 1, 31),
-            "currency": "USD",
-            "write_monthly": True,
-            "static_report_data": None,
-            "gcp_dataset_name": None,
-        }
+        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
+        one_day = datetime.timedelta(days=1)
+        yesterday = now - one_day
+        report_prefix = "test_report1"
+        options = {"start_date": yesterday, "end_date": now, "gcp_report_prefix": report_prefix}
+        fix_dates(options, "gcp")
+        gcp_create_report(options)
+        output_file_name = "{}-{}.csv".format(report_prefix, yesterday.strftime("%Y-%m-%d"))
+        expected_output_file_path = "{}/{}".format(os.getcwd(), output_file_name)
 
-        with patch("nise.report.write_gcp_file") as mock_write_gcp_file:
-            mock_write_gcp_file.return_value = ("/nise/test_report.csv", "test_report.csv")
-            gcp_create_report(options)
-            monthly_files = options.get("gcp_bucket_name")
-            local_file_path = "/nise/test_report.csv"
-            self.assertNotIn(local_file_path, monthly_files)
-            self.assertIn(monthly_files, monthly_files)
-            shutil.rmtree(options["gcp_bucket_name"])
+        self.assertFalse(os.path.isfile(expected_output_file_path))
 
     def test_gcp_create_report_with_dataset_name_static_data(self):
         """Test the gcp report creation method where a dataset name is included and static data used."""
