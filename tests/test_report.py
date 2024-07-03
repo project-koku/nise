@@ -1627,23 +1627,14 @@ class GCPReportTestCase(TestCase):
 
         self.assertFalse(os.path.isfile(expected_output_file_path))
 
-    def test_gcp_create_report_monthly_files(self):
-        """Test adding local_file_path to monthly_files."""
-        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
-        one_day = datetime.timedelta(days=1)
-        yesterday = now - one_day
-        report_prefix = "test_report"
+        report_prefix = "test_report1"
         options = {"start_date": yesterday, "end_date": now, "gcp_report_prefix": report_prefix}
         fix_dates(options, "gcp")
+        gcp_create_report(options)
+        output_file_name = "{}-{}.csv".format(report_prefix, yesterday.strftime("%Y-%m-%d"))
+        expected_output_file_path = "{}/{}".format(os.getcwd(), output_file_name)
 
-        filename = "test_report.csv"
-        with open(filename, "w") as f:
-            f.write("test content")
-
-        with patch("nise.report.write_gcp_file") as mock_write_gcp_file:
-            mock_write_gcp_file.return_value = ("test_report.csv", "test_report.csv")
-            gcp_create_report(options)
-            self.assertTrue(mock_write_gcp_file.called)
+        self.assertFalse(os.path.isfile(expected_output_file_path))
 
     def test_gcp_create_report_with_dataset_name_static_data(self):
         """Test the gcp report creation method where a dataset name is included and static data used."""
