@@ -1627,8 +1627,13 @@ class GCPReportTestCase(TestCase):
 
         self.assertFalse(os.path.isfile(expected_output_file_path))
 
-        report_prefix = "test_report1"
-        options = {"start_date": yesterday, "end_date": now, "gcp_report_prefix": report_prefix}
+    def test_gcp_create_report_without_write_monthly_1(self):
+        """Test that monthly file is not created by default."""
+        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
+        one_day = datetime.timedelta(days=1)
+        yesterday = now - one_day
+        report_prefix = "test_report"
+        options = {"start_date": yesterday, "end_date": now, "gcp_report_prefix": report_prefix, "gcp_bucket_name": "gcp_bucket_name"}
         fix_dates(options, "gcp")
         gcp_create_report(options)
         output_file_name = "{}-{}.csv".format(report_prefix, yesterday.strftime("%Y-%m-%d"))
