@@ -1627,11 +1627,10 @@ class GCPReportTestCase(TestCase):
 
         self.assertFalse(os.path.isfile(expected_output_file_path))
 
-    def test_gcp_create_report_without_write_monthly_1(self):
+    def test_gcp_create_report_without_write_monthly_overlapping_month(self):
         """Test that monthly file is not created by default."""
-        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
-        one_day = datetime.timedelta(days=1)
-        yesterday = now - one_day
+        now = datetime.datetime(2024, 7, 1, 0, 0)
+        yesterday = datetime.datetime(2024, 6, 30, 0, 0)
         report_prefix = "test_report"
         options = {
             "start_date": yesterday,
