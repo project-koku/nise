@@ -1194,6 +1194,7 @@ def gcp_create_report(options):  # noqa: C901
 
         for index, month_file in enumerate(monthly_files):
             if gcp_bucket_name:
+                print("asdasdsadasdasddas")
                 gcp_route_file(gcp_bucket_name, month_file, output_files[index])
 
     write_monthly = options.get("write_monthly", False)
