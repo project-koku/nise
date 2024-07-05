@@ -1627,6 +1627,24 @@ class GCPReportTestCase(TestCase):
 
         self.assertFalse(os.path.isfile(expected_output_file_path))
 
+    def test_gcp_create_report_without_write_monthly_overlapping_month(self):
+        """Test that there are no Exceptions when processing overlapping months dates."""
+        now = datetime.datetime(2024, 7, 1, 0, 0)
+        yesterday = datetime.datetime(2024, 6, 30, 0, 0)
+        report_prefix = "test_report"
+        options = {
+            "start_date": yesterday,
+            "end_date": now,
+            "gcp_report_prefix": report_prefix,
+            "gcp_bucket_name": "gcp_bucket_name",
+        }
+        fix_dates(options, "gcp")
+        gcp_create_report(options)
+        output_file_name = "{}-{}.csv".format(report_prefix, yesterday.strftime("%Y-%m-%d"))
+        expected_output_file_path = "{}/{}".format(os.getcwd(), output_file_name)
+
+        self.assertFalse(os.path.isfile(expected_output_file_path))
+
     def test_gcp_create_report_with_dataset_name_static_data(self):
         """Test the gcp report creation method where a dataset name is included and static data used."""
         now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
