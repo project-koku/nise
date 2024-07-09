@@ -53,6 +53,8 @@ from nise.generators.aws import S3Generator
 from nise.generators.aws import VPCGenerator
 from nise.generators.azure import BandwidthGenerator
 from nise.generators.azure import CCSPGenerator
+from nise.generators.azure import DTGenerator
+from nise.generators.azure import ManagedDiskGenerator
 from nise.generators.azure import SQLGenerator
 from nise.generators.azure import StorageGenerator
 from nise.generators.azure import VMGenerator
@@ -749,6 +751,8 @@ def azure_create_report(options):  # noqa: C901
             {"generator": StorageGenerator, "attributes": {}},
             {"generator": VMGenerator, "attributes": {}},
             {"generator": VNGenerator, "attributes": {}},
+            {"generator": DTGenerator, "attributes": {}},
+            {"generator": ManagedDiskGenerator, "attributes": {}},
         ]
         accounts_list = None
 
@@ -1185,7 +1189,8 @@ def gcp_create_report(options):  # noqa: C901
 
             local_file_path, output_file_name = write_gcp_file(gen_start_date, gen_end_date, data, options)
             output_files.append(output_file_name)
-            monthly_files.append(local_file_path)
+            if local_file_path not in monthly_files:
+                monthly_files.append(local_file_path)
 
         for index, month_file in enumerate(monthly_files):
             if gcp_bucket_name:

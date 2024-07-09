@@ -18,6 +18,7 @@
 import calendar
 import datetime
 import json
+import uuid
 from random import choice
 from random import randint
 from random import uniform
@@ -165,6 +166,19 @@ class AzureGenerator(AbstractGenerator):
 
     INVOICE_SECTION_NAMES = ("IT Services",)
 
+    @property
+    def meter_id(self):
+        if self._meter_id is None:
+            self._meter_id = uuid.uuid4()
+        return self._meter_id
+
+    @property
+    def meter_name(self):
+        if self._meter_name is None:
+            _, _, meter_name, _ = self._get_cached_meter_values(self.meter_id, self.SERVICE_METER)
+            self._meter_name = meter_name
+        return self._meter_name
+
     def __init__(self, start_date, end_date, currency, account_info, attributes=None):  # noqa: C901
         """Initialize the generator."""
         self.azure_columns = AZURE_COLUMNS
@@ -187,6 +201,7 @@ class AzureGenerator(AbstractGenerator):
         self._meter_cache = {}
         self._billing_currency = currency
         self._additional_info = None
+        self._data_direction = None
         # Version 2 fields
         self._invoice_section_id = None
         self._invoice_section_name = None
@@ -225,7 +240,7 @@ class AzureGenerator(AbstractGenerator):
         service_tier, meter_sub, meter_name, units_of_measure = self._get_cached_meter_values(meter_id, service_meter)
         service_info_2 = choice(service_info)
         resource_group, resource_name = choice(ex_resource)
-        additional_info = self._get_additional_info()
+        additional_info = self._get_additional_info(meter_name)
         if self._instance_id:
             self._consumed, second_part = accts_str = self._get_accts_str(self._service_name)
             self._resource_type = self._consumed + "/" + second_part
@@ -292,7 +307,7 @@ class AzureGenerator(AbstractGenerator):
             location = choice(self.RESOURCE_LOCATION)
         return location
 
-    def _get_additional_info(self):
+    def _get_additional_info(self, meter_name=None):
         """Pick additional info."""
         if self._additional_info:
             return self._additional_info
@@ -316,7 +331,7 @@ class AzureGenerator(AbstractGenerator):
             row["BillingPeriodEndDate"] = self.last_day_of_month(start).strftime(DATE_FMT)
         else:
             row["SubscriptionGuid"] = self.subscription_guid
-            row["UsageDateTime"] = start.strftime("%Y-%m-%d %H:%M:%S")
+            row["UsageDateTime"] = start.strftime(DATE_FMT)
         return row
 
     def _add_tag_data(self, row):
@@ -354,8 +369,8 @@ class AzureGenerator(AbstractGenerator):
         row["ResourceGroup"] = resource_group
         row["ResourceLocation"] = azure_region
         row["MeterCategory"] = self._service_name
-        row["MeterId"] = str(meter_id)
-        row["MeterName"] = meter_name
+        row["MeterId"] = str(self.meter_id)
+        row["MeterName"] = self.meter_name
         row["MeterRegion"] = meter_region
         row["ConsumedService"] = self._consumed
         row["OfferId"] = ""

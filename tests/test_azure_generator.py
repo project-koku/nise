@@ -24,6 +24,7 @@ from nise.generators.azure import AZURE_COLUMNS
 from nise.generators.azure import AZURE_COLUMNS_V2
 from nise.generators.azure import AzureGenerator
 from nise.generators.azure import BandwidthGenerator
+from nise.generators.azure import DTGenerator
 from nise.generators.azure import SQLGenerator
 from nise.generators.azure import StorageGenerator
 from nise.generators.azure import VMGenerator
@@ -441,3 +442,75 @@ class TestVNGenerator(AzureGeneratorTestCase):
             else:
                 self.assertEqual(row["SubscriptionId"], self.payer_account)
                 self.assertEqual(row["ResourceId"], self.instance_id)
+
+
+class TestDTGenerator(AzureGeneratorTestCase):
+    """Tests for the VM Generator type."""
+
+    ADDITIONAL_INFO_KEYS = {"Standard Data Processed - Egress", "Standard Data Processed - Ingress"}
+
+    def test_init_no_attributes(self):
+        """Test the init wihout attributes."""
+        generator = DTGenerator(
+            self.two_hours_ago, self.now, self.currency, self.account_info, attributes={"empty": "dictionary"}
+        )
+        self.assertEqual(generator._service_name, "Virtual Network")
+
+    def test_init_with_attributes(self):
+        """Test the unique init options for VM."""
+        default_generators = [
+            DTGenerator(self.two_hours_ago, self.now, self.currency, self.account_info, self.attributes),
+            DTGenerator(self.two_hours_ago, self.now, self.currency, self.account_info, self.attributes_v2),
+        ]
+        for generator in default_generators:
+            self.assertEqual(generator._service_name, "Virtual Network")
+            self.assertEqual(generator._meter_id, self.meter_id)
+            self.assertEqual(generator._tags, self.tags)
+            self.assertEqual(generator._usage_quantity, self.usage_quantity)
+            self.assertEqual(generator._resource_rate, self.resource_rate)
+            self.assertEqual(generator._pre_tax_cost, self.pre_tax_cost)
+
+    def test_update_data(self):
+        """Test that row is updated."""
+        generator = DTGenerator(self.two_hours_ago, self.now, self.currency, self.account_info)
+        start_row = {}
+        row = generator._update_data(start_row, self.two_hours_ago, self.now)
+        self.assertEqual(row["ConsumedService"], "microsoft.compute")
+        self.assertEqual(row["ResourceType"], "microsoft.compute/publicIPAddresses")
+
+    def test_update_data_with_attributes(self):
+        """Test that row is updated."""
+        directional_attributes = {"data_direction": "in"}
+        directional_attributes.update(self.attributes)
+        directional_attributes_v2 = {"data_direction": "in"}
+        directional_attributes_v2.update(self.attributes_v2)
+        default_generators = [
+            DTGenerator(
+                self.two_hours_ago,
+                self.now,
+                self.currency,
+                self.account_info,
+                directional_attributes,
+            ),
+            DTGenerator(
+                self.two_hours_ago,
+                self.now,
+                self.currency,
+                self.account_info,
+                directional_attributes_v2,
+            ),
+        ]
+        for generator in default_generators:
+            start_row = {}
+            row = generator._update_data(start_row, self.two_hours_ago, self.now)
+            self.assertEqual(row["Tags"], json.dumps(self.tags))
+            if generator.azure_columns == AZURE_COLUMNS:
+                self.assertEqual(row["SubscriptionGuid"], self.payer_account)
+                self.assertEqual(row["InstanceId"], self.instance_id)
+                self.assertEqual(row["MeterSubcategory"], "Virtual Network Private Link")
+                self.assertEqual(row["MeterName"], "Standard Data Processed - Ingress")
+            else:
+                self.assertEqual(row["SubscriptionId"], self.payer_account)
+                self.assertEqual(row["ResourceId"], self.instance_id)
+                self.assertEqual(row["MeterSubCategory"], "Virtual Network Private Link")
+                self.assertEqual(row["MeterName"], "Standard Data Processed - Ingress")

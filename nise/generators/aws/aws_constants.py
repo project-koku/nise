@@ -17,6 +17,7 @@
 """AWS Report Constants"""
 
 REGIONS = (
+    # (location description, region code, sub region code, storage region)
     ("US East (N. Virginia)", "us-east-1", "us-east-1a", "USE1-EBS"),
     ("US East (N. Virginia)", "us-east-1", "us-east-1b", "USE1-EBS"),
     ("US East (N. Virginia)", "us-east-1", "us-east-1c", "USE1-EBS"),
