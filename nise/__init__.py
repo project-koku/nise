@@ -1,3 +1,3 @@
-__version__ = "4.5.7"
+__version__ = "4.5.8"
 
 VERSION = __version__.split(".")
