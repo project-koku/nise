@@ -15,14 +15,14 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """Module for azure data generators."""
-from nise.generators.azure.azure_generator import AZURE_COLUMNS_V2_RESOURCE_GROUP  # noqa: F401
-from nise.generators.azure.azure_generator import AZURE_COLUMNS_V2_SUBSCRIPTION  # noqa: F401
-from nise.generators.azure.azure_generator import AzureGenerator  # noqa: F401
-from nise.generators.azure.bandwidth_generator import BandwidthGenerator  # noqa: F401
-from nise.generators.azure.ccsp_generator import CCSPGenerator  # noqa: F401
-from nise.generators.azure.data_transfer_generator import DTGenerator  # noqa: F401
-from nise.generators.azure.managed_disk_generator import ManagedDiskGenerator  # noqa: F401
-from nise.generators.azure.sql_database_generator import SQLGenerator  # noqa: F401
-from nise.generators.azure.storage_generator import StorageGenerator  # noqa: F401
-from nise.generators.azure.virtual_machine_generator import VMGenerator  # noqa: F401
-from nise.generators.azure.virtual_network_generator import VNGenerator  # noqa: F401
+from nise.generators.azure.azure_generator import AZURE_COLUMNS_V2_RESOURCE_GROUP
+from nise.generators.azure.azure_generator import AZURE_COLUMNS_V2_SUBSCRIPTION
+from nise.generators.azure.azure_generator import AzureGenerator
+from nise.generators.azure.bandwidth_generator import BandwidthGenerator
+from nise.generators.azure.ccsp_generator import CCSPGenerator
+from nise.generators.azure.data_transfer_generator import DTGenerator
+from nise.generators.azure.managed_disk_generator import ManagedDiskGenerator
+from nise.generators.azure.sql_database_generator import SQLGenerator
+from nise.generators.azure.storage_generator import StorageGenerator
+from nise.generators.azure.virtual_machine_generator import VMGenerator
+from nise.generators.azure.virtual_network_generator import VNGenerator

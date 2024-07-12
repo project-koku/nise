@@ -419,7 +419,7 @@ class AzureGenerator(AbstractGenerator):
             row, meter_sub, str(amount), str(rate), str(cost), instance_id, service_tier
         )
 
-        if self.azure_columns == AZURE_COLUMNS_V2_SUBSCRIPTION:
+        if self.azure_columns is AZURE_COLUMNS_V2_SUBSCRIPTION:
             row["SubscriptionId"] = self.subscription_guid
             row["ResourceGroupName"] = resource_group
             row["ProductName"] = ""
@@ -505,7 +505,7 @@ class AzureGenerator(AbstractGenerator):
         row["UnitPrice"] = rate
         row["CostInBillingCurrency"] = cost
 
-        if self.azure_columns == AZURE_COLUMNS_V2_SUBSCRIPTION:
+        if self.azure_columns is AZURE_COLUMNS_V2_SUBSCRIPTION:
             row["ResourceId"] = instance_id
             row["BillingCurrency"] = self._billing_currency
         else:
