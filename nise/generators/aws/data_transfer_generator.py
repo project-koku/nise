@@ -43,7 +43,7 @@ class DataTransferGenerator(AWSGenerator):
         self._product_name = self.attributes.get("product_name", "Amazon Elastic Compute Cloud")
         self._product_sku = self.attributes.get("product_sku")
         self._rate = float(self.attributes.get("rate", 0)) or None
-        self._resource_id = self.attributes.get("resource_id")
+        self._resource_id = f"i-{self.attributes.get('resource_id', self.fake.ean8())}"
         self._saving = float(self.attributes.get("saving", 0)) or None
         self._tags = self.attributes.get("tags", self._tags)
 
