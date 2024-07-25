@@ -72,7 +72,6 @@ AZURE_COLUMNS_V2_SUBSCRIPTION = (
     "BillingPeriodEndDate",
     "BillingProfileId",
     "BillingProfileName",
-    "InstanceName",
     "InvoiceSectionId",
     "IsAzureCreditEligible",
     "PartNumber",
