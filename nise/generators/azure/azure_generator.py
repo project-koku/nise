@@ -85,7 +85,6 @@ AZURE_COLUMNS_V2_SUBSCRIPTION = (
     "resellerMpnId",
     "servicePeriodEndDate",
     "servicePeriodStartDate",
-    "Product",
     "ProductId",
     "publisherId",
     "Location",
