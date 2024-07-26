@@ -72,7 +72,6 @@ AZURE_COLUMNS_V2_SUBSCRIPTION = (
     "BillingPeriodEndDate",
     "BillingProfileId",
     "BillingProfileName",
-    "InstanceName",
     "InvoiceSectionId",
     "IsAzureCreditEligible",
     "PartNumber",
@@ -85,7 +84,6 @@ AZURE_COLUMNS_V2_SUBSCRIPTION = (
     "resellerMpnId",
     "servicePeriodEndDate",
     "servicePeriodStartDate",
-    "Product",
     "ProductId",
     "publisherId",
     "Location",
@@ -418,6 +416,9 @@ class AzureGenerator(AbstractGenerator):
         row = self._map_header_to_report_version(
             row, meter_sub, str(amount), str(rate), str(cost), instance_id, service_tier
         )
+
+        if instance_id and "resourceGroups/" in instance_id:
+            resource_group = instance_id.split("resourceGroups/")[-1].split("/")[0]
 
         if self.azure_columns is AZURE_COLUMNS_V2_SUBSCRIPTION:
             row["SubscriptionId"] = self.subscription_guid
