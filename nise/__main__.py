@@ -198,7 +198,7 @@ def add_azure_parser_args(parser):
     parser.add_argument(
         "-rg",
         "--resource-group",
-        dest="resource_group",
+        dest="resource_group_export",
         action="store_true",
         required=False,
         help="Generate resource group based azure report.",
