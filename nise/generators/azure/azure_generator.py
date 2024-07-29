@@ -253,7 +253,7 @@ class AzureGenerator(AbstractGenerator):
             for key, value in attributes.items():
                 attr_name = "_" + key
                 setattr(self, attr_name, value)
-            if attributes.get("resource_group"):
+            if attributes.get("resource_group_export"):
                 self.azure_columns = AZURE_COLUMNS_V2_RESOURCE_GROUP
         super().__init__(start_date, end_date)
 

@@ -58,7 +58,7 @@ class AbstractGeneratorTestCase(TestCase):
         self.one_hour = timedelta(minutes=60)
         self.account_info = _generate_azure_account_info()
         self.payer_account = self.account_info.get("subscription_guid")
-        self.resource_group_attribute = {"resource_group": True}
+        self.resource_group_attribute = {"resource_group_export": True}
         self.currency = "USD"
 
     def test_set_hours_invalid_start(self):
@@ -222,7 +222,7 @@ class AzureGeneratorTestCase(TestCase):
             "usage_quantity": self.usage_quantity,
             "resource_rate": self.resource_rate,
             "pre_tax_cost": self.pre_tax_cost,
-            "resource_group": True,
+            "resource_group_export": True,
         }
         self.two_hours_ago = (self.now - self.one_hour) - self.one_hour
 
