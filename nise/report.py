@@ -768,6 +768,7 @@ def azure_create_report(options):  # noqa: C901
     storage_account_name = options.get("azure_account_name")
     azure_prefix_name = options.get("azure_prefix_name")
     azure_report_name = options.get("azure_report_name")
+    resource_group = options.get("resource_group", False)
     write_monthly = options.get("write_monthly", False)
     for month in months:
         data = []
@@ -794,6 +795,7 @@ def azure_create_report(options):  # noqa: C901
             if attributes.get("meter_cache"):
                 meter_cache.update(attributes.get("meter_cache"))  # needed so that meter_cache can be defined in yaml
             attributes["meter_cache"] = meter_cache
+            attributes["resource_group"] = resource_group
             gen = generator_cls(gen_start_date, gen_end_date, currency, account_info, attributes)
             azure_columns = gen.azure_columns
             data += gen.generate_data()
