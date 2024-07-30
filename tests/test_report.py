@@ -975,6 +975,28 @@ class OCPReportTestCase(TestCase):
             self.assertTrue(os.path.isfile(expected_month_output_file))
             os.remove(expected_month_output_file)
 
+    def test_ocp_create_report_ros_ocp_constant_data_generation(self):
+        """Test the ocp report creation method with constant_values_ros_ocp enabled."""
+        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
+        one_day = datetime.timedelta(days=1)
+        yesterday = now - one_day
+        cluster_id = "11112222"
+        options = {
+            "start_date": yesterday,
+            "end_date": now,
+            "ocp_cluster_id": cluster_id,
+            "write_monthly": True,
+            "ros_ocp_info": True,
+            "constant_values_ros_ocp": True,
+        }
+        fix_dates(options, "ocp")
+        ocp_create_report(options)
+        for report_type in OCP_REPORT_TYPE_TO_COLS.keys():
+            month_output_file_name = f"{calendar.month_name[now.month]}-{now.year}-{cluster_id}-{report_type}"
+            expected_month_output_file = f"{os.getcwd()}/{month_output_file_name}.csv"
+            self.assertTrue(os.path.isfile(expected_month_output_file))
+            os.remove(expected_month_output_file)
+
     def test_ocp_create_report_minio_upload(self):
         """Test the ocp report creation method."""
         now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)

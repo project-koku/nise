@@ -172,29 +172,40 @@ def get_owner_workload(pod, workload=None):
     return pod, ok, pod, wt
 
 
-def generate_randomized_ros_usage(usage_dict, limit_value):
-    # if usage value is provided in yaml -> avg_value = +- 5% of that specified usage value
-    if usage_value := usage_dict.get("full_period"):
-        avg_value = min(round(uniform(usage_value * 0.95, usage_value * 1.05), 5), limit_value)
-    # if usage value is not specified in yaml -> random avg_usage from 10% to 100% of the limit
+def generate_randomized_ros_usage(usage_dict, limit_value, generate_constant_value=False):
+    if generate_constant_value:
+        # will generate constant values
+        if usage_value := usage_dict.get("full_period"):
+            avg_value = min(round(usage_value, 5), limit_value)
+        else:
+            avg_value = round(uniform(limit_value * 0.1, limit_value), 5)
+
+        min_value = round(usage_value, 5)
+        max_value = min(round(usage_value, 5), limit_value)
     else:
-        avg_value = round(uniform(limit_value * 0.1, limit_value), 5)
+        # This will generate randomised values
+        # if usage value is provided in yaml -> avg_value = +- 5% of that specified usage value
+        if usage_value := usage_dict.get("full_period"):
+            avg_value = min(round(uniform(usage_value * 0.95, usage_value * 1.05), 5), limit_value)
+        # if usage value is not specified in yaml -> random avg_usage from 10% to 100% of the limit
+        else:
+            avg_value = round(uniform(limit_value * 0.1, limit_value), 5)
 
-    # min value - random float derived from avg_value,
-    min_value = round(uniform(avg_value * 0.8, avg_value), 5)
-    # max_value - random float derived from avg_value, but max of limit_value
-    max_value = min(round(uniform(avg_value, avg_value * 1.2), 5), limit_value)
-
+        # min value - random float derived from avg_value,
+        min_value = round(uniform(avg_value * 0.8, avg_value), 5)
+        # max_value - random float derived from avg_value, but max of limit_value
+        max_value = min(round(uniform(avg_value, avg_value * 1.2), 5), limit_value)
     return avg_value, min_value, max_value
 
 
 class OCPGenerator(AbstractGenerator):
     """Defines a abstract class for generators."""
 
-    def __init__(self, start_date, end_date, attributes, ros_ocp_info=False):
+    def __init__(self, start_date, end_date, attributes, ros_ocp_info=False, constant_values_ros_ocp=False):
         """Initialize the generator."""
         self._nodes = None
         self.ros_ocp_info = ros_ocp_info
+        self.constant_values_ros_ocp = constant_values_ros_ocp
         if attributes:
             self._nodes = attributes.get("nodes")
 
@@ -405,11 +416,16 @@ class OCPGenerator(AbstractGenerator):
                         pod, specified_pod.get("workload")
                     )
 
-                    cpu_usage_avg, cpu_usage_min, cpu_usage_max = generate_randomized_ros_usage(cpu_usage, cpu_limit)
-                    memory_usage_gig_avg, memory_usage_gig_min, memory_usage_gig_max = generate_randomized_ros_usage(
-                        memory_usage_gig, mem_limit_gig
+                    cpu_usage_avg, cpu_usage_min, cpu_usage_max = generate_randomized_ros_usage(
+                        cpu_usage, cpu_limit, generate_constant_value=self.constant_values_ros_ocp
                     )
-                    memory_rss_ratio = 1 / round(uniform(1.01, 1.9), 2)
+                    memory_usage_gig_avg, memory_usage_gig_min, memory_usage_gig_max = generate_randomized_ros_usage(
+                        memory_usage_gig, mem_limit_gig, generate_constant_value=self.constant_values_ros_ocp
+                    )
+                    if self.constant_values_ros_ocp:
+                        memory_rss_ratio = 1 / round(1, 2)
+                    else:
+                        memory_rss_ratio = 1 / round(uniform(1.01, 1.9), 2)
                     cpu_throttle = choices([0, round(cpu_usage_avg / randint(10, 20), 5)], weights=(3, 1))[0]
 
                     ros_ocp_data_pods[pod] = {
@@ -479,9 +495,11 @@ class OCPGenerator(AbstractGenerator):
                         "pod_labels": self._gen_openshift_labels(),
                     }
                     owner_name, owner_kind, workload, workload_type = get_owner_workload(pod)
-                    cpu_usage_avg, cpu_usage_min, cpu_usage_max = generate_randomized_ros_usage({}, cpu_limit)
+                    cpu_usage_avg, cpu_usage_min, cpu_usage_max = generate_randomized_ros_usage(
+                        {}, cpu_limit, generate_constant_value=self.constant_values_ros_ocp
+                    )
                     memory_usage_gig_avg, memory_usage_gig_min, memory_usage_gig_max = generate_randomized_ros_usage(
-                        {}, mem_limit_gig
+                        {}, mem_limit_gig, generate_constant_value=self.constant_values_ros_ocp
                     )
                     memory_rss_ratio = 1 / round(uniform(1.01, 1.9), 2)
                     cpu_throttle = choices([0, round(cpu_usage_avg / randint(10, 20), 5)], weights=(3, 1))[0]
@@ -737,7 +755,7 @@ class OCPGenerator(AbstractGenerator):
     def _update_ros_ocp_pod_data(self, row, start, end, **kwargs):
         """Update data with generator specific data."""
         pod = kwargs.get("pod")
-        if pod:
+        if pod and not self.constant_values_ros_ocp:
             pod = self._randomize_ros_ocp_line_values(pod)
         row.update(pod)
         return row

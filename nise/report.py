@@ -849,6 +849,7 @@ def ocp_create_report(options):  # noqa: C901
     cluster_id = options.get("ocp_cluster_id")
     static_report_data = options.get("static_report_data")
     ros_ocp_info = options.get("ros_ocp_info")
+    constant_values_ros_ocp = options.get("constant_values_ros_ocp")
 
     if static_report_data:
         generators = _get_generators(static_report_data.get("generators"))
@@ -881,7 +882,7 @@ def ocp_create_report(options):  # noqa: C901
 
                 gen_start_date, gen_end_date = _create_generator_dates_from_yaml(attributes, month)
 
-            gen = generator_cls(gen_start_date, gen_end_date, attributes, ros_ocp_info)
+            gen = generator_cls(gen_start_date, gen_end_date, attributes, ros_ocp_info, constant_values_ros_ocp)
             for report_type in gen.ocp_report_generation.keys():
                 LOG.info(f"Generating data for {report_type} for {month}")
                 for hour in gen.generate_data(report_type):
