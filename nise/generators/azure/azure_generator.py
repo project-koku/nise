@@ -430,10 +430,8 @@ class AzureGenerator(AbstractGenerator):
             row["ResourceGroup"] = resource_group
             row["MarketPrice"] = 0
 
-        resource_name = ""
-        if kwargs.get("instance_id"):
-            resource_name = kwargs.get("instance_id").split("/")
-            resource_name = resource_name[len(resource_name) - 1]
+        resource_name = instance_id.split("/")[-1] if instance_id else ""
+
         if self._service_name == "Virtual Machines":
             if getattr(self, "_CCSP", False):
                 publisher_name = "Microsoft"
@@ -510,6 +508,7 @@ class AzureGenerator(AbstractGenerator):
             row["ResourceId"] = instance_id
             row["BillingCurrency"] = self._billing_currency
         else:
+            row["InstanceName"] = instance_id
             row["BillingCurrencyCode"] = self._billing_currency
 
         return row
