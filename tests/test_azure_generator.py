@@ -20,10 +20,11 @@ from datetime import timedelta
 from unittest import TestCase
 
 from faker import Faker
-from nise.generators.azure import AZURE_COLUMNS
-from nise.generators.azure import AZURE_COLUMNS_V2
+from nise.generators.azure import AZURE_COLUMNS_V2_RESOURCE_GROUP
+from nise.generators.azure import AZURE_COLUMNS_V2_SUBSCRIPTION
 from nise.generators.azure import AzureGenerator
 from nise.generators.azure import BandwidthGenerator
+from nise.generators.azure import DTGenerator
 from nise.generators.azure import SQLGenerator
 from nise.generators.azure import StorageGenerator
 from nise.generators.azure import VMGenerator
@@ -57,7 +58,7 @@ class AbstractGeneratorTestCase(TestCase):
         self.one_hour = timedelta(minutes=60)
         self.account_info = _generate_azure_account_info()
         self.payer_account = self.account_info.get("subscription_guid")
-        self.version_two_attribute = {"version_two": True}
+        self.resource_group_attribute = {"resource_group_export": True}
         self.currency = "USD"
 
     def test_set_hours_invalid_start(self):
@@ -91,7 +92,7 @@ class AbstractGeneratorTestCase(TestCase):
         two_hours_ago = (self.now - self.one_hour) - self.one_hour
         generators = [
             TestGenerator(two_hours_ago, self.now, self.currency, self.account_info),
-            TestGenerator(two_hours_ago, self.now, self.currency, self.account_info, self.version_two_attribute),
+            TestGenerator(two_hours_ago, self.now, self.currency, self.account_info, self.resource_group_attribute),
         ]
         expected = [
             {"start": two_hours_ago, "end": two_hours_ago + self.one_hour},
@@ -105,11 +106,11 @@ class AbstractGeneratorTestCase(TestCase):
         two_hours_ago = (self.now - self.one_hour) - self.one_hour
         generators = [
             TestGenerator(two_hours_ago, self.now, self.currency, self.account_info),
-            TestGenerator(two_hours_ago, self.now, self.currency, self.account_info, self.version_two_attribute),
+            TestGenerator(two_hours_ago, self.now, self.currency, self.account_info, self.resource_group_attribute),
         ]
         for generator in generators:
             columns = generator.azure_columns
-            self.assertIn(columns, [AZURE_COLUMNS, AZURE_COLUMNS_V2])
+            self.assertIn(columns, [AZURE_COLUMNS_V2_SUBSCRIPTION, AZURE_COLUMNS_V2_RESOURCE_GROUP])
             a_row = generator._init_data_row(two_hours_ago, self.now)
             self.assertIsInstance(a_row, dict)
             for col in columns:
@@ -120,7 +121,7 @@ class AbstractGeneratorTestCase(TestCase):
         two_hours_ago = (self.now - self.one_hour) - self.one_hour
         generators = [
             TestGenerator(two_hours_ago, self.now, self.currency, self.account_info),
-            TestGenerator(two_hours_ago, self.now, self.currency, self.account_info, self.version_two_attribute),
+            TestGenerator(two_hours_ago, self.now, self.currency, self.account_info, self.resource_group_attribute),
         ]
         for generator in generators:
             with self.assertRaises(ValueError):
@@ -131,7 +132,7 @@ class AbstractGeneratorTestCase(TestCase):
         two_hours_ago = (self.now - self.one_hour) - self.one_hour
         generators = [
             TestGenerator(two_hours_ago, self.now, self.currency, self.account_info),
-            TestGenerator(two_hours_ago, self.now, self.currency, self.account_info, self.version_two_attribute),
+            TestGenerator(two_hours_ago, self.now, self.currency, self.account_info, self.resource_group_attribute),
         ]
         for generator in generators:
             with self.assertRaises(ValueError):
@@ -142,7 +143,7 @@ class AbstractGeneratorTestCase(TestCase):
         two_hours_ago = (self.now - self.one_hour) - self.one_hour
         generators = [
             TestGenerator(two_hours_ago, self.now, self.currency, self.account_info),
-            TestGenerator(two_hours_ago, self.now, self.currency, self.account_info, self.version_two_attribute),
+            TestGenerator(two_hours_ago, self.now, self.currency, self.account_info, self.resource_group_attribute),
         ]
         for generator in generators:
             with self.assertRaises(ValueError):
@@ -153,7 +154,7 @@ class AbstractGeneratorTestCase(TestCase):
         two_hours_ago = (self.now - self.one_hour) - self.one_hour
         generators = [
             TestGenerator(two_hours_ago, self.now, self.currency, self.account_info),
-            TestGenerator(two_hours_ago, self.now, self.currency, self.account_info, self.version_two_attribute),
+            TestGenerator(two_hours_ago, self.now, self.currency, self.account_info, self.resource_group_attribute),
         ]
         for generator in generators:
             with self.assertRaises(ValueError):
@@ -221,7 +222,7 @@ class AzureGeneratorTestCase(TestCase):
             "usage_quantity": self.usage_quantity,
             "resource_rate": self.resource_rate,
             "pre_tax_cost": self.pre_tax_cost,
-            "version_two": True,
+            "resource_group_export": True,
         }
         self.two_hours_ago = (self.now - self.one_hour) - self.one_hour
 
@@ -298,12 +299,10 @@ class TestStorageGenerator(AzureGeneratorTestCase):
             start_row = {}
             row = generator._update_data(start_row, self.two_hours_ago, self.now)
             self.assertEqual(row["ConsumedService"], "Microsoft.Storage")
-            if generator.azure_columns == AZURE_COLUMNS:
-                self.assertEqual(row["ResourceType"], "Microsoft.Storage/storageAccounts")
-                self.assertEqual(row["SubscriptionGuid"], self.payer_account)
-            else:
-                self.assertIsNone(row.get("ResourceType"))
+            if generator.azure_columns == AZURE_COLUMNS_V2_SUBSCRIPTION:
                 self.assertEqual(row["SubscriptionId"], self.payer_account)
+            else:
+                self.assertEqual(row["SubscriptionGuid"], self.payer_account)
 
 
 class TestSQLGenerator(AzureGeneratorTestCase):
@@ -341,12 +340,10 @@ class TestSQLGenerator(AzureGeneratorTestCase):
             start_row = {}
             row = generator._update_data(start_row, self.two_hours_ago, self.now)
             self.assertEqual(row["ConsumedService"], "Microsoft.Sql")
-            if generator.azure_columns == AZURE_COLUMNS:
-                self.assertEqual(row["ResourceType"], "Microsoft.Sql/servers")
-                self.assertEqual(row["SubscriptionGuid"], self.payer_account)
-            else:
-                self.assertIsNone(row.get("ResourceType"))
+            if generator.azure_columns == AZURE_COLUMNS_V2_SUBSCRIPTION:
                 self.assertEqual(row["SubscriptionId"], self.payer_account)
+            else:
+                self.assertEqual(row["SubscriptionGuid"], self.payer_account)
 
 
 class TestVMGenerator(AzureGeneratorTestCase):
@@ -384,12 +381,10 @@ class TestVMGenerator(AzureGeneratorTestCase):
             start_row = {}
             row = generator._update_data(start_row, self.two_hours_ago, self.now)
             self.assertEqual(row["ConsumedService"], "Microsoft.Compute")
-            if generator.azure_columns == AZURE_COLUMNS:
-                self.assertEqual(row["ResourceType"], "Microsoft.Compute/virtualMachines")
-                self.assertEqual(row["SubscriptionGuid"], self.payer_account)
-            else:
-                self.assertIsNone(row.get("ResourceType"))
+            if generator.azure_columns == AZURE_COLUMNS_V2_SUBSCRIPTION:
                 self.assertEqual(row["SubscriptionId"], self.payer_account)
+            else:
+                self.assertEqual(row["SubscriptionGuid"], self.payer_account)
 
 
 class TestVNGenerator(AzureGeneratorTestCase):
@@ -423,7 +418,6 @@ class TestVNGenerator(AzureGeneratorTestCase):
         start_row = {}
         row = generator._update_data(start_row, self.two_hours_ago, self.now)
         self.assertEqual(row["ConsumedService"], "Microsoft.Network")
-        self.assertEqual(row["ResourceType"], "Microsoft.Network/publicIPAddresses")
 
     def test_update_data_with_attributes(self):
         """Test that row is updated."""
@@ -435,9 +429,75 @@ class TestVNGenerator(AzureGeneratorTestCase):
             start_row = {}
             row = generator._update_data(start_row, self.two_hours_ago, self.now)
             self.assertEqual(row["Tags"], json.dumps(self.tags))
-            if generator.azure_columns == AZURE_COLUMNS:
-                self.assertEqual(row["SubscriptionGuid"], self.payer_account)
-                self.assertEqual(row["InstanceId"], self.instance_id)
-            else:
+            if generator.azure_columns == AZURE_COLUMNS_V2_SUBSCRIPTION:
                 self.assertEqual(row["SubscriptionId"], self.payer_account)
                 self.assertEqual(row["ResourceId"], self.instance_id)
+                self.assertEqual(row["BillingCurrency"], self.currency)
+            else:
+                self.assertEqual(row["SubscriptionGuid"], self.payer_account)
+                self.assertEqual(row["BillingCurrencyCode"], self.currency)
+
+
+class TestDTGenerator(AzureGeneratorTestCase):
+    """Tests for the VM Generator type."""
+
+    ADDITIONAL_INFO_KEYS = {"Standard Data Processed - Egress", "Standard Data Processed - Ingress"}
+
+    def test_init_no_attributes(self):
+        """Test the init wihout attributes."""
+        generator = DTGenerator(
+            self.two_hours_ago, self.now, self.currency, self.account_info, attributes={"empty": "dictionary"}
+        )
+        self.assertEqual(generator._service_name, "Virtual Network")
+
+    def test_init_with_attributes(self):
+        """Test the unique init options for VM."""
+        default_generators = [
+            DTGenerator(self.two_hours_ago, self.now, self.currency, self.account_info, self.attributes),
+            DTGenerator(self.two_hours_ago, self.now, self.currency, self.account_info, self.attributes_v2),
+        ]
+        for generator in default_generators:
+            self.assertEqual(generator._service_name, "Virtual Network")
+            self.assertEqual(generator._meter_id, self.meter_id)
+            self.assertEqual(generator._tags, self.tags)
+            self.assertEqual(generator._usage_quantity, self.usage_quantity)
+            self.assertEqual(generator._resource_rate, self.resource_rate)
+            self.assertEqual(generator._pre_tax_cost, self.pre_tax_cost)
+
+    def test_update_data(self):
+        """Test that row is updated."""
+        generator = DTGenerator(self.two_hours_ago, self.now, self.currency, self.account_info)
+        start_row = {}
+        row = generator._update_data(start_row, self.two_hours_ago, self.now)
+        self.assertEqual(row["ConsumedService"], "microsoft.compute")
+
+    def test_update_data_with_attributes(self):
+        """Test that row is updated."""
+        directional_attributes = {"data_direction": "in"}
+        directional_attributes.update(self.attributes)
+        directional_attributes_v2 = {"data_direction": "in"}
+        directional_attributes_v2.update(self.attributes_v2)
+        default_generators = [
+            DTGenerator(
+                self.two_hours_ago,
+                self.now,
+                self.currency,
+                self.account_info,
+                directional_attributes,
+            ),
+            DTGenerator(
+                self.two_hours_ago,
+                self.now,
+                self.currency,
+                self.account_info,
+                directional_attributes_v2,
+            ),
+        ]
+        for generator in default_generators:
+            start_row = {}
+            row = generator._update_data(start_row, self.two_hours_ago, self.now)
+            self.assertEqual(row["Tags"], json.dumps(self.tags))
+            if generator.azure_columns == AZURE_COLUMNS_V2_SUBSCRIPTION:
+                self.assertEqual(row["SubscriptionId"], self.payer_account)
+            else:
+                self.assertEqual(row["SubscriptionGuid"], self.payer_account)

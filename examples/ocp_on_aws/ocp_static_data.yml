@@ -1,7 +1,7 @@
 ---
 generators:
   - OCPGenerator:
-      start_date: 2019-05-01
+      start_date: 2019-04-01
       end_date: 2019-07-31
       nodes:
         - node:
@@ -24,14 +24,16 @@ generators:
               volumes:
                 - volume:
                   volume_name: pvc-volume_1
-                  storage_class: gp2
+                  csi_driver: ebs.csi.aws.com
+                  csi_volume_handle: vol-12345671
+                  storage_class: gp3-csi
                   volume_request_gig: 20
-                  labels: label_environment:dev|label_app:catalog|label_version:prod|label_storageclass:bravo
+                  labels: label_environment:dev|label_app:catalog|label_version:prod|label_storageclass:gp3-csi
                   volume_claims:
                   - volume_claim:
                     volume_claim_name: pod_name1_data
                     pod_name: pod_name1
-                    labels: label_environment:dev|label_app:catalog|label_version:prod|label_storageclass:bravo
+                    labels: label_environment:dev|label_app:catalog|label_version:prod|label_storageclass:gp3-csi
                     capacity_gig: 20
             catalog:
               pods:

@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
-"""Module for aws data generators."""
+"""Module for ocp data generators."""
 from nise.generators.ocp.ocp_generator import OCP_NAMESPACE_LABEL  # noqa: F401
 from nise.generators.ocp.ocp_generator import OCP_NODE_LABEL  # noqa: F401
 from nise.generators.ocp.ocp_generator import OCP_POD_USAGE  # noqa: F401

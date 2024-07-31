@@ -311,7 +311,7 @@ class TestDataTransferGenerator(AWSGeneratorTestCase):
         )
         self.assertEqual(generator._product_code, self.product_code)
         self.assertEqual(generator._tags, self.tags)
-        self.assertEqual(generator._resource_id, self.resource_id)
+        self.assertEqual(generator._resource_id, f"i-{self.resource_id}")
         self.assertEqual(generator._amount, self.amount)
         self.assertEqual(generator._rate, self.rate)
 
@@ -399,6 +399,7 @@ class TestEC2Generator(AWSGeneratorTestCase):
         self.assertEqual(row["product/servicecode"], "AmazonEC2")
         self.assertEqual(row["product/productFamily"], "Compute Instance")
         self.assertEqual(row["lineItem/Operation"], "RunInstances")
+        self.assertIsNotNone(row["product/operatingSystem"])
         self.assertEqual(row[self.cost_category_key], self.cost_category_value)
 
     def test_generate_data(self):

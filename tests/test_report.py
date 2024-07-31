@@ -120,7 +120,6 @@ class MiscReportTestCase(TestCase):
     def test_create_generator_for_dates_from_yaml(self):
         """Test helper function for generating dates."""
         month = {
-            "name": "June",
             "start": datetime.datetime(2021, 6, 30, 0, 0),
             "end": datetime.datetime(2021, 6, 30, 23, 59),
         }
@@ -135,10 +134,83 @@ class MiscReportTestCase(TestCase):
         self.assertEqual(start_date, datetime.datetime(2021, 6, 30, 0, 0))
         self.assertEqual(end_date, datetime.datetime(2021, 6, 30, 23, 59))
 
+    def test_create_generator_for_dates_from_yaml_within_month(self):
+        month = {
+            "start": datetime.datetime(2023, 5, 1, 0, 0),
+            "end": datetime.datetime(2023, 5, 31, 23, 59),
+        }
+
+        attributes = {
+            "start_date": datetime.datetime(2023, 5, 5, 0, 0),
+            "end_date": datetime.datetime(2023, 5, 15, 15, 0),
+        }
+
+        start_date, end_date = _create_generator_dates_from_yaml(attributes, month)
+
+        self.assertEqual(start_date, datetime.datetime(2023, 5, 5, 0, 0))
+        self.assertEqual(end_date, datetime.datetime(2023, 5, 15, 15, 0))
+
+    def test_create_generator_for_dates_from_yaml_within_month_before_month_start(self):
+        month = {
+            "start": datetime.datetime(2023, 5, 1, 0, 0),
+            "end": datetime.datetime(2023, 5, 31, 23, 59),
+        }
+
+        attributes = {
+            "start_date": datetime.datetime(2023, 4, 5, 0, 0),
+            "end_date": datetime.datetime(2023, 5, 15, 15, 0),
+        }
+
+        start_date, end_date = _create_generator_dates_from_yaml(attributes, month)
+
+        self.assertEqual(start_date, datetime.datetime(2023, 5, 1, 0, 0))
+        self.assertEqual(end_date, datetime.datetime(2023, 5, 15, 15, 0))
+
+    def test_create_generator_for_dates_from_yaml_within_month_ends_next_month(self):
+        month = {
+            "start": datetime.datetime(2023, 5, 1, 0, 0),
+            "end": datetime.datetime(2023, 5, 31, 23, 59),
+        }
+
+        attributes = {
+            "start_date": datetime.datetime(2023, 5, 5, 0, 0),
+            "end_date": datetime.datetime(2023, 8, 15, 15, 0),
+        }
+
+        start_date, end_date = _create_generator_dates_from_yaml(attributes, month)
+
+        self.assertEqual(start_date, datetime.datetime(2023, 5, 5, 0, 0))
+        self.assertEqual(end_date, datetime.datetime(2023, 5, 31, 23, 59))
+
+    def test_create_generator_for_dates_from_yaml_first_month(self):
+        """Test that correct dates are generated on the first of the month"""
+        previous_month = {
+            "start": datetime.datetime(2024, 2, 1, 0, 0, tzinfo=datetime.timezone.utc),
+            "end": datetime.datetime(2024, 3, 1, 0, 0, tzinfo=datetime.timezone.utc),
+        }
+        current_month = {
+            "start": datetime.datetime(2024, 3, 1, 0, 0, tzinfo=datetime.timezone.utc),
+            "end": datetime.datetime(2024, 4, 1, 0, 0, tzinfo=datetime.timezone.utc),
+        }
+
+        attributes = {
+            "start_date": datetime.datetime(2024, 2, 1, 0, 0, tzinfo=datetime.timezone.utc),
+            "end_date": datetime.datetime(2024, 3, 1, 23, 0, tzinfo=datetime.timezone.utc),
+        }
+
+        start_date_previous, end_date_previous = _create_generator_dates_from_yaml(attributes, previous_month)
+
+        self.assertEqual(start_date_previous, datetime.datetime(2024, 2, 1, 0, 0, tzinfo=datetime.timezone.utc))
+        self.assertEqual(end_date_previous, datetime.datetime(2024, 3, 1, 0, 0, tzinfo=datetime.timezone.utc))
+
+        start_date_current, end_date_current = _create_generator_dates_from_yaml(attributes, current_month)
+
+        self.assertEqual(start_date_current, datetime.datetime(2024, 3, 1, 0, 0, tzinfo=datetime.timezone.utc))
+        self.assertEqual(end_date_current, datetime.datetime(2024, 3, 1, 23, 0, tzinfo=datetime.timezone.utc))
+
     def test_create_generator_for_dates_from_yaml_middle_month(self):
         """Test helper function for generating dates verifying the middle month in a 3 month range."""
         month = {
-            "name": "June",
             "start": datetime.datetime(2021, 6, 30, 0, 0),
             "end": datetime.datetime(2021, 6, 30, 23, 59),
         }
@@ -903,6 +975,28 @@ class OCPReportTestCase(TestCase):
             self.assertTrue(os.path.isfile(expected_month_output_file))
             os.remove(expected_month_output_file)
 
+    def test_ocp_create_report_ros_ocp_constant_data_generation(self):
+        """Test the ocp report creation method with constant_values_ros_ocp enabled."""
+        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
+        one_day = datetime.timedelta(days=1)
+        yesterday = now - one_day
+        cluster_id = "11112222"
+        options = {
+            "start_date": yesterday,
+            "end_date": now,
+            "ocp_cluster_id": cluster_id,
+            "write_monthly": True,
+            "ros_ocp_info": True,
+            "constant_values_ros_ocp": True,
+        }
+        fix_dates(options, "ocp")
+        ocp_create_report(options)
+        for report_type in OCP_REPORT_TYPE_TO_COLS.keys():
+            month_output_file_name = f"{calendar.month_name[now.month]}-{now.year}-{cluster_id}-{report_type}"
+            expected_month_output_file = f"{os.getcwd()}/{month_output_file_name}.csv"
+            self.assertTrue(os.path.isfile(expected_month_output_file))
+            os.remove(expected_month_output_file)
+
     def test_ocp_create_report_minio_upload(self):
         """Test the ocp report creation method."""
         now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
@@ -1548,6 +1642,24 @@ class GCPReportTestCase(TestCase):
         yesterday = now - one_day
         report_prefix = "test_report"
         options = {"start_date": yesterday, "end_date": now, "gcp_report_prefix": report_prefix}
+        fix_dates(options, "gcp")
+        gcp_create_report(options)
+        output_file_name = "{}-{}.csv".format(report_prefix, yesterday.strftime("%Y-%m-%d"))
+        expected_output_file_path = "{}/{}".format(os.getcwd(), output_file_name)
+
+        self.assertFalse(os.path.isfile(expected_output_file_path))
+
+    def test_gcp_create_report_without_write_monthly_overlapping_month(self):
+        """Test that there are no Exceptions when processing overlapping months dates."""
+        now = datetime.datetime(2024, 7, 1, 0, 0)
+        yesterday = datetime.datetime(2024, 6, 30, 0, 0)
+        report_prefix = "test_report"
+        options = {
+            "start_date": yesterday,
+            "end_date": now,
+            "gcp_report_prefix": report_prefix,
+            "gcp_bucket_name": "gcp_bucket_name",
+        }
         fix_dates(options, "gcp")
         gcp_create_report(options)
         output_file_name = "{}-{}.csv".format(report_prefix, yesterday.strftime("%Y-%m-%d"))

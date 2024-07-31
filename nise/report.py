@@ -53,6 +53,8 @@ from nise.generators.aws import S3Generator
 from nise.generators.aws import VPCGenerator
 from nise.generators.azure import BandwidthGenerator
 from nise.generators.azure import CCSPGenerator
+from nise.generators.azure import DTGenerator
+from nise.generators.azure import ManagedDiskGenerator
 from nise.generators.azure import SQLGenerator
 from nise.generators.azure import StorageGenerator
 from nise.generators.azure import VMGenerator
@@ -501,33 +503,39 @@ def _create_generator_dates_from_yaml(attributes, month):
     gen_start_date = None
     gen_end_date = None
 
+    start_date = attributes.get("start_date")
+    end_date = attributes.get("end_date")
+    month_start = month.get("start")
+    month_end = month.get("end")
+
+    # Use a different variable for the end of month comparison. This matters
+    # when the end_date is the same as the month_end, which can happen based
+    # on the specified --end-date parameter or on the first of the month.
+    month_end_compare = month_end
+    if month_end.day != 1:
+        # Create a new datetime object and store it, leaving the original
+        # month_end object unmodified.
+        month_end_compare = month_end_compare.replace(hour=23, minute=59, second=59)
+
     # Generator range is larger then current month on both start and end
-    if attributes.get("start_date") < month.get("start") and attributes.get("end_date") > month.get("end").replace(
-        hour=23, minute=59, second=59
-    ):
-        gen_start_date = month.get("start")
-        gen_end_date = month.get("end")
+    if start_date < month_start and end_date > month_end_compare:
+        gen_start_date = month_start
+        gen_end_date = month_end
 
     # Generator starts before month start and ends within month
-    if attributes.get("start_date") <= month.get("start") and attributes.get("end_date") <= month.get("end").replace(
-        hour=23, minute=59, second=59
-    ):
-        gen_start_date = month.get("start")
-        gen_end_date = attributes.get("end_date")
+    elif start_date < month_start and end_date <= month_end_compare:
+        gen_start_date = month_start
+        gen_end_date = end_date
 
     # Generator is within month
-    if attributes.get("start_date") >= month.get("start") and attributes.get("end_date") <= month.get("end").replace(
-        hour=23, minute=59, second=59
-    ):
-        gen_start_date = attributes.get("start_date")
-        gen_end_date = attributes.get("end_date")
+    elif start_date >= month_start and end_date <= month_end_compare:
+        gen_start_date = start_date
+        gen_end_date = end_date
 
     # Generator starts within month and ends in next month
-    if attributes.get("start_date") >= month.get("start") and attributes.get("end_date") > month.get("end").replace(
-        hour=23, minute=59, second=59
-    ):
-        gen_start_date = attributes.get("start_date")
-        gen_end_date = month.get("end")
+    elif start_date >= month_start and end_date > month_end_compare:
+        gen_start_date = start_date
+        gen_end_date = month_end
 
     return gen_start_date, gen_end_date
 
@@ -593,7 +601,6 @@ def aws_create_marketplace_report(options):  # noqa: C901
 
 def aws_create_report(options):  # noqa: C901
     """Create a cost usage report file."""
-    data = []
     start_date = options.get("start_date")
     end_date = options.get("end_date")
     aws_finalize_report = options.get("aws_finalize_report")
@@ -753,6 +760,8 @@ def azure_create_report(options):  # noqa: C901
             {"generator": StorageGenerator, "attributes": {}},
             {"generator": VMGenerator, "attributes": {}},
             {"generator": VNGenerator, "attributes": {}},
+            {"generator": DTGenerator, "attributes": {}},
+            {"generator": ManagedDiskGenerator, "attributes": {}},
         ]
         accounts_list = None
 
@@ -768,7 +777,7 @@ def azure_create_report(options):  # noqa: C901
     storage_account_name = options.get("azure_account_name")
     azure_prefix_name = options.get("azure_prefix_name")
     azure_report_name = options.get("azure_report_name")
-    version_two = options.get("version_two", False)
+    resource_group_export = options.get("resource_group_export", False)
     write_monthly = options.get("write_monthly", False)
     for month in months:
         data = []
@@ -795,7 +804,7 @@ def azure_create_report(options):  # noqa: C901
             if attributes.get("meter_cache"):
                 meter_cache.update(attributes.get("meter_cache"))  # needed so that meter_cache can be defined in yaml
             attributes["meter_cache"] = meter_cache
-            attributes["version_two"] = version_two
+            attributes["resource_group_export"] = resource_group_export
             gen = generator_cls(gen_start_date, gen_end_date, currency, account_info, attributes)
             azure_columns = gen.azure_columns
             data += gen.generate_data()
@@ -849,6 +858,7 @@ def ocp_create_report(options):  # noqa: C901
     cluster_id = options.get("ocp_cluster_id")
     static_report_data = options.get("static_report_data")
     ros_ocp_info = options.get("ros_ocp_info")
+    constant_values_ros_ocp = options.get("constant_values_ros_ocp")
 
     if static_report_data:
         generators = _get_generators(static_report_data.get("generators"))
@@ -881,7 +891,7 @@ def ocp_create_report(options):  # noqa: C901
 
                 gen_start_date, gen_end_date = _create_generator_dates_from_yaml(attributes, month)
 
-            gen = generator_cls(gen_start_date, gen_end_date, attributes, ros_ocp_info)
+            gen = generator_cls(gen_start_date, gen_end_date, attributes, ros_ocp_info, constant_values_ros_ocp)
             for report_type in gen.ocp_report_generation.keys():
                 LOG.info(f"Generating data for {report_type} for {month}")
                 for hour in gen.generate_data(report_type):
@@ -1189,7 +1199,8 @@ def gcp_create_report(options):  # noqa: C901
 
             local_file_path, output_file_name = write_gcp_file(gen_start_date, gen_end_date, data, options)
             output_files.append(output_file_name)
-            monthly_files.append(local_file_path)
+            if local_file_path not in monthly_files:
+                monthly_files.append(local_file_path)
 
         for index, month_file in enumerate(monthly_files):
             if gcp_bucket_name:

@@ -86,11 +86,11 @@ generators:
       start_date: 2019-04-01
       end_date: 2019-07-31
       product_sku: VEAJHRNBBBBA
-      resource_id: 12345671
+      resource_id: vol-12345671
       amount: 10
       rate: 0.01
       tags:
-        resourceTags/user:storageclass: bravo
+        resourceTags/user:storageclass: gp3-csi
   - EBSGenerator:
       start_date: 2019-04-01
       end_date: 2019-07-31

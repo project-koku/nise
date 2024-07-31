@@ -63,9 +63,12 @@ OCP_STORAGE_COLUMNS = (
     "interval_end",
     "namespace",
     "pod",
+    "node",
     "persistentvolumeclaim",
     "persistentvolume",
     "storageclass",
+    "csi_driver",
+    "csi_volume_handle",
     "persistentvolumeclaim_capacity_bytes",
     "persistentvolumeclaim_capacity_byte_seconds",
     "volume_request_storage_byte_seconds",
@@ -169,29 +172,40 @@ def get_owner_workload(pod, workload=None):
     return pod, ok, pod, wt
 
 
-def generate_randomized_ros_usage(usage_dict, limit_value):
-    # if usage value is provided in yaml -> avg_value = +- 5% of that specified usage value
-    if usage_value := usage_dict.get("full_period"):
-        avg_value = min(round(uniform(usage_value * 0.95, usage_value * 1.05), 5), limit_value)
-    # if usage value is not specified in yaml -> random avg_usage from 10% to 100% of the limit
+def generate_randomized_ros_usage(usage_dict, limit_value, generate_constant_value=False):
+    if generate_constant_value:
+        # will generate constant values
+        if usage_value := usage_dict.get("full_period"):
+            avg_value = min(round(usage_value, 5), limit_value)
+        else:
+            avg_value = round(uniform(limit_value * 0.1, limit_value), 5)
+
+        min_value = avg_value
+        max_value = avg_value
     else:
-        avg_value = round(uniform(limit_value * 0.1, limit_value), 5)
+        # This will generate randomised values
+        # if usage value is provided in yaml -> avg_value = +- 5% of that specified usage value
+        if usage_value := usage_dict.get("full_period"):
+            avg_value = min(round(uniform(usage_value * 0.95, usage_value * 1.05), 5), limit_value)
+        # if usage value is not specified in yaml -> random avg_usage from 10% to 100% of the limit
+        else:
+            avg_value = round(uniform(limit_value * 0.1, limit_value), 5)
 
-    # min value - random float derived from avg_value,
-    min_value = round(uniform(avg_value * 0.8, avg_value), 5)
-    # max_value - random float derived from avg_value, but max of limit_value
-    max_value = min(round(uniform(avg_value, avg_value * 1.2), 5), limit_value)
-
+        # min value - random float derived from avg_value,
+        min_value = round(uniform(avg_value * 0.8, avg_value), 5)
+        # max_value - random float derived from avg_value, but max of limit_value
+        max_value = min(round(uniform(avg_value, avg_value * 1.2), 5), limit_value)
     return avg_value, min_value, max_value
 
 
 class OCPGenerator(AbstractGenerator):
     """Defines a abstract class for generators."""
 
-    def __init__(self, start_date, end_date, attributes, ros_ocp_info=False):
+    def __init__(self, start_date, end_date, attributes, ros_ocp_info=False, constant_values_ros_ocp=False):
         """Initialize the generator."""
         self._nodes = None
         self.ros_ocp_info = ros_ocp_info
+        self.constant_values_ros_ocp = constant_values_ros_ocp
         if attributes:
             self._nodes = attributes.get("nodes")
 
@@ -402,11 +416,16 @@ class OCPGenerator(AbstractGenerator):
                         pod, specified_pod.get("workload")
                     )
 
-                    cpu_usage_avg, cpu_usage_min, cpu_usage_max = generate_randomized_ros_usage(cpu_usage, cpu_limit)
-                    memory_usage_gig_avg, memory_usage_gig_min, memory_usage_gig_max = generate_randomized_ros_usage(
-                        memory_usage_gig, mem_limit_gig
+                    cpu_usage_avg, cpu_usage_min, cpu_usage_max = generate_randomized_ros_usage(
+                        cpu_usage, cpu_limit, generate_constant_value=self.constant_values_ros_ocp
                     )
-                    memory_rss_ratio = 1 / round(uniform(1.01, 1.9), 2)
+                    memory_usage_gig_avg, memory_usage_gig_min, memory_usage_gig_max = generate_randomized_ros_usage(
+                        memory_usage_gig, mem_limit_gig, generate_constant_value=self.constant_values_ros_ocp
+                    )
+                    if self.constant_values_ros_ocp:
+                        memory_rss_ratio = 1 / round(1, 2)
+                    else:
+                        memory_rss_ratio = 1 / round(uniform(1.01, 1.9), 2)
                     cpu_throttle = choices([0, round(cpu_usage_avg / randint(10, 20), 5)], weights=(3, 1))[0]
 
                     ros_ocp_data_pods[pod] = {
@@ -476,9 +495,11 @@ class OCPGenerator(AbstractGenerator):
                         "pod_labels": self._gen_openshift_labels(),
                     }
                     owner_name, owner_kind, workload, workload_type = get_owner_workload(pod)
-                    cpu_usage_avg, cpu_usage_min, cpu_usage_max = generate_randomized_ros_usage({}, cpu_limit)
+                    cpu_usage_avg, cpu_usage_min, cpu_usage_max = generate_randomized_ros_usage(
+                        {}, cpu_limit, generate_constant_value=self.constant_values_ros_ocp
+                    )
                     memory_usage_gig_avg, memory_usage_gig_min, memory_usage_gig_max = generate_randomized_ros_usage(
-                        {}, mem_limit_gig
+                        {}, mem_limit_gig, generate_constant_value=self.constant_values_ros_ocp
                     )
                     memory_rss_ratio = 1 / round(uniform(1.01, 1.9), 2)
                     cpu_throttle = choices([0, round(cpu_usage_avg / randint(10, 20), 5)], weights=(3, 1))[0]
@@ -525,7 +546,14 @@ class OCPGenerator(AbstractGenerator):
         """Create volumes on specific namespaces and keep relationship."""
         volumes = []
         for namespace, node in namespaces.items():
-            storage_class_default = choice(("gp2", "fast", "slow", "gold"))
+            storage_class_default, csi_default = choice(
+                (
+                    ("gp3-csi", "ebs.csi.aws.com"),
+                    ("fast", "disk.csi.azure.com"),
+                    ("slow", "disk.csi.azure.com"),
+                    ("gold", "pd.csi.storage.gke.io"),
+                )
+            )
             if node.get("namespaces"):
                 specified_volumes = node.get("namespaces").get(namespace).get("volumes", [])
                 for specified_volume in specified_volumes:
@@ -560,9 +588,14 @@ class OCPGenerator(AbstractGenerator):
                     volumes.append(
                         {
                             volume: {
+                                "node": node.get("name"),
                                 "namespace": namespace,
                                 "volume": volume,
                                 "storage_class": specified_volume.get("storage_class", storage_class_default),
+                                "csi_driver": specified_volume.get("csi_driver", csi_default),
+                                "csi_volume_handle": specified_volume.get(
+                                    "csi_volume_handle", f"vol-{self.fake.word()}"
+                                ),
                                 "volume_request": volume_request,
                                 "labels": specified_volume.get("labels", None),
                                 "volume_claims": volume_claims,
@@ -580,11 +613,11 @@ class OCPGenerator(AbstractGenerator):
                     volume_claims = {}
                     total_claims = 0
                     for _ in range(num_vol_claims):
-                        if vol_request_gig - total_claims <= GIGABYTE:
+                        if vol_request - total_claims <= GIGABYTE:
                             break
                         vol_claim = self.fake.word()
                         pod = choice(namespace2pods[namespace])
-                        claim_capacity = round(uniform(1.0, vol_request_gig), 2) * GIGABYTE
+                        claim_capacity = round(uniform(1.0, (vol_request_gig - total_claims / GIGABYTE)), 2) * GIGABYTE
                         volume_claims[vol_claim] = {
                             "namespace": namespace,
                             "volume": volume,
@@ -593,12 +626,23 @@ class OCPGenerator(AbstractGenerator):
                             "pod": pod,
                         }
                         total_claims += claim_capacity
+                    storage_class_default, csi_default = choice(
+                        (
+                            ("gp3-csi", "ebs.csi.aws.com"),
+                            ("fast", "disk.csi.azure.com"),
+                            ("slow", "disk.csi.azure.com"),
+                            ("gold", "pd.csi.storage.gke.io"),
+                        )
+                    )
                     volumes.append(
                         {
                             volume: {
                                 "namespace": namespace,
+                                "node": node.get("name"),
                                 "volume": volume,
-                                "storage_class": choice(("gp2", "fast", "slow", "gold")),
+                                "storage_class": storage_class_default,
+                                "csi_driver": csi_default,
+                                "csi_volume_handle": f"vol-{self.fake.word()}",
                                 "volume_request": vol_request,
                                 "labels": self._gen_openshift_labels(),
                                 "volume_claims": volume_claims,
@@ -676,9 +720,43 @@ class OCPGenerator(AbstractGenerator):
         row.update(pod)
         return row
 
+    def _randomize_ros_ocp_line_values(self, pod_in):
+        """Randomize usage values for each line item or ROS report"""
+        values_to_randomize = [
+            "cpu_usage_container_avg",
+            "cpu_usage_container_min",
+            "cpu_usage_container_max",
+            "cpu_usage_container_sum",
+            "cpu_throttle_container_avg",
+            "cpu_throttle_container_max",
+            "cpu_throttle_container_sum",
+            "memory_usage_container_avg",
+            "memory_usage_container_min",
+            "memory_usage_container_max",
+            "memory_usage_container_sum",
+            "memory_rss_usage_container_avg",
+            "memory_rss_usage_container_min",
+            "memory_rss_usage_container_max",
+            "memory_rss_usage_container_sum",
+        ]
+        randomization_value = uniform(0.9, 1.1)
+        cpu_limit = pod_in.get("cpu_limit_container_avg", 1000000)
+        memory_limit = pod_in.get("memory_limit_container_avg", 1e20)
+
+        pod_out = pod_in.copy()
+        for pod_key in values_to_randomize:
+            if pod_value := pod_in.get(pod_key):
+                if pod_key.startswith("cpu"):
+                    pod_out[pod_key] = round(min(randomization_value * pod_value, cpu_limit), 5)
+                else:
+                    pod_out[pod_key] = round(min(randomization_value * pod_value, memory_limit))
+        return pod_out
+
     def _update_ros_ocp_pod_data(self, row, start, end, **kwargs):
         """Update data with generator specific data."""
         pod = kwargs.get("pod")
+        if pod and not self.constant_values_ros_ocp:
+            pod = self._randomize_ros_ocp_line_values(pod)
         row.update(pod)
         return row
 
@@ -686,26 +764,32 @@ class OCPGenerator(AbstractGenerator):
         """Update data with generator specific data."""
         volume_claim_usage_gig = self._get_usage_for_date(kwargs.get("volume_claim_usage_gig"), start)
 
-        volume_request = kwargs.get("volume_request")
+        volume_request = kwargs.get("volume_request", 0)
+        # volume_request_storage_byte_seconds is empty for claimless PersistentVolumes
+        volume_request_storage_byte_seconds = volume_request * HOUR if volume_request > 0 else None
         vc_capacity_gig = max(kwargs.get("vc_capacity", 10.0), volume_request) / GIGABYTE
 
         vc_usage_gig = round(uniform(2.0, vc_capacity_gig), 2)
         if volume_claim_usage_gig:
             vc_usage_gig = min(volume_claim_usage_gig, vc_capacity_gig)
-        vc_usage = vc_usage_gig * GIGABYTE
+        # persistentvolumeclaim_usage_byte_seconds is empty for claimless PersistentVolumes
+        vc_usage = vc_usage_gig * GIGABYTE * HOUR if volume_request_storage_byte_seconds else None
 
         data = {
             "namespace": kwargs.get("namespace"),
             "pod": kwargs.get("pod"),
+            "node": kwargs.get("node"),
             "persistentvolumeclaim": kwargs.get("volume_claim"),
             "persistentvolume": kwargs.get("volume_name"),
             "storageclass": kwargs.get("storage_class"),
-            "persistentvolumeclaim_capacity_bytes": kwargs.get("vc_capacity"),
+            "csi_driver": kwargs.get("csi_driver"),
+            "csi_volume_handle": kwargs.get("csi_volume_handle"),
+            "persistentvolumeclaim_capacity_bytes": vc_capacity_gig * GIGABYTE,
             "persistentvolumeclaim_capacity_byte_seconds": vc_capacity_gig * GIGABYTE * HOUR,
-            "volume_request_storage_byte_seconds": volume_request * HOUR,
+            "volume_request_storage_byte_seconds": volume_request_storage_byte_seconds,
+            "persistentvolumeclaim_usage_byte_seconds": vc_usage,
             "persistentvolume_labels": kwargs.get("volume_labels"),
             "persistentvolumeclaim_labels": kwargs.get("volume_claim_labels"),
-            "persistentvolumeclaim_usage_byte_seconds": vc_usage * HOUR,
         }
         row.update(data)
         return row
@@ -800,8 +884,11 @@ class OCPGenerator(AbstractGenerator):
             end = hour.get("end")
             for volume_dict in self.volumes:
                 for volume_name, volume in volume_dict.items():
+                    node = volume.get("node")
                     namespace = volume.get("namespace", None)
                     storage_class = volume.get("storage_class", None)
+                    csi_driver = volume.get("csi_driver", None)
+                    csi_volume_handle = volume.get("csi_volume_handle", None)
                     volume_request = volume.get("volume_request", None)
                     vol_labels = volume.get("labels", None)
                     volume_claims = volume.get("volume_claims", [])
@@ -811,23 +898,39 @@ class OCPGenerator(AbstractGenerator):
                         capacity = volume_claim.get("capacity")
                         volume_claim_usage_gig = volume_claim.get("volume_claim_usage_gig", None)
                         row = self._init_data_row(start, end, **kwargs)
-                        row = self._update_data(
+                        yield self._update_data(
                             row,
                             start,
                             end,
                             volume_claim=vc_name,
                             pod=pod,
+                            node=node,
                             volume_claim_labels=vc_labels,
                             vc_capacity=capacity,
                             volume_claim_usage_gig=volume_claim_usage_gig,
                             storage_class=storage_class,
+                            csi_driver=csi_driver,
+                            csi_volume_handle=csi_volume_handle,
                             volume_name=volume_name,
                             volume_request=volume_request,
                             volume_labels=vol_labels,
                             namespace=namespace,
                             **kwargs,
                         )
-                        yield row
+                    if not volume_claims:
+                        row = self._init_data_row(start, end, **kwargs)
+                        yield self._update_data(
+                            row,
+                            start,
+                            end,
+                            storage_class=storage_class,
+                            csi_driver=csi_driver,
+                            csi_volume_handle=csi_volume_handle,
+                            volume_name=volume_name,
+                            vc_capacity=volume_request,
+                            volume_labels=vol_labels,
+                            **kwargs,
+                        )
 
     def _gen_hourly_node_label_usage(self, **kwargs):
         """Create hourly data for nodel label report."""

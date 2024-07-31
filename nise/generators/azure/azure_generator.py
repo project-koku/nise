@@ -18,46 +18,20 @@
 import calendar
 import datetime
 import json
+import uuid
 from random import choice
 from random import randint
 from random import uniform
 
 from nise.generators.generator import AbstractGenerator
 
-AZURE_COLUMNS = (
-    "SubscriptionGuid",
-    "ResourceGroup",
-    "ResourceLocation",
-    "UsageDateTime",
-    "MeterCategory",
-    "MeterSubcategory",
-    "MeterId",
-    "MeterName",
-    "MeterRegion",
-    "UsageQuantity",
-    "ResourceRate",
-    "PreTaxCost",
-    "ConsumedService",
-    "ResourceType",
-    "InstanceId",
-    "Tags",
-    "OfferId",
-    "AdditionalInfo",
-    "ServiceInfo1",
-    "ServiceInfo2",
-    "ServiceName",
-    "ServiceTier",
-    "Currency",
-    "UnitOfMeasure",
-)
-
-AZURE_COLUMNS_V2 = (
+AZURE_COLUMNS_V2_SUBSCRIPTION = (
     "InvoiceSectionName",
     "AccountName",
     "AccountOwnerId",
     "SubscriptionId",
     "SubscriptionName",
-    "ResourceGroup",
+    "ResourceGroupName",
     "ResourceLocation",
     "Date",
     "ProductName",
@@ -92,8 +66,8 @@ AZURE_COLUMNS_V2 = (
     "PricingModel",
     "AvailabilityZone",
     "BillingAccountId",
+    "BillingCurrency",
     "BillingAccountName",
-    "BillingCurrencyCode",
     "BillingPeriodStartDate",
     "BillingPeriodEndDate",
     "BillingProfileId",
@@ -111,18 +85,85 @@ AZURE_COLUMNS_V2 = (
     "servicePeriodEndDate",
     "servicePeriodStartDate",
     "ProductId",
-    "product",
     "publisherId",
-    "resourceGroupName",
-    "InstanceName",
     "Location",
-    "billingCurrency",
     "pricingCurrency",
     "costInPricingCurrency",
     "costInUsd",
     "paygCostInBillingCurrency",
     "paygCostInUsd",
     "exchangeRatePricingToBilling",
+    "exchangeRateDate",
+)
+
+AZURE_COLUMNS_V2_RESOURCE_GROUP = (
+    "InvoiceSectionName",
+    "AccountName",
+    "AccountOwnerId",
+    "SubscriptionGuid",
+    "SubscriptionName",
+    "ResourceGroup",
+    "ResourceLocation",
+    "Date",
+    "MeterCategory",
+    "MeterSubCategory",
+    "MeterId",
+    "MeterName",
+    "MeterRegion",
+    "UnitOfMeasure",
+    "Quantity",
+    "EffectivePrice",
+    "CostInBillingCurrency",
+    "CostCenter",
+    "ConsumedService",
+    "Tags",
+    "OfferId",
+    "AdditionalInfo",
+    "ServiceInfo1",
+    "ServiceInfo2",
+    "ResourceName",
+    "ReservationId",
+    "ReservationName",
+    "UnitPrice",
+    "ProductOrderId",
+    "ProductOrderName",
+    "Term",
+    "PublisherType",
+    "PublisherName",
+    "ChargeType",
+    "Frequency",
+    "PricingModel",
+    "AvailabilityZone",
+    "BillingAccountId",
+    "BillingCurrencyCode",
+    "BillingAccountName",
+    "BillingPeriodStartDate",
+    "BillingPeriodEndDate",
+    "BillingProfileId",
+    "BillingProfileName",
+    "InstanceName",
+    "InvoiceSectionId",
+    "IsAzureCreditEligible",
+    "PartNumber",
+    "MarketPrice",
+    "PlanName",
+    "ServiceFamily",
+    "invoiceId",
+    "previousInvoiceId",
+    "resellerName",
+    "resellerMpnId",
+    "servicePeriodEndDate",
+    "servicePeriodStartDate",
+    "Product",
+    "ProductId",
+    "publisherId",
+    "Location",
+    "pricingCurrencyCode",
+    "costInPricingCurrency",
+    "costInUsd",
+    "paygCostInBillingCurrency",
+    "paygCostInUsd",
+    "exchangeRate",
     "exchangeRateDate",
 )
 
@@ -169,9 +210,22 @@ class AzureGenerator(AbstractGenerator):
 
     INVOICE_SECTION_NAMES = ("IT Services",)
 
+    @property
+    def meter_id(self):
+        if self._meter_id is None:
+            self._meter_id = uuid.uuid4()
+        return self._meter_id
+
+    @property
+    def meter_name(self):
+        if self._meter_name is None:
+            _, _, meter_name, _ = self._get_cached_meter_values(self.meter_id, self.SERVICE_METER)
+            self._meter_name = meter_name
+        return self._meter_name
+
     def __init__(self, start_date, end_date, currency, account_info, attributes=None):  # noqa: C901
         """Initialize the generator."""
-        self.azure_columns = AZURE_COLUMNS
+        self.azure_columns = AZURE_COLUMNS_V2_SUBSCRIPTION
         self.subscription_guid = account_info.get("subscription_guid")
         self.account_info = account_info
         self.usage_accounts = account_info.get("usage_accounts")
@@ -191,7 +245,7 @@ class AzureGenerator(AbstractGenerator):
         self._meter_cache = {}
         self._billing_currency = currency
         self._additional_info = None
-        # Version 2 fields
+        self._data_direction = None
         self._invoice_section_id = None
         self._invoice_section_name = None
 
@@ -199,8 +253,8 @@ class AzureGenerator(AbstractGenerator):
             for key, value in attributes.items():
                 attr_name = "_" + key
                 setattr(self, attr_name, value)
-            if attributes.get("version_two"):
-                self.azure_columns = AZURE_COLUMNS_V2
+            if attributes.get("resource_group_export"):
+                self.azure_columns = AZURE_COLUMNS_V2_RESOURCE_GROUP
         super().__init__(start_date, end_date)
 
     @staticmethod
@@ -229,7 +283,7 @@ class AzureGenerator(AbstractGenerator):
         service_tier, meter_sub, meter_name, units_of_measure = self._get_cached_meter_values(meter_id, service_meter)
         service_info_2 = choice(service_info)
         resource_group, resource_name = choice(ex_resource)
-        additional_info = self._get_additional_info()
+        additional_info = self._get_additional_info(meter_name)
         if self._instance_id:
             self._consumed, second_part = accts_str = self._get_accts_str(self._service_name)
             self._resource_type = self._consumed + "/" + second_part
@@ -256,6 +310,9 @@ class AzureGenerator(AbstractGenerator):
             additional_info,
             service_info_2,
         )
+
+    def _add_common_usage_info(self, row, start, end, **kwargs):
+        """Not needed for Azure."""
 
     def _get_location_info(self):
         """Get bandwidth info."""
@@ -296,32 +353,12 @@ class AzureGenerator(AbstractGenerator):
             location = choice(self.RESOURCE_LOCATION)
         return location
 
-    def _get_additional_info(self):
+    def _get_additional_info(self, meter_name=None):
         """Pick additional info."""
         if self._additional_info:
             return self._additional_info
         else:
             return choice(self.ADDITIONAL_INFO)
-
-    def _add_common_usage_info(self, row, start, end, **kwargs):
-        """Add common usage information."""
-        if self.azure_columns == AZURE_COLUMNS_V2:
-            usage_account = choice(self.usage_accounts)
-            row["SubscriptionId"] = self.subscription_guid
-            row["SubscriptionName"] = self.account_info.get("subscription_name")
-            row["AccountName"] = usage_account[0]
-            row["AccountOwnerId"] = usage_account[1]
-            row["BillingAccountId"] = self.account_info.get("billing_account_id")
-            row["BillingAccountName"] = self.account_info.get("billing_account_name")
-            row["BillingProfileId"] = self.account_info.get("billing_account_id")
-            row["BillingProfileName"] = self.account_info.get("billing_account_name")
-            row["Date"] = start.date().strftime(DATE_FMT)
-            row["BillingPeriodStartDate"] = self.first_day_of_month(start).strftime(DATE_FMT)
-            row["BillingPeriodEndDate"] = self.last_day_of_month(start).strftime(DATE_FMT)
-        else:
-            row["SubscriptionGuid"] = self.subscription_guid
-            row["UsageDateTime"] = start.strftime("%Y-%m-%d %H:%M:%S")
-        return row
 
     def _add_tag_data(self, row):
         """Add tag dictionary data options to the row."""
@@ -333,8 +370,6 @@ class AzureGenerator(AbstractGenerator):
 
     def _update_data(self, row, start, end, **kwargs):
         """Update data with generator specific data."""
-        row = self._add_common_usage_info(row, start, end)
-
         meter_id = self._meter_id if self._meter_id else self.fake.uuid4()
         rate = self._resource_rate if self._resource_rate else round(uniform(0.1, 0.50), 5)
         amount = self._usage_quantity if self._usage_quantity else uniform(0.01, 1)
@@ -355,11 +390,22 @@ class AzureGenerator(AbstractGenerator):
         if not service_info_2:
             service_info_2 = ""
 
-        row["ResourceGroup"] = resource_group
+        if self.usage_accounts:
+            usage_account = choice(self.usage_accounts)
+            row["AccountName"] = usage_account[0]
+            row["AccountOwnerId"] = usage_account[1]
+        row["SubscriptionName"] = self.account_info.get("subscription_name")
+        row["BillingAccountId"] = self.account_info.get("billing_account_id")
+        row["BillingAccountName"] = self.account_info.get("billing_account_name")
+        row["BillingProfileId"] = self.account_info.get("billing_account_id")
+        row["BillingProfileName"] = self.account_info.get("billing_account_name")
+        row["Date"] = start.date().strftime(DATE_FMT)
+        row["BillingPeriodStartDate"] = self.first_day_of_month(start).strftime(DATE_FMT)
+        row["BillingPeriodEndDate"] = self.last_day_of_month(start).strftime(DATE_FMT)
         row["ResourceLocation"] = azure_region
         row["MeterCategory"] = self._service_name
-        row["MeterId"] = str(meter_id)
-        row["MeterName"] = meter_name
+        row["MeterId"] = str(self.meter_id)
+        row["MeterName"] = self.meter_name
         row["MeterRegion"] = meter_region
         row["ConsumedService"] = self._consumed
         row["OfferId"] = ""
@@ -370,22 +416,22 @@ class AzureGenerator(AbstractGenerator):
         row = self._map_header_to_report_version(
             row, meter_sub, str(amount), str(rate), str(cost), instance_id, service_tier
         )
-        if self.azure_columns == AZURE_COLUMNS_V2:
-            row = self.add_v2_specific_columns(row, instance_id=instance_id)
-        self._add_tag_data(row)
 
-        return row
+        if instance_id and "resourceGroups/" in instance_id:
+            resource_group = instance_id.split("resourceGroups/")[-1].split("/")[0]
 
-    def add_v2_specific_columns(self, row, **kwargs):
-        """Add values for columns specific to the V2 report."""
+        if self.azure_columns is AZURE_COLUMNS_V2_SUBSCRIPTION:
+            row["SubscriptionId"] = self.subscription_guid
+            row["ResourceGroupName"] = resource_group
+            row["ProductName"] = ""
+            row["PayGPrice"] = 0
+        else:
+            row["SubscriptionGuid"] = self.subscription_guid
+            row["ResourceGroup"] = resource_group
+            row["MarketPrice"] = 0
 
-        resource_name = ""
-        if kwargs.get("instance_id"):
-            resource_name = kwargs.get("instance_id").split("/")
-            resource_name = resource_name[len(resource_name) - 1]
+        resource_name = instance_id.split("/")[-1] if instance_id else ""
 
-        # NOTE: Commented out columns exist in the report, but we don't have enough
-        # information to date to accurately simulate values.
         if self._service_name == "Virtual Machines":
             if getattr(self, "_CCSP", False):
                 publisher_name = "Microsoft"
@@ -404,14 +450,16 @@ class AzureGenerator(AbstractGenerator):
         row["InvoiceSectionName"] = (
             self._invoice_section_name if self._invoice_section_id else choice(self.INVOICE_SECTION_NAMES)
         )
-        row["ProductName"] = ""
+
+        # NOTE: Commented out columns exist in the report, but we don't have enough
+        # information to date to accurately simulate values.
         row["ResourceName"] = resource_name
         row["IsAzureCreditEligible"] = "TRUE"
         row["ServiceFamily"] = service_family
         row["Frequency"] = "UsageBased"
         row["PublisherType"] = publisher_type
         row["ChargeType"] = "Usage"
-        row["PayGPrice"] = 0
+        row["PublisherName"] = publisher_name
         # row['PricingModel'] =
         # row['ReservationId'] =
         # row['ReservationName'] =
@@ -419,35 +467,50 @@ class AzureGenerator(AbstractGenerator):
         # row['ProductOrderName'] =
         # row['AvailabilityZone'] =
         # row['Term'] =
-        row["PublisherName"] = publisher_name
         # row['PlanName'] =
         # row['PartNumber'] =
         # row['CostCenter'] =
+        # row['previousInvoiceId'] =
+        # row['resellerName'] =
+        # row['resellerMpnId'] =
+        # row['servicePeriodEndDate'] =
+        # row['servicePeriodStartDate'] =
+        # row['Product'] =
+        # row['ProductId'] =
+        # row['publisherId'] =
+        # row['Location'] =
+        # row['pricingCurrencyCode'] =
+        # row['costInPricingCurrency'] =
+        # row['costInUsd'] =
+        # row['paygCostInBillingCurrency'] =
+        # row['paygCostInUsd'] =
+        # row['exchangeRate'] =
+        # row['exchangeRateDate'] =
+        # row['offerid'] =
+        # row['serviceinfo1'] =
+        # row['instancename'] =
+        # row['invoiceId'] =
 
         if hasattr(self, "_product_id"):
             row["ProductId"] = self._product_id
+        self._add_tag_data(row)
+
         return row
 
     def _map_header_to_report_version(self, row, meter_sub, amount, rate, cost, instance_id, service_tier):
-        if self.azure_columns == AZURE_COLUMNS_V2:
-            row["MeterSubCategory"] = meter_sub
-            row["Quantity"] = amount
-            row["EffectivePrice"] = rate
-            row["UnitPrice"] = rate
-            row["CostInBillingCurrency"] = cost
+        row["Quantity"] = amount
+        row["MeterSubCategory"] = meter_sub
+        row["EffectivePrice"] = rate
+        row["UnitPrice"] = rate
+        row["CostInBillingCurrency"] = cost
+
+        if self.azure_columns is AZURE_COLUMNS_V2_SUBSCRIPTION:
             row["ResourceId"] = instance_id
-            row["BillingCurrencyCode"] = self._billing_currency
+            row["BillingCurrency"] = self._billing_currency
         else:
-            row["MeterSubcategory"] = meter_sub
-            row["UsageQuantity"] = amount
-            row["ResourceRate"] = rate
-            row["PreTaxCost"] = cost
-            row["InstanceId"] = instance_id
-            row["Currency"] = self._billing_currency
-            # Version one specific
-            row["ResourceType"] = self._resource_type
-            row["ServiceName"] = self._service_name
-            row["ServiceTier"] = service_tier
+            row["InstanceName"] = instance_id
+            row["BillingCurrencyCode"] = self._billing_currency
+
         return row
 
     def _generate_hourly_data(self, **kwargs):
