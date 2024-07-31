@@ -140,6 +140,8 @@ The `make run-iqe` command by default will run the smoke tests. However, if you 
         --insights-upload UPLOAD_URL            optional, Use local directory path to populate a
                                                 "local upload directory".
         --ros-ocp-info                          Optional, Generate ROS for Openshift data.
+        --constant-values-ros-ocp               Optional, Generate constant values for ROS for OpenShift data only
+                                                when used with the ros-ocp-info parameter.
 
     OCI Report Options:
         --oci-bucket-name BUCKET_NAME           optional, OCI bucket name.

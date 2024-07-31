@@ -299,6 +299,13 @@ def add_ocp_parser_args(parser):
         action="store_true",
         help="Flag used to add the `daily_reports` marker to manifests.",
     )
+    parser.add_argument(
+        "--constant-values-ros-ocp",
+        dest="constant_values_ros_ocp",
+        required=False,
+        action="store_true",
+        help="Flag to generate constant values for ROS for Openshift",
+    )
 
 
 def add_oci_parser_args(parser):
