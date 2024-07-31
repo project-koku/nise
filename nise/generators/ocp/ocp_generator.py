@@ -180,8 +180,8 @@ def generate_randomized_ros_usage(usage_dict, limit_value, generate_constant_val
         else:
             avg_value = round(uniform(limit_value * 0.1, limit_value), 5)
 
-        min_value = round(usage_value, 5)
-        max_value = min(round(usage_value, 5), limit_value)
+        min_value = avg_value
+        max_value = avg_value
     else:
         # This will generate randomised values
         # if usage value is provided in yaml -> avg_value = +- 5% of that specified usage value
