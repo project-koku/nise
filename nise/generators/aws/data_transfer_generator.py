@@ -45,6 +45,7 @@ class DataTransferGenerator(AWSGenerator):
         self._rate = float(self.attributes.get("rate", 0)) or None
         self._resource_id = f"i-{self.attributes.get('resource_id', self.fake.ean8())}"
         self._saving = float(self.attributes.get("saving", 0)) or None
+        self._negation = self.attributes.get("negation") or False
         self._tags = self.attributes.get("tags", self._tags)
 
     @property
@@ -81,7 +82,8 @@ class DataTransferGenerator(AWSGenerator):
 
         resource_id = self._resource_id if self._resource_id else self.fake.ean8()
         rate = self._rate if self._rate else round(uniform(0.12, 0.19), 3)
-        saving = self._saving if self._saving else round(uniform(0.12, 0.19), 3)
+        saving = self._saving
+        negation = self._negation
         amount = self._amount if self._amount else uniform(0.000002, 0.09)
         cost = amount * rate
         trans_desc, operation, description, location1, location2, trans_type, aws_region = self._get_data_transfer(
@@ -118,8 +120,17 @@ class DataTransferGenerator(AWSGenerator):
         # Overwrite lineItem/LineItemType for items with applied Savings plan
         if saving is not None:
             row["lineItem/LineItemType"] = "SavingsPlanCoveredUsage"
-        self._add_tag_data(row)
-        self._add_category_data(row)
+
+        if negation:
+            row["lineItem/LineItemType"] = "SavingsPlanNegation"
+            row["lineItem/UnblendedCost"] = -abs(cost)
+            row["lineItem/LineItemDescription"] = f"SavingsPlanNegation used by AccountId : {self.payer_account}"
+            row["lineItem/ResourceId"] = None
+            row["lineItem/BlendedCost"] = -abs(cost)
+
+        if not negation:
+            self._add_tag_data(row)
+            self._add_category_data(row)
         return row
 
     def generate_data(self, report_type=None):
