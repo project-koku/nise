@@ -1,7 +1,7 @@
 ---
   generators:
     - EC2Generator:
-        start_date: 2020-03-01
+        start_date: today
         processor_arch: 32-bit
         resource_id: 55555555
         product_sku: VEAJHRNKTJZQ
@@ -52,6 +52,19 @@
           family: 'Memory Optimized'
           cost: 1.000
           rate: 0.500
+    - EBSGenerator:
+        start_date: today
+        product_sku: VEAJHRNBBBBD
+        resource_id: 12345674
+        amount: 8
+        rate: 0.1
+        tags:
+          resourceTags/user:storageclass: gamma
+          resourceTags/user:Mapping: d1
+          resourceTags/user:Map: d2
+        cost_category:
+          costCategory/env: ephemeral
+
 
 
   accounts:
