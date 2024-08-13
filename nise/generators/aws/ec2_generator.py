@@ -36,6 +36,8 @@ class EC2Generator(AWSGenerator):
             "0.096",
             "0.096",
             "0.045",
+            1,
+            False,
             "${cost} per On Demand Linux {inst_type} Instance Hour",
         ),
         (
@@ -48,6 +50,8 @@ class EC2Generator(AWSGenerator):
             "0.34",
             "0.34",
             "0.17",
+            1,
+            False,
             "${cost} per On Demand Linux {inst_type} Instance Hour",
         ),
         (
@@ -60,6 +64,8 @@ class EC2Generator(AWSGenerator):
             "0.199",
             "0.199",
             "0.099",
+            1,
+            False,
             "${cost} per On Demand Linux {inst_type} Instance Hour",
         ),
         (
@@ -72,6 +78,8 @@ class EC2Generator(AWSGenerator):
             "0.133",
             "0.133",
             "0.067",
+            1,
+            False,
             "${cost} per On Demand Linux {inst_type} Instance Hour",
         ),
     )

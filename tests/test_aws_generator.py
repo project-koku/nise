@@ -377,6 +377,8 @@ class TestEC2Generator(AWSGeneratorTestCase):
             "cost": "1",
             "rate": "1",
             "saving": "1",
+            "amount": 1,
+            "negation": False,
         }
         self.attributes["instance_type"] = self.instance_type
 
