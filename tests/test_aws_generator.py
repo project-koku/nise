@@ -327,6 +327,21 @@ class TestDataTransferGenerator(AWSGeneratorTestCase):
         self.assertEqual(row["product/productFamily"], "Data Transfer")
         self.assertEqual(row[self.cost_category_key], self.cost_category_value)
 
+    def test_update_data_transfer_negation(self):
+        """Test DataTransfer specific update data with negation costs."""
+        self.attributes = {
+            "rate": 20,
+            "amount": 1,
+            "negation": True,
+        }
+        generator = DataTransferGenerator(
+            self.two_hours_ago, self.now, self.currency, self.payer_account, self.usage_accounts, self.attributes
+        )
+        start_row = {}
+        row = generator._update_data(start_row, self.two_hours_ago, self.now)
+
+        self.assertEqual(row["lineItem/LineItemType"], "SavingsPlanNegation")
+
 
 class TestEBSGenerator(AWSGeneratorTestCase):
     """Tests for the EBS Generator type."""
@@ -389,6 +404,18 @@ class TestEC2Generator(AWSGeneratorTestCase):
         self.assertEqual(generator._tags, self.tags)
         self.assertEqual(generator._resource_id, "i-" + self.resource_id)
         self.assertEqual(generator._instance_type[:-1], tuple(self.instance_type.values()))
+
+    def test_update_data_ec2_negation(self):
+        """Test EC2 specific update data with negation costs."""
+        self.instance_type = {"negation": True, "cost": 10}
+        self.attributes["instance_type"] = self.instance_type
+        generator = EC2Generator(
+            self.two_hours_ago, self.now, self.currency, self.payer_account, self.usage_accounts, self.attributes
+        )
+        start_row = {}
+        row = generator._update_data(start_row, self.two_hours_ago, self.now)
+
+        self.assertEqual(row["lineItem/LineItemType"], "SavingsPlanNegation")
 
     def test_update_data(self):
         """Test EBS specific update data method."""
