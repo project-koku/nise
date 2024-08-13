@@ -36,6 +36,8 @@ class EC2Generator(AWSGenerator):
             "0.096",
             "0.096",
             "0.045",
+            1,
+            False,
             "${cost} per On Demand Linux {inst_type} Instance Hour",
         ),
         (
@@ -48,6 +50,8 @@ class EC2Generator(AWSGenerator):
             "0.34",
             "0.34",
             "0.17",
+            1,
+            False,
             "${cost} per On Demand Linux {inst_type} Instance Hour",
         ),
         (
@@ -60,6 +64,8 @@ class EC2Generator(AWSGenerator):
             "0.199",
             "0.199",
             "0.099",
+            1,
+            False,
             "${cost} per On Demand Linux {inst_type} Instance Hour",
         ),
         (
@@ -72,6 +78,8 @@ class EC2Generator(AWSGenerator):
             "0.133",
             "0.133",
             "0.067",
+            1,
+            False,
             "${cost} per On Demand Linux {inst_type} Instance Hour",
         ),
     )
@@ -115,12 +123,27 @@ class EC2Generator(AWSGenerator):
                 instance_type.get("cost"),
                 instance_type.get("rate"),
                 instance_type.get("saving"),
+                instance_type.get("amount", "1"),
+                instance_type.get("negation", False),
                 "${cost} per On Demand Linux {inst_type} Instance Hour",
             )
 
     def _update_data(self, row, start, end, **kwargs):
         """Update data with generator specific data."""
-        inst_type, physical_cores, vcpu, memory, storage, family, cost, rate, saving, description = self._instance_type
+        (
+            inst_type,
+            physical_cores,
+            vcpu,
+            memory,
+            storage,
+            family,
+            cost,
+            rate,
+            saving,
+            amount,
+            negation,
+            description,
+        ) = self._instance_type
 
         inst_description = description.format(cost=cost, inst_type=inst_type)
         product_name = "Amazon Elastic Compute Cloud"
@@ -137,7 +160,7 @@ class EC2Generator(AWSGenerator):
         row["lineItem/Operation"] = "RunInstances"
         row["lineItem/AvailabilityZone"] = avail_zone
         row["lineItem/ResourceId"] = self._resource_id
-        row["lineItem/UsageAmount"] = "1"
+        row["lineItem/UsageAmount"] = amount
         row["lineItem/UnblendedRate"] = rate
         row["lineItem/UnblendedCost"] = cost
         row["lineItem/BlendedRate"] = rate
@@ -179,9 +202,16 @@ class EC2Generator(AWSGenerator):
         # Overwrite lineItem/LineItemType for items with applied Savings plan
         if saving is not None:
             row["lineItem/LineItemType"] = "SavingsPlanCoveredUsage"
+        if negation:
+            row["lineItem/LineItemType"] = "SavingsPlanNegation"
+            row["lineItem/UnblendedCost"] = -abs(cost)
+            row["lineItem/LineItemDescription"] = f"SavingsPlanNegation used by AccountId : {self.payer_account}"
+            row["lineItem/ResourceId"] = None
+            row["lineItem/BlendedCost"] = -abs(cost)
 
-        self._add_tag_data(row)
-        self._add_category_data(row)
+        if not negation:
+            self._add_tag_data(row)
+            self._add_category_data(row)
         return row
 
     def generate_data(self, report_type=None):
