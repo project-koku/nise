@@ -209,6 +209,7 @@ class AWSGeneratorTestCase(TestCase):
         self.amount = 1
         self.rate = 0.1
         self.saving = 0.1
+        self.disk_size = 10
         self.currency = "USD"
         self.legal_entity = "Red Hat"
         self.attributes = {
@@ -219,6 +220,7 @@ class AWSGeneratorTestCase(TestCase):
             "product_name": self.product_name,
             "resource_id": self.resource_id,
             "amount": self.amount,
+            "disk_size": self.disk_size,
             "rate": self.rate,
             "saving": self.saving,
             "product_family": self.product_family,
@@ -354,7 +356,7 @@ class TestEBSGenerator(AWSGeneratorTestCase):
         self.assertEqual(generator._product_sku, self.product_sku)
         self.assertEqual(generator._tags, self.tags)
         self.assertEqual(generator._resource_id, "vol-" + self.resource_id)
-        self.assertEqual(generator._amount, self.amount)
+        self.assertEqual(generator._disk_size, self.disk_size)
         self.assertEqual(generator._rate, self.rate)
 
     def test_update_data(self):
