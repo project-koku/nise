@@ -15,7 +15,6 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """Module for ebs data generation."""
-import calendar
 from random import choice
 from random import uniform
 
@@ -54,22 +53,15 @@ class EBSGenerator(AWSGenerator):
         """Get storage data."""
         return choice(self.STORAGE)
 
-    def _calculate_cost_per_day(self, start):
-        """EBS charges in a monthly rate.
-        Therefore we need to convert to a daily rate to calculate the cost."""
-        num_days_in_month = calendar.monthrange(start.year, start.month)[1]
-        hours_in_month = num_days_in_month * 24
-        daily_rate = self._rate / hours_in_month
-        return self._amount * daily_rate
-
     def _update_data(self, row, start, end, **kwargs):
         """Update data with generator specific data."""
         row = self._add_common_usage_info(row, start, end)
 
+        rate = self._rate
         amount = self._amount
-        cost = self._calculate_cost_per_day(start)
+        cost = amount * rate
         location, aws_region, _, storage_region = self._get_location()
-        description = f"${self._rate} per GB-Month of snapshot data stored - {location}"
+        description = f"${rate} per GB-Month of snapshot data stored - {location}"
         burst, max_iops, max_thru, max_vol_size, vol_backed, vol_type = self._get_storage()
 
         row["lineItem/ProductCode"] = "AmazonEC2"
@@ -77,9 +69,9 @@ class EBSGenerator(AWSGenerator):
         row["lineItem/Operation"] = "CreateVolume"
         row["lineItem/ResourceId"] = self._resource_id
         row["lineItem/UsageAmount"] = str(amount)
-        row["lineItem/UnblendedRate"] = str(self._rate)
+        row["lineItem/UnblendedRate"] = str(rate)
         row["lineItem/UnblendedCost"] = str(cost)
-        row["lineItem/BlendedRate"] = str(self._rate)
+        row["lineItem/BlendedRate"] = str(rate)
         row["lineItem/BlendedCost"] = str(cost)
         row["lineItem/LineItemDescription"] = description
         row["product/ProductName"] = "Amazon Elastic Compute Cloud"
@@ -97,7 +89,7 @@ class EBSGenerator(AWSGenerator):
         row["product/usagetype"] = f"{storage_region}:VolumeUsage"
         row["product/volumeType"] = vol_type
         row["pricing/publicOnDemandCost"] = str(cost)
-        row["pricing/publicOnDemandRate"] = str(self._rate)
+        row["pricing/publicOnDemandRate"] = str(rate)
         row["pricing/term"] = "OnDemand"
         row["pricing/unit"] = "GB-Mo"
         self._add_tag_data(row)
