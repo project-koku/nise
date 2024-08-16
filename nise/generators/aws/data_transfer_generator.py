@@ -124,11 +124,16 @@ class DataTransferGenerator(AWSGenerator):
         if negation:
             row["lineItem/LineItemType"] = "SavingsPlanNegation"
             row["lineItem/UnblendedCost"] = -abs(cost)
-            row["lineItem/LineItemDescription"] = f"SavingsPlanNegation used by AccountId : {self.payer_account}"
-            row["lineItem/ResourceId"] = None
+            row["lineItem/UnblendedRate"] = -abs(rate)
             row["lineItem/BlendedCost"] = -abs(cost)
-
-        if not negation:
+            row["lineItem/BlendedRate"] = -abs(rate)
+            row[
+                "lineItem/LineItemDescription"
+            ] = f"SavingsPlanNegation used by AccountId : {self.payer_account} and UsageSku : {self._product_sku}"
+            row["lineItem/ResourceId"] = None
+            row["savingsPlan/SavingsPlanEffectiveCost"] = None
+            row["savingsPlan/SavingsPlanRate"] = None
+        else:
             self._add_tag_data(row)
             self._add_category_data(row)
         return row
