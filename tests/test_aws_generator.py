@@ -409,7 +409,7 @@ class TestEC2Generator(AWSGeneratorTestCase):
 
     def test_update_data_ec2_negation(self):
         """Test EC2 specific update data with negation costs."""
-        self.instance_type = {"negation": True, "cost": 10}
+        self.instance_type = {"negation": True, "cost": 10, "rate": 1}
         self.attributes["instance_type"] = self.instance_type
         generator = EC2Generator(
             self.two_hours_ago, self.now, self.currency, self.payer_account, self.usage_accounts, self.attributes
