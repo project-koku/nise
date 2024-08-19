@@ -116,7 +116,7 @@ class DataTransferGenerator(AWSGenerator):
         row["pricing/term"] = "OnDemand"
         row["pricing/unit"] = "GB"
         row["savingsPlan/SavingsPlanEffectiveCost"] = str(saving)
-        row["savingsPlan/SavingsPlanRate"] = str(saving)
+        row["savingsPlan/SavingsPlanRate"] = str(round(float(saving) / amount, 4)) if saving else str(saving)
 
         # Overwrite lineItem/LineItemType for items with applied Savings plan
         if saving is not None:

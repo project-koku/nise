@@ -198,7 +198,7 @@ class EC2Generator(AWSGenerator):
         row["pricing/term"] = "OnDemand"
         row["pricing/unit"] = "Hrs"
         row["savingsPlan/SavingsPlanEffectiveCost"] = saving
-        row["savingsPlan/SavingsPlanRate"] = saving
+        row["savingsPlan/SavingsPlanRate"] = round(float(saving) / float(amount), 5) if saving and amount else saving
 
         # Overwrite lineItem/LineItemType for items with applied Savings plan
         if saving is not None:
