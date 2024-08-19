@@ -198,20 +198,29 @@ class EC2Generator(AWSGenerator):
         row["pricing/term"] = "OnDemand"
         row["pricing/unit"] = "Hrs"
         row["savingsPlan/SavingsPlanEffectiveCost"] = saving
+        row["savingsPlan/SavingsPlanRate"] = saving
 
         # Overwrite lineItem/LineItemType for items with applied Savings plan
         if saving is not None:
             row["lineItem/LineItemType"] = "SavingsPlanCoveredUsage"
+
         if negation:
             row["lineItem/LineItemType"] = "SavingsPlanNegation"
             row["lineItem/UnblendedCost"] = -abs(cost)
-            row["lineItem/LineItemDescription"] = f"SavingsPlanNegation used by AccountId : {self.payer_account}"
-            row["lineItem/ResourceId"] = None
+            row["lineItem/UnblendedRate"] = -abs(rate)
             row["lineItem/BlendedCost"] = -abs(cost)
+            row["lineItem/BlendedRate"] = -abs(rate)
+            row[
+                "lineItem/LineItemDescription"
+            ] = f"SavingsPlanNegation used by AccountId : {self.payer_account} and UsageSku : {self._product_sku}"
+            row["lineItem/ResourceId"] = None
+            row["savingsPlan/SavingsPlanEffectiveCost"] = None
+            row["savingsPlan/SavingsPlanRate"] = None
 
-        if not negation:
+        else:
             self._add_tag_data(row)
             self._add_category_data(row)
+
         return row
 
     def generate_data(self, report_type=None):
