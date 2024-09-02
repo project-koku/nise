@@ -66,6 +66,7 @@ class TestGCPGenerator(TestCase):
             "resource.name": "resource-name",
             "resource.global_name": "global-name",
             "resource_level": True,
+            "price.effective_price": 0.04524,
         }
         self.now = datetime.now().replace(microsecond=0, second=0, minute=0)
         self.yesterday = self.now - timedelta(days=1)
@@ -126,6 +127,7 @@ class TestGCPGenerator(TestCase):
         generated_data = generator.generate_data()
         list_data = list(generated_data)
         self.assertEqual(list_data[0]["cost"], self.usage_attributes["usage.amount"] * self.usage_attributes["price"])
+        self.assertIn("price.effective_price", list_data[0])
 
     def test_compute_engine_init_with_sku_attributes(self):
         """Test the init with sku attributes for Compute Engine."""
