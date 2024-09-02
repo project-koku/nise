@@ -89,8 +89,6 @@ class ComputeEngineGenerator(GCPGenerator):
                 self._resource_name = self.attributes.get("resource.name")
             if self.attributes.get("resource.global_name"):
                 self._resource_global_name = self.attributes.get("resource.global_name")
-            if self.attributes.get("price.effective_price"):
-                self._resource_global_name = self.attributes.get("price.effective_price")
 
     def _update_data(self, row):  # noqa: C901
         """Update a data row with compute values."""
