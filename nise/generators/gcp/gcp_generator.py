@@ -56,6 +56,7 @@ GCP_REPORT_COLUMNS = (
     "invoice.month",
     "cost_type",
     "partition_date",
+    "price.effective_price",
 )
 
 GCP_RESOURCE_COLUMNS = ("resource.name", "resource.global_name")
