@@ -57,6 +57,7 @@ GCP_REPORT_COLUMNS = (
     "cost_type",
     "partition_date",
     "price.effective_price",
+    "disk_size",
 )
 
 GCP_RESOURCE_COLUMNS = ("resource.name", "resource.global_name")
@@ -320,3 +321,14 @@ class GCPGenerator(AbstractGenerator):
             row = self._init_data_row(start, end)
             row = self._update_data(row)
             yield row
+
+    def _generate_disk_size(self, cost, effective_price):
+        """Generate disk size."""
+        hours_in_month = 744
+        disk_size = 0
+
+        if cost and effective_price:
+            rate = float(effective_price) / hours_in_month
+            disk_size = float(cost) / rate
+
+        return disk_size

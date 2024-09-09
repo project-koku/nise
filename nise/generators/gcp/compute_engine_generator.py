@@ -58,6 +58,8 @@ class ComputeEngineGenerator(GCPGenerator):
 
     LABELS = (([{"key": "vm_key_proj2", "value": "vm_label_proj2"}]), ([]))
 
+    EFFECTIVE_PRICE = ("0.0114", "0.0417", "0.1922", "0.0452")
+
     def __init__(self, start_date, end_date, currency, project, attributes=None):  # noqa: C901
         """Initialize the cloud storage generator."""
         super().__init__(start_date, end_date, currency, project, attributes)
@@ -123,6 +125,9 @@ class ComputeEngineGenerator(GCPGenerator):
         row["currency"] = self._currency
         row["labels"] = self.determine_labels(self.LABELS)
         row["system_labels"] = self.determine_system_labels(sku[3])
+        row["price.effective_price"] = choice(self.EFFECTIVE_PRICE)
+        row["disk_size"] = self._generate_disk_size(row["cost"], row["price.effective_price"])
+
         if self.resource_level:
             resource = self._generate_resource(
                 self._resource_name, self._resource_global_name, self.project.get("region")
@@ -183,6 +188,10 @@ class JSONLComputeEngineGenerator(ComputeEngineGenerator):
         month = datetime.strptime(row.get("usage_start_time")[:7], "%Y-%m").month
         invoice["month"] = f"{year}{month:02d}"
         row["invoice"] = invoice
+        effective_price = choice(self.EFFECTIVE_PRICE)
+        row["price"] = {"effective_price": effective_price}
+        row["disk_size"] = self._generate_disk_size(row["cost"], row["price"]["effective_price"])
+
         if self.resource_level:
             resource = self._generate_resource()
             row["resource"] = resource
