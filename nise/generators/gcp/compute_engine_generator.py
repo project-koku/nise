@@ -126,7 +126,6 @@ class ComputeEngineGenerator(GCPGenerator):
         row["labels"] = self.determine_labels(self.LABELS)
         row["system_labels"] = self.determine_system_labels(sku[3])
         row["price.effective_price"] = choice(self.EFFECTIVE_PRICE)
-        row["disk_size"] = self._generate_disk_size(row["cost"], row["price.effective_price"])
 
         if self.resource_level:
             resource = self._generate_resource(
@@ -190,7 +189,6 @@ class JSONLComputeEngineGenerator(ComputeEngineGenerator):
         row["invoice"] = invoice
         effective_price = choice(self.EFFECTIVE_PRICE)
         row["price"] = {"effective_price": effective_price}
-        row["disk_size"] = self._generate_disk_size(row["cost"], row["price"]["effective_price"])
 
         if self.resource_level:
             resource = self._generate_resource()
