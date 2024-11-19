@@ -15,6 +15,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """Module for ebs data generation."""
+import calendar
 from random import choice
 from random import uniform
 
@@ -33,35 +34,40 @@ class EBSGenerator(AWSGenerator):
         """Initialize the EBS generator."""
         super().__init__(start_date, end_date, currency, payer_account, usage_accounts, attributes, tag_cols)
         self._resource_id = "vol-{}".format(self.fake.ean8())
-        self._amount = uniform(0.2, 300.99)
+        self._disk_size = choice([5, 10, 15, 20, 25])
         self._rate = round(uniform(0.02, 0.16), 3)
         self._product_sku = self.fake.pystr(min_chars=12, max_chars=12).upper()
 
         if self.attributes:
             if self.attributes.get("resource_id"):
                 self._resource_id = "vol-{}".format(self.attributes.get("resource_id"))
-            if self.attributes.get("amount"):
-                self._amount = float(self.attributes.get("amount"))
             if self.attributes.get("rate"):
                 self._rate = float(self.attributes.get("rate"))
             if self.attributes.get("product_sku"):
                 self._product_sku = self.attributes.get("product_sku")
             if self.attributes.get("tags"):
                 self._tags = self.attributes.get("tags")
+            if _disk_size := self.attributes.get("disk_size"):
+                self._disk_size = int(_disk_size)
 
     def _get_storage(self):
         """Get storage data."""
         return choice(self.STORAGE)
 
+    def _calculate_hourly_rate(self, start):
+        """Calculates the houly rate based of the provided monthly rate."""
+        num_days_in_month = calendar.monthrange(start.year, start.month)[1]
+        hours_in_month = num_days_in_month * 24
+        return self._rate / hours_in_month
+
     def _update_data(self, row, start, end, **kwargs):
         """Update data with generator specific data."""
         row = self._add_common_usage_info(row, start, end)
-
-        rate = self._rate
-        amount = self._amount
-        cost = amount * rate
+        hourly_rate = self._calculate_hourly_rate(start)
+        cost = round(self._disk_size * hourly_rate, 10)
+        amount = round(cost / self._rate, 10)
         location, aws_region, _, storage_region = self._get_location()
-        description = f"${rate} per GB-Month of snapshot data stored - {location}"
+        description = f"${self._rate} per GB-Month of snapshot data stored - {location}"
         burst, max_iops, max_thru, max_vol_size, vol_backed, vol_type = self._get_storage()
 
         row["lineItem/ProductCode"] = "AmazonEC2"
@@ -69,9 +75,9 @@ class EBSGenerator(AWSGenerator):
         row["lineItem/Operation"] = "CreateVolume"
         row["lineItem/ResourceId"] = self._resource_id
         row["lineItem/UsageAmount"] = str(amount)
-        row["lineItem/UnblendedRate"] = str(rate)
+        row["lineItem/UnblendedRate"] = str(self._rate)
         row["lineItem/UnblendedCost"] = str(cost)
-        row["lineItem/BlendedRate"] = str(rate)
+        row["lineItem/BlendedRate"] = str(self._rate)
         row["lineItem/BlendedCost"] = str(cost)
         row["lineItem/LineItemDescription"] = description
         row["product/ProductName"] = "Amazon Elastic Compute Cloud"
@@ -89,7 +95,7 @@ class EBSGenerator(AWSGenerator):
         row["product/usagetype"] = f"{storage_region}:VolumeUsage"
         row["product/volumeType"] = vol_type
         row["pricing/publicOnDemandCost"] = str(cost)
-        row["pricing/publicOnDemandRate"] = str(rate)
+        row["pricing/publicOnDemandRate"] = str(self._rate)
         row["pricing/term"] = "OnDemand"
         row["pricing/unit"] = "GB-Mo"
         self._add_tag_data(row)
