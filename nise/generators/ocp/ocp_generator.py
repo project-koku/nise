@@ -289,7 +289,7 @@ class OCPGenerator(AbstractGenerator):
                     "name": item.get("node_name", "node_" + self.fake.word()),
                     "cpu_cores": item.get("cpu_cores", randint(2, 16)),
                     "memory_bytes": memory_bytes,
-                    "resource_id": "i-" + resource_id,
+                    "resource_id": "i-" + resource_id if resource_id else resource_id,
                     "namespaces": item.get("namespaces"),
                     "node_labels": item.get("node_labels"),
                 }
