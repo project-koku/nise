@@ -227,9 +227,9 @@ class GCPGenerator(AbstractGenerator):
         """Generate the credit dict based off the hourly credit_amount."""
         if json_return:
             default_dict = {"name": "", "amount": 0, "full_name": "", "id": "", "type": ""}
-            empty_return = [default_dict, None]
+            empty_return = default_dict
         else:
-            empty_return = ["[]", None]
+            empty_return = "[]"
         if not credit_amount:
             return empty_return
         else:
