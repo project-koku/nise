@@ -15,6 +15,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """Defines the abstract generator."""
+
 import datetime
 from random import choice
 from random import uniform

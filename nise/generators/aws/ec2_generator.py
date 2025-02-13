@@ -15,6 +15,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """Module for ec2 data generation."""
+
 from random import choice
 
 from nise.generators.aws.aws_generator import AWSGenerator
@@ -210,9 +211,9 @@ class EC2Generator(AWSGenerator):
             row["lineItem/UnblendedRate"] = -abs(rate)
             row["lineItem/BlendedCost"] = -abs(cost)
             row["lineItem/BlendedRate"] = -abs(rate)
-            row[
-                "lineItem/LineItemDescription"
-            ] = f"SavingsPlanNegation used by AccountId : {self.payer_account} and UsageSku : {self._product_sku}"
+            row["lineItem/LineItemDescription"] = (
+                f"SavingsPlanNegation used by AccountId : {self.payer_account} and UsageSku : {self._product_sku}"
+            )
             row["lineItem/ResourceId"] = None
             row["savingsPlan/SavingsPlanEffectiveCost"] = None
             row["savingsPlan/SavingsPlanRate"] = None

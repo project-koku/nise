@@ -24,7 +24,7 @@ class TestGCPGenerator(TestCase):
 
     def setUp(self):
         """shared attributes."""
-        self.account = "{}-{}".format(fake.word(), fake.word())
+        self.account = f"{fake.word()}-{fake.word()}"
         project_generator = ProjectGenerator(self.account)
         self.project = project_generator.generate_projects(num_projects=2)[0]
         jsonl_project_generator = JSONLProjectGenerator(self.account)

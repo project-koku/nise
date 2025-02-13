@@ -15,6 +15,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """OCI Report Constants"""
+
 import random
 from dataclasses import dataclass
 from dataclasses import field

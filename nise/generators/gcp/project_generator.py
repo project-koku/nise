@@ -15,6 +15,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """Module for generating GCP Projects."""
+
 from random import choice
 
 from faker import Faker
