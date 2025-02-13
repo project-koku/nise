@@ -81,3 +81,11 @@ quote-style = "double"
 indent-style = "space"
 skip-magic-trailing-comma = false
 line-ending = "auto"
+
+[tool.tox]
+requires = ["coverage"]
+env_list = ["3.12"]
+
+[tool.tox.env_run_base]
+description = "Run test under {base_python}"
+commands = [["coverage", "run", "-m", "unittest", "discover", "{toxinidir}/tests/", "-v"], ["coverage", "run", "report", "--show-missing"]]
