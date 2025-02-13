@@ -1,0 +1,27 @@
+[[source]]
+url = "https://pypi.python.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+faker = ">=3.0"
+boto3 = ">=1.11"
+requests = ">=2.22"
+jinja2 = ">=2.10"
+azure-storage-blob = ">=12.1"
+google-cloud-storage = ">=1.19"
+pyyaml = ">=5.3"
+google-cloud-bigquery = ">=2.2.0"
+oci = ">=2.64.0"
+
+[dev-packages]
+tox = ">=3.14"
+coverage = ">=5.0"
+pipenv-setup = "*"
+setuptools = ">=44.0"
+twine = ">=3.1"
+importlib-resources = ">=1.5.0"
+pre-commit = ">=2.0"
+
+[requires]
+python_version = "3.11"

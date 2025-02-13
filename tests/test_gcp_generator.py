@@ -343,14 +343,11 @@ class TestGCPGenerator(TestCase):
             gen_handler = generator(self.yesterday, self.now, self.currency, self.project, attributes=attributes)
             generated_data = gen_handler.generate_data()
             list_data = list(generated_data)
-            credit_rows = []
             for row in list_data:
-                if row.get("credits") != "[]":
-                    credit_dict = row.get("credits").replace("'", '"').strip("][")
-                    credit_dict = json.loads(credit_dict)
-                    credit_amount = credit_dict.get("amount", 0)
-                    credit_rows.append(credit_amount)
-            self.assertEqual(sum(credit_rows), expected_credit_amount)
+                credit_dict = row.get("credits").replace("'", '"').strip("][")
+                credit_dict = json.loads(credit_dict)
+                credit_amount = credit_dict.get("amount", 0)
+                self.assertEqual(credit_amount, expected_credit_amount)
 
     def test_gcp_jsonl_generators_with_credit_attributes(self):
         """Test json generators with credit attributes."""
@@ -369,10 +366,7 @@ class TestGCPGenerator(TestCase):
         for generator in generators_list:
             gen_handler = generator(self.yesterday, self.now, self.currency, self.project, attributes=attributes)
             generated_data = gen_handler.generate_data()
-            num_invoice_months = gen_handler._gcp_find_invoice_months_in_date_range()
             list_data = list(generated_data)
-            credit_rows = []
             for row in list_data:
                 credit_amount = row.get("credits", {}).get("amount", 0)
-                credit_rows.append(credit_amount)
-            self.assertEqual(sum(credit_rows), expected_credit_amount * len(num_invoice_months))
+                self.assertEqual(credit_amount, expected_credit_amount)

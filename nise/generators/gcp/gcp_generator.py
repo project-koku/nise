@@ -224,35 +224,29 @@ class GCPGenerator(AbstractGenerator):
                 invoice_months.append(invoice_month)
         return invoice_months
 
-    def _gen_credit(self, credit_distributed, credit_amount, json_return=False):
-        """Generate the credit based off the cost amount."""
+    def _gen_credit(self, credit_amount, json_return=False):
+        """Generate the credit dict based off the hourly credit_amount."""
         if json_return:
-            if credit_amount:
-                # When using the csv generator it runs per invoice month so this will equal that logic
-                invoice_months = self._gcp_find_invoice_months_in_date_range()
-                invoice_month_count = len(invoice_months)
-                credit_amount = credit_amount * invoice_month_count
             default_dict = {"name": "", "amount": 0, "full_name": "", "id": "", "type": ""}
-            empty_return = [default_dict, None]
+            empty_return = default_dict
         else:
-            empty_return = ["[]", None]
-        if not credit_amount or credit_distributed is None:
+            empty_return = "[]"
+        if not credit_amount:
             return empty_return
         else:
-            mock_credit = credit_amount / len(self.hours)
-            credit_distributed = credit_distributed - abs(mock_credit)
             credit_name = "FreeTrial"
             credit_dict = {
                 "name": credit_name,
-                "amount": mock_credit,
+                "amount": credit_amount,
                 "full_name": "",
                 "id": credit_name,
                 "type": "PROMOTION",
             }
+
             if json_return:
-                return [credit_dict, credit_distributed]
+                return credit_dict
             else:
-                return [str([credit_dict]), credit_distributed]
+                return str([credit_dict])
 
     def determine_system_labels(self, pricing_unit):
         """Determine the system labels if instance-type exists."""
