@@ -50,7 +50,6 @@ class GCPNetworkGenerator(GCPGenerator):
     def __init__(self, start_date, end_date, currency, project, attributes=None):  # noqa: C901
         """Initialize the cloud storage generator."""
         super().__init__(start_date, end_date, currency, project, attributes)
-        self.credit_total = 0
         self._currency = currency
         if self.attributes:
             if self.attributes.get("labels"):
@@ -93,9 +92,7 @@ class GCPNetworkGenerator(GCPGenerator):
         row["usage.amount_in_pricing_units"] = self._gen_pricing_unit_amount(pricing_unit, row["usage.amount"])
         cost = self._gen_cost(row["usage.amount_in_pricing_units"])
         row["cost"] = cost
-        credit, credit_total = self._gen_credit(self.credit_total, self._credit_amount)
-        self.credit_total = credit_total
-        row["credits"] = credit
+        row["credits"] = self._gen_credit(self._credit_amount)
         usage_date = datetime.strptime(row.get("usage_start_time")[:7], "%Y-%m")
         row["invoice.month"] = f"{usage_date.year}{usage_date.month:02d}"
 
@@ -159,9 +156,7 @@ class JSONLGCPNetworkGenerator(GCPNetworkGenerator):
         cost = self._gen_cost(usage["amount_in_pricing_units"])
         row["cost"] = cost
         row["usage"] = usage
-        credit, credit_total = self._gen_credit(self.credit_total, self._credit_amount, True)
-        self.credit_total = credit_total
-        row["credits"] = credit
+        row["credits"] = self._gen_credit(self._credit_amount, json_return=True)
         usage_date = datetime.strptime(row.get("usage_start_time")[:7], "%Y-%m")
         invoice = {}
         usage_date = datetime.strptime(row.get("usage_start_time")[:7], "%Y-%m")
