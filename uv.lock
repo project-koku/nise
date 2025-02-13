@@ -662,7 +662,6 @@ wheels = [
 
 [[package]]
 name = "koku-nise"
-version = "4.6.9"
 source = { editable = "." }
 dependencies = [
     { name = "azure-storage-blob" },

@@ -12,13 +12,13 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3.2.0
+        uses: actions/checkout@v4.2.2
         with:
           fetch-depth: 0
       - name: Set up Python
-        uses: actions/setup-python@v4.4.0
+        uses: actions/setup-python@v5.4.0
         with:
-          python-version: 3.8
+          python-version-file: ".python-version"
 
       - name: Install dependencies
         run: |
