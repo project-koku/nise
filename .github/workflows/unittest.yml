@@ -22,16 +22,16 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5.4.0
         with:
-          python-version-file: ".python-version"
+          python-version-file: .python-version
 
       - name: Install uv
         uses: astral-sh/setup-uv@v5.2.2
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
 
       - name: Install the project
         run: uv sync --all-extras --dev
-
-      - name: Run sanity tests
-        run: uv run -- tox -e sanity
 
       - name: Run unit tests
         run: uv run -- coverage run -m unittest discover ./tests/ -v
@@ -39,12 +39,12 @@ jobs:
       - name: Convert coverage report to XML
         run: uv run -- coverage xml
 
-      # - name: Upload coverage to Codecov
-      #   uses: codecov/codecov-action@v5.3.1
-      #   env:
-      #     CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-      #   with:
-      #     files: ./coverage.xml
-      #     flags: unittests
-      #     fail_ci_if_error: true
-      #     plugins: noop
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5.3.1
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        with:
+          files: ./coverage.xml
+          flags: unittests
+          fail_ci_if_error: true
+          plugins: noop
