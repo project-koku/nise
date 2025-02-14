@@ -25,16 +25,16 @@ class EC2Generator(AWSGenerator):
 
     INSTANCE_TYPES = (
         # NOTE: Each tuple represents
-        # (instance type, 
-        # physical_cores, 
-        # vCPUs, 
-        # memory, 
-        # storage, 
-        # family, 
-        # cost, 
-        # rate, 
-        # Reserved_instances, 
-        # savings, 
+        # (instance type,
+        # physical_cores,
+        # vCPUs,
+        # memory,
+        # storage,
+        # family,
+        # cost,
+        # rate,
+        # Reserved_instances,
+        # savings,
         # description)
         (
             "m5.large",
