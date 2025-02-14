@@ -431,6 +431,7 @@ class TestEC2Generator(AWSGeneratorTestCase):
         row = generator._update_data(start_row, self.two_hours_ago, self.now)
 
         self.assertEqual(row["lineItem/LineItemType"], "DiscountedUsage")
+        self.assertEqual(row["lineItem/UnblendedCost"], 0)
 
     def test_update_data(self):
         """Test EBS specific update data method."""

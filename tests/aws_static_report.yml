@@ -27,7 +27,7 @@ generators:
       resource_id: 55555555
       product_sku: VEAJHRNKTJZQ
       region: us-east-1a
-      resourved_instance: true
+      reserved_instance: True
   - S3Generator:
       start_date: last_month
       end_date: last_month
