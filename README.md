@@ -69,7 +69,13 @@ or:
 
 #### Publishing
 
-Increment the version in [nise/__init__.py]. As soon as your PR is merged to main, a new koku-nise package will built, tagged, and deployed to PyPI.
+Publishing is achieved by merging a new version into `main`. Increment the version in [nise/__init__.py]. This can be done via `hatch`. For example, to bump the version to `4.9.9`, one would do:
+
+    $ uv run hatch version 4.9.9
+    Old: 4.7.0
+    New: 4.9.9
+
+Add the version change in `nise/__init__.py` to your PR and ask for a review. As soon as your PR is merged to main, a new koku-nise package will built, tagged, and deployed to PyPI.
 
 ##### Finer Publishing Details
 
