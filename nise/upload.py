@@ -335,8 +335,8 @@ def gcp_bucket_to_dataset(
         # job config does not let you upload to the _PARTITIONTIME because it is a prebuild column in
         # bigquery. However, we do have permission to update it.
         # TODO there is likely a bug on koku side for month boundary  - update this to set different
-        #  partitions for previous and current months to investigate it
-        # e.g., but using end_time intead of start time, or by using export_time (would have to be adjusted first)
+        #  partition time for some items in a day to investigate it - e.g., by using usage_end_time instead
+        #  of usage_start_time, or by using export_time (would have to be adjusted first)
         partition_date_sql = f"""
         UPDATE `{table_id}` SET _PARTITIONTIME=CAST(DATE_TRUNC(DATE(usage_start_time), DAY) AS timestamp) WHERE 1=1;
         """
