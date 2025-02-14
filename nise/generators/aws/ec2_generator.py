@@ -216,11 +216,9 @@ class EC2Generator(AWSGenerator):
             row["lineItem/UnblendedRate"] = 0
             row["lineItem/BlendedCost"] = 0
             row["lineItem/BlendedRate"] = 0
-            row[
-                "lineItem/LineItemDescription"
-            ] = f"{inst_type} reserved instance applied"
-            row["pricing/publicOnDemandCost"] = 'convertible'
-            row["pricing/publicOnDemandRate"] = 'No Upfront'
+            row["lineItem/LineItemDescription"] = f"{inst_type} reserved instance applied"
+            row["pricing/publicOnDemandCost"] = "convertible"
+            row["pricing/publicOnDemandRate"] = "No Upfront"
             row["savingsPlan/SavingsPlanEffectiveCost"] = None
             row["savingsPlan/SavingsPlanRate"] = None
 
