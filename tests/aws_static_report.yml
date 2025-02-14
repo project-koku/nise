@@ -20,6 +20,14 @@ generators:
         cost: 1.000
         rate: 0.500
         saving: 0.250
+  - EC2Generator:
+      start_date: today
+      end_date: today
+      processor_arch: 32-bit
+      resource_id: 55555555
+      product_sku: VEAJHRNKTJZQ
+      region: us-east-1a
+      resourved_instance: true
   - S3Generator:
       start_date: last_month
       end_date: last_month

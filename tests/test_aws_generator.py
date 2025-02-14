@@ -395,6 +395,7 @@ class TestEC2Generator(AWSGeneratorTestCase):
             "rate": "1",
             "saving": "1",
             "amount": 1,
+            "reserved_instance": False,
             "negation": False,
         }
         self.attributes["instance_type"] = self.instance_type
@@ -419,7 +420,7 @@ class TestEC2Generator(AWSGeneratorTestCase):
 
         self.assertEqual(row["lineItem/LineItemType"], "SavingsPlanNegation")
 
-    def test_update_data_ec2_negation(self):
+    def test_update_data_ec2_reserved_instances(self):
         """Test EC2 specific update data with Reserved Instances."""
         self.instance_type = {"reserved_instance": True}
         self.attributes["instance_type"] = self.instance_type
