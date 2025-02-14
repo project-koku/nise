@@ -128,7 +128,9 @@ def upload_to_gcp_storage(bucket_name, source_file_name, destination_blob_name):
     return uploaded
 
 
-def gcp_bucket_to_dataset(gcp_bucket_name, file_name, dataset_name, table_name, resource_level=False):
+def gcp_bucket_to_dataset(
+    gcp_bucket_name, file_name, dataset_name, table_name, resource_level=False, gcp_daily_flow=False
+):
     """
     Create a gcp dataset from a file stored in a bucket.
 
@@ -137,6 +139,8 @@ def gcp_bucket_to_dataset(gcp_bucket_name, file_name, dataset_name, table_name, 
         file_name  (String): The name of the file stored in GCP
         dataset_name (String): name for the created dataset in GCP
         table_name (String): name for the created dataset in GCP
+        resource_level (Boolean): indicates whether to generate a resource level report
+        gcp_daily_flow (Boolean): indicates if the data are ingested as part of the day-to-day flow
 
     Returns:
         (Boolean): True if the dataset was created
@@ -156,156 +160,165 @@ def gcp_bucket_to_dataset(gcp_bucket_name, file_name, dataset_name, table_name, 
         project_name = bigquery_client.project
         dataset_id = f"{project_name}.{dataset_name}"
         dataset = bigquery.Dataset(dataset_id)
-
-        # delete dataset (does not error if it doesn't exist) and create fresh one
-        bigquery_client.delete_dataset(dataset_id, delete_contents=True, not_found_ok=True)
-        dataset = bigquery_client.create_dataset(dataset)
-
         table_id = f"{project_name}.{dataset_name}.{table_name}"
 
-        # Build schema
-        schema = [
-            {"name": "billing_account_id", "type": "STRING", "mode": "NULLABLE"},
-            {
-                "name": "service",
-                "type": "RECORD",
-                "fields": [
-                    {"name": "id", "type": "STRING", "mode": "NULLABLE"},
-                    {"name": "description", "type": "STRING", "mode": "NULLABLE"},
-                ],
-                "mode": "NULLABLE",
-            },
-            {
-                "name": "sku",
-                "type": "RECORD",
-                "fields": [
-                    {"name": "id", "type": "STRING", "mode": "NULLABLE"},
-                    {"name": "description", "type": "STRING", "mode": "NULLABLE"},
-                ],
-                "mode": "NULLABLE",
-            },
-            {"name": "usage_start_time", "type": "TIMESTAMP", "mode": "NULLABLE"},
-            {"name": "usage_end_time", "type": "TIMESTAMP", "mode": "NULLABLE"},
-            {
-                "name": "project",
-                "type": "RECORD",
-                "fields": [
-                    {"name": "id", "type": "STRING", "mode": "NULLABLE"},
-                    {"name": "number", "type": "STRING", "mode": "NULLABLE"},
-                    {"name": "name", "type": "STRING", "mode": "NULLABLE"},
-                    {
-                        "name": "labels",
-                        "type": "RECORD",
-                        "fields": [
-                            {"name": "key", "type": "STRING", "mode": "NULLABLE"},
-                            {"name": "value", "type": "STRING", "mode": "NULLABLE"},
-                        ],
-                        "mode": "REPEATED",
-                    },
-                    {"name": "ancestry_numbers", "type": "STRING", "mode": "NULLABLE"},
-                ],
-                "mode": "NULLABLE",
-            },
-            {
-                "name": "labels",
-                "type": "RECORD",
-                "fields": [
-                    {"name": "key", "type": "STRING", "mode": "NULLABLE"},
-                    {"name": "value", "type": "STRING", "mode": "NULLABLE"},
-                ],
-                "mode": "REPEATED",
-            },
-            {
-                "name": "system_labels",
-                "type": "RECORD",
-                "fields": [
-                    {"name": "key", "type": "STRING", "mode": "NULLABLE"},
-                    {"name": "value", "type": "STRING", "mode": "NULLABLE"},
-                ],
-                "mode": "REPEATED",
-            },
-            {
-                "name": "location",
-                "type": "RECORD",
-                "fields": [
-                    {"name": "location", "type": "STRING", "mode": "NULLABLE"},
-                    {"name": "country", "type": "STRING", "mode": "NULLABLE"},
-                    {"name": "region", "type": "STRING", "mode": "NULLABLE"},
-                    {"name": "zone", "type": "STRING", "mode": "NULLABLE"},
-                ],
-                "mode": "NULLABLE",
-            },
-            {"name": "export_time", "type": "TIMESTAMP", "mode": "NULLABLE"},
-            {"name": "cost", "type": "FLOAT", "mode": "NULLABLE"},
-            {"name": "currency", "type": "STRING", "mode": "NULLABLE"},
-            {"name": "currency_conversion_rate", "type": "FLOAT", "mode": "NULLABLE"},
-            {
-                "name": "usage",
-                "type": "RECORD",
-                "fields": [
-                    {"name": "amount", "type": "FLOAT", "mode": "NULLABLE"},
-                    {"name": "unit", "type": "STRING", "mode": "NULLABLE"},
-                    {"name": "amount_in_pricing_units", "type": "FLOAT", "mode": "NULLABLE"},
-                    {"name": "pricing_unit", "type": "STRING", "mode": "NULLABLE"},
-                ],
-                "mode": "NULLABLE",
-            },
-            {
-                "name": "credits",
-                "type": "RECORD",
-                "fields": [
-                    {"name": "name", "type": "STRING", "mode": "NULLABLE"},
-                    {"name": "amount", "type": "FLOAT", "mode": "NULLABLE"},
-                    {"name": "full_name", "type": "STRING", "mode": "NULLABLE"},
-                    {"name": "id", "type": "STRING", "mode": "NULLABLE"},
-                    {"name": "type", "type": "STRING", "mode": "NULLABLE"},
-                ],
-                "mode": "REPEATED",
-            },
-            {
-                "name": "invoice",
-                "type": "RECORD",
-                "fields": [{"name": "month", "type": "STRING", "mode": "NULLABLE"}],
-                "mode": "NULLABLE",
-            },
-            {"name": "cost_type", "type": "STRING", "mode": "NULLABLE"},
-            {
-                "name": "adjustment_info",
-                "type": "RECORD",
-                "fields": [
-                    {"name": "id", "type": "STRING", "mode": "NULLABLE"},
-                    {"name": "description", "type": "STRING", "mode": "NULLABLE"},
-                    {"name": "mode", "type": "STRING", "mode": "NULLABLE"},
-                    {"name": "type", "type": "STRING", "mode": "NULLABLE"},
-                ],
-                "mode": "NULLABLE",
-            },
-        ]
+        if gcp_daily_flow:
+            # create the job config for daily flow - i.e., appending data
+            job_config = bigquery.LoadJobConfig(
+                source_format=bigquery.SourceFormat.NEWLINE_DELIMITED_JSON,
+                write_disposition="WRITE_APPEND",
+                time_partitioning=bigquery.TimePartitioning(),  # may be not needed?
+            )
+            log_message = f"Dataset {dataset_name} updated in GCP bigquery under the table name {table_name}."
 
-        # Add resource to schema if required
-        if resource_level:
-            schema += [
+        else:
+            # delete dataset (does not error if it doesn't exist) and create fresh one
+            bigquery_client.delete_dataset(dataset_id, delete_contents=True, not_found_ok=True)
+            dataset = bigquery_client.create_dataset(dataset)
+
+            # Build schema
+            schema = [
+                {"name": "billing_account_id", "type": "STRING", "mode": "NULLABLE"},
                 {
-                    "name": "resource",
+                    "name": "service",
+                    "type": "RECORD",
+                    "fields": [
+                        {"name": "id", "type": "STRING", "mode": "NULLABLE"},
+                        {"name": "description", "type": "STRING", "mode": "NULLABLE"},
+                    ],
+                    "mode": "NULLABLE",
+                },
+                {
+                    "name": "sku",
+                    "type": "RECORD",
+                    "fields": [
+                        {"name": "id", "type": "STRING", "mode": "NULLABLE"},
+                        {"name": "description", "type": "STRING", "mode": "NULLABLE"},
+                    ],
+                    "mode": "NULLABLE",
+                },
+                {"name": "usage_start_time", "type": "TIMESTAMP", "mode": "NULLABLE"},
+                {"name": "usage_end_time", "type": "TIMESTAMP", "mode": "NULLABLE"},
+                {
+                    "name": "project",
+                    "type": "RECORD",
+                    "fields": [
+                        {"name": "id", "type": "STRING", "mode": "NULLABLE"},
+                        {"name": "number", "type": "STRING", "mode": "NULLABLE"},
+                        {"name": "name", "type": "STRING", "mode": "NULLABLE"},
+                        {
+                            "name": "labels",
+                            "type": "RECORD",
+                            "fields": [
+                                {"name": "key", "type": "STRING", "mode": "NULLABLE"},
+                                {"name": "value", "type": "STRING", "mode": "NULLABLE"},
+                            ],
+                            "mode": "REPEATED",
+                        },
+                        {"name": "ancestry_numbers", "type": "STRING", "mode": "NULLABLE"},
+                    ],
+                    "mode": "NULLABLE",
+                },
+                {
+                    "name": "labels",
+                    "type": "RECORD",
+                    "fields": [
+                        {"name": "key", "type": "STRING", "mode": "NULLABLE"},
+                        {"name": "value", "type": "STRING", "mode": "NULLABLE"},
+                    ],
+                    "mode": "REPEATED",
+                },
+                {
+                    "name": "system_labels",
+                    "type": "RECORD",
+                    "fields": [
+                        {"name": "key", "type": "STRING", "mode": "NULLABLE"},
+                        {"name": "value", "type": "STRING", "mode": "NULLABLE"},
+                    ],
+                    "mode": "REPEATED",
+                },
+                {
+                    "name": "location",
+                    "type": "RECORD",
+                    "fields": [
+                        {"name": "location", "type": "STRING", "mode": "NULLABLE"},
+                        {"name": "country", "type": "STRING", "mode": "NULLABLE"},
+                        {"name": "region", "type": "STRING", "mode": "NULLABLE"},
+                        {"name": "zone", "type": "STRING", "mode": "NULLABLE"},
+                    ],
+                    "mode": "NULLABLE",
+                },
+                {"name": "export_time", "type": "TIMESTAMP", "mode": "NULLABLE"},
+                {"name": "cost", "type": "FLOAT", "mode": "NULLABLE"},
+                {"name": "currency", "type": "STRING", "mode": "NULLABLE"},
+                {"name": "currency_conversion_rate", "type": "FLOAT", "mode": "NULLABLE"},
+                {
+                    "name": "usage",
+                    "type": "RECORD",
+                    "fields": [
+                        {"name": "amount", "type": "FLOAT", "mode": "NULLABLE"},
+                        {"name": "unit", "type": "STRING", "mode": "NULLABLE"},
+                        {"name": "amount_in_pricing_units", "type": "FLOAT", "mode": "NULLABLE"},
+                        {"name": "pricing_unit", "type": "STRING", "mode": "NULLABLE"},
+                    ],
+                    "mode": "NULLABLE",
+                },
+                {
+                    "name": "credits",
                     "type": "RECORD",
                     "fields": [
                         {"name": "name", "type": "STRING", "mode": "NULLABLE"},
-                        {"name": "global_name", "type": "STRING", "mode": "NULLABLE"},
+                        {"name": "amount", "type": "FLOAT", "mode": "NULLABLE"},
+                        {"name": "full_name", "type": "STRING", "mode": "NULLABLE"},
+                        {"name": "id", "type": "STRING", "mode": "NULLABLE"},
+                        {"name": "type", "type": "STRING", "mode": "NULLABLE"},
+                    ],
+                    "mode": "REPEATED",
+                },
+                {
+                    "name": "invoice",
+                    "type": "RECORD",
+                    "fields": [{"name": "month", "type": "STRING", "mode": "NULLABLE"}],
+                    "mode": "NULLABLE",
+                },
+                {"name": "cost_type", "type": "STRING", "mode": "NULLABLE"},
+                {
+                    "name": "adjustment_info",
+                    "type": "RECORD",
+                    "fields": [
+                        {"name": "id", "type": "STRING", "mode": "NULLABLE"},
+                        {"name": "description", "type": "STRING", "mode": "NULLABLE"},
+                        {"name": "mode", "type": "STRING", "mode": "NULLABLE"},
+                        {"name": "type", "type": "STRING", "mode": "NULLABLE"},
                     ],
                     "mode": "NULLABLE",
-                }
+                },
             ]
 
-        # creates the job config with specifics
-        job_config = bigquery.LoadJobConfig(
-            write_disposition=bigquery.WriteDisposition.WRITE_TRUNCATE,
-            source_format=bigquery.SourceFormat.NEWLINE_DELIMITED_JSON,
-            time_partitioning=bigquery.TimePartitioning(),
-            schema=schema,
-        )
+            # Add resource to schema if required
+            if resource_level:
+                schema += [
+                    {
+                        "name": "resource",
+                        "type": "RECORD",
+                        "fields": [
+                            {"name": "name", "type": "STRING", "mode": "NULLABLE"},
+                            {"name": "global_name", "type": "STRING", "mode": "NULLABLE"},
+                        ],
+                        "mode": "NULLABLE",
+                    }
+                ]
+
+            # creates the job config with specifics
+            job_config = bigquery.LoadJobConfig(
+                write_disposition=bigquery.WriteDisposition.WRITE_TRUNCATE,
+                source_format=bigquery.SourceFormat.NEWLINE_DELIMITED_JSON,
+                time_partitioning=bigquery.TimePartitioning(),
+                schema=schema,
+            )
+            log_message = f"Dataset {dataset_name} created in GCP bigquery under the table name {table_name}."
 
         uri = f"gs://{gcp_bucket_name}/{file_name}"
-
         load_job = bigquery_client.load_table_from_uri(uri, table_id, job_config=job_config)
 
         # waits for the job to finish, will raise an exception if it doesnt work
@@ -316,16 +329,21 @@ def gcp_bucket_to_dataset(gcp_bucket_name, file_name, dataset_name, table_name, 
         bucket = storage_client.bucket(gcp_bucket_name)
         blob = bucket.blob(file_name)
         blob.delete()
+
         # Our downloader downloads by the paritiontime, however the default partitiontime is the date
         # the data is uploaded to bigquery. Therefore, everything goes into one single day. The load
         # job config does not let you upload to the _PARTITIONTIME because it is a prebuild column in
         # bigquery. However, we do have permission to update it.
+        # TODO there is likely a bug on koku side for month boundary  - update this to set different
+        #  partition time for some items in a day to investigate it - e.g., by using usage_end_time instead
+        #  of usage_start_time, or by using export_time (would have to be adjusted first)
         partition_date_sql = f"""
         UPDATE `{table_id}` SET _PARTITIONTIME=CAST(DATE_TRUNC(DATE(usage_start_time), DAY) AS timestamp) WHERE 1=1;
         """
         bigquery_client.query(partition_date_sql)
 
-        LOG.info(f"Dataset {dataset_name} created in GCP bigquery under the table name {table_name}.")
+        LOG.info(log_message)
+
     except GoogleCloudError as upload_err:
         LOG.error(upload_err)
         uploaded = False
