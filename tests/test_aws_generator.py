@@ -419,6 +419,18 @@ class TestEC2Generator(AWSGeneratorTestCase):
 
         self.assertEqual(row["lineItem/LineItemType"], "SavingsPlanNegation")
 
+    def test_update_data_ec2_negation(self):
+        """Test EC2 specific update data with Reserved Instances."""
+        self.instance_type = {"reserved_instance": True}
+        self.attributes["instance_type"] = self.instance_type
+        generator = EC2Generator(
+            self.two_hours_ago, self.now, self.currency, self.payer_account, self.usage_accounts, self.attributes
+        )
+        start_row = {}
+        row = generator._update_data(start_row, self.two_hours_ago, self.now)
+
+        self.assertEqual(row["lineItem/LineItemType"], "DiscountedUsage")
+
     def test_update_data(self):
         """Test EBS specific update data method."""
         generator = EC2Generator(
