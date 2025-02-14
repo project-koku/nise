@@ -25,7 +25,17 @@ class EC2Generator(AWSGenerator):
 
     INSTANCE_TYPES = (
         # NOTE: Each tuple represents
-        # (instance type, physical_cores, vCPUs, memory, storage, family, cost, rate, savings, description)
+        # (instance type,
+        # physical_cores,
+        # vCPUs,
+        # memory,
+        # storage,
+        # family,
+        # cost,
+        # rate,
+        # Reserved_instances,
+        # savings,
+        # description)
         (
             "m5.large",
             "1",
@@ -37,6 +47,7 @@ class EC2Generator(AWSGenerator):
             "0.096",
             "0.045",
             1,
+            False,
             False,
             "${cost} per On Demand Linux {inst_type} Instance Hour",
         ),
@@ -52,6 +63,7 @@ class EC2Generator(AWSGenerator):
             "0.17",
             1,
             False,
+            False,
             "${cost} per On Demand Linux {inst_type} Instance Hour",
         ),
         (
@@ -66,6 +78,7 @@ class EC2Generator(AWSGenerator):
             "0.099",
             1,
             False,
+            False,
             "${cost} per On Demand Linux {inst_type} Instance Hour",
         ),
         (
@@ -79,6 +92,7 @@ class EC2Generator(AWSGenerator):
             "0.133",
             "0.067",
             1,
+            False,
             False,
             "${cost} per On Demand Linux {inst_type} Instance Hour",
         ),
@@ -124,6 +138,7 @@ class EC2Generator(AWSGenerator):
                 instance_type.get("rate"),
                 instance_type.get("saving"),
                 instance_type.get("amount", "1"),
+                instance_type.get("reserved_instance", False),
                 instance_type.get("negation", False),
                 "${cost} per On Demand Linux {inst_type} Instance Hour",
             )
@@ -141,6 +156,7 @@ class EC2Generator(AWSGenerator):
             rate,
             saving,
             amount,
+            reserved_instance,
             negation,
             description,
         ) = self._instance_type
@@ -203,6 +219,18 @@ class EC2Generator(AWSGenerator):
         # Overwrite lineItem/LineItemType for items with applied Savings plan
         if saving is not None:
             row["lineItem/LineItemType"] = "SavingsPlanCoveredUsage"
+        # Overwrite lineitem/LineItemType for RI's discount usage
+        if reserved_instance:
+            row["lineItem/LineItemType"] = "DiscountedUsage"
+            row["lineItem/UnblendedCost"] = 0
+            row["lineItem/UnblendedRate"] = 0
+            row["lineItem/BlendedCost"] = 0
+            row["lineItem/BlendedRate"] = 0
+            row["lineItem/LineItemDescription"] = f"{inst_type} reserved instance applied"
+            row["pricing/publicOnDemandCost"] = "convertible"
+            row["pricing/publicOnDemandRate"] = "No Upfront"
+            row["savingsPlan/SavingsPlanEffectiveCost"] = None
+            row["savingsPlan/SavingsPlanRate"] = None
 
         if negation:
             row["lineItem/LineItemType"] = "SavingsPlanNegation"
