@@ -242,6 +242,14 @@ def add_gcp_parser_args(parser):
         dest="daily_report",
         help="GCP daily report activation",
     )
+
+    parser.add_argument(
+        "--gcp-daily-flow",
+        action="store_true",
+        required=False,
+        dest="gcp_daily_flow",
+        help="additional GCP day to day ingest",
+    )
     parser.add_argument(
         "-etag", "--gcp-etag", metavar="GCP_ETAG", dest="gcp_etag", required=False, help="The etag in the filename"
     )
