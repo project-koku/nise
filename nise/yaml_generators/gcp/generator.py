@@ -15,6 +15,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """Utility to generate koku-nise GCP yaml files."""
+
 import os
 import random
 from calendar import monthrange

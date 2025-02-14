@@ -15,6 +15,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """Module for OCI database data generation."""
+
 from random import choice
 
 from nise.generators.oci.oci_generator import OCIGenerator

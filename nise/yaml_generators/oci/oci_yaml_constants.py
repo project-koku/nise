@@ -15,7 +15,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """OCI Yaml File Constants"""
-import typing as t
+
 from dataclasses import dataclass
 
 from faker import Faker
@@ -37,7 +37,7 @@ class OCIYamlConstants:
 class OCITags:
     """OCI Tags"""
 
-    storage: t.Tuple[str] = ("tags/new-tags.tarnished-tags", "tags/orcl-cloud.free-tier-retained")
-    compute: t.Tuple[str] = ("tags/free-form-tag", "tags/orcl-cloud.free-tier-retained")
-    database: t.Tuple[str] = ("tags/free-form-tag",)
-    network: t.Tuple[str] = ("tags/free-form-tag",)
+    storage: tuple[str] = ("tags/new-tags.tarnished-tags", "tags/orcl-cloud.free-tier-retained")
+    compute: tuple[str] = ("tags/free-form-tag", "tags/orcl-cloud.free-tier-retained")
+    database: tuple[str] = ("tags/free-form-tag",)
+    network: tuple[str] = ("tags/free-form-tag",)

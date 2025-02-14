@@ -13,6 +13,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """Extracts OCP .gz payload to local directory."""
+
 import json
 import os
 import shutil
@@ -43,7 +44,7 @@ def month_date_range(for_date_time):
     start_month = for_date_time.replace(day=1, second=1, microsecond=1)
     end_month = start_month + relativedelta(months=+1)
     timeformat = "%Y%m%d"
-    return "{}-{}".format(start_month.strftime(timeformat), end_month.strftime(timeformat))
+    return f"{start_month.strftime(timeformat)}-{end_month.strftime(timeformat)}"
 
 
 def get_report_details(report_directory):
@@ -75,7 +76,7 @@ def get_report_details(report_directory):
             payload_dict = json.load(file)
             payload_dict["date"] = parser.parse(payload_dict["date"])
             payload_dict["manifest_path"] = manifest_path
-    except (OSError, IOError, KeyError):
+    except (OSError, KeyError):
         LOG.error("Unable to extract manifest data")
 
     return payload_dict
@@ -119,12 +120,12 @@ def extract_payload(base_path, payload_file):
         files = mytar.getnames()
         manifest_path = [manifest for manifest in files if "manifest.json" in manifest]
     except ReadError as error:
-        LOG.error("Unable to untar file. Reason: {}".format(str(error)))
+        LOG.error(f"Unable to untar file. Reason: {str(error)}")
         shutil.rmtree(temp_dir)
         return
 
     # Open manifest.json file and build the payload dictionary.
-    full_manifest_path = "{}/{}".format(temp_dir, manifest_path[0])
+    full_manifest_path = f"{temp_dir}/{manifest_path[0]}"
     report_meta = get_report_details(os.path.dirname(full_manifest_path))
 
     # Create directory tree for report.

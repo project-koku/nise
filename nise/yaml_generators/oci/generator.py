@@ -15,6 +15,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """Utility to generate koku-nise OCI yaml files."""
+
 import os
 from calendar import monthrange
 from datetime import date

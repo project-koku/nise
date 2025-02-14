@@ -15,6 +15,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """Module for azure data generators."""
+
 from nise.generators.azure.azure_generator import AZURE_COLUMNS_V2_RESOURCE_GROUP
 from nise.generators.azure.azure_generator import AZURE_COLUMNS_V2_SUBSCRIPTION
 from nise.generators.azure.azure_generator import AzureGenerator

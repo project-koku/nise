@@ -112,7 +112,7 @@ class MiscReportTestCase(TestCase):
 
     def test_write_manifest(self):
         """Test the writing of the manifest data."""
-        data = '[{"col1": "r1c1", "col2": "r1c2"},' '{"col1": "r2c1", "col2": "r2c2"}]'
+        data = '[{"col1": "r1c1", "col2": "r1c2"},{"col1": "r2c1", "col2": "r2c2"}]'
         manifest_path = _write_manifest(data)
         self.assertTrue(os.path.exists(manifest_path))
         os.remove(manifest_path)
@@ -185,28 +185,28 @@ class MiscReportTestCase(TestCase):
     def test_create_generator_for_dates_from_yaml_first_month(self):
         """Test that correct dates are generated on the first of the month"""
         previous_month = {
-            "start": datetime.datetime(2024, 2, 1, 0, 0, tzinfo=datetime.timezone.utc),
-            "end": datetime.datetime(2024, 3, 1, 0, 0, tzinfo=datetime.timezone.utc),
+            "start": datetime.datetime(2024, 2, 1, 0, 0, tzinfo=datetime.UTC),
+            "end": datetime.datetime(2024, 3, 1, 0, 0, tzinfo=datetime.UTC),
         }
         current_month = {
-            "start": datetime.datetime(2024, 3, 1, 0, 0, tzinfo=datetime.timezone.utc),
-            "end": datetime.datetime(2024, 4, 1, 0, 0, tzinfo=datetime.timezone.utc),
+            "start": datetime.datetime(2024, 3, 1, 0, 0, tzinfo=datetime.UTC),
+            "end": datetime.datetime(2024, 4, 1, 0, 0, tzinfo=datetime.UTC),
         }
 
         attributes = {
-            "start_date": datetime.datetime(2024, 2, 1, 0, 0, tzinfo=datetime.timezone.utc),
-            "end_date": datetime.datetime(2024, 3, 1, 23, 0, tzinfo=datetime.timezone.utc),
+            "start_date": datetime.datetime(2024, 2, 1, 0, 0, tzinfo=datetime.UTC),
+            "end_date": datetime.datetime(2024, 3, 1, 23, 0, tzinfo=datetime.UTC),
         }
 
         start_date_previous, end_date_previous = _create_generator_dates_from_yaml(attributes, previous_month)
 
-        self.assertEqual(start_date_previous, datetime.datetime(2024, 2, 1, 0, 0, tzinfo=datetime.timezone.utc))
-        self.assertEqual(end_date_previous, datetime.datetime(2024, 3, 1, 0, 0, tzinfo=datetime.timezone.utc))
+        self.assertEqual(start_date_previous, datetime.datetime(2024, 2, 1, 0, 0, tzinfo=datetime.UTC))
+        self.assertEqual(end_date_previous, datetime.datetime(2024, 3, 1, 0, 0, tzinfo=datetime.UTC))
 
         start_date_current, end_date_current = _create_generator_dates_from_yaml(attributes, current_month)
 
-        self.assertEqual(start_date_current, datetime.datetime(2024, 3, 1, 0, 0, tzinfo=datetime.timezone.utc))
-        self.assertEqual(end_date_current, datetime.datetime(2024, 3, 1, 23, 0, tzinfo=datetime.timezone.utc))
+        self.assertEqual(start_date_current, datetime.datetime(2024, 3, 1, 0, 0, tzinfo=datetime.UTC))
+        self.assertEqual(end_date_current, datetime.datetime(2024, 3, 1, 23, 0, tzinfo=datetime.UTC))
 
     def test_create_generator_for_dates_from_yaml_middle_month(self):
         """Test helper function for generating dates verifying the middle month in a 3 month range."""
@@ -235,10 +235,8 @@ class MiscReportTestCase(TestCase):
                 "expected_list": [
                     {
                         "name": "January",
-                        "start": datetime.datetime(year=2018, month=1, day=15, tzinfo=datetime.timezone.utc),
-                        "end": datetime.datetime(
-                            year=2018, month=1, day=30, hour=23, minute=59, tzinfo=datetime.timezone.utc
-                        ),
+                        "start": datetime.datetime(year=2018, month=1, day=15, tzinfo=datetime.UTC),
+                        "end": datetime.datetime(year=2018, month=1, day=30, hour=23, minute=59, tzinfo=datetime.UTC),
                     }
                 ],
             },
@@ -248,24 +246,18 @@ class MiscReportTestCase(TestCase):
                 "expected_list": [
                     {
                         "name": "November",
-                        "start": datetime.datetime(year=2018, month=11, day=15, tzinfo=datetime.timezone.utc),
-                        "end": datetime.datetime(
-                            year=2018, month=12, day=1, hour=0, minute=0, tzinfo=datetime.timezone.utc
-                        ),
+                        "start": datetime.datetime(year=2018, month=11, day=15, tzinfo=datetime.UTC),
+                        "end": datetime.datetime(year=2018, month=12, day=1, hour=0, minute=0, tzinfo=datetime.UTC),
                     },
                     {
                         "name": "December",
-                        "start": datetime.datetime(year=2018, month=12, day=1, tzinfo=datetime.timezone.utc),
-                        "end": datetime.datetime(
-                            year=2019, month=1, day=1, hour=0, minute=0, tzinfo=datetime.timezone.utc
-                        ),
+                        "start": datetime.datetime(year=2018, month=12, day=1, tzinfo=datetime.UTC),
+                        "end": datetime.datetime(year=2019, month=1, day=1, hour=0, minute=0, tzinfo=datetime.UTC),
                     },
                     {
                         "name": "January",
-                        "start": datetime.datetime(year=2019, month=1, day=1, tzinfo=datetime.timezone.utc),
-                        "end": datetime.datetime(
-                            year=2019, month=1, day=5, hour=23, minute=59, tzinfo=datetime.timezone.utc
-                        ),
+                        "start": datetime.datetime(year=2019, month=1, day=1, tzinfo=datetime.UTC),
+                        "end": datetime.datetime(year=2019, month=1, day=5, hour=23, minute=59, tzinfo=datetime.UTC),
                     },
                 ],
             },
@@ -275,17 +267,13 @@ class MiscReportTestCase(TestCase):
                 "expected_list": [
                     {
                         "name": "June",
-                        "start": datetime.datetime(year=2021, month=6, day=1, tzinfo=datetime.timezone.utc),
-                        "end": datetime.datetime(
-                            year=2021, month=7, day=1, hour=0, minute=0, tzinfo=datetime.timezone.utc
-                        ),
+                        "start": datetime.datetime(year=2021, month=6, day=1, tzinfo=datetime.UTC),
+                        "end": datetime.datetime(year=2021, month=7, day=1, hour=0, minute=0, tzinfo=datetime.UTC),
                     },
                     {
                         "name": "July",
-                        "start": datetime.datetime(year=2021, month=7, day=1, tzinfo=datetime.timezone.utc),
-                        "end": datetime.datetime(
-                            year=2021, month=7, day=29, hour=0, minute=0, tzinfo=datetime.timezone.utc
-                        ),
+                        "start": datetime.datetime(year=2021, month=7, day=1, tzinfo=datetime.UTC),
+                        "end": datetime.datetime(year=2021, month=7, day=29, hour=0, minute=0, tzinfo=datetime.UTC),
                     },
                 ],
             },
@@ -313,12 +301,8 @@ class MiscReportTestCase(TestCase):
                 "expected_list": [
                     {
                         "name": "July",
-                        "start": datetime.datetime(
-                            year=2023, month=7, day=31, hour=1, minute=0, tzinfo=datetime.timezone.utc
-                        ),
-                        "end": datetime.datetime(
-                            year=2023, month=8, day=1, hour=0, minute=0, tzinfo=datetime.timezone.utc
-                        ),
+                        "start": datetime.datetime(year=2023, month=7, day=31, hour=1, minute=0, tzinfo=datetime.UTC),
+                        "end": datetime.datetime(year=2023, month=8, day=1, hour=0, minute=0, tzinfo=datetime.UTC),
                     },
                     # {
                     #     "name": "August",
@@ -478,7 +462,7 @@ class AWSReportTestCase(TestCase):
         )
 
         month_output_file_name = "{}-{}-{}".format(calendar.month_name[now.month], now.year, "cur_report")
-        expected_month_output_file = "{}/{}.csv".format(os.getcwd(), month_output_file_name)
+        expected_month_output_file = f"{os.getcwd()}/{month_output_file_name}.csv"
         self.assertTrue(os.path.isfile(expected_month_output_file))
         os.remove(expected_month_output_file)
 
@@ -499,7 +483,7 @@ class AWSReportTestCase(TestCase):
         fix_dates(options, "aws")
         aws_create_report(options)
         month_output_file_name = "{}-{}-{}".format(calendar.month_name[now.month], now.year, "cur_report")
-        expected_month_output_file = "{}/{}.csv".format(os.getcwd(), month_output_file_name)
+        expected_month_output_file = f"{os.getcwd()}/{month_output_file_name}.csv"
         self.assertTrue(os.path.isfile(expected_month_output_file))
         os.remove(expected_month_output_file)
 
@@ -519,7 +503,7 @@ class AWSReportTestCase(TestCase):
         fix_dates(options, "aws")
         aws_create_report(options)
         month_output_file_name = "{}-{}-{}".format(calendar.month_name[now.month], now.year, "cur_report")
-        expected_month_output_file = "{}/{}.csv".format(os.getcwd(), month_output_file_name)
+        expected_month_output_file = f"{os.getcwd()}/{month_output_file_name}.csv"
         self.assertTrue(os.path.isfile(expected_month_output_file))
         os.remove(expected_month_output_file)
         shutil.rmtree(local_bucket_path)
@@ -541,7 +525,7 @@ class AWSReportTestCase(TestCase):
         fix_dates(options, "aws")
         aws_create_report(options)
         month_output_file_name = "{}-{}-{}".format(calendar.month_name[now.month], now.year, "cur_report")
-        expected_month_output_file = "{}/{}.csv".format(os.getcwd(), month_output_file_name)
+        expected_month_output_file = f"{os.getcwd()}/{month_output_file_name}.csv"
         self.assertTrue(os.path.isfile(expected_month_output_file))
         os.remove(expected_month_output_file)
         shutil.rmtree(local_bucket_path)
@@ -560,20 +544,18 @@ class AWSReportTestCase(TestCase):
                 "write_monthly": True,
             }
         )
-        month_output_file_name = "{}-{}-{}".format(
-            calendar.month_name[start_date.month], start_date.year, "cur_report"
-        )
+        month_output_file_name = "{}-{}-{}".format(calendar.month_name[start_date.month], start_date.year, "cur_report")
         finalized_file_name = f"{month_output_file_name}-finalized"
-        expected_month_output_file = "{}/{}.csv".format(os.getcwd(), month_output_file_name)
-        expected_finalized_file = "{}/{}.csv".format(os.getcwd(), finalized_file_name)
+        expected_month_output_file = f"{os.getcwd()}/{month_output_file_name}.csv"
+        expected_finalized_file = f"{os.getcwd()}/{finalized_file_name}.csv"
         self.assertTrue(os.path.isfile(expected_month_output_file))
         self.assertTrue(os.path.isfile(expected_finalized_file))
-        with open(expected_month_output_file, "r") as f:
+        with open(expected_month_output_file) as f:
             reader = csv.DictReader(f)
             row = next(reader)
             self.assertEqual(row["bill/InvoiceId"], "")
 
-        with open(expected_finalized_file, "r") as f:
+        with open(expected_finalized_file) as f:
             reader = csv.DictReader(f)
             row = next(reader)
             self.assertNotEqual(row["bill/InvoiceId"], "")
@@ -595,13 +577,11 @@ class AWSReportTestCase(TestCase):
             }
         )
 
-        month_output_file_name = "{}-{}-{}".format(
-            calendar.month_name[start_date.month], start_date.year, "cur_report"
-        )
-        expected_month_output_file = "{}/{}.csv".format(os.getcwd(), month_output_file_name)
+        month_output_file_name = "{}-{}-{}".format(calendar.month_name[start_date.month], start_date.year, "cur_report")
+        expected_month_output_file = f"{os.getcwd()}/{month_output_file_name}.csv"
         self.assertTrue(os.path.isfile(expected_month_output_file))
 
-        with open(expected_month_output_file, "r") as f:
+        with open(expected_month_output_file) as f:
             reader = csv.DictReader(f)
             row = next(reader)
             self.assertNotEqual(row["bill/InvoiceId"], "")
@@ -680,7 +660,7 @@ class AWSReportTestCase(TestCase):
         fix_dates(options, "aws")
         aws_create_report(options)
         month_output_file_name = "{}-{}-{}".format(calendar.month_name[now.month], now.year, "cur_report")
-        expected_month_output_file = "{}/{}.csv".format(os.getcwd(), month_output_file_name)
+        expected_month_output_file = f"{os.getcwd()}/{month_output_file_name}.csv"
         self.assertTrue(os.path.isfile(expected_month_output_file))
         os.remove(expected_month_output_file)
         shutil.rmtree(local_bucket_path)
@@ -720,7 +700,7 @@ class AWSReportTestCase(TestCase):
         aws_create_report({"start_date": yesterday, "end_date": now, "aws_report_name": "cur_report"})
 
         month_output_file_name = "{}-{}-{}".format(calendar.month_name[now.month], now.year, "cur_report")
-        expected_month_output_file = "{}/{}.csv".format(os.getcwd(), month_output_file_name)
+        expected_month_output_file = f"{os.getcwd()}/{month_output_file_name}.csv"
         self.assertFalse(os.path.isfile(expected_month_output_file))
 
     def test_aws_create_report_with_local_dir_static_generation_multi_file(self):
@@ -834,7 +814,7 @@ class AWSMarketplaceReportTestCase(TestCase):
         month_output_file_name = "{}-{}-{}-{}".format(
             calendar.month_name[now.month], now.year, "cur_report", "marketplace"
         )
-        expected_month_output_file = "{}/{}.csv".format(os.getcwd(), month_output_file_name)
+        expected_month_output_file = f"{os.getcwd()}/{month_output_file_name}.csv"
 
         self.assertTrue(os.path.isfile(expected_month_output_file))
         os.remove(expected_month_output_file)
@@ -857,7 +837,7 @@ class AWSMarketplaceReportTestCase(TestCase):
         month_output_file_name = "{}-{}-{}-{}".format(
             calendar.month_name[now.month], now.year, "cur_report", "marketplace"
         )
-        expected_month_output_file = "{}/{}.csv".format(os.getcwd(), month_output_file_name)
+        expected_month_output_file = f"{os.getcwd()}/{month_output_file_name}.csv"
 
         self.assertTrue(os.path.isfile(expected_month_output_file))
         os.remove(expected_month_output_file)
@@ -879,7 +859,7 @@ class AWSMarketplaceReportTestCase(TestCase):
         month_output_file_name = "{}-{}-{}-{}".format(
             calendar.month_name[now.month], now.year, "cur_report", "marketplace"
         )
-        expected_month_output_file = "{}/{}.csv".format(os.getcwd(), month_output_file_name)
+        expected_month_output_file = f"{os.getcwd()}/{month_output_file_name}.csv"
 
         self.assertTrue(os.path.isfile(expected_month_output_file))
         os.remove(expected_month_output_file)
@@ -903,7 +883,7 @@ class AWSMarketplaceReportTestCase(TestCase):
         month_output_file_name = "{}-{}-{}-{}".format(
             calendar.month_name[now.month], now.year, "cur_report", "marketplace"
         )
-        expected_month_output_file = "{}/{}.csv".format(os.getcwd(), month_output_file_name)
+        expected_month_output_file = f"{os.getcwd()}/{month_output_file_name}.csv"
         self.assertTrue(os.path.isfile(expected_month_output_file))
         os.remove(expected_month_output_file)
         shutil.rmtree(local_bucket_path)
@@ -922,13 +902,11 @@ class AWSMarketplaceReportTestCase(TestCase):
             }
         )
 
-        month_output_file_name = "{}-{}-{}".format(
-            calendar.month_name[start_date.month], start_date.year, "cur_report"
-        )
+        month_output_file_name = "{}-{}-{}".format(calendar.month_name[start_date.month], start_date.year, "cur_report")
         expected_month_output_file = "{}/{}-{}.csv".format(os.getcwd(), month_output_file_name, "marketplace")
         self.assertTrue(os.path.isfile(expected_month_output_file))
 
-        with open(expected_month_output_file, "r") as f:
+        with open(expected_month_output_file) as f:
             reader = csv.DictReader(f)
             row = next(reader)
             self.assertNotEqual(row["bill/InvoiceId"], "")
@@ -945,7 +923,7 @@ class AWSMarketplaceReportTestCase(TestCase):
         month_output_file_name = "{}-{}-{}-{}".format(
             calendar.month_name[now.month], now.year, "cur_report", "marketplace"
         )
-        expected_month_output_file = "{}/{}.csv".format(os.getcwd(), month_output_file_name)
+        expected_month_output_file = f"{os.getcwd()}/{month_output_file_name}.csv"
         self.assertFalse(os.path.isfile(expected_month_output_file))
 
 
@@ -1199,10 +1177,8 @@ class OCPReportTestCase(TestCase):
         for report_type in OCP_REPORT_TYPE_TO_COLS.keys():
             if "ocp_ros_usage" == report_type:
                 continue
-            month_output_file_name = "{}-{}-{}-{}".format(
-                calendar.month_name[now.month], now.year, cluster_id, report_type
-            )
-            expected_month_output_file = "{}/{}.csv".format(os.getcwd(), month_output_file_name)
+            month_output_file_name = f"{calendar.month_name[now.month]}-{now.year}-{cluster_id}-{report_type}"
+            expected_month_output_file = f"{os.getcwd()}/{month_output_file_name}.csv"
             self.assertTrue(os.path.isfile(expected_month_output_file))
             os.remove(expected_month_output_file)
 
@@ -1240,10 +1216,8 @@ class OCPReportTestCase(TestCase):
         fix_dates(options, "ocp")
         ocp_create_report(options)
         for report_type in OCP_REPORT_TYPE_TO_COLS.keys():
-            month_output_file_name = "{}-{}-{}-{}".format(
-                calendar.month_name[now.month], now.year, cluster_id, report_type
-            )
-            expected_month_output_file = "{}/{}.csv".format(os.getcwd(), month_output_file_name)
+            month_output_file_name = f"{calendar.month_name[now.month]}-{now.year}-{cluster_id}-{report_type}"
+            expected_month_output_file = f"{os.getcwd()}/{month_output_file_name}.csv"
             self.assertFalse(os.path.isfile(expected_month_output_file))
 
     def test_ocp_create_report_with_local_dir_static_generation_multi_file(self):
@@ -1354,14 +1328,14 @@ class AzureReportTestCase(TestCase):
 
     def setUp(self):
         """Setup shared variables for AzureReportTestCase."""
-        self.MOCK_AZURE_REPORT_FILENAME = "{}/costreport_12345678-1234-5678-1234-567812345678.csv".format(os.getcwd())
+        self.MOCK_AZURE_REPORT_FILENAME = f"{os.getcwd()}/costreport_12345678-1234-5678-1234-567812345678.csv"
 
     @staticmethod
     def mock_generate_azure_filename():
         """Create a fake azure filename."""
         fake_uuid = "12345678-1234-5678-1234-567812345678"
         output_file_name = "{}_{}".format("costreport", fake_uuid)
-        local_path = "{}/{}.csv".format(os.getcwd(), output_file_name)
+        local_path = f"{os.getcwd()}/{output_file_name}.csv"
         output_file_name = output_file_name + ".csv"
         return local_path, output_file_name
 
@@ -1516,7 +1490,7 @@ class GCPReportTestCase(TestCase):
         fix_dates(options, "gcp")
         gcp_create_report(options)
         output_file_name = f"{report_prefix}.csv"
-        expected_output_file_path = "{}/{}".format(os.getcwd(), output_file_name)
+        expected_output_file_path = f"{os.getcwd()}/{output_file_name}"
 
         self.assertTrue(os.path.isfile(expected_output_file_path))
         os.remove(expected_output_file_path)
@@ -1538,7 +1512,7 @@ class GCPReportTestCase(TestCase):
         fix_dates(options, "gcp")
         gcp_create_report(options)
         output_file_name = f"{report_prefix}.json"
-        expected_output_file_path = "{}/{}".format(os.getcwd(), output_file_name)
+        expected_output_file_path = f"{os.getcwd()}/{output_file_name}"
 
         self.assertTrue(os.path.isfile(expected_output_file_path))
         os.remove(expected_output_file_path)
@@ -1562,7 +1536,7 @@ class GCPReportTestCase(TestCase):
         fix_dates(options, "gcp")
         gcp_create_report(options)
         output_file_name = f"{report_prefix}.json"
-        expected_output_file_path = "{}/{}".format(os.getcwd(), output_file_name)
+        expected_output_file_path = f"{os.getcwd()}/{output_file_name}"
 
         self.assertTrue(os.path.isfile(expected_output_file_path))
         os.remove(expected_output_file_path)
@@ -1589,7 +1563,7 @@ class GCPReportTestCase(TestCase):
         scan_start = yesterday.date()
         scan_end = now.date()
         output_file_name = f"{invoice_month}_{etag}_{scan_start}:{scan_end}.json"
-        expected_output_file_path = "{}/{}".format(os.getcwd(), output_file_name)
+        expected_output_file_path = f"{os.getcwd()}/{output_file_name}"
         self.assertTrue(os.path.isfile(expected_output_file_path))
         os.remove(expected_output_file_path)
 
@@ -1606,7 +1580,7 @@ class GCPReportTestCase(TestCase):
         scan_start = yesterday.date()
         scan_end = now.date()
         expected_file_name = f"{invoice_month}_{patch_etag.return_value}_{scan_start}:{scan_end}.csv"
-        expected_output_file_path = "{}/{}".format(os.getcwd(), expected_file_name)
+        expected_output_file_path = f"{os.getcwd()}/{expected_file_name}"
         self.assertTrue(os.path.isfile(expected_output_file_path))
         os.remove(expected_output_file_path)
 
@@ -1645,7 +1619,7 @@ class GCPReportTestCase(TestCase):
         fix_dates(options, "gcp")
         gcp_create_report(options)
         output_file_name = "{}-{}.csv".format(report_prefix, yesterday.strftime("%Y-%m-%d"))
-        expected_output_file_path = "{}/{}".format(os.getcwd(), output_file_name)
+        expected_output_file_path = f"{os.getcwd()}/{output_file_name}"
 
         self.assertFalse(os.path.isfile(expected_output_file_path))
 
@@ -1663,7 +1637,7 @@ class GCPReportTestCase(TestCase):
         fix_dates(options, "gcp")
         gcp_create_report(options)
         output_file_name = "{}-{}.csv".format(report_prefix, yesterday.strftime("%Y-%m-%d"))
-        expected_output_file_path = "{}/{}".format(os.getcwd(), output_file_name)
+        expected_output_file_path = f"{os.getcwd()}/{output_file_name}"
 
         self.assertFalse(os.path.isfile(expected_output_file_path))
 
@@ -1717,7 +1691,7 @@ class GCPReportTestCase(TestCase):
         fix_dates(options, "gcp")
         gcp_create_report(options)
         output_file_name = f"{report_prefix}.json"
-        expected_output_file_path = "{}/{}".format(os.getcwd(), output_file_name)
+        expected_output_file_path = f"{os.getcwd()}/{output_file_name}"
 
         self.assertTrue(os.path.isfile(expected_output_file_path))
         os.remove(expected_output_file_path)
@@ -1769,7 +1743,7 @@ class GCPReportTestCase(TestCase):
         fix_dates(options, "gcp")
         gcp_create_report(options)
         output_file_name = f"{report_prefix}.csv"
-        expected_output_file_path = "{}/{}".format(os.getcwd(), output_file_name)
+        expected_output_file_path = f"{os.getcwd()}/{output_file_name}"
 
         self.assertTrue(os.path.isfile(expected_output_file_path))
         os.remove(expected_output_file_path)
@@ -1783,7 +1757,7 @@ class GCPReportTestCase(TestCase):
         data = [{"resource.name": "Baked", "resource.global_name": "Beans"}]
         write_gcp_file(yesterday, now, data, {"gcp_report_prefix": report_prefix, "gcp_resource_level": True})
         output_file_name = "{}-{}.csv".format(report_prefix, yesterday.strftime("%Y-%m-%d"))
-        expected_output_file_path = "{}/{}".format(os.getcwd(), output_file_name)
+        expected_output_file_path = f"{os.getcwd()}/{output_file_name}"
 
         self.assertFalse(os.path.isfile(expected_output_file_path))
 

@@ -14,6 +14,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """Utility to generate koku-nise OCP yaml files."""
+
 import os
 from calendar import monthrange
 from datetime import date
@@ -108,9 +109,7 @@ class OCPGenerator(Generator):
         """
         LOG.info("Data build starting")
 
-        data = dicta(
-            start_date=str(config.start_date), end_date=str(config.end_date), nodes=[], resourceid_labels=None
-        )
+        data = dicta(start_date=str(config.start_date), end_date=str(config.end_date), nodes=[], resourceid_labels=None)
         resourceid_labels = {}
 
         if _random:

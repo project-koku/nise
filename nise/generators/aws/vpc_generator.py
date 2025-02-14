@@ -15,6 +15,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """Module for vpc data generation."""
+
 from nise.generators.aws.aws_generator import AWSGenerator
 
 
@@ -24,7 +25,7 @@ class VPCGenerator(AWSGenerator):
     def __init__(self, start_date, end_date, currency, payer_account, usage_accounts, attributes=None, tag_cols=None):
         """Initialize the VPC generator."""
         super().__init__(start_date, end_date, currency, payer_account, usage_accounts, attributes, tag_cols)
-        self._resource_id = "vpn-{}".format(self.fake.ean8())
+        self._resource_id = f"vpn-{self.fake.ean8()}"
         self._product_sku = self.fake.pystr(min_chars=12, max_chars=12).upper()
         self._rate = None
         self._cost = None

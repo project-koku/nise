@@ -15,6 +15,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """Utility functions."""
+
 from collections import abc
 
 import yaml
@@ -37,7 +38,7 @@ def load_yaml(objekt):
     try:
         with open(objekt, "r+") as yaml_file:
             yamlfile = yaml.safe_load(yaml_file)
-    except (TypeError, OSError, IOError):
+    except (TypeError, OSError):
         yamlfile = yaml.safe_load(objekt)
     return yamlfile
 
