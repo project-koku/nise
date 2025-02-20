@@ -182,6 +182,20 @@ class UploadTestCase(TestCase):
 
         self.assertTrue(uploaded)
 
+    @patch.dict(os.environ, {"GOOGLE_APPLICATION_CREDENTIALS": "/path/to/creds"})
+    @patch("nise.upload.bigquery")
+    @patch("nise.upload.storage")
+    def test_gcp_w_daily_flow_bucket_to_dataset(self):
+        """Test creation of bigquery dataset from file in gcp storage"""
+        bucket_name = fake.slug()
+        local_path = fake.file_path()
+        dataset_name = fake.slug()
+        table_name = fake.slug()
+
+        uploaded = gcp_bucket_to_dataset(bucket_name, local_path, dataset_name, table_name, gcp_daily_flow=True)
+
+        self.assertTrue(uploaded)
+
     def test_gcp_dataset_fail_no_credentials(self):
         """Test bucket_to_dataset method fails with no credentials."""
         bucket_name = fake.slug()
