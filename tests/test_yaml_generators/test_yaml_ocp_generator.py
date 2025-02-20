@@ -175,7 +175,7 @@ class OCPGeneratorTestCase(TestCase):
 
         test_template_file_name = os.path.join(FILE_DIR, "test_yaml_generator_template.yml.j2")
         test_config_file_name = os.path.join(FILE_DIR, "test_yaml_generator_config.yml")
-        with open(test_config_file_name, "rt") as settings_file:
+        with open(test_config_file_name) as settings_file:
             config_file_data = yaml.safe_load(settings_file)
 
         args = argparse.Namespace()
@@ -201,7 +201,7 @@ class OCPGeneratorTestCase(TestCase):
 
         test_template_file_name = os.path.join(FILE_DIR, "test_yaml_generator_template.yml.j2")
         test_config_file_name = os.path.join(FILE_DIR, "test_yaml_generator_config.yml")
-        with open(test_config_file_name, "rt") as settings_file:
+        with open(test_config_file_name) as settings_file:
             config_file_data = yaml.safe_load(settings_file)
         config_file_data.pop("start_date")
         config_file_data.pop("end_date")

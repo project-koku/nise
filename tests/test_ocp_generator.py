@@ -15,6 +15,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """OCP Generator Unit Tests."""
+
 import random
 from copy import copy
 from datetime import datetime
@@ -612,9 +613,7 @@ class OCPGeneratorTestCase(TestCase):
                 with self.subTest(x=x):
                     self.assertLessEqual(out_row.get(f"pod_usage_{x}_seconds"), out_row.get(f"pod_limit_{x}_seconds"))
                     self.assertLessEqual(out_row.get(f"pod_usage_{x}_seconds"), out_row.get(f"pod_limit_{x}_seconds"))
-                    self.assertLessEqual(
-                        out_row.get(f"pod_request_{x}_seconds"), out_row.get(f"pod_limit_{x}_seconds")
-                    )
+                    self.assertLessEqual(out_row.get(f"pod_request_{x}_seconds"), out_row.get(f"pod_limit_{x}_seconds"))
 
     def test_update_storage_data(self):
         """Test that _update_storage_data updates storage data."""

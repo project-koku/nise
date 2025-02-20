@@ -15,6 +15,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """Module for azure bandwidth data generation."""
+
 from nise.generators.azure.virtual_machine_generator import VMGenerator
 
 

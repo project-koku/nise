@@ -15,6 +15,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """Defines the abstract generator."""
+
 import datetime
 from abc import abstractmethod
 from random import choice
@@ -173,7 +174,8 @@ PRICING_COLS = (
     "pricing/RateCode",
     "pricing/RateId",
     "pricing/currency",
-    "pricing/OfferingClass" "pricing/PurchaseOption",
+    "pricing/OfferingClass",
+    "pricing/PurchaseOption",
     "pricing/publicOnDemandCost",
     "pricing/publicOnDemandRate",
     "pricing/term",

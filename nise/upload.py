@@ -15,8 +15,8 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """Defines the upload mechanism to various clouds."""
+
 import gzip
-import io
 import os
 import shutil
 import sys
@@ -84,7 +84,7 @@ def upload_to_azure_container(storage_file_name, local_path, storage_file_path):
         with open(local_path, "rb") as data:
             blob_client.upload_blob(data=data)
         LOG.info(f"uploaded {storage_file_name} to {storage_file_path}")
-    except (ServiceRequestError, ServiceResponseError, IOError) as error:
+    except (OSError, ServiceRequestError, ServiceResponseError) as error:
         LOG.error(error)
         traceback.print_exc(file=sys.stderr)
         return False
@@ -150,8 +150,7 @@ def gcp_bucket_to_dataset(
 
     if "GOOGLE_APPLICATION_CREDENTIALS" not in os.environ:
         LOG.warning(
-            "Please set your GOOGLE_APPLICATION_CREDENTIALS "
-            "environment variable before attempting to create a dataset."
+            "Please set your GOOGLE_APPLICATION_CREDENTIALS environment variable before attempting to create a dataset."
         )
         return False
     try:
@@ -399,7 +398,7 @@ def upload_to_oci_bucket(bucket_name, report_type, file_name):
             namespace,
             bucket_name,
             upload_file_name,
-            io.open(zipped_file.name, "rb"),
+            open(zipped_file.name, "rb"),
         )
 
         LOG.info(f"File {upload_file_name} uploaded to OCI Storage {bucket_name} bucket.")

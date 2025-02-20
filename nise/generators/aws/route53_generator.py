@@ -15,6 +15,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """Module for route 53 data generation."""
+
 from random import choices
 
 from nise.generators.aws.aws_generator import AWSGenerator

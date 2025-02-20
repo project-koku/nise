@@ -15,6 +15,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """Module for azure bandwidth data generation."""
+
 from random import choice
 
 from nise.generators.azure.azure_generator import AzureGenerator
@@ -75,7 +76,5 @@ class DTGenerator(AzureGenerator):
             if self._data_direction:
                 self._meter_cache[f"{meter_id}_{self._data_direction}"] = service_meter.get(self._data_direction)
             else:
-                self._meter_cache[f"{meter_id}_{self._data_direction}"] = service_meter.get(
-                    choice(list(service_meter))
-                )
+                self._meter_cache[f"{meter_id}_{self._data_direction}"] = service_meter.get(choice(list(service_meter)))
         return self._meter_cache.get(f"{meter_id}_{self._data_direction}")

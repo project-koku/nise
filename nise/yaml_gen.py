@@ -15,6 +15,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """YAML File Generator."""
+
 import argparse
 import os
 from datetime import datetime

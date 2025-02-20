@@ -15,6 +15,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """Module for marketplace data generation."""
+
 import string
 from random import choice
 from random import uniform
@@ -40,7 +41,7 @@ class MarketplaceGenerator(AWSGenerator):
 
         self._amount = uniform(0.2, 300.99)
         self._rate = round(uniform(0.02, 0.16), 3)
-        self._resource_id = "i-{}".format(self.fake.ean8())
+        self._resource_id = f"i-{self.fake.ean8()}"
         self._product_sku = self.fake.pystr(min_chars=12, max_chars=12).upper()
 
         if self.attributes:

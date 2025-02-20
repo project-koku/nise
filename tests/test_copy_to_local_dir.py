@@ -20,7 +20,7 @@ from tempfile import mkdtemp
 from tempfile import NamedTemporaryFile
 from unittest import TestCase
 
-from nise.copy import copy_to_local_dir
+from nise.copy_to_local_dir import copy_to_local_dir
 
 
 class CopyTestCase(TestCase):
