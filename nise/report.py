@@ -1207,6 +1207,7 @@ def _gcp_bigquery_process(
     start_date, end_date, currency, projects, generators, options, gcp_bucket_name, gcp_dataset_name, gcp_table_name
 ):
     resource_level = options.get("gcp_resource_level", False)
+    gcp_daily_flow = options.get("gcp_daily_flow", False)
     data = []
     for project in projects:
         num_gens = len(generators)
@@ -1240,7 +1241,14 @@ def _gcp_bigquery_process(
             gcp_table_name = f"gcp_billing_export_resource_{etag}"
         else:
             gcp_table_name = f"gcp_billing_export_{etag}"
-    gcp_bucket_to_dataset(gcp_bucket_name, output_file_name, gcp_dataset_name, gcp_table_name, resource_level)
+    gcp_bucket_to_dataset(
+        gcp_bucket_name,
+        output_file_name,
+        gcp_dataset_name,
+        gcp_table_name,
+        resource_level,
+        gcp_daily_flow=gcp_daily_flow,
+    )
 
     return monthly_files
 
