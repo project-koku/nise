@@ -316,8 +316,9 @@ class OCPGenerator(AbstractGenerator):
         for node in nodes:
             if node.get("namespaces"):
                 for name, _ in node.get("namespaces").items():
-                    namespace = name
-                    namespaces[namespace] = node
+                    for i in range(2500):  # TODO PERF_NOTE: update this - number of replicas for each namespace
+                        namespace = f"{name}_perf_{i}"
+                        namespaces[namespace] = node
             else:
                 num_namespaces = randint(2, 12)
                 for _ in range(num_namespaces):
@@ -370,9 +371,10 @@ class OCPGenerator(AbstractGenerator):
         for namespace, node in namespaces.items():
             namespace2pod[namespace] = []
             if node.get("namespaces"):
-                specified_pods = node.get("namespaces").get(namespace).get("pods") or []
+                orig_namespace, perf_suffix = namespace.split("_perf_")
+                specified_pods = node.get("namespaces").get(orig_namespace).get("pods") or []
                 for specified_pod in specified_pods:
-                    pod = specified_pod.get("pod_name", self.fake.word())
+                    pod = f"{specified_pod.get('pod_name', self.fake.word())}_{perf_suffix}"
                     namespace2pod[namespace].append(pod)
                     cpu_cores = node.get("cpu_cores")
                     memory_bytes = node.get("memory_bytes")
@@ -555,7 +557,8 @@ class OCPGenerator(AbstractGenerator):
                 )
             )
             if node.get("namespaces"):
-                specified_volumes = node.get("namespaces").get(namespace).get("volumes", [])
+                orig_namespace = namespace.split("_perf_")[0]
+                specified_volumes = node.get("namespaces").get(orig_namespace).get("volumes", [])
                 for specified_volume in specified_volumes:
                     volume = specified_volume.get("volume_name", self.fake.word())
                     volume_request_gig = specified_volume.get("volume_request_gig")
