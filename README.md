@@ -73,27 +73,28 @@ To run pre-commit checks:
 
 #### Publishing
 
-Please remember to sync your updated dependecies to setup.py with :
-
-    pipenv-setup sync -p
-
-After that, make sure to increment the version in setup.py. As soon as your PR is merged to main, a new koku-nise package will built, tagged, and deployed to PyPI.
+Increment the version in `setup.py`. As soon as your PR is merged to main, a new `koku-nise` package will built, tagged, and deployed to PyPI.
 
 ##### Finer Publishing Details
 
-All of the deployment is driven entirely by a Github Action workflow, so if issues ever crop up, start in `publish-to-pypi.yml`. When a branch is merged into main, the Action will kick off. There are three things that must happen before a deployment is successful, a successful artifact build, dependencies verified in sync between the requirements files, and setup.py, and the tag must not yet exist in git. The dependency syncing/verification is done with the [pipenv-setup](https://github.com/Madoshakalaka/pipenv-setup) tool. After the artifact is deployed, it\'ll be available at [PyPI](https://pypi.org/project/koku-nise/#history).
+All of the deployment is driven entirely by a Github Action workflow, so if issues ever crop up, start in `publish-to-pypi.yml`. When a branch is merged into `main`, the Action will kick off. There are two things that must happen before a deployment is successful:
+
+1. A successful artifact build
+2. The tag must not yet exist in `git`.
+
+After the artifact is deployed, it'll be available at [PyPI](https://pypi.org/project/koku-nise/#history).
 
 #### Nise, Koku, and IQE Integration
 
-The iqe tests use nise to generate mock data; therefore, we need to ensure that our nise changes do not break the iqe tests. To do this you will need to copy `.env.example` to `.env` and customize as necessary. After the `.env` file is configured you will then need to run
+The IQE tests use nise to generate mock data; therefore, we need to ensure that our nise changes do not break the IQE tests. To do this you will need to copy `.env.example` to `.env` and customize as necessary. After the `.env` file is configured you will then need to run
 
     make run-iqe
 
-The `make run-iqe` command by default will run the smoke tests. However, if you want to run a specific iqe test command you can pass it in through the `IQE_CMD` parameter
+The `make run-iqe` command by default will run the smoke tests. However, if you want to run a specific IQE test command you can pass it in through the `IQE_CMD` parameter
 
     make run-iqe IQE_CMD='iqe tests plugin hccm -k test_api_aws_provider_create_foo_resource_name'
 
-### Prereqs
+### Prerequisites
 
 - AWS population requires prior setup of AWS Cost and Usage Report of same name to be created, as well as associated Bucket, Policy, Role, etc.
 
