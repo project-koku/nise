@@ -23,7 +23,7 @@ jobs:
       - name: Install dependencies
         run: |
           python3 -m pip install --upgrade pip
-          python3 -m pip install pipenv-setup setuptools wheel twine chardet vistir==0.6.1 -c requirements/build-constraints.txt
+          python3 -m pip install setuptools wheel twine chardet vistir==0.6.1 -c requirements/build-constraints.txt
 
       - name: Build and publish
         env:
@@ -35,9 +35,6 @@ jobs:
           VERSION=$(python setup.py --version)
           if [ ! -z $(git tag -l "${VERSION}") ]; then
             echo "Tag already exists, doing nothing";
-            exit_code=1
-          elif [ -z "$(pipenv-setup check)" ]; then
-            echo "setup.py out of sync with Pipfile"
             exit_code=1
           else
             echo "Creating tag ${VERSION}";
