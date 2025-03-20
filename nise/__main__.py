@@ -372,6 +372,15 @@ def create_parser():
         help="Writes the monthly files.",
     )
 
+    parent_parser.add_argument(
+        "--resource-replicas",
+        dest="resource_replicas",
+        required=False,
+        type=int,
+        default=1,
+        help="Num. of times to replicate each resource",
+    )
+
     report_subparser = report_parser.add_subparsers(dest="provider")
     aws_parser = report_subparser.add_parser(
         "aws", parents=[parent_parser], add_help=False, description="The AWS parser", help="create the AWS reports"

@@ -17,7 +17,8 @@
 """Utility functions."""
 
 from collections import abc
-
+import random
+import uuid
 import yaml
 
 from .log import LOG  # noqa: F401
@@ -56,3 +57,8 @@ def deepupdate(original, update):
         else:
             original[key] = value
     return original
+
+def pseudo_random_uuid(rand_seed):
+    """ Generate pseudo-random uuid """
+    random.seed(rand_seed)
+    return uuid.UUID(int=random.getrandbits(128), version=4)
