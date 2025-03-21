@@ -667,9 +667,9 @@ def aws_create_report(options):  # noqa: C901
                 if attributes and attributes.get("resource_id"):
                     if num_instances > 1:
                         id_suffix = pseudo_random_uuid(i)
-                        resource_id = f"{attributes.get('resource_id')}_{id_suffix}"
+                        resource_id = f"i-{attributes.get('resource_id')}_{id_suffix}"
                     else:
-                        resource_id = f"{attributes.get("resource_id")}"
+                        resource_id = f"i-{attributes.get("resource_id")}"
                 else:
                     resource_id = "i-{}".format(fake.ean8())
 
