@@ -567,7 +567,7 @@ class OCPGenerator(AbstractGenerator):
             if "_" in node.get('resource_id'):
                 pod_suffix = volume_suffix = f"_{node.get('resource_id').split("_")[-1]}"
             else:
-                volume_suffix = ""
+                pod_suffix = volume_suffix = ""
             storage_class_default, csi_default = choice(
                 (
                     ("gp3-csi", "ebs.csi.aws.com"),
@@ -616,9 +616,9 @@ class OCPGenerator(AbstractGenerator):
                                 "volume": volume,
                                 "storage_class": specified_volume.get("storage_class", storage_class_default),
                                 "csi_driver": specified_volume.get("csi_driver", csi_default),
-                                "csi_volume_handle": specified_volume.get(
-                                    "csi_volume_handle", f"vol-{self.fake.word()}"
-                                ),
+                                "csi_volume_handle": f"{specified_volume.get(
+                                    'csi_volume_handle', f'vol-{self.fake.word()}'
+                                )}{volume_suffix}",
                                 "volume_request": volume_request,
                                 "labels": specified_volume.get("labels", None),
                                 "volume_claims": volume_claims,
