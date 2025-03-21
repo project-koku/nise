@@ -62,3 +62,4 @@ def pseudo_random_uuid(rand_seed):
     """ Generate pseudo-random uuid """
     random.seed(rand_seed)
     return uuid.UUID(int=random.getrandbits(128), version=4)
+
