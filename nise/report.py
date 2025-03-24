@@ -678,8 +678,8 @@ def aws_create_report(options):  # noqa: C901
                             hour["resourceTags/user:openshift_node"] = f"{orig_node_tag_value}_{id_suffix}"
                         if orig_project_tag_value := hour.get("resourceTags/user:openshift_project"):
                             hour["resourceTags/user:openshift_project"] = f"{orig_project_tag_value}_{id_suffix}"
-                        if orig_tag_match_value := hour.get("resourceTags/user:tag_matching"):
-                            hour["resourceTags/user:tag_matching"] = f"{orig_tag_match_value}_{id_suffix}"
+                        if orig_tag_match_value := hour.get("resourceTags/user:managed_tables_matching"):
+                            hour["resourceTags/user:managed_tables_matching"] = f"{orig_tag_match_value}_{id_suffix}"
                     data += [hour]
                     if len(data) == options.get("row_limit"):
                         file_number += 1
