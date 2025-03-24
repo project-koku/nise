@@ -662,10 +662,11 @@ def aws_create_report(options):  # noqa: C901
                 num_instances = randint(2, 60)
 
             for i in range(num_instances):
+                id_suffix = ""
                 if attributes and attributes.get("resource_id"):
                     if num_instances > 1:
-                        id_suffix = pseudo_random_uuid(i)
-                        resource_id = f"i-{attributes.get('resource_id')}_{id_suffix}"
+                        id_suffix = f"_{pseudo_random_uuid(i)}"
+                        resource_id = f"i-{attributes.get('resource_id')}{id_suffix}"
                     else:
                         resource_id = f"i-{attributes.get("resource_id")}"
                 else:
@@ -675,11 +676,11 @@ def aws_create_report(options):  # noqa: C901
                     if attributes and num_instances > 1 or not attributes:
                         hour["lineItem/ResourceId"] = resource_id
                         if orig_node_tag_value := hour.get("resourceTags/user:openshift_node"):
-                            hour["resourceTags/user:openshift_node"] = f"{orig_node_tag_value}_{id_suffix}"
+                            hour["resourceTags/user:openshift_node"] = f"{orig_node_tag_value}{id_suffix}"
                         if orig_project_tag_value := hour.get("resourceTags/user:openshift_project"):
-                            hour["resourceTags/user:openshift_project"] = f"{orig_project_tag_value}_{id_suffix}"
+                            hour["resourceTags/user:openshift_project"] = f"{orig_project_tag_value}{id_suffix}"
                         if orig_tag_match_value := hour.get("resourceTags/user:managed_tables_matching"):
-                            hour["resourceTags/user:managed_tables_matching"] = f"{orig_tag_match_value}_{id_suffix}"
+                            hour["resourceTags/user:managed_tables_matching"] = f"{orig_tag_match_value}{id_suffix}"
                     data += [hour]
                     if len(data) == options.get("row_limit"):
                         file_number += 1

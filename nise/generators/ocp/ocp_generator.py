@@ -287,17 +287,18 @@ class OCPGenerator(AbstractGenerator):
         if self._nodes:
             for item in self._nodes:
                 for i in range(num_replicas):
+                    id_suffix = ""
                     memory_gig = item.get("memory_gig", randint(2, 8))
                     memory_bytes = memory_gig * GIGABYTE
                     resource_id = str(item.get("resource_id", self.fake.word()))
                     node_name = item.get("node_name", "node_" + self.fake.word())
                     if num_replicas > 1:
-                        id_suffix = pseudo_random_uuid(i)
-                        resource_id += f"_{id_suffix}"
-                        node_name += f"_{id_suffix}"
+                        id_suffix = f"_{pseudo_random_uuid(i)}"
+                        resource_id += id_suffix
+                        node_name += id_suffix
 
                     namespaces = item.get("namespaces")
-                    namespaces_renamed = {f"{project}_{id_suffix}": values for project, values in namespaces.items()}
+                    namespaces_renamed = {f"{project}{id_suffix}": values for project, values in namespaces.items()}
 
                     node = {
                         "name": node_name,
@@ -414,6 +415,12 @@ class OCPGenerator(AbstractGenerator):
                         if value > mem_limit_gig:
                             memory_usage_gig[key] = mem_limit_gig
 
+                    pod_labels = specified_pod.get("labels", None)
+                    if pod_labels:
+                        pod_labels = pod_labels.replace(
+                            "label_managed_tables_matching:today",
+                            f"label_managed_tables_matching:today{pod_suffix}"
+                        )
                     pods[pod] = {
                         "namespace": namespace,
                         "node": node.get("name"),
@@ -427,7 +434,7 @@ class OCPGenerator(AbstractGenerator):
                         "cpu_limit": cpu_limit,
                         "mem_request_gig": mem_request_gig,
                         "mem_limit_gig": mem_limit_gig,
-                        "pod_labels": specified_pod.get("labels", None),
+                        "pod_labels": pod_labels,
                         "cpu_usage": cpu_usage,
                         "mem_usage_gig": memory_usage_gig,
                         "pod_seconds": specified_pod.get("pod_seconds"),
@@ -610,6 +617,13 @@ class OCPGenerator(AbstractGenerator):
                             "volume_claim_usage_gig": usage_gig,
                         }
                         total_claims += claim_capacity
+
+                    volume_labels = specified_volume.get("labels", None)
+                    if volume_labels:
+                        volume_labels = volume_labels.replace(
+                            "label_managed_tables_matching:today",
+                            f"label_managed_tables_matching:today{volume_suffix}"
+                        )
                     volumes.append(
                         {
                             volume: {
@@ -622,7 +636,7 @@ class OCPGenerator(AbstractGenerator):
                                     'csi_volume_handle', f'vol-{self.fake.word()}'
                                 )}{volume_suffix}",
                                 "volume_request": volume_request,
-                                "labels": specified_volume.get("labels", None),
+                                "labels": volume_labels,
                                 "volume_claims": volume_claims,
                             }
                         }
