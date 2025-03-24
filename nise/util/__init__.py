@@ -26,7 +26,7 @@ from .log import LOG_FORMAT  # noqa: F401
 from .log import LOG_VERBOSITY  # noqa: F401
 
 # TODO UPDATE THIS: Num. of times to replicate each resource
-NUMBER_OF_REPLICAS = 1
+NUMBER_OF_REPLICAS = 10
 
 def load_yaml(objekt):
     """Load a yaml document.
