@@ -89,6 +89,7 @@ from nise.upload import upload_to_gcp_storage
 from nise.upload import upload_to_s3
 from nise.util import LOG
 from nise.util import pseudo_random_uuid
+from nise.util import NUMBER_OF_REPLICAS
 
 def create_temporary_copy(path, temp_file_name, temp_dir_name="None"):
     """Create temporary copy of a file."""
@@ -593,11 +594,6 @@ def aws_create_marketplace_report(options):  # noqa: C901
 
 
 def aws_create_report(options):  # noqa: C901
-
-    num_instances = options.get("resource_replicas", 1)
-    # TODO remove this? -> use constant?
-    num_instances = 10
-
     start_date = options.get("start_date")
     end_date = options.get("end_date")
     aws_finalize_report = options.get("aws_finalize_report")
@@ -659,8 +655,10 @@ def aws_create_report(options):  # noqa: C901
                 attributes,
                 options.get("aws_tags"),
             )
-            # TODO PERF_NOTE: update num_instances - how many times you want to multiple the whole yaml file
-            if not attributes:
+            # TODO PERF_NOTE: update NUMBER_OF_REPLICAS - how many times you want to multiple the whole yaml file
+            if attributes:
+                num_instances = NUMBER_OF_REPLICAS
+            else:
                 num_instances = randint(2, 60)
 
             for i in range(num_instances):

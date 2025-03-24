@@ -28,6 +28,8 @@ from string import ascii_lowercase
 from dateutil import parser
 from nise.generators.generator import AbstractGenerator
 from nise.generators.generator import REPORT_TYPE
+from nise.util import NUMBER_OF_REPLICAS
+
 
 GIGABYTE = 1024 * 1024 * 1024
 HOUR = 60 * 60
@@ -280,7 +282,7 @@ class OCPGenerator(AbstractGenerator):
 
     def _gen_nodes(self):
         """Create nodes for report."""
-        num_replicas = 10
+        num_replicas = NUMBER_OF_REPLICAS
         nodes = []
         if self._nodes:
             for item in self._nodes:
