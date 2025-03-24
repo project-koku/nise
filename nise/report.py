@@ -676,6 +676,12 @@ def aws_create_report(options):  # noqa: C901
                 for hour in gen.generate_data():
                     if attributes and num_instances > 1 or not attributes:
                         hour["lineItem/ResourceId"] = resource_id
+                        if orig_node_tag_value := hour.get("resourceTags/user:openshift_node"):
+                            hour["resourceTags/user:openshift_node"] = f"{orig_node_tag_value}_{id_suffix}"
+                        if orig_project_tag_value := hour.get("resourceTags/user:openshift_project"):
+                            hour["resourceTags/user:openshift_project"] = f"{orig_project_tag_value}_{id_suffix}"
+                        if orig_tag_match_value := hour.get("resourceTags/user:tag_matching"):
+                            hour["resourceTags/user:tag_matching"] = f"{orig_tag_match_value}_{id_suffix}"
                     data += [hour]
                     if len(data) == options.get("row_limit"):
                         file_number += 1
