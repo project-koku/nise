@@ -53,4 +53,4 @@ run-iqe-local:
 	cd scripts; ./local_iqe_container.sh $(IQE_CMD)
 
 requirements:
-	pipenv lock
+	uv sync

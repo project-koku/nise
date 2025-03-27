@@ -1,1 +1,0 @@
-plette<1.0.0  # pipenv-check requires an old version of requirementslib which is incompatible with plette>=1

@@ -35,9 +35,13 @@ For generating sample data for developing or testing Koku, please refer to [Inge
 
 #### Testing
 
-Nise uses tox to standardize the environment used when running tests. Essentially, tox manages its own virtual environment and a copy of required dependencies to run tests. To ensure a clean tox environment run
+Nise uses tox to standardize the environment used when running tests. Install `tox-uv` ([docs]https://github.com/tox-dev/tox-uv):
 
-    uv run -- tox -r
+    uv tool install tox --with tox-uv # use uv to install
+
+tox manages its own virtual environment and a copy of required dependencies to run tests. To ensure a clean tox environment run
+
+    tox -r
 
 This will rebuild the tox virtual env and then run all tests.
 
