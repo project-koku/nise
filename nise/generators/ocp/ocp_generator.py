@@ -387,8 +387,9 @@ class OCPGenerator(AbstractGenerator):
         for namespace, node in namespaces.items():
             if "_" in node.get('resource_id'):
                 pod_suffix = f"_{node.get('resource_id').split("_")[-1]}"
+                tag_suffix = pod_suffix.split("-")[0]
             else:
-                pod_suffix = ""
+                pod_suffix = tag_suffix = ""
 
             namespace2pod[namespace] = []
             if node.get("namespaces"):
@@ -419,7 +420,7 @@ class OCPGenerator(AbstractGenerator):
                     if pod_labels:
                         pod_labels = pod_labels.replace(
                             "label_managed_tables_matching:today",
-                            f"label_managed_tables_matching:today{pod_suffix}"
+                            f"label_managed_tables_matching:today{tag_suffix}"
                         )
                     pods[pod] = {
                         "namespace": namespace,
@@ -575,8 +576,9 @@ class OCPGenerator(AbstractGenerator):
         for namespace, node in namespaces.items():
             if "_" in node.get('resource_id'):
                 pod_suffix = volume_suffix = f"_{node.get('resource_id').split("_")[-1]}"
+                tag_suffix = pod_suffix.split("-")[0]
             else:
-                pod_suffix = volume_suffix = ""
+                pod_suffix = volume_suffix = tag_suffix = ""
             storage_class_default, csi_default = choice(
                 (
                     ("gp3-csi", "ebs.csi.aws.com"),
@@ -622,7 +624,7 @@ class OCPGenerator(AbstractGenerator):
                     if volume_labels:
                         volume_labels = volume_labels.replace(
                             "label_managed_tables_matching:today",
-                            f"label_managed_tables_matching:today{volume_suffix}"
+                            f"label_managed_tables_matching:today{tag_suffix}"
                         )
                     volumes.append(
                         {
