@@ -25,7 +25,7 @@ jobs:
         run: printenv
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5.4.0
+        uses: actions/setup-python@v5.5.0
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -34,7 +34,7 @@ jobs:
 
       - name: Cache dependencies
         id: cache-dependencies
-        uses: actions/cache@v4.2.0
+        uses: actions/cache@v4.2.3
         with:
           path: |
             ~/.cache/pipenv
@@ -56,7 +56,7 @@ jobs:
         run: pipenv run coverage xml
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v5.3.1
+        uses: codecov/codecov-action@v5.4.0
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         with:
