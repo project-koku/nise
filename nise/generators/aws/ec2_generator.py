@@ -17,6 +17,7 @@
 """Module for ec2 data generation."""
 from random import choice
 
+from dateutil.relativedelta import relativedelta
 from nise.generators.aws.aws_generator import AWSGenerator
 
 
@@ -261,37 +262,35 @@ class EC2Generator(AWSGenerator):
             row["savingsPlan/SavingsPlanEffectiveCost"] = None
             row["savingsPlan/SavingsPlanRate"] = None
 
-        # Overwrite lineitem/LineItemType for Savings plan upfront fees
-        elif upfront_fee:
-            row["lineItem/LineItemType"] = "SavingsPlanUpfrontFee"
-            row["lineItem/ProductCode"] = "ComputeSavingsPlans"
-            row[
-                "lineItem/LineItemDescription"
-            ] = f"USD {cost} one-time fee for 1 year All Upfront Compute Savings Plan ID: 123456"
-            row["lineItem/UsageType"] = "ComputeSP:1yrAllUpfront"
+        # Overwrite lineitem/LineItemType for Savings plan upfront and recurring fees
+        elif recurring_fee or upfront_fee:
+            if recurring_fee:
+                row["lineItem/LineItemType"] = "SavingsPlanRecurringFee"
+                row["lineItem/LineItemDescription"] = "3 year No Upfront Compute Savings Plan"
+                row["lineItem/UsageType"] = "ComputeSP:3yrNoUpfront"
+            else:  # upfront
+                row[
+                    "lineItem/LineItemDescription"
+                ] = f"USD {cost} one-time fee for 1 year All Upfront Compute Savings Plan ID: 123456"
+                row["lineItem/LineItemType"] = "SavingsPlanUpfrontFee"
+                row["lineItem/UsageType"] = "ComputeSP:1yrAllUpfront"
+                row["lineItem/UsageEndDate"] = start + relativedelta(years=+1)
+                end_upfront = start + relativedelta(years=+1)
+                row["lineItem/UsageEndDate"] = end_upfront
+                row["identity/TimeInterval"] = self.time_interval(start, end_upfront)
+
+            row["lineItem/ProductCode"] = row["product/productFamily"] = "ComputeSavingsPlans"
             row["lineItem/UsageAmount"] = 1
             row["product/ProductName"] = "Savings Plans for AWS Compute usage"
             row["product/location"] = "Any"
+            row["product/region"] = "global"
             row["lineItem/AvailabilityZone"] = None
             row["lineItem/ResourceId"] = None
             row["lineItem/UnblendedRate"] = None
             row["lineItem/BlendedRate"] = None
             row["savingsPlan/SavingsPlanEffectiveCost"] = None
             row["savingsPlan/SavingsPlanRate"] = None
-
-        # Overwrite lineitem/LineItemType for Savings plan recurring fees
-        elif recurring_fee:
-            row["lineItem/LineItemType"] = "SavingsPlanRecurringFee"
-            row["lineItem/ProductCode"] = "ComputeSavingsPlans"
-            row["lineItem/LineItemDescription"] = "3 year No Upfront Compute Savings Plan"
-            row["lineItem/UsageType"] = "ComputeSP:3yrNoUpfront"
-            row["lineItem/UsageAmount"] = 1
-            row["product/ProductName"] = "Savings Plans for AWS Compute usage"
-            row["product/location"] = "Any"
-            row["lineItem/AvailabilityZone"] = None
-            row["lineItem/ResourceId"] = None
-            row["savingsPlan/SavingsPlanEffectiveCost"] = None
-            row["savingsPlan/SavingsPlanRate"] = None
+            row["product/operatingSystem"] = None
 
         else:
             self._add_tag_data(row)
