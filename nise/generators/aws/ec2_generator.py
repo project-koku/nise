@@ -33,8 +33,12 @@ class EC2Generator(AWSGenerator):
         # family,
         # cost,
         # rate,
-        # Reserved_instances,
-        # savings,
+        # saving,
+        # amount,
+        # reserved_instances,
+        # upfront_fee
+        # recurring_fee
+        # savings_negation,
         # description)
         (
             "m5.large",
@@ -47,6 +51,8 @@ class EC2Generator(AWSGenerator):
             "0.096",
             "0.045",
             1,
+            False,
+            False,
             False,
             False,
             "${cost} per On Demand Linux {inst_type} Instance Hour",
@@ -64,6 +70,8 @@ class EC2Generator(AWSGenerator):
             1,
             False,
             False,
+            False,
+            False,
             "${cost} per On Demand Linux {inst_type} Instance Hour",
         ),
         (
@@ -79,6 +87,8 @@ class EC2Generator(AWSGenerator):
             1,
             False,
             False,
+            False,
+            False,
             "${cost} per On Demand Linux {inst_type} Instance Hour",
         ),
         (
@@ -92,6 +102,8 @@ class EC2Generator(AWSGenerator):
             "0.133",
             "0.067",
             1,
+            False,
+            False,
             False,
             False,
             "${cost} per On Demand Linux {inst_type} Instance Hour",
@@ -139,6 +151,8 @@ class EC2Generator(AWSGenerator):
                 instance_type.get("saving"),
                 instance_type.get("amount", "1"),
                 instance_type.get("reserved_instance", False),
+                instance_type.get("upfront_fee", False),
+                instance_type.get("recurring_fee", False),
                 instance_type.get("negation", False),
                 "${cost} per On Demand Linux {inst_type} Instance Hour",
             )
@@ -157,6 +171,8 @@ class EC2Generator(AWSGenerator):
             saving,
             amount,
             reserved_instance,
+            upfront_fee,
+            recurring_fee,
             negation,
             description,
         ) = self._instance_type
@@ -220,7 +236,7 @@ class EC2Generator(AWSGenerator):
         if saving is not None:
             row["lineItem/LineItemType"] = "SavingsPlanCoveredUsage"
         # Overwrite lineitem/LineItemType for RI's discount usage
-        if reserved_instance:
+        elif reserved_instance:
             row["lineItem/LineItemType"] = "DiscountedUsage"
             row["lineItem/UnblendedCost"] = 0
             row["lineItem/UnblendedRate"] = 0
@@ -232,7 +248,7 @@ class EC2Generator(AWSGenerator):
             row["savingsPlan/SavingsPlanEffectiveCost"] = None
             row["savingsPlan/SavingsPlanRate"] = None
 
-        if negation:
+        elif negation:
             row["lineItem/LineItemType"] = "SavingsPlanNegation"
             row["lineItem/UnblendedCost"] = -abs(cost)
             row["lineItem/UnblendedRate"] = -abs(rate)
@@ -241,6 +257,38 @@ class EC2Generator(AWSGenerator):
             row[
                 "lineItem/LineItemDescription"
             ] = f"SavingsPlanNegation used by AccountId : {self.payer_account} and UsageSku : {self._product_sku}"
+            row["lineItem/ResourceId"] = None
+            row["savingsPlan/SavingsPlanEffectiveCost"] = None
+            row["savingsPlan/SavingsPlanRate"] = None
+
+        # Overwrite lineitem/LineItemType for Savings plan upfront fees
+        elif upfront_fee:
+            row["lineItem/LineItemType"] = "SavingsPlanUpfrontFee"
+            row["lineItem/ProductCode"] = "ComputeSavingsPlans"
+            row[
+                "lineItem/LineItemDescription"
+            ] = f"USD {cost} one-time fee for 1 year All Upfront Compute Savings Plan ID: 123456"
+            row["lineItem/UsageType"] = "ComputeSP:1yrAllUpfront"
+            row["lineItem/UsageAmount"] = 1
+            row["product/ProductName"] = "Savings Plans for AWS Compute usage"
+            row["product/location"] = "Any"
+            row["lineItem/AvailabilityZone"] = None
+            row["lineItem/ResourceId"] = None
+            row["lineItem/UnblendedRate"] = None
+            row["lineItem/BlendedRate"] = None
+            row["savingsPlan/SavingsPlanEffectiveCost"] = None
+            row["savingsPlan/SavingsPlanRate"] = None
+
+        # Overwrite lineitem/LineItemType for Savings plan recurring fees
+        elif recurring_fee:
+            row["lineItem/LineItemType"] = "SavingsPlanRecurringFee"
+            row["lineItem/ProductCode"] = "ComputeSavingsPlans"
+            row["lineItem/LineItemDescription"] = "3 year No Upfront Compute Savings Plan"
+            row["lineItem/UsageType"] = "ComputeSP:3yrNoUpfront"
+            row["lineItem/UsageAmount"] = 1
+            row["product/ProductName"] = "Savings Plans for AWS Compute usage"
+            row["product/location"] = "Any"
+            row["lineItem/AvailabilityZone"] = None
             row["lineItem/ResourceId"] = None
             row["savingsPlan/SavingsPlanEffectiveCost"] = None
             row["savingsPlan/SavingsPlanRate"] = None
