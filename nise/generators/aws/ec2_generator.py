@@ -268,11 +268,12 @@ class EC2Generator(AWSGenerator):
                 row["lineItem/LineItemType"] = "SavingsPlanRecurringFee"
                 row["lineItem/LineItemDescription"] = "3 year No Upfront Compute Savings Plan"
                 row["lineItem/UsageType"] = "ComputeSP:3yrNoUpfront"
+
             else:  # upfront
+                row["lineItem/LineItemType"] = "SavingsPlanUpfrontFee"
                 row[
                     "lineItem/LineItemDescription"
                 ] = f"USD {cost} one-time fee for 1 year All Upfront Compute Savings Plan ID: 123456"
-                row["lineItem/LineItemType"] = "SavingsPlanUpfrontFee"
                 row["lineItem/UsageType"] = "ComputeSP:1yrAllUpfront"
                 row["lineItem/UsageEndDate"] = start + relativedelta(years=+1)
                 end_upfront = start + relativedelta(years=+1)
