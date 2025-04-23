@@ -396,6 +396,8 @@ class TestEC2Generator(AWSGeneratorTestCase):
             "saving": "1",
             "amount": 1,
             "reserved_instance": False,
+            "upfront_fee": False,
+            "recurring_fee": False,
             "negation": False,
         }
         self.attributes["instance_type"] = self.instance_type
@@ -432,6 +434,30 @@ class TestEC2Generator(AWSGeneratorTestCase):
 
         self.assertEqual(row["lineItem/LineItemType"], "DiscountedUsage")
         self.assertEqual(row["lineItem/UnblendedCost"], 0)
+
+    def test_update_data_ec2_upfront_fee(self):
+        """Test EC2 specific update data for Upfront fee."""
+        self.instance_type = {"upfront_fee": True}
+        self.attributes["instance_type"] = self.instance_type
+        generator = EC2Generator(
+            self.two_hours_ago, self.now, self.currency, self.payer_account, self.usage_accounts, self.attributes
+        )
+        start_row = {}
+        row = generator._update_data(start_row, self.two_hours_ago, self.now)
+
+        self.assertEqual(row["lineItem/LineItemType"], "SavingsPlanUpfrontFee")
+
+    def test_update_data_ec2_recurring_fee(self):
+        """Test EC2 specific update data for Recurring fee."""
+        self.instance_type = {"recurring_fee": True}
+        self.attributes["instance_type"] = self.instance_type
+        generator = EC2Generator(
+            self.two_hours_ago, self.now, self.currency, self.payer_account, self.usage_accounts, self.attributes
+        )
+        start_row = {}
+        row = generator._update_data(start_row, self.two_hours_ago, self.now)
+
+        self.assertEqual(row["lineItem/LineItemType"], "SavingsPlanRecurringFee")
 
     def test_update_data(self):
         """Test EBS specific update data method."""
