@@ -28,6 +28,8 @@ from pprint import pformat
 from dateutil import parser as date_parser
 from dateutil.parser import ParserError
 from dateutil.relativedelta import relativedelta
+from oci.exceptions import InvalidConfig
+
 from nise import __version__
 from nise.report import aws_create_marketplace_report
 from nise.report import aws_create_report
@@ -40,7 +42,6 @@ from nise.util import LOG
 from nise.util import LOG_VERBOSITY
 from nise.yaml_gen import add_yaml_parser_args
 from nise.yaml_gen import yaml_main
-from oci.exceptions import InvalidConfig
 
 os.environ["TZ"] = "UTC"
 time.tzset()
