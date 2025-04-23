@@ -38,11 +38,6 @@ ifdef PODMAN
 endif
 
 
-test_source=all
-test:
-	$(SCRIPTDIR)/test_generators.sh $(test_source)
-
-
 lint:
 	pre-commit run --all-files
 

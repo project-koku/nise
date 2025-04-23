@@ -45,22 +45,22 @@ tox manages its own virtual environment and a copy of required dependencies to r
 
 This will rebuild the tox virtual env and then run all tests.
 
-To run sanity tests
+The test env does not need to be rebuilt every time unit tests are run. To run all unit tests without rebuild:
 
-    tox -e sanity
+    tox
 
-To run all unit tests specifically:
+To run unit tests from a single file, e.g.:
 
-    make test
+    tox -- tests.test_aws_generator
 
-To run unit tests for a single provider:
+To run a specific test from a specific file, e.g.:
 
-    make test test_source=<aws|azure|gcp|ocp|oci>
+    tox -- tests.test_aws_generator.TestRoute53Generator.test_init_with_attributes
 
 
 #### Linting
 
-This repository uses [pre-commit](https://pre-commit.com) to check and enforce code style. It uses [Black](https://github.com/psf/black) to reformat the Python code and [Flake8](http://flake8.pycqa.org) to check it afterwards. Other formats and text files are linted as well.
+This repository uses [pre-commit](https://pre-commit.com) to check and enforce code style. It uses [Ruff](https://docs.astral.sh/ruff/) to format and lint the Python code. Other formats and text files are linted as well.
 
 To run pre-commit checks:
 
@@ -94,10 +94,6 @@ The iqe tests use nise to generate mock data; therefore, we need to ensure that 
 The `make run-iqe` command by default will run the smoke tests. However, if you want to run a specific iqe test command you can pass it in through the `IQE_CMD` parameter
 
     make run-iqe IQE_CMD='iqe tests plugin hccm -k test_api_aws_provider_create_foo_resource_name'
-
-### Prereqs
-
-- AWS population requires prior setup of AWS Cost and Usage Report of same name to be created, as well as associated Bucket, Policy, Role, etc.
 
 ## Usage
 
