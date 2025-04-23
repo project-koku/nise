@@ -237,7 +237,7 @@ class EC2Generator(AWSGenerator):
         if saving is not None:
             row["lineItem/LineItemType"] = "SavingsPlanCoveredUsage"
         # Overwrite lineitem/LineItemType for RI's discount usage
-        elif reserved_instance:
+        if reserved_instance:
             row["lineItem/LineItemType"] = "DiscountedUsage"
             row["lineItem/UnblendedCost"] = 0
             row["lineItem/UnblendedRate"] = 0
@@ -249,7 +249,7 @@ class EC2Generator(AWSGenerator):
             row["savingsPlan/SavingsPlanEffectiveCost"] = None
             row["savingsPlan/SavingsPlanRate"] = None
 
-        elif negation:
+        if negation:
             row["lineItem/LineItemType"] = "SavingsPlanNegation"
             row["lineItem/UnblendedCost"] = -abs(cost)
             row["lineItem/UnblendedRate"] = -abs(rate)
@@ -262,8 +262,12 @@ class EC2Generator(AWSGenerator):
             row["savingsPlan/SavingsPlanEffectiveCost"] = None
             row["savingsPlan/SavingsPlanRate"] = None
 
+        else:
+            self._add_tag_data(row)
+            self._add_category_data(row)
+
         # Overwrite lineitem/LineItemType for Savings plan upfront and recurring fees
-        elif recurring_fee or upfront_fee:
+        if recurring_fee or upfront_fee:
             if recurring_fee:
                 row["lineItem/LineItemType"] = "SavingsPlanRecurringFee"
                 row["lineItem/LineItemDescription"] = "3 year No Upfront Compute Savings Plan"
@@ -292,10 +296,6 @@ class EC2Generator(AWSGenerator):
             row["savingsPlan/SavingsPlanEffectiveCost"] = None
             row["savingsPlan/SavingsPlanRate"] = None
             row["product/operatingSystem"] = None
-
-        else:
-            self._add_tag_data(row)
-            self._add_category_data(row)
 
         return row
 
