@@ -33,7 +33,6 @@ case ${1} in
    "azure") test_generator azure ;;
    "gcp") test_generator gcp ;;
    "ocp") test_generator ocp ;;
-   "oci") test_generator oci ;;
    "all") run_tox ;;
    *) usage ;;
 esac

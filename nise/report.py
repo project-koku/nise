@@ -73,13 +73,6 @@ from nise.generators.gcp import JSONLGCPNetworkGenerator
 from nise.generators.gcp import JSONLHCSGenerator
 from nise.generators.gcp import JSONLProjectGenerator
 from nise.generators.gcp import ProjectGenerator
-from nise.generators.oci import OCIBlockStorageGenerator
-from nise.generators.oci import OCIComputeGenerator
-from nise.generators.oci import OCIDatabaseGenerator
-from nise.generators.oci import OCINetworkGenerator
-from nise.generators.oci.oci_generator import OCI_COST_REPORT
-from nise.generators.oci.oci_generator import OCI_REPORT_TYPE_TO_COLS
-from nise.generators.oci.oci_generator import OCI_USAGE_REPORT
 from nise.generators.ocp import OCP_NAMESPACE_LABEL
 from nise.generators.ocp import OCP_NODE_LABEL
 from nise.generators.ocp import OCP_POD_USAGE
@@ -92,7 +85,6 @@ from nise.manifest import ocp_generate_manifest
 from nise.upload import gcp_bucket_to_dataset
 from nise.upload import upload_to_azure_container
 from nise.upload import upload_to_gcp_storage
-from nise.upload import upload_to_oci_bucket
 from nise.upload import upload_to_s3
 from nise.util import LOG
 
@@ -1250,115 +1242,3 @@ def _gcp_bigquery_process(
     )
 
     return monthly_files
-
-
-def oci_generate_report_name(report_name_options):
-    """return generated oci report name"""
-
-    file_num = report_name_options.get("file_num")
-    month = report_name_options.get("month")
-    year = report_name_options.get("year")
-    report_type = report_name_options.get("report_type")
-
-    month_num = f"0{month}" if month < 10 else month
-    file_name = f"report_{report_type}-{file_num}_{year}-{month_num}.csv"
-    absolute_report_name = f"{os.getcwd()}/{file_name}"
-    return absolute_report_name
-
-
-def oci_route_file(report_type, month, year, data, options):
-    """Route file to either local file system or OCI bucket."""
-
-    bucket_name = options.get("oci_bucket_name")
-    file_name = ""
-    filename_options = {
-        "file_num": options.get("file_num", randint(1000, 9999)),
-        "month": month,
-        "year": year,
-        "report_type": report_type,
-    }
-    absolute_report_name = oci_generate_report_name(filename_options)
-    if bucket_name is None:
-        file_name = oci_write_file(report_type, absolute_report_name, data, options)
-    else:
-        file_name = oci_bucket_upload(bucket_name, report_type, absolute_report_name, data, options)
-    return file_name
-
-
-def oci_write_file(report_type, absolute_report_name, data, options):
-    """Write OCI data to a file."""
-
-    _write_csv(absolute_report_name, data, OCI_REPORT_TYPE_TO_COLS[report_type])
-    local_bucket = options.get("oci_local_bucket")
-    report_path, report_name = os.path.split(absolute_report_name)
-    if local_bucket:
-        if not os.path.isdir(local_bucket):
-            os.mkdir(local_bucket)
-        copy_to_local_dir(local_bucket, absolute_report_name, report_name)
-    return report_name
-
-
-def oci_bucket_upload(bucket_name, report_type, absolute_report_name, data, options):
-    """Upload data to OCI bucket."""
-
-    _write_csv(absolute_report_name, data, OCI_REPORT_TYPE_TO_COLS[report_type])
-    _report_type = f"{report_type}-csv"
-    report_path, report_name = os.path.split(absolute_report_name)
-    upload_to_oci_bucket(bucket_name, _report_type, report_name)
-    return report_name
-
-
-def oci_create_report(options):
-    """Create cost and usage report files."""
-
-    generate_daily_report = options.get("oci_daily_report", False)
-    start_date = options.get("start_date")
-    end_date = start_date.replace(hour=23) if generate_daily_report else options.get("end_date")
-    static_report_data = options.get("static_report_data")
-
-    if static_report_data:
-        generators = _get_generators(static_report_data.get("generators"))
-    else:
-        generators = [
-            {"generator": OCIComputeGenerator},
-            {"generator": OCIBlockStorageGenerator},
-            {"generator": OCINetworkGenerator},
-            {"generator": OCIDatabaseGenerator},
-        ]
-    months = _create_month_list(start_date, end_date)
-    currency = default_currency(options.get("currency"), static_currency=None)
-    monthly_files = []
-    data = {OCI_COST_REPORT: [], OCI_USAGE_REPORT: []}
-
-    for month in months:
-        LOG.info(f"Generating {month.get('name')} data for OCI")
-        gen_start_date = month.get("start")
-        gen_end_date = month.get("end")
-
-        for generator in generators:
-            generator_cls = generator.get("generator")
-            attributes = generator.get("attributes", {})
-
-            if attributes:
-                # Skip if generator usage is outside of current month
-                if attributes.get("end_date") < month.get("start"):
-                    continue
-                if attributes.get("start_date") > month.get("end"):
-                    continue
-                currency = attributes.get("currency")
-                gen_start_date, gen_end_date = _create_generator_dates_from_yaml(attributes, month)
-
-            gen = generator_cls(gen_start_date, gen_end_date, currency, attributes)
-            for report_type in OCI_REPORT_TYPE_TO_COLS:
-                data[report_type] += gen.generate_data()[report_type]
-
-        for report_type in OCI_REPORT_TYPE_TO_COLS:
-            month_output_file = oci_route_file(
-                report_type, gen_start_date.month, gen_start_date.year, data[report_type], options
-            )
-            monthly_files.append(month_output_file)
-            data[report_type] = []
-
-    write_monthly = options.get("write_monthly", False)
-    if not write_monthly:
-        _remove_files(monthly_files)

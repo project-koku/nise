@@ -59,7 +59,7 @@ To run all unit tests specifically:
 
 To run unit tests for a single provider:
 
-    make test test_source=<aws|azure|gcp|ocp|oci>
+    make test test_source=<aws|azure|gcp|ocp>
 
 
 #### Linting
@@ -103,8 +103,8 @@ The `make run-iqe` command by default will run the smoke tests. However, if you 
 
     Usage:
         nise ( report | yaml )
-        nise report ( aws | azure | gcp | ocp | oci ) [options]
-        nise yaml ( aws | azure | ocp | ocp-on-cloud | oci ) [options]
+        nise report ( aws | azure | gcp | ocp ) [options]
+        nise yaml ( aws | azure | ocp | ocp-on-cloud ) [options]
 
     Report Options:
         -s, --start-date YYYY-MM-DD             required if not using --static-report-file FILE_NAME
@@ -142,10 +142,6 @@ The `make run-iqe` command by default will run the smoke tests. However, if you 
         --ros-ocp-info                          Optional, Generate ROS for Openshift data.
         --constant-values-ros-ocp               Optional, Generate constant values for ROS for OpenShift data only
                                                 when used with the ros-ocp-info parameter.
-
-    OCI Report Options:
-        --oci-bucket-name BUCKET_NAME           optional, OCI bucket name.
-        --oci-local-bucket LOCAL_BUCKET_PATH    optional, local directory path to upload reports to.
 
     Common YAML Options:
         -o, --output YAML_NAME                  REQUIRED, Output file path (i.e "large.yml").
