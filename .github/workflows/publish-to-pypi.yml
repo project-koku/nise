@@ -26,7 +26,6 @@ jobs:
       - name: Build and publish
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          UV_PUBLISH_USERNAME: __token__
           UV_PUBLISH_TOKEN: ${{ secrets.pypi_password }}
         run: |
           set -e
