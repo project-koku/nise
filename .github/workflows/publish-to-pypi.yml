@@ -30,6 +30,7 @@ jobs:
           UV_PUBLISH_TOKEN: ${{ secrets.pypi_password }}
         run: |
           set -e
+          uv venv
           uv pip install hatch
           VERSION=$(uv run hatch version)
           if [ ! -z $(git tag -l "${VERSION}") ]; then
