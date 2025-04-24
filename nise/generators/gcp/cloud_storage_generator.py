@@ -15,6 +15,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """Generator for GCP storage cost."""
+
 from datetime import datetime
 from random import choice
 

@@ -16,28 +16,24 @@ jobs:
         with:
           fetch-depth: 0
       - name: Set up Python
-        uses: actions/setup-python@v5.4.0
+        uses: actions/setup-python@v5.6.0
         with:
-          python-version: 3.11
+          python-version-file: .python-version
 
-      - name: Install dependencies
-        run: |
-          python3 -m pip install --upgrade pip
-          python3 -m pip install pipenv-setup setuptools wheel twine chardet vistir==0.6.1 -c requirements/build-constraints.txt
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5.4.2
 
       - name: Build and publish
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.pypi_password }}
+          UV_PUBLISH_TOKEN: ${{ secrets.pypi_password }}
         run: |
           set -e
-          VERSION=$(python setup.py --version)
+          uv venv
+          uv pip install hatch
+          VERSION=$(uv run hatch version)
           if [ ! -z $(git tag -l "${VERSION}") ]; then
             echo "Tag already exists, doing nothing";
-            exit_code=1
-          elif [ -z "$(pipenv-setup check)" ]; then
-            echo "setup.py out of sync with Pipfile"
             exit_code=1
           else
             echo "Creating tag ${VERSION}";
@@ -45,8 +41,8 @@ jobs:
             git config --local user.name "Koku-Nise Release Action"
             git tag ${VERSION};
             git push origin --tags;
-            python3 setup.py sdist bdist_wheel
-            python3 -m twine upload dist/*
+            uv build
+            uv publish
             exit_code=0
           fi
           exit $exit_code

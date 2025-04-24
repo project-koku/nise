@@ -23,79 +23,77 @@ To get started developing against Nise first clone a local copy of the git repos
 
     git clone https://github.com/project-koku/nise
 
-Developing inside a virtual environment is recommended. A Pipfile is provided. Pipenv is recommended for combining virtual environment (virtualenv) and dependency management (pip). To install pipenv, use pip
+Developing inside a virtual environment is recommended. This project utilizes [uv](https://docs.astral.sh/uv/getting-started/). By default, `uv` creates a virtual env and installs the project in editable-mode. To run `nise` using the virtual env, use `uv`:
 
-    pip3 install pipenv
-
-Then project dependencies and a virtual environment can be created using
-
-    pipenv install --dev
-
-To activate the virtual environment run
-
-    pipenv shell
+    uv run nise -h
 
 To build the command line tool run
 
-    python setup.py install
+    uv build
 
 For generating sample data for developing or testing Koku, please refer to [Ingesting Nise data with Koku](docs/working_with_masu.md).
 
+#### Updating packages
+
+All packages (including dev) can be updated with:
+
+    uv sync --upgrade --all-groups
+
+or
+
+    make upgrade-requirements
+
 #### Testing
 
-Nise uses tox to standardize the environment used when running tests. Essentially, tox manages its own virtual environment and a copy of required dependencies to run tests. To ensure a clean tox environment run
+Nise uses tox to standardize the environment used when running tests. Install `tox-uv` ([docs]https://github.com/tox-dev/tox-uv):
+
+    uv tool install tox --with tox-uv # use uv to install
+
+tox manages its own virtual environment and a copy of required dependencies to run tests. To ensure a clean tox environment run
 
     tox -r
 
 This will rebuild the tox virtual env and then run all tests.
 
-To run sanity tests
+The test env does not need to be rebuilt every time unit tests are run. To run all unit tests without rebuild:
 
-    tox -e sanity
+    tox
 
-To run all unit tests specifically:
+To run unit tests from a single file, e.g.:
 
-    make test
+    tox -- tests.test_aws_generator
 
-To run unit tests for a single provider:
+To run a specific test from a specific file, e.g.:
 
     make test test_source=<aws|azure|gcp|ocp>
 
 
 #### Linting
 
-This repository uses [pre-commit](https://pre-commit.com) to check and enforce code style. It uses [Black](https://github.com/psf/black) to reformat the Python code and [Flake8](http://flake8.pycqa.org) to check it afterwards. Other formats and text files are linted as well.
+This repository uses [pre-commit](https://pre-commit.com) to check and enforce code style. It uses [Ruff](https://docs.astral.sh/ruff/) to format and lint the Python code. Other formats and text files are linted as well.
 
 To run pre-commit checks:
 
     pre-commit run --all-files
 
+or:
+
+    make lint
+
 
 #### Publishing
 
-Please remember to sync your updated dependecies to setup.py with :
+Publishing is achieved by merging a new version into `main`. Increment the version in [nise/__init__.py]. This can be done via `hatch`. For example, to bump the version to `4.9.9`, one would do:
 
-    pipenv-setup sync -p
+    $ uv run hatch version 4.9.9
+    Old: 4.7.0
+    New: 4.9.9
 
-After that, make sure to increment the version in setup.py. As soon as your PR is merged to main, a new koku-nise package will built, tagged, and deployed to PyPI.
+Add the version change in `nise/__init__.py` to your PR and ask for a review. As soon as your PR is merged to main, a new koku-nise package will built, tagged, and deployed to PyPI.
 
 ##### Finer Publishing Details
 
-All of the deployment is driven entirely by a Github Action workflow, so if issues ever crop up, start in `publish-to-pypi.yml`. When a branch is merged into main, the Action will kick off. There are three things that must happen before a deployment is successful, a successful artifact build, dependencies verified in sync between the requirements files, and setup.py, and the tag must not yet exist in git. The dependency syncing/verification is done with the [pipenv-setup](https://github.com/Madoshakalaka/pipenv-setup) tool. After the artifact is deployed, it\'ll be available at [PyPI](https://pypi.org/project/koku-nise/#history).
-
-#### Nise, Koku, and IQE Integration
-
-The iqe tests use nise to generate mock data; therefore, we need to ensure that our nise changes do not break the iqe tests. To do this you will need to copy `.env.example` to `.env` and customize as necessary. After the `.env` file is configured you will then need to run
-
-    make run-iqe
-
-The `make run-iqe` command by default will run the smoke tests. However, if you want to run a specific iqe test command you can pass it in through the `IQE_CMD` parameter
-
-    make run-iqe IQE_CMD='iqe tests plugin hccm -k test_api_aws_provider_create_foo_resource_name'
-
-### Prereqs
-
-- AWS population requires prior setup of AWS Cost and Usage Report of same name to be created, as well as associated Bucket, Policy, Role, etc.
+All of the deployment is driven entirely by a Github Action workflow, so if issues ever crop up, start in `publish-to-pypi.yml`. When a branch is merged into main, the Action will kick off. There are three things that must happen before a deployment is successful, a successful artifact build, and the tag must not yet exist in git. After the artifact is published, it\'ll be available at [PyPI](https://pypi.org/project/koku-nise/#history).
 
 ## Usage
 

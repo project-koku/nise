@@ -1,0 +1,80 @@
+[project]
+name = "koku-nise"
+classifiers=[
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: GNU Affero General Public License v3",
+    "Operating System :: OS Independent",
+]
+description="A tool for generating sample cost and usage data for testing purposes."
+dynamic = ["version"]
+license-files = ["LICENSE"]
+maintainers = [
+  {name = "Project Koku", email = "cost_mgmt@redhat.com"}
+]
+readme = "README.md"
+requires-python = ">=3.11"
+url="https://github.com/project-koku/nise"
+
+dependencies = [
+    "faker>=3.0",
+    "boto3>=1.11",
+    "requests>=2.22",
+    "jinja2>=2.10",
+    "azure-storage-blob>=12.1",
+    "google-cloud-storage>=1.19",
+    "pyyaml>=5.3",
+    "google-cloud-bigquery>=2.2.0",
+    "oci>=2.64.0",
+]
+
+[dependency-groups]
+dev = [
+    "coverage>=7.6.12",
+    "hatch>=1.14.0",
+    "pre-commit>=4.1.0",
+]
+
+[project.scripts]
+nise = "nise.__main__:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.version]
+path = "nise/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["nise/"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+  "nise/**/*.py",
+  "nise/aws-template-manifest.json",
+  "nise/yaml_generators/static/*",
+]
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+
+[tool.ruff.lint]
+# F https://docs.astral.sh/ruff/rules/#pyflakes-f
+# E, W https://docs.astral.sh/ruff/rules/#pycodestyle-e-w
+# C90 https://docs.astral.sh/ruff/rules/#mccabe-c90
+# UP https://docs.astral.sh/ruff/rules/#pyupgrade-up
+select = ["F", "E", "W", "C90", "UP"]
+
+[tool.ruff.lint.per-file-ignores]
+"**/__init__.py" = ["F401"]
+
+[tool.ruff.lint.isort]
+force-single-line = true
+known-first-party = ["nise"]
+order-by-type = false
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"

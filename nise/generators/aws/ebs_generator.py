@@ -15,6 +15,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """Module for ebs data generation."""
+
 import calendar
 from random import choice
 from random import uniform
@@ -33,7 +34,7 @@ class EBSGenerator(AWSGenerator):
     def __init__(self, start_date, end_date, currency, payer_account, usage_accounts, attributes=None, tag_cols=None):
         """Initialize the EBS generator."""
         super().__init__(start_date, end_date, currency, payer_account, usage_accounts, attributes, tag_cols)
-        self._resource_id = "vol-{}".format(self.fake.ean8())
+        self._resource_id = f"vol-{self.fake.ean8()}"
         self._disk_size = choice([5, 10, 15, 20, 25])
         self._rate = round(uniform(0.02, 0.16), 3)
         self._product_sku = self.fake.pystr(min_chars=12, max_chars=12).upper()

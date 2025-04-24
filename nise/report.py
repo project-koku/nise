@@ -15,6 +15,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """Module responsible for generating the cost and usage report."""
+
 import base64
 import calendar
 import copy
@@ -28,7 +29,7 @@ import shutil
 import string
 import tarfile
 from datetime import datetime
-from datetime import timezone
+from datetime import UTC
 from random import randint
 from tempfile import gettempdir
 from tempfile import NamedTemporaryFile
@@ -41,7 +42,7 @@ from dateutil import parser
 from dateutil.relativedelta import relativedelta
 from faker import Faker
 from nise import __version__
-from nise.copy import copy_to_local_dir
+from nise.copy_to_local_dir import copy_to_local_dir
 from nise.extract import extract_payload
 from nise.generators.aws import DataTransferGenerator
 from nise.generators.aws import EBSGenerator
@@ -136,7 +137,7 @@ def _remove_files(file_list):
 def _generate_azure_filename():
     """Generate filename for azure report."""
     output_file_name = "{}_{}".format("costreport", uuid4())
-    local_path = "{}/{}.csv".format(os.getcwd(), output_file_name)
+    local_path = f"{os.getcwd()}/{output_file_name}.csv"
     output_file_name = output_file_name + ".csv"
     return (local_path, output_file_name)
 
@@ -348,25 +349,25 @@ def _create_month_list(start_date, end_date):
     while current <= end_date:
         month = {
             "name": calendar.month_name[current.month],
-            "start": datetime(year=current.year, month=current.month, day=1, tzinfo=timezone.utc),
+            "start": datetime(year=current.year, month=current.month, day=1, tzinfo=UTC),
             "end": datetime(
                 year=current.year,
                 month=current.month,
                 day=calendar.monthrange(year=current.year, month=current.month)[1],
                 hour=23,
                 minute=59,
-                tzinfo=timezone.utc,
+                tzinfo=UTC,
             ),
         }
         if current.year == start_date.year and current.month == start_date.month:
             # First month start with start_date
-            month["start"] = start_date.replace(tzinfo=timezone.utc)
+            month["start"] = start_date.replace(tzinfo=UTC)
         if current < end_month_first_day:
             # can not compare months in this case - January < December
             month["end"] = (month.get("end") + relativedelta(days=1)).replace(hour=0, minute=0)
         if current.year == end_date.year and current.month == end_date.month:
             # Last month ends with end_date
-            month["end"] = end_date.replace(tzinfo=timezone.utc)
+            month["end"] = end_date.replace(tzinfo=UTC)
 
         months.append(month)
         current += relativedelta(months=+1)
@@ -464,9 +465,9 @@ def _get_generators(generator_list):
             for generator_cls, attributes in item.items():
                 generator_obj = {"generator": getattr(importlib.import_module(__name__), generator_cls)}
                 if attributes.get("start_date"):
-                    attributes["start_date"] = parser.parse(attributes.get("start_date")).replace(tzinfo=timezone.utc)
+                    attributes["start_date"] = parser.parse(attributes.get("start_date")).replace(tzinfo=UTC)
                 if attributes.get("end_date"):
-                    attributes["end_date"] = parser.parse(attributes.get("end_date")).replace(tzinfo=timezone.utc)
+                    attributes["end_date"] = parser.parse(attributes.get("end_date")).replace(tzinfo=UTC)
                 generator_obj["attributes"] = attributes
                 generators.append(generator_obj)
     return generators
@@ -480,9 +481,9 @@ def _get_jsonl_generators(generator_list):
             for generator_cls, attributes in item.items():
                 generator_obj = {"generator": getattr(importlib.import_module(__name__), "JSONL" + generator_cls)}
                 if attributes.get("start_date"):
-                    attributes["start_date"] = parser.parse(attributes.get("start_date")).replace(tzinfo=timezone.utc)
+                    attributes["start_date"] = parser.parse(attributes.get("start_date")).replace(tzinfo=UTC)
                 if attributes.get("end_date"):
-                    attributes["end_date"] = parser.parse(attributes.get("end_date")).replace(tzinfo=timezone.utc)
+                    attributes["end_date"] = parser.parse(attributes.get("end_date")).replace(tzinfo=UTC)
                 if attributes.get("currency"):
                     attributes["currency"] = attributes.get("currency")
                 generator_obj["attributes"] = attributes
@@ -538,7 +539,7 @@ def write_aws_file(
     """Write AWS data to a file."""
     headers = sorted(list(headers))
     if file_number != 0:
-        file_name = "{}-{}-{}-{}".format(month_name, year, aws_report_name, str(file_number))
+        file_name = f"{month_name}-{year}-{aws_report_name}-{str(file_number)}"
     else:
         file_name = f"{month_name}-{year}-{aws_report_name}"
 
@@ -548,10 +549,10 @@ def write_aws_file(
         # Currently only a local option as this does not simulate
         finalized_data = _aws_finalize_report(data, static_report_data)
         file_name_finalized = f"{file_name}-finalized"
-        full_file_name = "{}/{}.csv".format(os.getcwd(), file_name_finalized)
+        full_file_name = f"{os.getcwd()}/{file_name_finalized}.csv"
         _write_csv(full_file_name, finalized_data, headers)
 
-    full_file_name = "{}/{}.csv".format(os.getcwd(), file_name)
+    full_file_name = f"{os.getcwd()}/{file_name}.csv"
     _write_csv(full_file_name, data, headers)
 
     return full_file_name
@@ -701,7 +702,7 @@ def aws_create_report(options):  # noqa: C901
                 s3_cur_path, _ = aws_generate_manifest(fake, manifest_values)
                 for monthly_file in monthly_files:
                     temp_cur_zip = _gzip_report(monthly_file)
-                    destination_file = "{}/{}.gz".format(s3_cur_path, os.path.basename(monthly_file))
+                    destination_file = f"{s3_cur_path}/{os.path.basename(monthly_file)}.gz"
                     aws_route_file(aws_bucket_name, destination_file, temp_cur_zip)
                     os.remove(temp_cur_zip)
             else:
@@ -716,7 +717,7 @@ def aws_create_report(options):  # noqa: C901
 
                 for monthly_file in monthly_files:
                     temp_cur_zip = _gzip_report(monthly_file)
-                    destination_file = "{}/{}.gz".format(s3_cur_path, os.path.basename(monthly_file))
+                    destination_file = f"{s3_cur_path}/{os.path.basename(monthly_file)}.gz"
                     aws_route_file(aws_bucket_name, destination_file, temp_cur_zip)
                     os.remove(temp_cur_zip)
 
@@ -824,11 +825,11 @@ def azure_create_report(options):  # noqa: C901
 def write_ocp_file(file_number, cluster_id, month_name, year, report_type, data):
     """Write OCP data to a file."""
     if file_number != 0:
-        file_name = "{}-{}-{}-{}-{}".format(month_name, year, cluster_id, report_type, str(file_number))
+        file_name = f"{month_name}-{year}-{cluster_id}-{report_type}-{str(file_number)}"
     else:
         file_name = f"{month_name}-{year}-{cluster_id}-{report_type}"
 
-    full_file_name = "{}/{}.csv".format(os.getcwd(), file_name)
+    full_file_name = f"{os.getcwd()}/{file_name}.csv"
     _write_csv(full_file_name, data, OCP_REPORT_TYPE_TO_COLS[report_type])
 
     return full_file_name
@@ -1016,7 +1017,7 @@ def write_gcp_file(start_date, end_date, data, options):
         file_name = f"{invoice_month}_{etag}_{scan_start}:{scan_end}.csv"
     else:
         file_name = report_prefix + ".csv"
-    local_file_path = "{}/{}".format(os.getcwd(), file_name)
+    local_file_path = f"{os.getcwd()}/{file_name}"
     output_file_name = f"{etag}/{file_name}"
     columns = GCP_REPORT_COLUMNS
     if options.get("gcp_resource_level", False):
@@ -1036,7 +1037,7 @@ def write_gcp_file_jsonl(start_date, end_date, data, options):
         file_name = f"{invoice_month}_{etag}_{scan_start}:{scan_end}.json"
     else:
         file_name = report_prefix + ".json"
-    local_file_path = "{}/{}".format(os.getcwd(), file_name)
+    local_file_path = f"{os.getcwd()}/{file_name}"
     output_file_name = f"{etag}/{file_name}"
     _write_jsonl(local_file_path, data)
     return local_file_path, output_file_name

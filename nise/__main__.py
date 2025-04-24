@@ -15,6 +15,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """Cost and Usage Generator CLI."""
+
 import argparse
 import calendar
 import datetime
@@ -22,11 +23,14 @@ import os
 import sys
 import time
 from datetime import timezone
+from pathlib import Path
 from pprint import pformat
 
 from dateutil import parser as date_parser
 from dateutil.parser import ParserError
 from dateutil.relativedelta import relativedelta
+from oci.exceptions import InvalidConfig
+
 from nise import __version__
 from nise.report import aws_create_marketplace_report
 from nise.report import aws_create_report
@@ -86,7 +90,7 @@ def valid_currency(currency):
 
 def today():
     """Create the date of today."""
-    return datetime.datetime.now(tz=timezone.utc).replace(microsecond=0, second=0, minute=0)
+    return datetime.datetime.now(tz=datetime.UTC).replace(microsecond=0, second=0, minute=0)
 
 
 def add_aws_parser_args(parser):
@@ -700,7 +704,7 @@ def calculate_start_date(start_date):
     else:
         generated_start_date = today().replace(day=1, hour=0, minute=0, second=0)
     if generated_start_date.tzinfo is None:
-        generated_start_date = generated_start_date.replace(tzinfo=timezone.utc)
+        generated_start_date = generated_start_date.replace(tzinfo=datetime.UTC)
     return generated_start_date
 
 
@@ -725,7 +729,7 @@ def calculate_end_date(start_date, end_date):
         else:
             generated_end_date = min(start_date + relativedelta(days=offset), today())
     if generated_end_date.tzinfo is None:
-        generated_end_date = generated_end_date.replace(tzinfo=timezone.utc)
+        generated_end_date = generated_end_date.replace(tzinfo=datetime.UTC)
     if generated_end_date < start_date:
         raise ValueError("Static yaml error: End date must be after start date.")
     return generated_end_date
@@ -735,9 +739,9 @@ def fix_dates(options, provider_type):
     """Correct any unique dates."""
     # Azure end_date is always the following day
     if options["start_date"].tzinfo is None:
-        options["start_date"] = options["start_date"].replace(tzinfo=timezone.utc)
+        options["start_date"] = options["start_date"].replace(tzinfo=datetime.UTC)
     if options["end_date"].tzinfo is None:
-        options["end_date"] = options["end_date"].replace(tzinfo=timezone.utc)
+        options["end_date"] = options["end_date"].replace(tzinfo=datetime.UTC)
     if provider_type == "azure":
         options["end_date"] += relativedelta(days=1)
 

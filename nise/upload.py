@@ -15,6 +15,8 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """Defines the upload mechanism to various clouds."""
+
+import gzip
 import os
 import sys
 import traceback
@@ -74,7 +76,7 @@ def upload_to_azure_container(storage_file_name, local_path, storage_file_path):
         with open(local_path, "rb") as data:
             blob_client.upload_blob(data=data)
         LOG.info(f"uploaded {storage_file_name} to {storage_file_path}")
-    except (ServiceRequestError, ServiceResponseError, IOError) as error:
+    except (OSError, ServiceRequestError, ServiceResponseError) as error:
         LOG.error(error)
         traceback.print_exc(file=sys.stderr)
         return False
@@ -140,8 +142,7 @@ def gcp_bucket_to_dataset(
 
     if "GOOGLE_APPLICATION_CREDENTIALS" not in os.environ:
         LOG.warning(
-            "Please set your GOOGLE_APPLICATION_CREDENTIALS "
-            "environment variable before attempting to create a dataset."
+            "Please set your GOOGLE_APPLICATION_CREDENTIALS environment variable before attempting to create a dataset."
         )
         return False
     try:
