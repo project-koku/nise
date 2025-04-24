@@ -15,6 +15,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """Module for ebs data generation."""
+
 from random import choice
 from random import uniform
 
@@ -86,9 +87,7 @@ class DataTransferGenerator(AWSGenerator):
         negation = self._negation
         amount = self._amount if self._amount else uniform(0.000002, 0.09)
         cost = amount * rate
-        trans_desc, operation, description, location1, location2, trans_type, aws_region = self._get_data_transfer(
-            rate
-        )
+        trans_desc, operation, description, location1, location2, trans_type, aws_region = self._get_data_transfer(rate)
 
         row["lineItem/ProductCode"] = self._product_code
         row["lineItem/UsageType"] = trans_desc
@@ -128,9 +127,9 @@ class DataTransferGenerator(AWSGenerator):
             row["lineItem/UnblendedRate"] = -abs(rate)
             row["lineItem/BlendedCost"] = -abs(cost)
             row["lineItem/BlendedRate"] = -abs(rate)
-            row[
-                "lineItem/LineItemDescription"
-            ] = f"SavingsPlanNegation used by AccountId : {self.payer_account} and UsageSku : {self._product_sku}"
+            row["lineItem/LineItemDescription"] = (
+                f"SavingsPlanNegation used by AccountId : {self.payer_account} and UsageSku : {self._product_sku}"
+            )
             row["lineItem/ResourceId"] = None
             row["savingsPlan/SavingsPlanEffectiveCost"] = None
             row["savingsPlan/SavingsPlanRate"] = None

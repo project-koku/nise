@@ -16,6 +16,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """Utility to generate large yaml files."""
+
 import os
 import sys
 from abc import ABC
@@ -64,7 +65,7 @@ class Generator(ABC):
 
         # override default with settings
         if args.config_file_name:
-            with open(args.config_file_name, "rt") as settings_file:
+            with open(args.config_file_name) as settings_file:
                 config_settings = yaml.safe_load(settings_file)
             config.update(config_settings)
 
@@ -96,7 +97,7 @@ class Generator(ABC):
             sys.stdout.write(output)
             sys.stdout.flush()
         else:
-            with open(args.output_file_name, "wt") as outf:
+            with open(args.output_file_name, "w") as outf:
                 outf.write(output)
                 outf.flush()
 

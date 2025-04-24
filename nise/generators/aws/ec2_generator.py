@@ -15,6 +15,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """Module for ec2 data generation."""
+
 from random import choice
 
 from dateutil.relativedelta import relativedelta
@@ -255,9 +256,9 @@ class EC2Generator(AWSGenerator):
             row["lineItem/UnblendedRate"] = -abs(rate)
             row["lineItem/BlendedCost"] = -abs(cost)
             row["lineItem/BlendedRate"] = -abs(rate)
-            row[
-                "lineItem/LineItemDescription"
-            ] = f"SavingsPlanNegation used by AccountId : {self.payer_account} and UsageSku : {self._product_sku}"
+            row["lineItem/LineItemDescription"] = (
+                f"SavingsPlanNegation used by AccountId : {self.payer_account} and UsageSku : {self._product_sku}"
+            )
             row["lineItem/ResourceId"] = None
             row["savingsPlan/SavingsPlanEffectiveCost"] = None
             row["savingsPlan/SavingsPlanRate"] = None
@@ -275,9 +276,9 @@ class EC2Generator(AWSGenerator):
 
             else:  # upfront
                 row["lineItem/LineItemType"] = "SavingsPlanUpfrontFee"
-                row[
-                    "lineItem/LineItemDescription"
-                ] = f"USD {cost} one-time fee for 1 year All Upfront Compute Savings Plan ID: 123456"
+                row["lineItem/LineItemDescription"] = (
+                    f"USD {cost} one-time fee for 1 year All Upfront Compute Savings Plan ID: 123456"
+                )
                 row["lineItem/UsageType"] = "ComputeSP:1yrAllUpfront"
                 row["lineItem/UsageEndDate"] = start + relativedelta(years=+1)
                 end_upfront = start + relativedelta(years=+1)

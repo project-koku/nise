@@ -15,6 +15,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """Module for OCI compute data generation."""
+
 from nise.generators.oci.oci_generator import OCIGenerator
 
 
@@ -25,9 +26,7 @@ class OCIComputeGenerator(OCIGenerator):
         """Initialize the compute generator."""
         super().__init__(start_date, end_date, currency, attributes)
         self.service_name = "COMPUTE"
-        self.resource_id = (
-            f"ocid1.instance.oci.iad.{self.product_region}.{self.fake.pystr(min_chars=10, max_chars=20)}"
-        )
+        self.resource_id = f"ocid1.instance.oci.iad.{self.product_region}.{self.fake.pystr(min_chars=10, max_chars=20)}"
         self.cost_product_description = "Virtual Machine Standard - E2 Micro - Free"
         self.cost_billing_unit = "ONE HOURS OCPUS"
         self.cost_sku_unit_description = "OCPU Hours"

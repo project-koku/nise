@@ -15,6 +15,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 """Module for rds data generation."""
+
 from random import choice
 
 from nise.generators.aws.aws_generator import AWSGenerator
@@ -74,7 +75,7 @@ class RDSGenerator(AWSGenerator):
         self._processor_arch = choice(self.ARCHS)
         self._product_sku = self.fake.pystr(min_chars=12, max_chars=12).upper()
         self._instance_type = choice(self.INSTANCE_TYPES)
-        self._resource_id = "i-{}".format(self.fake.ean8())
+        self._resource_id = f"i-{self.fake.ean8()}"
         if self.attributes:
             if self.attributes.get("product_sku"):
                 self._product_sku = self.attributes.get("product_sku")
