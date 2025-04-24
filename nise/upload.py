@@ -16,7 +16,6 @@
 #
 """Defines the upload mechanism to various clouds."""
 
-import gzip
 import os
 import sys
 import traceback
