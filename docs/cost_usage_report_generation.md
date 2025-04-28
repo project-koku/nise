@@ -2,8 +2,8 @@
 
     Usage:
         nise ( report | yaml )
-        nise report ( aws | azure | gcp | ocp | oci ) [options]
-        nise yaml ( aws | azure | ocp | ocp-on-cloud | oci ) [options]
+        nise report ( aws | azure | gcp | ocp ) [options]
+        nise yaml ( aws | azure | ocp | ocp-on-cloud ) [options]
 
     Report Options:
         -s, --start-date YYYY-MM-DD             required if not using --static-report-file FILE_NAME
@@ -37,8 +37,6 @@
         --ocp-cluster-id CLUSTER_ID             REQUIRED
         --insights-upload UPLOAD_URL            optional, Use local directory path to populate a
                                                 "local upload directory".
-    OCI Report Options:
-        --oci-bucket-name BUCKET_NAME           REQUIRED, if uploading to an OCI storage bucket
 
 ## AWS reports
 
@@ -163,36 +161,3 @@ Below is an example usage of `nise` for OCP running on AZURE data using the [exa
     nise report azure -w --static-report-file examples/ocp_on_azure/azure_static_data.yml
 
     nise report ocp -w --ocp-cluster-id my-cluster-id --static-report-file examples/ocp_on_azure/ocp_static_data.yml
-
-
-## OCI reports
-
-Cost and usage reports will be generated in monthly .csv files with the file format `<reports>_<Report Type>-<csv>_<File Number>_<Year>-<Month>.csv`.
-
-To generate completely random data and save the report files in the local directory, simply supply a `--start-date YYYY-MM-DD` and `--write-monthly`:
-
-    nise report oci --start-date 2022-04-01 --write-monthly
-
-To move the generated data into a specific local directory, supply `--oci-local-bucket` with a `/path/to/local/dir`. If the directory does not exist in the path provided, it will be created:
-
-    nise report oci -s 2022-04-01 --oci-local-bucket /local/path/testbucket
-
-To upload data to an OCI bucket, supply `--oci-bucket-name`.
-
-**Note**: To upload to OCI storage bucket, you must have these variables below set in your environment:
-
-    OCI_USER
-    OCI_FINGERPRINT
-    OCI_TENANCY
-    OCI_CREDENTIALS
-    OCI_REGION
-    OCI_NAMESPACE
-    OCI_BUCKET_NAME
-
-The bucket must already exist in your OCI storage.
-
-    nise report oci -s 2022-04-01 --oci-bucket-name testbucket
-
-To generate less randomized data, supply a `--static-report-file YAML_NAME`. [Example OCI YAML](../example_oci_static_data.yml).
-
-    nise report oci --static-report-file example_oci_static_data.yml

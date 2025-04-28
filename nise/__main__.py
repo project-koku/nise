@@ -22,20 +22,17 @@ import datetime
 import os
 import sys
 import time
-from pathlib import Path
 from pprint import pformat
 
 from dateutil import parser as date_parser
 from dateutil.parser import ParserError
 from dateutil.relativedelta import relativedelta
-from oci.exceptions import InvalidConfig
 
 from nise import __version__
 from nise.report import aws_create_marketplace_report
 from nise.report import aws_create_report
 from nise.report import azure_create_report
 from nise.report import gcp_create_report
-from nise.report import oci_create_report
 from nise.report import ocp_create_report
 from nise.util import load_yaml
 from nise.util import LOG
@@ -317,32 +314,6 @@ def add_ocp_parser_args(parser):
     )
 
 
-def add_oci_parser_args(parser):
-    """Add OCI sub-parser args."""
-    parser.add_argument(
-        "--oci-bucket-name",
-        metavar="BUCKET_NAME",
-        dest="oci_bucket_name",
-        required=False,
-        help="OCI storage bucket where to upload generated reports.",
-    )
-    parser.add_argument(
-        "--oci-local-bucket",
-        metavar="OCI_LOCAL_BUCKET",
-        dest="oci_local_bucket",
-        required=False,
-        help="Local bucket or path where to upload generated reports.",
-    )
-    parser.add_argument(
-        "-d",
-        "--daily-report",
-        dest="oci_daily_report",
-        required=False,
-        action="store_true",
-        help="OCI daily report.",
-    )
-
-
 def create_parser():
     """Create the parser for incoming data."""
     parser = argparse.ArgumentParser()
@@ -425,16 +396,12 @@ def create_parser():
     ocp_parser = report_subparser.add_parser(
         "ocp", parents=[parent_parser], add_help=False, description="The OCP parser", help="create the OCP reports"
     )
-    oci_parser = report_subparser.add_parser(
-        "oci", parents=[parent_parser], add_help=False, description="The OCI parser", help="create the OCI reports"
-    )
 
     add_aws_parser_args(aws_parser)
     add_aws_marketplace_parser_args(aws_marketplace_parser)
     add_azure_parser_args(azure_parser)
     add_gcp_parser_args(gcp_parser)
     add_ocp_parser_args(ocp_parser)
-    add_oci_parser_args(oci_parser)
 
     return parser
 
@@ -624,44 +591,6 @@ def _validate_gcp_arguments(parser, options):
     return True
 
 
-def _validate_oci_arguments(parser, options):
-    """Validate oci argument combination.
-
-    Args:
-        parser (Object): ArgParser parser.
-        options (Dict): dictionary of arguments.
-    Raises:
-        (ParserError): If combination is invalid.
-
-    """
-
-    bucket_name = options.get("oci_bucket_name")
-    local_bucket = options.get("oci_local_bucket")
-    if not bucket_name or local_bucket:
-        return True
-    try:
-        config_file = os.environ.get("OCI_CONFIG_FILE")
-        if config_file and Path(config_file).exists():
-            return True
-        else:
-            oci_user = os.environ["OCI_USER"]
-            oci_fingerprint = os.environ["OCI_FINGERPRINT"]
-            oci_tenancy = os.environ["OCI_TENANCY"]
-            oci_credentials = os.environ["OCI_CREDENTIALS"]
-            oci_region = os.environ["OCI_REGION"]
-            oci_namespace = os.environ["OCI_NAMESPACE"]
-            if any(
-                (oci_var is None or oci_var == "")
-                for oci_var in [oci_user, oci_fingerprint, oci_tenancy, oci_credentials, oci_region, oci_namespace]
-            ):
-                raise InvalidConfig("Must provide valid config varibales")
-            return True
-    except (KeyError, InvalidConfig) as err:
-        msg = f"\n\t--oci-bucket-name {bucket_name} was supplied as an argument but missing a required variable {err}"  # noqa: E501
-        parser.error(msg)
-        return False
-
-
 def _validate_provider_inputs(parser, options):
     """Validate provider inputs.
 
@@ -680,7 +609,6 @@ def _validate_provider_inputs(parser, options):
         "azure": _validate_azure_arguments,
         "gcp": _validate_gcp_arguments,
         "ocp": _validate_ocp_arguments,
-        "oci": _validate_oci_arguments,
     }
 
     if VALIDATOR_MAP.get(provider_type):
@@ -688,7 +616,7 @@ def _validate_provider_inputs(parser, options):
         valid_inputs = func(parser, options)
     else:
         msg = "One of {}, {}, {}, {}, or {} must be supplied to generate a report."
-        msg = msg.format("aws", "aws-marketplace", "azure", "ocp", "gcp", "oci")
+        msg = msg.format("aws", "aws-marketplace", "azure", "ocp", "gcp")
         parser.error(msg)
     return (valid_inputs, provider_type)
 
@@ -839,8 +767,6 @@ def run(provider_type, options):
         ocp_create_report(options)
     elif provider_type == "gcp":
         gcp_create_report(options)
-    elif provider_type == "oci":
-        oci_create_report(options)
 
 
 def main():

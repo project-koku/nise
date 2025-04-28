@@ -1,7 +1,7 @@
 YAML generation uses the following arguments:
 
     Usage:
-        nise yaml ( aws | azure | ocp | ocp-on-cloud | oci ) [options]
+        nise yaml ( aws | azure | ocp | ocp-on-cloud ) [options]
 
     Common yaml Options:
         -o, --output YAML_NAME                  REQUIRED, Output file path (i.e "large.yml").
@@ -27,7 +27,7 @@ YAML generation uses the following arguments:
                                                 use internal config file
         -n, --num-nodes INT                     optional, Number of nodes to generate (default is 1)
 
-For AWS, Azure, OCP, and OCI, an output file name must be supplied. This file name will be the name of the generated YAML file. For the `-c, --config` option, either the value `default` can be supplied or the path to a configuration file may be given. If using the `default` keyword, the [internal configuration](../nise/yaml_generators/static) will be used. If the configuration argument is omitted, Nise will generate the smallest YAML possible based on the given template (this means 1 node, 1 generator, etc.). Start and end dates can be supplied on the command line or in the configuration file. The configuration file dates take precedence over the CLI arguments. If using the `-r, --random` argument, the number of nodes, generators, and labels will vary between 1 (or 0) and the maximum values defined by the configuration. The `-t, --template` argument can be omitted to use the default template.
+For AWS, Azure and OCP an output file name must be supplied. This file name will be the name of the generated YAML file. For the `-c, --config` option, either the value `default` can be supplied or the path to a configuration file may be given. If using the `default` keyword, the [internal configuration](../nise/yaml_generators/static) will be used. If the configuration argument is omitted, Nise will generate the smallest YAML possible based on the given template (this means 1 node, 1 generator, etc.). Start and end dates can be supplied on the command line or in the configuration file. The configuration file dates take precedence over the CLI arguments. If using the `-r, --random` argument, the number of nodes, generators, and labels will vary between 1 (or 0) and the maximum values defined by the configuration. The `-t, --template` argument can be omitted to use the default template.
 
 For OCP-on-Cloud YAML generation, things are more complicated. OCP is linked to AWS through resource-id or tags, whereas OCP is linked to Azure through instance-id/node-name or tags. To ensure there are no overlapping namespaces or tags, all of the YAMLs should be generated simluatenously which means all of the configurations for AWS, Azure, OCP for AWS, and OCP for Azure need to be specified, including the generator configurations, the templates, and the output files. To accomplish this, a unique configuration file containing all of the configuration information is supplied. Just like with the individual providers, [a built-in configuration is included]() To make use of the built-in configuration, supply `default` to the `-c, --config` argument.
 
@@ -52,12 +52,6 @@ The `-r, --random` flag can be added which will add a number of generators betwe
 ## Azure YAMLs
 
 The examples listed above for AWS also apply for Azure. Simply switch out `aws` for `azure`.
-
-## OCI YAMLs
-
-To generate a YAML file which can be used to generate cost and usage reports we must supply 1 required argument: `-o, --output YAML_NAME`. The output is the output file location. The following command will output a YAML in the local directory.:
-
-    nise yaml oci -o YAML_for_oci.yml
 
 ## OCP YAMLs
 

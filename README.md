@@ -65,7 +65,7 @@ To run unit tests from a single file, e.g.:
 
 To run a specific test from a specific file, e.g.:
 
-    tox -- tests.test_aws_generator.TestRoute53Generator.test_init_with_attributes
+    make test test_source=<aws|azure|gcp|ocp>
 
 
 #### Linting
@@ -101,8 +101,8 @@ All of the deployment is driven entirely by a Github Action workflow, so if issu
 
     Usage:
         nise ( report | yaml )
-        nise report ( aws | azure | gcp | ocp | oci ) [options]
-        nise yaml ( aws | azure | ocp | ocp-on-cloud | oci ) [options]
+        nise report ( aws | azure | gcp | ocp ) [options]
+        nise yaml ( aws | azure | ocp | ocp-on-cloud ) [options]
 
     Report Options:
         -s, --start-date YYYY-MM-DD             required if not using --static-report-file FILE_NAME
@@ -140,10 +140,6 @@ All of the deployment is driven entirely by a Github Action workflow, so if issu
         --ros-ocp-info                          Optional, Generate ROS for Openshift data.
         --constant-values-ros-ocp               Optional, Generate constant values for ROS for OpenShift data only
                                                 when used with the ros-ocp-info parameter.
-
-    OCI Report Options:
-        --oci-bucket-name BUCKET_NAME           optional, OCI bucket name.
-        --oci-local-bucket LOCAL_BUCKET_PATH    optional, local directory path to upload reports to.
 
     Common YAML Options:
         -o, --output YAML_NAME                  REQUIRED, Output file path (i.e "large.yml").
