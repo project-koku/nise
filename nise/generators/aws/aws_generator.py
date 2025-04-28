@@ -342,7 +342,10 @@ class AWSGenerator(AbstractGenerator):
 
     def _add_common_usage_info(self, row, start, end, **kwargs):
         """Add common usage information."""
-        row["lineItem/UsageAccountId"] = choice(self.usage_accounts)
+        if user_account := self.attributes.get("user"):
+            row["lineItem/UsageAccountId"] = user_account
+        else:
+            row["lineItem/UsageAccountId"] = choice(self.usage_accounts)
         row["lineItem/LineItemType"] = "Usage"
         row["lineItem/UsageStartDate"] = start
         row["lineItem/UsageEndDate"] = end

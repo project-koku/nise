@@ -390,7 +390,7 @@ def _aws_finalize_report(data, static_data=None):
     return data
 
 
-def _generate_accounts(static_report_data=None):
+def _generate_aws_account_info(static_report_data=None):
     """Generate payer and usage accounts."""
     if static_report_data:
         payer_account = static_report_data.get("payer")
@@ -618,7 +618,7 @@ def aws_create_report(options):  # noqa: C901
 
     months = _create_month_list(start_date, end_date)
 
-    payer_account, usage_accounts, currency_code = _generate_accounts(accounts_list)
+    payer_account, usage_accounts, currency_code = _generate_aws_account_info(accounts_list)
     currency_code = default_currency(options.get("currency"), currency_code)
 
     aws_bucket_name = options.get("aws_bucket_name")
