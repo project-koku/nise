@@ -176,14 +176,11 @@ class AbstractGeneratorTestCase(TestCase):
         expected_usage_account = "Cody"
         two_hours_ago = (self.now - self.one_hour) - self.one_hour
         generator = TestGenerator(
-            two_hours_ago,
-            self.now,
-            self.currency,
-            self.payer_account,
-            self.usage_accounts,
-            {"user": "Cody"})
+            two_hours_ago, self.now, self.currency, self.payer_account, self.usage_accounts, {"user": "Cody"}
+        )
         row = generator._add_common_usage_info({}, two_hours_ago, self.now)
         self.assertEqual(row.get("lineItem/UsageAccountId"), expected_usage_account)
+
 
 class AWSGeneratorTestCase(TestCase):
     """Test Base for specific generator classes."""
