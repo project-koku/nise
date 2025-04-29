@@ -171,6 +171,19 @@ class AbstractGeneratorTestCase(TestCase):
         legal_entity = generator._get_legal_entity()
         self.assertEqual(legal_entity, "Corey")
 
+    def test_add_common_usage_info(self):
+        """Test that add_common_usage_info updates usage timestamps."""
+        expected_usage_account = "Cody"
+        two_hours_ago = (self.now - self.one_hour) - self.one_hour
+        generator = TestGenerator(
+            two_hours_ago,
+            self.now,
+            self.currency,
+            self.payer_account,
+            self.usage_accounts,
+            {"user": "Cody"})
+        row = generator._add_common_usage_info({}, two_hours_ago, self.now)
+        self.assertEqual(row.get("lineItem/UsageAccountId"), expected_usage_account)
 
 class AWSGeneratorTestCase(TestCase):
     """Test Base for specific generator classes."""
@@ -212,6 +225,7 @@ class AWSGeneratorTestCase(TestCase):
         self.disk_size = 10
         self.currency = "USD"
         self.legal_entity = "Red Hat"
+        self.user_account = "0000000000"
         self.attributes = {
             "product_sku": self.product_sku,
             "tags": self.tags,
