@@ -91,6 +91,7 @@ from nise.util import LOG
 from nise.util import pseudo_random_uuid
 from nise.util import NUMBER_OF_REPLICAS
 
+
 def create_temporary_copy(path, temp_file_name, temp_dir_name="None"):
     """Create temporary copy of a file."""
     temp_dir = gettempdir()
@@ -669,9 +670,9 @@ def aws_create_report(options):  # noqa: C901
                         tag_suffix = id_suffix.split("-")[0]
                         resource_id = f"i-{attributes.get('resource_id')}{id_suffix}"
                     else:
-                        resource_id = f"i-{attributes.get("resource_id")}"
+                        resource_id = f"i-{attributes.get('resource_id')}"
                 else:
-                    resource_id = "i-{}".format(fake.ean8())
+                    resource_id = f"i-{fake.ean8()}"
 
                 for hour in gen.generate_data():
                     if attributes and num_instances > 1 or not attributes:
