@@ -28,6 +28,7 @@ from .log import LOG_VERBOSITY  # noqa: F401
 # TODO UPDATE THIS: Num. of times to replicate each resource
 NUMBER_OF_REPLICAS = 10
 
+
 def load_yaml(objekt):
     """Load a yaml document.
 
@@ -60,8 +61,8 @@ def deepupdate(original, update):
             original[key] = value
     return original
 
+
 def pseudo_random_uuid(rand_seed):
-    """ Generate pseudo-random uuid """
+    """Generate pseudo-random uuid"""
     random.seed(rand_seed)
     return uuid.UUID(int=random.getrandbits(128), version=4)
-

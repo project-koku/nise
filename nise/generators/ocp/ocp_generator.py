@@ -385,8 +385,8 @@ class OCPGenerator(AbstractGenerator):
         ros_ocp_data_pods = {}
         namespace2pod = {}
         for namespace, node in namespaces.items():
-            if "_" in node.get('resource_id'):
-                pod_suffix = f"_{node.get('resource_id').split("_")[-1]}"
+            if "_" in node.get("resource_id"):
+                pod_suffix = f"_{node.get('resource_id').split('_')[-1]}"
                 tag_suffix = pod_suffix.split("-")[0]
             else:
                 pod_suffix = tag_suffix = ""
@@ -395,7 +395,7 @@ class OCPGenerator(AbstractGenerator):
             if node.get("namespaces"):
                 specified_pods = node.get("namespaces").get(namespace).get("pods") or []
                 for specified_pod in specified_pods:
-                    pod = f"{specified_pod.get("pod_name", self.fake.word())}{pod_suffix}"
+                    pod = f"{specified_pod.get('pod_name', self.fake.word())}{pod_suffix}"
                     cpu_cores = node.get("cpu_cores")
                     memory_bytes = node.get("memory_bytes")
 
@@ -419,8 +419,7 @@ class OCPGenerator(AbstractGenerator):
                     pod_labels = specified_pod.get("labels", None)
                     if pod_labels:
                         pod_labels = pod_labels.replace(
-                            "label_managed_tables_matching:today",
-                            f"label_managed_tables_matching:today{tag_suffix}"
+                            "label_managed_tables_matching:today", f"label_managed_tables_matching:today{tag_suffix}"
                         )
                     pods[pod] = {
                         "namespace": namespace,
@@ -574,8 +573,8 @@ class OCPGenerator(AbstractGenerator):
         """Create volumes on specific namespaces and keep relationship."""
         volumes = []
         for namespace, node in namespaces.items():
-            if "_" in node.get('resource_id'):
-                pod_suffix = volume_suffix = f"_{node.get('resource_id').split("_")[-1]}"
+            if "_" in node.get("resource_id"):
+                pod_suffix = volume_suffix = f"_{node.get('resource_id').split('_')[-1]}"
                 tag_suffix = pod_suffix.split("-")[0]
             else:
                 pod_suffix = volume_suffix = tag_suffix = ""
@@ -590,7 +589,7 @@ class OCPGenerator(AbstractGenerator):
             if node.get("namespaces"):
                 specified_volumes = node.get("namespaces").get(namespace).get("volumes", [])
                 for specified_volume in specified_volumes:
-                    volume = f"{specified_volume.get("volume_name", self.fake.word())}{volume_suffix}"
+                    volume = f"{specified_volume.get('volume_name', self.fake.word())}{volume_suffix}"
 
                     volume_request_gig = specified_volume.get("volume_request_gig")
                     volume_request = volume_request_gig * GIGABYTE
@@ -600,8 +599,8 @@ class OCPGenerator(AbstractGenerator):
                     for specified_vc in specified_vol_claims:
                         if volume_request - total_claims <= GIGABYTE:
                             break
-                        vol_claim = f"{specified_vc.get("volume_claim_name", self.fake.word())}{volume_suffix}"
-                        pod = f"{specified_vc.get("pod_name")}{pod_suffix}"
+                        vol_claim = f"{specified_vc.get('volume_claim_name', self.fake.word())}{volume_suffix}"
+                        pod = f"{specified_vc.get('pod_name')}{pod_suffix}"
                         claim_capacity = max(
                             specified_vc.get("capacity_gig") * GIGABYTE, (volume_request_gig * GIGABYTE - total_claims)
                         )
@@ -623,8 +622,7 @@ class OCPGenerator(AbstractGenerator):
                     volume_labels = specified_volume.get("labels", None)
                     if volume_labels:
                         volume_labels = volume_labels.replace(
-                            "label_managed_tables_matching:today",
-                            f"label_managed_tables_matching:today{tag_suffix}"
+                            "label_managed_tables_matching:today", f"label_managed_tables_matching:today{tag_suffix}"
                         )
                     volumes.append(
                         {
@@ -634,9 +632,9 @@ class OCPGenerator(AbstractGenerator):
                                 "volume": volume,
                                 "storage_class": specified_volume.get("storage_class", storage_class_default),
                                 "csi_driver": specified_volume.get("csi_driver", csi_default),
-                                "csi_volume_handle": f"{specified_volume.get(
-                                    'csi_volume_handle', f'vol-{self.fake.word()}'
-                                )}{volume_suffix}",
+                                "csi_volume_handle": f"{
+                                    specified_volume.get('csi_volume_handle', f'vol-{self.fake.word()}')
+                                }{volume_suffix}",
                                 "volume_request": volume_request,
                                 "labels": volume_labels,
                                 "volume_claims": volume_claims,
