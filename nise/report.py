@@ -88,6 +88,8 @@ from nise.upload import upload_to_azure_container
 from nise.upload import upload_to_gcp_storage
 from nise.upload import upload_to_s3
 from nise.util import LOG
+from nise.util import pseudo_random_uuid
+from nise.util import NUMBER_OF_REPLICAS
 
 
 def create_temporary_copy(path, temp_file_name, temp_dir_name="None"):
@@ -593,7 +595,6 @@ def aws_create_marketplace_report(options):  # noqa: C901
 
 
 def aws_create_report(options):  # noqa: C901
-    """Create a cost usage report file."""
     start_date = options.get("start_date")
     end_date = options.get("end_date")
     aws_finalize_report = options.get("aws_finalize_report")
@@ -655,9 +656,33 @@ def aws_create_report(options):  # noqa: C901
                 attributes,
                 options.get("aws_tags"),
             )
-            num_instances = 1 if attributes else randint(2, 60)
-            for _ in range(num_instances):
+            # TODO PERF_NOTE: update NUMBER_OF_REPLICAS - how many times you want to multiple the whole yaml file
+            if attributes:
+                num_instances = NUMBER_OF_REPLICAS
+            else:
+                num_instances = randint(2, 60)
+
+            for i in range(num_instances):
+                id_suffix = tag_suffix = ""
+                if attributes and attributes.get("resource_id"):
+                    if num_instances > 1:
+                        id_suffix = f"_{pseudo_random_uuid(i)}"
+                        tag_suffix = id_suffix.split("-")[0]
+                        resource_id = f"i-{attributes.get('resource_id')}{id_suffix}"
+                    else:
+                        resource_id = f"i-{attributes.get('resource_id')}"
+                else:
+                    resource_id = f"i-{fake.ean8()}"
+
                 for hour in gen.generate_data():
+                    if attributes and num_instances > 1 or not attributes:
+                        hour["lineItem/ResourceId"] = resource_id
+                        if orig_node_tag_value := hour.get("resourceTags/user:openshift_node"):
+                            hour["resourceTags/user:openshift_node"] = f"{orig_node_tag_value}{id_suffix}"
+                        if orig_project_tag_value := hour.get("resourceTags/user:openshift_project"):
+                            hour["resourceTags/user:openshift_project"] = f"{orig_project_tag_value}{id_suffix}"
+                        if orig_tag_match_value := hour.get("resourceTags/user:managed_tables_matching"):
+                            hour["resourceTags/user:managed_tables_matching"] = f"{orig_tag_match_value}{tag_suffix}"
                     data += [hour]
                     if len(data) == options.get("row_limit"):
                         file_number += 1
