@@ -114,6 +114,10 @@ venv.bak/
 # Generated .json
 *.json
 
+# EXCEPTIONS (files that must go into builds)
+!nise/aws-template-manifest.json
+!nise/yaml_generators/static/*.json
+
 # Mac OSX
 .DS_Store
 
