@@ -11,7 +11,5 @@ from nise.generators.gcp.gcp_generator import GCP_RESOURCE_COLUMNS  # noqa: F401
 from nise.generators.gcp.gcp_generator import GCPGenerator  # noqa: F401
 from nise.generators.gcp.gcp_network_generator import GCPNetworkGenerator  # noqa: F401
 from nise.generators.gcp.gcp_network_generator import JSONLGCPNetworkGenerator  # noqa: F401
-from nise.generators.gcp.hcs_generator import HCSGenerator  # noqa: F401
-from nise.generators.gcp.hcs_generator import JSONLHCSGenerator  # noqa: F401
 from nise.generators.gcp.project_generator import JSONLProjectGenerator  # noqa: F401
 from nise.generators.gcp.project_generator import ProjectGenerator  # noqa: F401
