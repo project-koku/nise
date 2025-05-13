@@ -24,6 +24,7 @@ from datetime import timedelta
 from random import choice
 from random import randint
 from random import uniform
+from nise.util import NUMBER_OF_REPLICAS, pseudo_random_uuid
 
 from nise.generators.generator import AbstractGenerator
 
@@ -311,6 +312,28 @@ class GCPGenerator(AbstractGenerator):
         for hour in self.hours:
             start = hour.get("start")
             end = hour.get("end")
-            row = self._init_data_row(start, end)
-            row = self._update_data(row)
-            yield row
+
+            for i in range(NUMBER_OF_REPLICAS):
+                row = self._init_data_row(start, end)
+                row = self._update_data(row)
+
+                id_suffix = tag_suffix = ""
+                if NUMBER_OF_REPLICAS > 1:
+                    id_suffix = f"_{pseudo_random_uuid(i)}"
+                    tag_suffix = id_suffix.split("-")[0]
+
+                if row.get("resource.global_name"):
+                    row["resource.global_name"] += id_suffix
+                if row.get("resource.name"):
+                    row["resource.name"] += id_suffix
+                if gcp_labels := row.get("labels"):
+                    gcp_labels_list = json.loads(gcp_labels)
+                    for tag in gcp_labels_list:
+                        if tag["key"] in ["openshift_node", "openshift_project"]:
+                            tag["value"] += id_suffix
+                        elif tag["key"] == "managed_tables_matching":
+                            tag["value"] += tag_suffix
+
+                    row["labels"] = json.dumps(gcp_labels_list)
+                    raise ValueError(f"evadebug4{row['resource.name'], row['labels']}")
+                yield row
