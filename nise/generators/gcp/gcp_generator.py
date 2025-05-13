@@ -313,6 +313,7 @@ class GCPGenerator(AbstractGenerator):
             start = hour.get("start")
             end = hour.get("end")
 
+            # each line items will be generated {NUMBER_OF_REPLICAS} times
             for i in range(NUMBER_OF_REPLICAS):
                 row = self._init_data_row(start, end)
                 row = self._update_data(row)
@@ -333,7 +334,5 @@ class GCPGenerator(AbstractGenerator):
                             tag["value"] += id_suffix
                         elif tag["key"] == "managed_tables_matching":
                             tag["value"] += tag_suffix
-
                     row["labels"] = json.dumps(gcp_labels_list)
-                    raise ValueError(f"evadebug4{row['resource.name'], row['labels']}")
                 yield row
