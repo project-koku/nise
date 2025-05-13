@@ -17,6 +17,7 @@
 """Defines the abstract generator."""
 
 import datetime
+from nise.util import pseudo_random_uuid
 from copy import deepcopy
 from random import choice
 from random import choices
@@ -27,6 +28,8 @@ from string import ascii_lowercase
 from dateutil import parser
 from nise.generators.generator import AbstractGenerator
 from nise.generators.generator import REPORT_TYPE
+from nise.util import NUMBER_OF_REPLICAS
+
 
 GIGABYTE = 1024 * 1024 * 1024
 HOUR = 60 * 60
@@ -239,7 +242,6 @@ class OCPGenerator(AbstractGenerator):
         self.nodes = self._gen_nodes()
         self.namespaces = self._gen_namespaces(self.nodes)
         self.pods, self.namespace2pods, self.ros_data = self._gen_pods(self.namespaces)
-
         self.volumes = self._gen_volumes(self.namespaces, self.namespace2pods)
 
         self.ocp_report_generation = {
@@ -280,21 +282,33 @@ class OCPGenerator(AbstractGenerator):
 
     def _gen_nodes(self):
         """Create nodes for report."""
+        num_replicas = NUMBER_OF_REPLICAS
         nodes = []
         if self._nodes:
             for item in self._nodes:
-                memory_gig = item.get("memory_gig", randint(2, 8))
-                memory_bytes = memory_gig * GIGABYTE
-                resource_id = str(item.get("resource_id", self.fake.word()))
-                node = {
-                    "name": item.get("node_name", "node_" + self.fake.word()),
-                    "cpu_cores": item.get("cpu_cores", randint(2, 16)),
-                    "memory_bytes": memory_bytes,
-                    "resource_id": "i-" + resource_id,
-                    "namespaces": item.get("namespaces"),
-                    "node_labels": item.get("node_labels"),
-                }
-                nodes.append(node)
+                for i in range(num_replicas):
+                    id_suffix = ""
+                    memory_gig = item.get("memory_gig", randint(2, 8))
+                    memory_bytes = memory_gig * GIGABYTE
+                    resource_id = str(item.get("resource_id", self.fake.word()))
+                    node_name = item.get("node_name", "node_" + self.fake.word())
+                    if num_replicas > 1:
+                        id_suffix = f"_{pseudo_random_uuid(i)}"
+                        resource_id += id_suffix
+                        node_name += id_suffix
+
+                    namespaces = item.get("namespaces")
+                    namespaces_renamed = {f"{project}{id_suffix}": values for project, values in namespaces.items()}
+
+                    node = {
+                        "name": node_name,
+                        "cpu_cores": item.get("cpu_cores", randint(2, 16)),
+                        "memory_bytes": memory_bytes,
+                        "resource_id": "i-" + resource_id,
+                        "namespaces": namespaces_renamed,
+                        "node_labels": item.get("node_labels"),
+                    }
+                    nodes.append(node)
         else:
             num_nodes = randint(2, 6)
             seeded_labels = {"node-role.kubernetes.io/master": [""], "node-role.kubernetes.io/infra": [""]}
@@ -319,12 +333,14 @@ class OCPGenerator(AbstractGenerator):
                 for name, _ in node.get("namespaces").items():
                     namespace = name
                     namespaces[namespace] = node
+
             else:
                 num_namespaces = randint(2, 12)
                 for _ in range(num_namespaces):
                     namespace_suffix = choice(("ci", "qa", "prod", "proj", "dev", "staging"))
                     namespace = self.fake.word() + "_" + namespace_suffix
                     namespaces[namespace] = node
+
         return namespaces
 
     def _gen_openshift_labels(self, seeding=None):
@@ -369,12 +385,17 @@ class OCPGenerator(AbstractGenerator):
         ros_ocp_data_pods = {}
         namespace2pod = {}
         for namespace, node in namespaces.items():
+            if "_" in node.get("resource_id"):
+                pod_suffix = f"_{node.get('resource_id').split('_')[-1]}"
+                tag_suffix = pod_suffix.split("-")[0]
+            else:
+                pod_suffix = tag_suffix = ""
+
             namespace2pod[namespace] = []
             if node.get("namespaces"):
                 specified_pods = node.get("namespaces").get(namespace).get("pods") or []
                 for specified_pod in specified_pods:
-                    pod = specified_pod.get("pod_name", self.fake.word())
-                    namespace2pod[namespace].append(pod)
+                    pod = f"{specified_pod.get('pod_name', self.fake.word())}{pod_suffix}"
                     cpu_cores = node.get("cpu_cores")
                     memory_bytes = node.get("memory_bytes")
 
@@ -395,6 +416,11 @@ class OCPGenerator(AbstractGenerator):
                         if value > mem_limit_gig:
                             memory_usage_gig[key] = mem_limit_gig
 
+                    pod_labels = specified_pod.get("labels", None)
+                    if pod_labels:
+                        pod_labels = pod_labels.replace(
+                            "label_managed_tables_matching:today", f"label_managed_tables_matching:today{tag_suffix}"
+                        )
                     pods[pod] = {
                         "namespace": namespace,
                         "node": node.get("name"),
@@ -408,7 +434,7 @@ class OCPGenerator(AbstractGenerator):
                         "cpu_limit": cpu_limit,
                         "mem_request_gig": mem_request_gig,
                         "mem_limit_gig": mem_limit_gig,
-                        "pod_labels": specified_pod.get("labels", None),
+                        "pod_labels": pod_labels,
                         "cpu_usage": cpu_usage,
                         "mem_usage_gig": memory_usage_gig,
                         "pod_seconds": specified_pod.get("pod_seconds"),
@@ -547,6 +573,11 @@ class OCPGenerator(AbstractGenerator):
         """Create volumes on specific namespaces and keep relationship."""
         volumes = []
         for namespace, node in namespaces.items():
+            if "_" in node.get("resource_id"):
+                pod_suffix = volume_suffix = f"_{node.get('resource_id').split('_')[-1]}"
+                tag_suffix = pod_suffix.split("-")[0]
+            else:
+                pod_suffix = volume_suffix = tag_suffix = ""
             storage_class_default, csi_default = choice(
                 (
                     ("gp3-csi", "ebs.csi.aws.com"),
@@ -558,7 +589,8 @@ class OCPGenerator(AbstractGenerator):
             if node.get("namespaces"):
                 specified_volumes = node.get("namespaces").get(namespace).get("volumes", [])
                 for specified_volume in specified_volumes:
-                    volume = specified_volume.get("volume_name", self.fake.word())
+                    volume = f"{specified_volume.get('volume_name', self.fake.word())}{volume_suffix}"
+
                     volume_request_gig = specified_volume.get("volume_request_gig")
                     volume_request = volume_request_gig * GIGABYTE
                     specified_vol_claims = specified_volume.get("volume_claims", [])
@@ -567,8 +599,8 @@ class OCPGenerator(AbstractGenerator):
                     for specified_vc in specified_vol_claims:
                         if volume_request - total_claims <= GIGABYTE:
                             break
-                        vol_claim = specified_vc.get("volume_claim_name", self.fake.word())
-                        pod = specified_vc.get("pod_name")
+                        vol_claim = f"{specified_vc.get('volume_claim_name', self.fake.word())}{volume_suffix}"
+                        pod = f"{specified_vc.get('pod_name')}{pod_suffix}"
                         claim_capacity = max(
                             specified_vc.get("capacity_gig") * GIGABYTE, (volume_request_gig * GIGABYTE - total_claims)
                         )
@@ -586,6 +618,12 @@ class OCPGenerator(AbstractGenerator):
                             "volume_claim_usage_gig": usage_gig,
                         }
                         total_claims += claim_capacity
+
+                    volume_labels = specified_volume.get("labels", None)
+                    if volume_labels:
+                        volume_labels = volume_labels.replace(
+                            "label_managed_tables_matching:today", f"label_managed_tables_matching:today{tag_suffix}"
+                        )
                     volumes.append(
                         {
                             volume: {
@@ -594,11 +632,11 @@ class OCPGenerator(AbstractGenerator):
                                 "volume": volume,
                                 "storage_class": specified_volume.get("storage_class", storage_class_default),
                                 "csi_driver": specified_volume.get("csi_driver", csi_default),
-                                "csi_volume_handle": specified_volume.get(
-                                    "csi_volume_handle", f"vol-{self.fake.word()}"
-                                ),
+                                "csi_volume_handle": f"{
+                                    specified_volume.get('csi_volume_handle', f'vol-{self.fake.word()}')
+                                }{volume_suffix}",
                                 "volume_request": volume_request,
-                                "labels": specified_volume.get("labels", None),
+                                "labels": volume_labels,
                                 "volume_claims": volume_claims,
                             }
                         }

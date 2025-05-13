@@ -24,6 +24,7 @@ from datetime import timedelta
 from random import choice
 from random import randint
 from random import uniform
+from nise.util import NUMBER_OF_REPLICAS, pseudo_random_uuid
 
 from nise.generators.generator import AbstractGenerator
 
@@ -311,6 +312,46 @@ class GCPGenerator(AbstractGenerator):
         for hour in self.hours:
             start = hour.get("start")
             end = hour.get("end")
-            row = self._init_data_row(start, end)
-            row = self._update_data(row)
-            yield row
+
+            # each line items will be generated {NUMBER_OF_REPLICAS} times
+            for i in range(NUMBER_OF_REPLICAS):
+                row = self._init_data_row(start, end)
+                row = self._update_data(row)
+
+                id_suffix = tag_suffix = ""
+                if NUMBER_OF_REPLICAS > 1:
+                    id_suffix = f"_{pseudo_random_uuid(i)}"
+                    tag_suffix = id_suffix.split("-")[0]
+
+                # csv flow
+                if row.get("resource.global_name"):
+                    row["resource.global_name"] += id_suffix
+                # json flow
+                elif row.get("resource", {}).get("global_name"):
+                    row["resource"]["global_name"] += id_suffix
+
+                # csv flow
+                if row.get("resource.name"):
+                    row["resource.name"] += id_suffix
+                # json flow
+                elif row.get("resource", {}).get("name"):
+                    row["resource"]["name"] += id_suffix
+
+                if gcp_labels := row.get("labels"):
+                    is_label_str = isinstance(gcp_labels, str)  # True - csv flow / False - json flow
+
+                    if is_label_str:
+                        gcp_labels = json.loads(gcp_labels)
+
+                    for tag in gcp_labels:
+                        if tag["key"] in ["openshift_node", "openshift_project"]:
+                            tag["value"] += id_suffix
+                        elif tag["key"] == "managed_tables_matching":
+                            tag["value"] += tag_suffix
+
+                    if is_label_str:
+                        gcp_labels = json.dumps(gcp_labels)
+
+                    row["labels"] = gcp_labels
+
+                yield row

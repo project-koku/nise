@@ -17,12 +17,16 @@
 """Utility functions."""
 
 from collections import abc
-
+import random
+import uuid
 import yaml
 
 from .log import LOG  # noqa: F401
 from .log import LOG_FORMAT  # noqa: F401
 from .log import LOG_VERBOSITY  # noqa: F401
+
+# TODO UPDATE THIS: Num. of times to replicate each resource
+NUMBER_OF_REPLICAS = 10
 
 
 def load_yaml(objekt):
@@ -56,3 +60,9 @@ def deepupdate(original, update):
         else:
             original[key] = value
     return original
+
+
+def pseudo_random_uuid(rand_seed):
+    """Generate pseudo-random uuid"""
+    random.seed(rand_seed)
+    return uuid.UUID(int=random.getrandbits(128), version=4)
