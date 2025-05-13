@@ -323,16 +323,35 @@ class GCPGenerator(AbstractGenerator):
                     id_suffix = f"_{pseudo_random_uuid(i)}"
                     tag_suffix = id_suffix.split("-")[0]
 
+                # csv flow
                 if row.get("resource.global_name"):
                     row["resource.global_name"] += id_suffix
+                # json flow
+                elif row.get("resource", {}).get("global_name"):
+                    row["resource"]["global_name"] += id_suffix
+
+                # csv flow
                 if row.get("resource.name"):
                     row["resource.name"] += id_suffix
+                # json flow
+                elif row.get("resource", {}).get("name"):
+                    row["resource"]["name"] += id_suffix
+
                 if gcp_labels := row.get("labels"):
-                    gcp_labels_list = json.loads(gcp_labels)
-                    for tag in gcp_labels_list:
+                    is_label_str = isinstance(gcp_labels, str)  # True - csv flow / False - json flow
+
+                    if is_label_str:
+                        gcp_labels = json.loads(gcp_labels)
+
+                    for tag in gcp_labels:
                         if tag["key"] in ["openshift_node", "openshift_project"]:
                             tag["value"] += id_suffix
                         elif tag["key"] == "managed_tables_matching":
                             tag["value"] += tag_suffix
-                    row["labels"] = json.dumps(gcp_labels_list)
+
+                    if is_label_str:
+                        gcp_labels = json.dumps(gcp_labels)
+
+                    row["labels"] = gcp_labels
+
                 yield row
