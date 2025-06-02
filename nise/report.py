@@ -41,6 +41,7 @@ import requests
 from dateutil import parser
 from dateutil.relativedelta import relativedelta
 from faker import Faker
+
 from nise import __version__
 from nise.copy_to_local_dir import copy_to_local_dir
 from nise.extract import extract_payload
@@ -80,6 +81,7 @@ from nise.generators.ocp import OCP_POD_USAGE
 from nise.generators.ocp import OCP_REPORT_TYPE_TO_COLS
 from nise.generators.ocp import OCP_ROS_USAGE
 from nise.generators.ocp import OCP_STORAGE_USAGE
+from nise.generators.ocp import OCP_VM_USAGE
 from nise.generators.ocp import OCPGenerator
 from nise.manifest import aws_generate_manifest
 from nise.manifest import ocp_generate_manifest
@@ -854,8 +856,20 @@ def ocp_create_report(options):  # noqa: C901
     minio_upload = options.get("minio_upload")
     write_monthly = options.get("write_monthly", False)
     for month in months:
-        data = {OCP_POD_USAGE: [], OCP_STORAGE_USAGE: [], OCP_NODE_LABEL: [], OCP_NAMESPACE_LABEL: []}
-        file_numbers = {OCP_POD_USAGE: 0, OCP_STORAGE_USAGE: 0, OCP_NODE_LABEL: 0, OCP_NAMESPACE_LABEL: 0}
+        data = {
+            OCP_POD_USAGE: [],
+            OCP_STORAGE_USAGE: [],
+            OCP_NODE_LABEL: [],
+            OCP_NAMESPACE_LABEL: [],
+            OCP_VM_USAGE: [],
+        }
+        file_numbers = {
+            OCP_POD_USAGE: 0,
+            OCP_STORAGE_USAGE: 0,
+            OCP_NODE_LABEL: 0,
+            OCP_NAMESPACE_LABEL: 0,
+            OCP_VM_USAGE: 0,
+        }
         if ros_ocp_info:
             data.update({OCP_ROS_USAGE: []})
             file_numbers.update({OCP_ROS_USAGE: 0})

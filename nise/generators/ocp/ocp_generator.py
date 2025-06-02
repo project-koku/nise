@@ -104,13 +104,14 @@ OCP_VM_COLUMNS = (
     "interval_start",
     "interval_end",
     "node",
+    "resource_id",
     "namespace",
     "vm_name",
     "vm_instance_type",
     "vm_os",
     "vm_guest_os_arch",
     "vm_guest_os_name",
-    "vm_guest_os_version_id",
+    "vm_guest_os_version",
     "vm_uptime_total_seconds",
     "vm_cpu_limit_cores",
     "vm_cpu_limit_core_seconds",
@@ -197,7 +198,7 @@ OCP_OWNER_WORKLOAD_CHOICES = {
     "job": (None, "Job", None, "job"),  # not supported by Kruize - recommendation won't be generated!
     "manual_pod": ("<none>", "<none>", None, None),  # manually created Pod - recommendation won't be generated!
 }
-VM_OS_TYPES = {
+VM_OS_TYPES = (
     "alpine",
     "centos.stream10",
     "centos.stream10.desktop",
@@ -242,9 +243,9 @@ VM_OS_TYPES = {
     "windows.2k22.virtio",
     "windows.2k25",
     "windows.2k25.virtio",
-}
+)
 
-VM_INSTANCE_TYPES = {
+VM_INSTANCE_TYPES = (
     "cx1.2xlarge",
     "cx1.4xlarge",
     "cx1.8xlarge",
@@ -289,24 +290,24 @@ VM_INSTANCE_TYPES = {
     "u1.nano",
     "u1.small",
     "u1.xlarge",
-}
+)
 
-VM_GUEST_ARCH = {
+VM_GUEST_ARCH = (
     "x86_64",
     "s390x",
     "aarch64",
     "ppc64le",
-}
+)
 
-VM_GUEST_OS = {
+VM_GUEST_OS = (
     "Windows",
     "Red Hat Linux Enterprise",
     "CentOS",
     "Fedora",
     "Ubuntu",
-}
+)
 
-VM_GUEST_VERSION = {"10.0", "7.5", "8.1", "9.5"}
+VM_GUEST_VERSION = ("10.0", "7.5", "8.1", "9.5")
 
 
 def get_owner_workload(pod, workload=None):
@@ -413,6 +414,7 @@ class OCPGenerator(AbstractGenerator):
         self.pods, self.namespace2pods, self.ros_data = self._gen_pods(self.namespaces)
 
         self.volumes = self._gen_volumes(self.namespaces, self.namespace2pods)
+        self.vms, self.namespace2vm = self._gen_virtual_machines(self.namespaces)
 
         self.ocp_report_generation = {
             OCP_POD_USAGE: {
@@ -432,8 +434,8 @@ class OCPGenerator(AbstractGenerator):
                 "_update_data": self._update_namespace_label_data,
             },
             OCP_VM_USAGE: {
-                "_generate_hourly_data": self._gen_hourly_namespace_label_usage,
-                "_update_data": self._update_namespace_label_data,
+                "_generate_hourly_data": self._gen_hourly_vm_usage,
+                "_update_data": self._update_vm_data,
             },
         }
 
@@ -922,7 +924,6 @@ class OCPGenerator(AbstractGenerator):
                             "cpu_request_threads": cpu_request_threads,
                             "mem_request_gig": mem_request_gig,
                             "mem_limit_gig": mem_limit_gig,
-                            "mem_usage_gig": memory_usage_gig,
                             "vm_labels": self._gen_openshift_labels(),
                         }
                         | get_vm_instance()
@@ -998,6 +999,48 @@ class OCPGenerator(AbstractGenerator):
         pod["pod_request_memory_byte_seconds"] = pod_seconds * mem_request_gig * GIGABYTE
         pod["pod_limit_memory_byte_seconds"] = pod_seconds * mem_limit_gig * GIGABYTE
         row.update(pod)
+        return row
+
+    def _update_vm_data(self, row, start, end, **kwargs):
+        """Update data with generator specific data."""
+        user_vm_seconds = kwargs.get("vm_seconds")
+        vm_seconds = user_vm_seconds or randint(2, HOUR)
+        vm = kwargs.get("vm")
+        cpu_limit = vm.pop("cpu_limit_cores")
+        mem_limit_gig = vm.pop("mem_limit_gig")
+
+        cpu_request_cores = min(vm.pop("cpu_request_cores"), cpu_limit)
+        cpu_request_sockets = min(vm.pop("cpu_request_sockets"), cpu_limit)
+        cpu_request_threads = min(vm.pop("cpu_request_threads"), cpu_limit)
+        mem_request_gig = min(vm.pop("mem_request_gig"), mem_limit_gig)
+        cpu_usage = self._get_usage_for_date(kwargs.get("cpu_usage"), start)
+        cpu = round(uniform(0.02, cpu_limit), 5)
+        # ensure that cpu usage is not higher than cpu_limit
+        if cpu_usage:
+            cpu = min(cpu_limit, cpu_usage)
+
+        mem_usage_gig = self._get_usage_for_date(kwargs.get("mem_usage_gig"), start)
+        mem = round(uniform(1, mem_limit_gig), 2)
+        # ensure that mem usage is not higher than mem_limit
+        if mem_usage_gig:
+            mem = min(mem_limit_gig, mem_usage_gig)
+
+        vm["vm_cpu_usage_total_seconds"] = vm_seconds * cpu
+        vm["vm_cpu_request_core_seconds"] = vm_seconds * cpu_request_cores
+        vm["vm_cpu_request_socket_seconds"] = vm_seconds * cpu_request_sockets
+        vm["vm_cpu_request_thread_seconds"] = vm_seconds * cpu_request_threads
+
+        vm["vm_cpu_limit_core_seconds"] = vm_seconds * cpu_limit
+
+        vm["vm_memory_usage_byte_seconds"] = vm_seconds * mem * GIGABYTE
+        vm["vm_memory_request_byte_seconds"] = vm_seconds * mem_request_gig * GIGABYTE
+        vm["vm_memory_limit_byte_seconds"] = vm_seconds * mem_limit_gig * GIGABYTE
+
+        vm["vm_uptime_total_seconds"] = vm_seconds
+
+        vm["vm_disk_allocated_size_byte_seconds"] = kwargs.get("vc_capacity") * HOUR
+
+        row.update(vm)
         return row
 
     def _randomize_ros_ocp_line_values(self, pod_in):
@@ -1133,6 +1176,50 @@ class OCPGenerator(AbstractGenerator):
                     pod = deepcopy(self.pods[pod_name])
                     row = self._init_data_row(start, end, **kwargs)
                     yield self._update_data(row, start, end, pod=pod, **kwargs)
+
+    def _gen_hourly_vm_usage(self, **kwargs):
+        """Create hourly data for pod usage."""
+        for hour in self.hours:
+            start = hour.get("start")
+            end = hour.get("end")
+
+            if self._nodes:
+                for vm_name, _ in self.vms.items():
+                    cpu_usage = self.vms[vm_name].get("cpu_usage", None)
+                    mem_usage_gig = self.vms[vm_name].get("mem_usage_gig", None)
+                    vm_seconds = self.vms[vm_name].get("vm_seconds", None)
+                    vc_capacity = self.vms[vm_name].get("vc_capacity", None)
+                    vm = deepcopy(self.vms[vm_name])
+                    row = self._init_data_row(start, end, **kwargs)
+                    row = self._update_data(
+                        row,
+                        start,
+                        end,
+                        vm=vm,
+                        cpu_usage=cpu_usage,
+                        mem_usage_gig=mem_usage_gig,
+                        vm_seconds=vm_seconds,
+                        vc_capacity=vc_capacity,
+                        **kwargs,
+                    )
+                    row.pop("cpu_usage", None)
+                    row.pop("mem_usage_gig", None)
+                    row.pop("vm_seconds", None)
+                    row.pop("vc_capacity", None)
+                    yield row
+            else:
+                vm_count = len(self.vms)
+                num_vms = randint(2, vm_count)
+                vm_index_list = range(vm_count)
+                vm_choices = list(set(choices(vm_index_list, k=num_vms)))
+                vm_keys = list(self.vms.keys())
+                for vm_choice in vm_choices:
+                    vm_name = vm_keys[vm_choice]
+                    vm = deepcopy(self.vms[vm_name])
+                    row = self._init_data_row(start, end, **kwargs)
+                    row = self._update_data(row, start, end, vm=vm, vc_capacity=vc_capacity, **kwargs)
+                    row.pop("vc_capacity", None)
+                    yield row
 
     def _gen_quarter_hourly_ros_ocp_pods_usage(self, **kwargs):
         """Create hourly data for pod usage."""
