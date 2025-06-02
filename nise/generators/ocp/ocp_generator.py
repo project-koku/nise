@@ -871,7 +871,6 @@ class OCPGenerator(AbstractGenerator):
                     for key, value in memory_usage_gig.items():
                         if value > mem_limit_gig:
                             memory_usage_gig[key] = mem_limit_gig
-
                     vms[vm] = (
                         {
                             "node": node.get("name"),
@@ -879,13 +878,13 @@ class OCPGenerator(AbstractGenerator):
                             "namespace": namespace,
                             "vm_name": vm,
                             "vm_uptime_total_seconds": ("some number between 0 and 60"),
-                            "cpu_limit_cores": cpu_limit_cores,
-                            "cpu_request_cores": cpu_request_cores,
-                            "cpu_request_sockets": cpu_request_sockets,
-                            "cpu_request_threads": cpu_request_threads,
+                            "vm_cpu_limit_cores": cpu_limit_cores,
+                            "vm_cpu_request_cores": cpu_request_cores,
+                            "vm_cpu_request_sockets": cpu_request_sockets,
+                            "vm_cpu_request_threads": cpu_request_threads,
                             "cpu_usage": cpu_usage,
-                            "mem_request_gig": mem_request_gig,
-                            "mem_limit_gig": mem_limit_gig,
+                            "vm_memory_request_bytes": mem_request_gig,
+                            "vm_memory_limit_bytes": mem_limit_gig,
                             "mem_usage_gig": memory_usage_gig,
                             "vm_labels": specified_vm.get("labels", None),
                             "vm_seconds": specified_vm.get("vm_seconds"),
@@ -918,12 +917,12 @@ class OCPGenerator(AbstractGenerator):
                             "namespace": namespace,
                             "vm_name": vm,
                             "vm_uptime_total_seconds": ("some number between 0 and 60"),
-                            "cpu_limit_cores": cpu_limit_cores,
-                            "cpu_request_cores": cpu_request_cores,
-                            "cpu_request_sockets": cpu_request_sockets,
-                            "cpu_request_threads": cpu_request_threads,
-                            "mem_request_gig": mem_request_gig,
-                            "mem_limit_gig": mem_limit_gig,
+                            "vm_cpu_limit_cores": cpu_limit_cores,
+                            "vm_cpu_request_cores": cpu_request_cores,
+                            "vm_cpu_request_sockets": cpu_request_sockets,
+                            "vm_cpu_request_threads": cpu_request_threads,
+                            "vm_memory_request_bytes": mem_request_gig,
+                            "vm_memory_limit_bytes": mem_limit_gig,
                             "vm_labels": self._gen_openshift_labels(),
                         }
                         | get_vm_instance()
@@ -1006,13 +1005,13 @@ class OCPGenerator(AbstractGenerator):
         user_vm_seconds = kwargs.get("vm_seconds")
         vm_seconds = user_vm_seconds or randint(2, HOUR)
         vm = kwargs.get("vm")
-        cpu_limit = vm.pop("cpu_limit_cores")
-        mem_limit_gig = vm.pop("mem_limit_gig")
+        cpu_limit = vm.get("vm_cpu_limit_cores")
+        mem_limit_gig = vm.get("vm_memory_limit_bytes")
 
-        cpu_request_cores = min(vm.pop("cpu_request_cores"), cpu_limit)
-        cpu_request_sockets = min(vm.pop("cpu_request_sockets"), cpu_limit)
-        cpu_request_threads = min(vm.pop("cpu_request_threads"), cpu_limit)
-        mem_request_gig = min(vm.pop("mem_request_gig"), mem_limit_gig)
+        cpu_request_cores = min(vm.get("vm_cpu_request_cores"), cpu_limit)
+        cpu_request_sockets = min(vm.get("vm_cpu_request_sockets"), cpu_limit)
+        cpu_request_threads = min(vm.get("vm_cpu_request_threads"), cpu_limit)
+        mem_request_gig = min(vm.get("vm_memory_request_bytes"), mem_limit_gig)
         cpu_usage = self._get_usage_for_date(kwargs.get("cpu_usage"), start)
         cpu = round(uniform(0.02, cpu_limit), 5)
         # ensure that cpu usage is not higher than cpu_limit
@@ -1216,6 +1215,7 @@ class OCPGenerator(AbstractGenerator):
                 for vm_choice in vm_choices:
                     vm_name = vm_keys[vm_choice]
                     vm = deepcopy(self.vms[vm_name])
+                    vc_capacity = vm.get("vc_capacity", None)
                     row = self._init_data_row(start, end, **kwargs)
                     row = self._update_data(row, start, end, vm=vm, vc_capacity=vc_capacity, **kwargs)
                     row.pop("vc_capacity", None)
