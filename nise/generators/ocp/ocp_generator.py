@@ -25,8 +25,12 @@ from random import uniform
 from string import ascii_lowercase
 
 from dateutil import parser
+from faker import Faker
+
 from nise.generators.generator import AbstractGenerator
 from nise.generators.generator import REPORT_TYPE
+
+FAKER = Faker()
 
 GIGABYTE = 1024 * 1024 * 1024
 HOUR = 60 * 60
@@ -35,6 +39,7 @@ OCP_POD_USAGE = "ocp_pod_usage"
 OCP_STORAGE_USAGE = "ocp_storage_usage"
 OCP_NODE_LABEL = "ocp_node_label"
 OCP_NAMESPACE_LABEL = "ocp_namespace_label"
+OCP_VM_USAGE = "ocp_vm_usage"
 OCP_ROS_USAGE = "ocp_ros_usage"
 OCP_POD_USAGE_COLUMNS = (
     "report_period_start",
@@ -93,6 +98,40 @@ OCP_NAMESPACE_LABEL_COLUMNS = (
     "namespace",
     "namespace_labels",
 )
+OCP_VM_COLUMNS = (
+    "report_period_start",
+    "report_period_end",
+    "interval_start",
+    "interval_end",
+    "node",
+    "namespace",
+    "vm_name",
+    "vm_instance_type",
+    "vm_os",
+    "vm_guest_os_arch",
+    "vm_guest_os_name",
+    "vm_guest_os_version_id",
+    "vm_uptime_total_seconds",
+    "vm_cpu_limit_cores",
+    "vm_cpu_limit_core_seconds",
+    "vm_cpu_request_cores",
+    "vm_cpu_request_core_seconds",
+    "vm_cpu_request_sockets",
+    "vm_cpu_request_socket_seconds",
+    "vm_cpu_request_threads",
+    "vm_cpu_request_thread_seconds",
+    "vm_cpu_usage_total_seconds",
+    "vm_memory_limit_bytes",
+    "vm_memory_limit_byte_seconds",
+    "vm_memory_request_bytes",
+    "vm_memory_request_byte_seconds",
+    "vm_memory_usage_byte_seconds",
+    "vm_device",
+    "vm_volume_mode",
+    "vm_persistentvolumeclaim_name",
+    "vm_disk_allocated_size_byte_seconds",
+    "vm_labels",
+)
 OCP_ROS_USAGE_COLUMN = (
     "interval_start",
     "interval_end",
@@ -137,6 +176,7 @@ OCP_REPORT_TYPE_TO_COLS = {
     OCP_STORAGE_USAGE: OCP_STORAGE_COLUMNS,
     OCP_NODE_LABEL: OCP_NODE_LABEL_COLUMNS,
     OCP_NAMESPACE_LABEL: OCP_NAMESPACE_LABEL_COLUMNS,
+    OCP_VM_USAGE: OCP_VM_COLUMNS,
     OCP_ROS_USAGE: OCP_ROS_USAGE_COLUMN,
 }
 
@@ -157,6 +197,116 @@ OCP_OWNER_WORKLOAD_CHOICES = {
     "job": (None, "Job", None, "job"),  # not supported by Kruize - recommendation won't be generated!
     "manual_pod": ("<none>", "<none>", None, None),  # manually created Pod - recommendation won't be generated!
 }
+VM_OS_TYPES = {
+    "alpine",
+    "centos.stream10",
+    "centos.stream10.desktop",
+    "centos.stream9",
+    "centos.stream9.desktop",
+    "centos.stream9.dpdk",
+    "cirros",
+    "debian",
+    "fedora",
+    "fedora.arm64",
+    "fedora.s390x",
+    "legacy",
+    "linux",
+    "linux.efi",
+    "opensuse.leap",
+    "opensuse.tumbleweed",
+    "oraclelinux",
+    "rhel.10",
+    "rhel.10.arm64",
+    "rhel.7",
+    "rhel.7.desktop",
+    "rhel.8",
+    "rhel.8.desktop",
+    "rhel.8.dpdk",
+    "rhel.9",
+    "rhel.9.arm64",
+    "rhel.9.desktop",
+    "rhel.9.dpdk",
+    "rhel.9.realtime",
+    "rhel.9.s390x",
+    "sles",
+    "ubuntu",
+    "windows.10",
+    "windows.10.virtio",
+    "windows.11",
+    "windows.11.virtio",
+    "windows.2k16",
+    "windows.2k16.virtio",
+    "windows.2k19",
+    "windows.2k19.virtio",
+    "windows.2k22",
+    "windows.2k22.virtio",
+    "windows.2k25",
+    "windows.2k25.virtio",
+}
+
+VM_INSTANCE_TYPES = {
+    "cx1.2xlarge",
+    "cx1.4xlarge",
+    "cx1.8xlarge",
+    "cx1.large",
+    "cx1.medium",
+    "cx1.xlarge",
+    "m1.2xlarge",
+    "m1.4xlarge",
+    "m1.8xlarge",
+    "m1.large",
+    "m1.xlarge",
+    "n1.2xlarge",
+    "n1.4xlarge",
+    "n1.8xlarge",
+    "n1.large",
+    "n1.medium",
+    "n1.xlarge",
+    "o1.2xlarge",
+    "o1.4xlarge",
+    "o1.8xlarge",
+    "o1.large",
+    "o1.medium",
+    "o1.micro",
+    "o1.nano",
+    "o1.small",
+    "o1.xlarge",
+    "rt1.2xlarge",
+    "rt1.4xlarge",
+    "rt1.8xlarge",
+    "rt1.large",
+    "rt1.medium",
+    "rt1.micro",
+    "rt1.small",
+    "rt1.xlarge",
+    "u1.2xlarge",
+    "u1.2xmedium",
+    "u1.4xlarge",
+    "u1.8xlarge",
+    "u1.large",
+    "u1.medium",
+    "u1.micro",
+    "u1.nano",
+    "u1.small",
+    "u1.xlarge",
+}
+
+VM_GUEST_ARCH = {
+    "x86_64",
+    "s390x",
+    "aarch64",
+    "ppc64le",
+}
+
+VM_GUEST_OS = {
+    "Windows",
+    "Red Hat Linux Enterprise",
+    "CentOS",
+    "Fedora",
+    "Ubuntu",
+}
+
+VM_GUEST_VERSION = {"10.0", "7.5", "8.1", "9.5"}
 
 
 def get_owner_workload(pod, workload=None):
@@ -197,6 +347,28 @@ def generate_randomized_ros_usage(usage_dict, limit_value, generate_constant_val
         # max_value - random float derived from avg_value, but max of limit_value
         max_value = min(round(uniform(avg_value, avg_value * 1.2), 5), limit_value)
     return avg_value, min_value, max_value
+
+
+def get_vm_instance():
+    return {
+        "vm_instance_type": choice(VM_INSTANCE_TYPES),
+        "vm_os": choice(VM_OS_TYPES),
+        "vm_guest_os_arch": choice(VM_GUEST_ARCH),
+        "vm_guest_os_name": choice(VM_GUEST_OS),
+        "vm_guest_os_version": choice(VM_GUEST_VERSION),
+    }
+
+
+def get_vm_disk(specified_vc=None):
+    specified_vc = specified_vc or {}
+    claim_capacity = specified_vc.get("capacity_gig", randint(30, 100)) * GIGABYTE
+    vol_claim = specified_vc.get("volume_claim_name", FAKER.word())
+    return {
+        "vm_device": "rootdisk",
+        "vm_volume_mode": "Block",
+        "vm_persistentvolumeclaim_name": vol_claim,
+        "vc_capacity": claim_capacity,
+    }
 
 
 class OCPGenerator(AbstractGenerator):
@@ -256,6 +428,10 @@ class OCPGenerator(AbstractGenerator):
                 "_update_data": self._update_node_label_data,
             },
             OCP_NAMESPACE_LABEL: {
+                "_generate_hourly_data": self._gen_hourly_namespace_label_usage,
+                "_update_data": self._update_namespace_label_data,
+            },
+            OCP_VM_USAGE: {
                 "_generate_hourly_data": self._gen_hourly_namespace_label_usage,
                 "_update_data": self._update_namespace_label_data,
             },
@@ -470,7 +646,7 @@ class OCPGenerator(AbstractGenerator):
                 for _ in range(num_pods):
                     pod_suffix = "".join(choices(ascii_lowercase, k=5))
                     pod_type = choice(("build", "deploy", pod_suffix))
-                    pod = self.fake.word() + "_" + pod_type
+                    pod = f"{self.fake.word()}_{pod_type}"
                     namespace2pod[namespace].append(pod)
                     cpu_cores = node.get("cpu_cores")
                     cpu_limit = round(uniform(0.02, cpu_cores), 5)
@@ -652,6 +828,109 @@ class OCPGenerator(AbstractGenerator):
                     )
         return volumes
 
+    def _gen_virtual_machines(self, namespaces):
+        """Create vms on specific namespaces and keep relationship."""
+        vms = {}
+        namespace2vm = {}
+        for namespace, node in namespaces.items():
+            namespace2vm[namespace] = []
+            if node.get("namespaces"):
+                specified_vms = node.get("namespaces").get(namespace).get("virtual_machines") or []
+                for specified_vm in specified_vms:
+                    vm = specified_vm.get("vm_name", self.fake.word())
+                    namespace2vm[namespace].append(vm)
+                    cpu_cores = node.get("cpu_cores")
+                    memory_bytes = node.get("memory_bytes")
+
+                    cpu_limit_cores = min(specified_vm.get("cpu_limit_cores", cpu_cores), cpu_cores)
+                    cpu_request_cores = min(
+                        specified_vm.get("cpu_request_cores", round(uniform(0.02, cpu_limit_cores), 5)),
+                        cpu_limit_cores,
+                    )
+                    cpu_request_sockets = min(
+                        specified_vm.get("cpu_request_sockets", round(uniform(0.02, cpu_limit_cores), 5)),
+                        cpu_limit_cores,
+                    )
+                    cpu_request_threads = min(
+                        specified_vm.get("cpu_request_threads", round(uniform(0.02, cpu_limit_cores), 5)),
+                        cpu_limit_cores,
+                    )
+                    cpu_usage = specified_vm.get("cpu_usage", {})
+                    for key, value in cpu_usage.items():
+                        if value > cpu_limit_cores:
+                            cpu_usage[key] = cpu_limit_cores
+
+                    memory_gig = memory_bytes / GIGABYTE
+                    mem_limit_gig = min(specified_vm.get("mem_limit_gig", memory_gig), memory_gig)
+                    mem_request_gig = min(
+                        specified_vm.get("mem_request_gig", round(uniform(25.0, 80.0), 2)), mem_limit_gig
+                    )
+                    memory_usage_gig = specified_vm.get("mem_usage_gig", {})
+                    for key, value in memory_usage_gig.items():
+                        if value > mem_limit_gig:
+                            memory_usage_gig[key] = mem_limit_gig
+
+                    vms[vm] = (
+                        {
+                            "node": node.get("name"),
+                            "resource_id": node.get("resource_id"),
+                            "namespace": namespace,
+                            "vm_name": vm,
+                            "vm_uptime_total_seconds": ("some number between 0 and 60"),
+                            "cpu_limit_cores": cpu_limit_cores,
+                            "cpu_request_cores": cpu_request_cores,
+                            "cpu_request_sockets": cpu_request_sockets,
+                            "cpu_request_threads": cpu_request_threads,
+                            "cpu_usage": cpu_usage,
+                            "mem_request_gig": mem_request_gig,
+                            "mem_limit_gig": mem_limit_gig,
+                            "mem_usage_gig": memory_usage_gig,
+                            "vm_labels": specified_vm.get("labels", None),
+                            "vm_seconds": specified_vm.get("vm_seconds"),
+                        }
+                        | get_vm_instance()
+                        | get_vm_disk(specified_vm)
+                    )
+
+            else:
+                num_vms = randint(2, 20)
+                for _ in range(num_vms):
+                    vm_suffix = "".join(choices(ascii_lowercase, k=5))
+                    vm_type = choice(("build", "deploy", vm_suffix))
+                    vm = f"{self.fake.word()}_{vm_type}"
+                    namespace2vm[namespace].append(vm)
+                    cpu_cores = node.get("cpu_cores")
+                    cpu_limit_cores = round(uniform(0.02, cpu_cores), 5)
+                    cpu_request_cores = round(uniform(0.02, cpu_limit_cores), 5)
+                    cpu_request_sockets = round(uniform(0.02, cpu_limit_cores), 5)
+                    cpu_request_threads = round(uniform(0.02, cpu_limit_cores), 5)
+                    memory_bytes = node.get("memory_bytes")
+                    memory_gig = memory_bytes / GIGABYTE
+                    mem_limit_gig = round(uniform(25.0, memory_gig), 2)
+                    mem_request_gig = round(uniform(25.0, mem_limit_gig), 2)
+
+                    vms[vm] = (
+                        {
+                            "node": node.get("name"),
+                            "resource_id": node.get("resource_id"),
+                            "namespace": namespace,
+                            "vm_name": vm,
+                            "vm_uptime_total_seconds": ("some number between 0 and 60"),
+                            "cpu_limit_cores": cpu_limit_cores,
+                            "cpu_request_cores": cpu_request_cores,
+                            "cpu_request_sockets": cpu_request_sockets,
+                            "cpu_request_threads": cpu_request_threads,
+                            "mem_request_gig": mem_request_gig,
+                            "mem_limit_gig": mem_limit_gig,
+                            "mem_usage_gig": memory_usage_gig,
+                            "vm_labels": self._gen_openshift_labels(),
+                        }
+                        | get_vm_instance()
+                        | get_vm_disk()
+                    )
+
+        return vms, namespace2vm
+
     def _init_data_row(self, start, end, **kwargs):  # noqa: C901
         """Create a row of data with placeholder for all headers."""
         if not (start and end):
@@ -693,7 +972,7 @@ class OCPGenerator(AbstractGenerator):
     def _update_pod_data(self, row, start, end, **kwargs):
         """Update data with generator specific data."""
         user_pod_seconds = kwargs.get("pod_seconds")
-        pod_seconds = user_pod_seconds if user_pod_seconds else randint(2, HOUR)
+        pod_seconds = user_pod_seconds or randint(2, HOUR)
         pod = kwargs.get("pod")
         cpu_limit = pod.pop("cpu_limit")
         mem_limit_gig = pod.pop("mem_limit_gig")
@@ -853,8 +1132,7 @@ class OCPGenerator(AbstractGenerator):
                     pod_name = pod_keys[pod_choice]
                     pod = deepcopy(self.pods[pod_name])
                     row = self._init_data_row(start, end, **kwargs)
-                    row = self._update_data(row, start, end, pod=pod, **kwargs)
-                    yield row
+                    yield self._update_data(row, start, end, pod=pod, **kwargs)
 
     def _gen_quarter_hourly_ros_ocp_pods_usage(self, **kwargs):
         """Create hourly data for pod usage."""
@@ -963,6 +1241,45 @@ class OCPGenerator(AbstractGenerator):
                             **kwargs,
                         )
                         yield row
+
+    def _gen_hourly_virtual_machine_usage(self, **kwargs):
+        """Create hourly data for pod usage."""
+        for hour in self.hours:
+            start = hour.get("start")
+            end = hour.get("end")
+
+            if self._nodes:
+                for pod_name, _ in self.pods.items():
+                    cpu_usage = self.pods[pod_name].get("cpu_usage", None)
+                    mem_usage_gig = self.pods[pod_name].get("mem_usage_gig", None)
+                    pod_seconds = self.pods[pod_name].get("pod_seconds", None)
+                    pod = deepcopy(self.pods[pod_name])
+                    row = self._init_data_row(start, end, **kwargs)
+                    row = self._update_data(
+                        row,
+                        start,
+                        end,
+                        pod=pod,
+                        cpu_usage=cpu_usage,
+                        mem_usage_gig=mem_usage_gig,
+                        pod_seconds=pod_seconds,
+                        **kwargs,
+                    )
+                    row.pop("cpu_usage", None)
+                    row.pop("mem_usage_gig", None)
+                    row.pop("pod_seconds", None)
+                    yield row
+            else:
+                pod_count = len(self.pods)
+                num_pods = randint(2, pod_count)
+                pod_index_list = range(pod_count)
+                pod_choices = list(set(choices(pod_index_list, k=num_pods)))
+                pod_keys = list(self.pods.keys())
+                for pod_choice in pod_choices:
+                    pod_name = pod_keys[pod_choice]
+                    pod = deepcopy(self.pods[pod_name])
+                    row = self._init_data_row(start, end, **kwargs)
+                    yield self._update_data(row, start, end, pod=pod, **kwargs)
 
     def _generate_hourly_data(self, **kwargs):
         """Create hourly data."""
