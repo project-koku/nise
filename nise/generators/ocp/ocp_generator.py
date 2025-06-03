@@ -1177,7 +1177,7 @@ class OCPGenerator(AbstractGenerator):
                     yield self._update_data(row, start, end, pod=pod, **kwargs)
 
     def _gen_hourly_vm_usage(self, **kwargs):
-        """Create hourly data for pod usage."""
+        """Create hourly data for vm usage."""
         for hour in self.hours:
             start = hour.get("start")
             end = hour.get("end")
@@ -1328,45 +1328,6 @@ class OCPGenerator(AbstractGenerator):
                             **kwargs,
                         )
                         yield row
-
-    def _gen_hourly_virtual_machine_usage(self, **kwargs):
-        """Create hourly data for pod usage."""
-        for hour in self.hours:
-            start = hour.get("start")
-            end = hour.get("end")
-
-            if self._nodes:
-                for pod_name, _ in self.pods.items():
-                    cpu_usage = self.pods[pod_name].get("cpu_usage", None)
-                    mem_usage_gig = self.pods[pod_name].get("mem_usage_gig", None)
-                    pod_seconds = self.pods[pod_name].get("pod_seconds", None)
-                    pod = deepcopy(self.pods[pod_name])
-                    row = self._init_data_row(start, end, **kwargs)
-                    row = self._update_data(
-                        row,
-                        start,
-                        end,
-                        pod=pod,
-                        cpu_usage=cpu_usage,
-                        mem_usage_gig=mem_usage_gig,
-                        pod_seconds=pod_seconds,
-                        **kwargs,
-                    )
-                    row.pop("cpu_usage", None)
-                    row.pop("mem_usage_gig", None)
-                    row.pop("pod_seconds", None)
-                    yield row
-            else:
-                pod_count = len(self.pods)
-                num_pods = randint(2, pod_count)
-                pod_index_list = range(pod_count)
-                pod_choices = list(set(choices(pod_index_list, k=num_pods)))
-                pod_keys = list(self.pods.keys())
-                for pod_choice in pod_choices:
-                    pod_name = pod_keys[pod_choice]
-                    pod = deepcopy(self.pods[pod_name])
-                    row = self._init_data_row(start, end, **kwargs)
-                    yield self._update_data(row, start, end, pod=pod, **kwargs)
 
     def _generate_hourly_data(self, **kwargs):
         """Create hourly data."""
