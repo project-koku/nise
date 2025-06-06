@@ -31,6 +31,7 @@ from unittest.mock import patch
 
 import faker
 from dateutil.relativedelta import relativedelta
+
 from nise.__main__ import fix_dates
 from nise.generators.ocp.ocp_generator import OCP_REPORT_TYPE_TO_COLS
 from nise.report import _convert_bytes
@@ -1262,6 +1263,7 @@ class OCPReportTestCase(TestCase):
                                                 ],
                                             }
                                         ],
+                                        "virtual_machines": [{"virtual_machine": "test-machine"}],
                                     }
                                 },
                             }
