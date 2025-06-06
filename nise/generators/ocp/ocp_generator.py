@@ -17,6 +17,7 @@
 """Defines the abstract generator."""
 
 import datetime
+from collections import defaultdict
 from copy import deepcopy
 from random import choice
 from random import choices
@@ -372,6 +373,13 @@ def get_vm_disk(specified_vc=None):
     }
 
 
+def get_vm_from_label(labels):
+    for label in labels.split("|"):
+        key, value = label.split(":")
+        if key == "label_vm_kubevirt_io_name":
+            return value
+
+
 class OCPGenerator(AbstractGenerator):
     """Defines a abstract class for generators."""
 
@@ -535,113 +543,124 @@ class OCPGenerator(AbstractGenerator):
                 label_value = choice(seeded_labels[label_key])
             labels[f"label_{label_key}"] = label_value
 
-        label_str = ""
-        for key, value in labels.items():
-            label_data = f"{key}:{value}"
-            label_str += f"|{label_data}" if label_str else label_data
-        return label_str
+        return "|".join(f"{key}:{value}" for key, value in labels.items())
+
+    def _gen_specific_pod(self, node, namespace, specified_pod):
+        pod_name = specified_pod.get("pod_name", self.fake.word())
+
+        cpu_cores = node.get("cpu_cores")
+        memory_bytes = node.get("memory_bytes")
+
+        cpu_limit = min(specified_pod.get("cpu_limit", cpu_cores), cpu_cores)
+        cpu_request = min(specified_pod.get("cpu_request", round(uniform(0.02, cpu_limit), 5)), cpu_limit)
+        cpu_usage = specified_pod.get("cpu_usage", {})
+        for key, value in cpu_usage.items():
+            if value > cpu_limit:
+                cpu_usage[key] = cpu_limit
+
+        memory_gig = memory_bytes / GIGABYTE
+        mem_limit_gig = min(specified_pod.get("mem_limit_gig", memory_gig), memory_gig)
+        mem_request_gig = min(specified_pod.get("mem_request_gig", round(uniform(25.0, 80.0), 2)), mem_limit_gig)
+        memory_usage_gig = specified_pod.get("mem_usage_gig", {})
+        for key, value in memory_usage_gig.items():
+            if value > mem_limit_gig:
+                memory_usage_gig[key] = mem_limit_gig
+
+        pod = {
+            "namespace": namespace,
+            "node": node.get("name"),
+            "resource_id": node.get("resource_id"),
+            "pod": pod_name,
+            "node_capacity_cpu_cores": cpu_cores,
+            "node_capacity_cpu_core_seconds": cpu_cores * HOUR,
+            "node_capacity_memory_bytes": memory_bytes,
+            "node_capacity_memory_byte_seconds": memory_bytes * HOUR,
+            "cpu_request": cpu_request,
+            "cpu_limit": cpu_limit,
+            "mem_request_gig": mem_request_gig,
+            "mem_limit_gig": mem_limit_gig,
+            "pod_labels": specified_pod.get("labels", None),
+            "cpu_usage": cpu_usage,
+            "mem_usage_gig": memory_usage_gig,
+            "pod_seconds": specified_pod.get("pod_seconds"),
+        }
+
+        owner_name, owner_kind, workload, workload_type = get_owner_workload(pod, specified_pod.get("workload"))
+
+        cpu_usage_avg, cpu_usage_min, cpu_usage_max = generate_randomized_ros_usage(
+            cpu_usage, cpu_limit, generate_constant_value=self.constant_values_ros_ocp
+        )
+        memory_usage_gig_avg, memory_usage_gig_min, memory_usage_gig_max = generate_randomized_ros_usage(
+            memory_usage_gig, mem_limit_gig, generate_constant_value=self.constant_values_ros_ocp
+        )
+        if self.constant_values_ros_ocp:
+            memory_rss_ratio = 1 / round(1, 2)
+        else:
+            memory_rss_ratio = 1 / round(uniform(1.01, 1.9), 2)
+        cpu_throttle = choices([0, round(cpu_usage_avg / randint(10, 20), 5)], weights=(3, 1))[0]
+
+        ros_pod = {
+            "namespace": namespace,
+            "node": node.get("name"),
+            "resource_id": node.get("resource_id"),
+            "pod": pod_name,
+            "container_name": pod_name,
+            "owner_name": owner_name,
+            "owner_kind": owner_kind,
+            "workload": workload,
+            "workload_type": workload_type,
+            "image_name": f"{self.fake.word()}-{self.fake.word()}",
+            "cpu_request_container_avg": cpu_request,
+            "cpu_request_container_sum": cpu_request,
+            "cpu_limit_container_avg": cpu_limit,
+            "cpu_limit_container_sum": cpu_limit,
+            "cpu_usage_container_avg": cpu_usage_avg,
+            "cpu_usage_container_min": cpu_usage_min,
+            "cpu_usage_container_max": cpu_usage_max,
+            "cpu_usage_container_sum": cpu_usage_avg,
+            "cpu_throttle_container_avg": cpu_throttle,
+            "cpu_throttle_container_max": cpu_throttle,
+            "cpu_throttle_container_sum": cpu_throttle,
+            "memory_request_container_avg": round(mem_request_gig * GIGABYTE),
+            "memory_request_container_sum": round(mem_request_gig * GIGABYTE),
+            "memory_limit_container_avg": round(mem_limit_gig * GIGABYTE),
+            "memory_limit_container_sum": round(mem_limit_gig * GIGABYTE),
+            "memory_usage_container_avg": round(memory_usage_gig_avg * GIGABYTE),
+            "memory_usage_container_min": round(memory_usage_gig_min * GIGABYTE),
+            "memory_usage_container_max": round(memory_usage_gig_max * GIGABYTE),
+            "memory_usage_container_sum": round(memory_usage_gig_avg * GIGABYTE),
+            "memory_rss_usage_container_avg": round(memory_usage_gig_avg * memory_rss_ratio * GIGABYTE),
+            "memory_rss_usage_container_min": round(memory_usage_gig_min * memory_rss_ratio * GIGABYTE),
+            "memory_rss_usage_container_max": round(memory_usage_gig_max * memory_rss_ratio * GIGABYTE),
+            "memory_rss_usage_container_sum": round(memory_usage_gig_avg * memory_rss_ratio * GIGABYTE),
+        }
+        return pod_name, pod, ros_pod
 
     def _gen_pods(self, namespaces):
         """Create pods on specific namespaces and keep relationship."""
         pods = {}
         ros_ocp_data_pods = {}
-        namespace2pod = {}
+        namespace2pod = defaultdict(list)
         for namespace, node in namespaces.items():
             namespace2pod[namespace] = []
             if node.get("namespaces"):
                 specified_pods = node.get("namespaces").get(namespace).get("pods") or []
                 for specified_pod in specified_pods:
-                    pod = specified_pod.get("pod_name", self.fake.word())
-                    namespace2pod[namespace].append(pod)
-                    cpu_cores = node.get("cpu_cores")
-                    memory_bytes = node.get("memory_bytes")
+                    pod_name, pod, ros_pod = self._gen_specific_pod(node, namespace, specified_pod)
+                    namespace2pod[namespace].append(pod_name)
+                    pods[pod_name] = pod
+                    ros_ocp_data_pods[pod_name] = ros_pod
 
-                    cpu_limit = min(specified_pod.get("cpu_limit", cpu_cores), cpu_cores)
-                    cpu_request = min(specified_pod.get("cpu_request", round(uniform(0.02, cpu_limit), 5)), cpu_limit)
-                    cpu_usage = specified_pod.get("cpu_usage", {})
-                    for key, value in cpu_usage.items():
-                        if value > cpu_limit:
-                            cpu_usage[key] = cpu_limit
-
-                    memory_gig = memory_bytes / GIGABYTE
-                    mem_limit_gig = min(specified_pod.get("mem_limit_gig", memory_gig), memory_gig)
-                    mem_request_gig = min(
-                        specified_pod.get("mem_request_gig", round(uniform(25.0, 80.0), 2)), mem_limit_gig
-                    )
-                    memory_usage_gig = specified_pod.get("mem_usage_gig", {})
-                    for key, value in memory_usage_gig.items():
-                        if value > mem_limit_gig:
-                            memory_usage_gig[key] = mem_limit_gig
-
-                    pods[pod] = {
-                        "namespace": namespace,
-                        "node": node.get("name"),
-                        "resource_id": node.get("resource_id"),
-                        "pod": pod,
-                        "node_capacity_cpu_cores": cpu_cores,
-                        "node_capacity_cpu_core_seconds": cpu_cores * HOUR,
-                        "node_capacity_memory_bytes": memory_bytes,
-                        "node_capacity_memory_byte_seconds": memory_bytes * HOUR,
-                        "cpu_request": cpu_request,
-                        "cpu_limit": cpu_limit,
-                        "mem_request_gig": mem_request_gig,
-                        "mem_limit_gig": mem_limit_gig,
-                        "pod_labels": specified_pod.get("labels", None),
-                        "cpu_usage": cpu_usage,
-                        "mem_usage_gig": memory_usage_gig,
-                        "pod_seconds": specified_pod.get("pod_seconds"),
-                    }
-                    owner_name, owner_kind, workload, workload_type = get_owner_workload(
-                        pod, specified_pod.get("workload")
-                    )
-
-                    cpu_usage_avg, cpu_usage_min, cpu_usage_max = generate_randomized_ros_usage(
-                        cpu_usage, cpu_limit, generate_constant_value=self.constant_values_ros_ocp
-                    )
-                    memory_usage_gig_avg, memory_usage_gig_min, memory_usage_gig_max = generate_randomized_ros_usage(
-                        memory_usage_gig, mem_limit_gig, generate_constant_value=self.constant_values_ros_ocp
-                    )
-                    if self.constant_values_ros_ocp:
-                        memory_rss_ratio = 1 / round(1, 2)
-                    else:
-                        memory_rss_ratio = 1 / round(uniform(1.01, 1.9), 2)
-                    cpu_throttle = choices([0, round(cpu_usage_avg / randint(10, 20), 5)], weights=(3, 1))[0]
-
-                    ros_ocp_data_pods[pod] = {
-                        "namespace": namespace,
-                        "node": node.get("name"),
-                        "resource_id": node.get("resource_id"),
-                        "pod": pod,
-                        "container_name": pod,
-                        "owner_name": owner_name,
-                        "owner_kind": owner_kind,
-                        "workload": workload,
-                        "workload_type": workload_type,
-                        "image_name": self.fake.word() + "-" + self.fake.word(),
-                        "cpu_request_container_avg": cpu_request,
-                        "cpu_request_container_sum": cpu_request,
-                        "cpu_limit_container_avg": cpu_limit,
-                        "cpu_limit_container_sum": cpu_limit,
-                        "cpu_usage_container_avg": cpu_usage_avg,
-                        "cpu_usage_container_min": cpu_usage_min,
-                        "cpu_usage_container_max": cpu_usage_max,
-                        "cpu_usage_container_sum": cpu_usage_avg,
-                        "cpu_throttle_container_avg": cpu_throttle,
-                        "cpu_throttle_container_max": cpu_throttle,
-                        "cpu_throttle_container_sum": cpu_throttle,
-                        "memory_request_container_avg": round(mem_request_gig * GIGABYTE),
-                        "memory_request_container_sum": round(mem_request_gig * GIGABYTE),
-                        "memory_limit_container_avg": round(mem_limit_gig * GIGABYTE),
-                        "memory_limit_container_sum": round(mem_limit_gig * GIGABYTE),
-                        "memory_usage_container_avg": round(memory_usage_gig_avg * GIGABYTE),
-                        "memory_usage_container_min": round(memory_usage_gig_min * GIGABYTE),
-                        "memory_usage_container_max": round(memory_usage_gig_max * GIGABYTE),
-                        "memory_usage_container_sum": round(memory_usage_gig_avg * GIGABYTE),
-                        "memory_rss_usage_container_avg": round(memory_usage_gig_avg * memory_rss_ratio * GIGABYTE),
-                        "memory_rss_usage_container_min": round(memory_usage_gig_min * memory_rss_ratio * GIGABYTE),
-                        "memory_rss_usage_container_max": round(memory_usage_gig_max * memory_rss_ratio * GIGABYTE),
-                        "memory_rss_usage_container_sum": round(memory_usage_gig_avg * memory_rss_ratio * GIGABYTE),
-                    }
+                    # add pods that are labeled as a VM to the list of VMs
+                    if vm := get_vm_from_label(specified_pod.get("labels", "")):
+                        vms = node["namespaces"][namespace].get("virtual_machines") or []
+                        vm_names = {v.get("vm_name") for v in vms}
+                        if vm in vm_names:
+                            continue
+                        pod_copy = deepcopy(specified_pod)
+                        pod_copy["vm_name"] = vm
+                        vms.append(pod_copy)
+                        node["namespaces"][namespace]["virtual_machines"] = vms
 
             else:
                 num_pods = randint(2, 20)
@@ -693,7 +712,7 @@ class OCPGenerator(AbstractGenerator):
                         "owner_kind": owner_kind,
                         "workload": workload,
                         "workload_type": workload_type,
-                        "image_name": self.fake.word() + "-" + self.fake.word(),
+                        "image_name": f"{self.fake.word()}-{self.fake.word()}",
                         "cpu_request_container_avg": cpu_request,
                         "cpu_request_container_sum": cpu_request,
                         "cpu_limit_container_avg": cpu_limit,
@@ -721,7 +740,7 @@ class OCPGenerator(AbstractGenerator):
 
         return pods, namespace2pod, ros_ocp_data_pods
 
-    def _gen_volumes(self, namespaces, namespace2pods):  # noqa: R0914,C901
+    def _gen_volumes(self, namespaces, namespace2pods):  # noqa: C901
         """Create volumes on specific namespaces and keep relationship."""
         volumes = []
         for namespace, node in namespaces.items():
@@ -830,7 +849,7 @@ class OCPGenerator(AbstractGenerator):
                     )
         return volumes
 
-    def _gen_virtual_machines(self, namespaces):
+    def _gen_virtual_machines(self, namespaces):  # noqa: C901
         """Create vms on specific namespaces and keep relationship."""
         vms = {}
         namespace2vm = {}
@@ -871,6 +890,7 @@ class OCPGenerator(AbstractGenerator):
                     for key, value in memory_usage_gig.items():
                         if value > mem_limit_gig:
                             memory_usage_gig[key] = mem_limit_gig
+                        memory_usage_gig[key] *= GIGABYTE
                     vms[vm] = (
                         {
                             "node": node.get("name"),
@@ -883,8 +903,8 @@ class OCPGenerator(AbstractGenerator):
                             "vm_cpu_request_sockets": cpu_request_sockets,
                             "vm_cpu_request_threads": cpu_request_threads,
                             "cpu_usage": cpu_usage,
-                            "vm_memory_request_bytes": mem_request_gig,
-                            "vm_memory_limit_bytes": mem_limit_gig,
+                            "vm_memory_request_bytes": mem_request_gig * GIGABYTE,
+                            "vm_memory_limit_bytes": mem_limit_gig * GIGABYTE,
                             "mem_usage_gig": memory_usage_gig,
                             "vm_labels": specified_vm.get("labels", None),
                             "vm_seconds": specified_vm.get("vm_seconds"),
@@ -921,13 +941,26 @@ class OCPGenerator(AbstractGenerator):
                             "vm_cpu_request_cores": cpu_request_cores,
                             "vm_cpu_request_sockets": cpu_request_sockets,
                             "vm_cpu_request_threads": cpu_request_threads,
-                            "vm_memory_request_bytes": mem_request_gig,
-                            "vm_memory_limit_bytes": mem_limit_gig,
+                            "vm_memory_request_bytes": mem_request_gig * GIGABYTE,
+                            "vm_memory_limit_bytes": mem_limit_gig * GIGABYTE,
                             "vm_labels": self._gen_openshift_labels(),
                         }
                         | get_vm_instance()
                         | get_vm_disk()
                     )
+
+        vms_defined_in_labels = {get_vm_from_label(pod["pod_labels"]) for _, pod in self.pods.items()}
+        for namespace, node in namespaces.items():
+            for vm in namespace2vm[namespace]:
+                if vm in self.pods or vm in vms_defined_in_labels:
+                    continue
+                specific_pod = deepcopy(vms[vm])
+                specific_pod["pod_name"] = vm
+                specific_pod["labels"] = f"label_vm_kubevirt_io_name:{vm}"
+                pod_name, pod, ros_pod = self._gen_specific_pod(node, namespace, specific_pod)
+                self.pods[pod_name] = pod
+                self.ros_data[pod_name] = ros_pod
+                self.namespace2pods[namespace].append(pod_name)
 
         return vms, namespace2vm
 
@@ -1006,12 +1039,12 @@ class OCPGenerator(AbstractGenerator):
         vm_seconds = user_vm_seconds or randint(2, HOUR)
         vm = kwargs.get("vm")
         cpu_limit = vm.get("vm_cpu_limit_cores")
-        mem_limit_gig = vm.get("vm_memory_limit_bytes")
+        mem_limit_bytes = vm.get("vm_memory_limit_bytes")
 
         cpu_request_cores = min(vm.get("vm_cpu_request_cores"), cpu_limit)
         cpu_request_sockets = min(vm.get("vm_cpu_request_sockets"), cpu_limit)
         cpu_request_threads = min(vm.get("vm_cpu_request_threads"), cpu_limit)
-        mem_request_gig = min(vm.get("vm_memory_request_bytes"), mem_limit_gig)
+        mem_request_bytes = min(vm.get("vm_memory_request_bytes"), mem_limit_bytes)
         cpu_usage = self._get_usage_for_date(kwargs.get("cpu_usage"), start)
         cpu = round(uniform(0.02, cpu_limit), 5)
         # ensure that cpu usage is not higher than cpu_limit
@@ -1019,10 +1052,10 @@ class OCPGenerator(AbstractGenerator):
             cpu = min(cpu_limit, cpu_usage)
 
         mem_usage_gig = self._get_usage_for_date(kwargs.get("mem_usage_gig"), start)
-        mem = round(uniform(1, mem_limit_gig), 2)
+        mem = round(uniform(1024, mem_limit_bytes), 2)
         # ensure that mem usage is not higher than mem_limit
         if mem_usage_gig:
-            mem = min(mem_limit_gig, mem_usage_gig)
+            mem = min(mem_limit_bytes, mem_usage_gig)
 
         vm["vm_cpu_usage_total_seconds"] = vm_seconds * cpu
         vm["vm_cpu_request_core_seconds"] = vm_seconds * cpu_request_cores
@@ -1031,9 +1064,9 @@ class OCPGenerator(AbstractGenerator):
 
         vm["vm_cpu_limit_core_seconds"] = vm_seconds * cpu_limit
 
-        vm["vm_memory_usage_byte_seconds"] = vm_seconds * mem * GIGABYTE
-        vm["vm_memory_request_byte_seconds"] = vm_seconds * mem_request_gig * GIGABYTE
-        vm["vm_memory_limit_byte_seconds"] = vm_seconds * mem_limit_gig * GIGABYTE
+        vm["vm_memory_usage_byte_seconds"] = vm_seconds * mem
+        vm["vm_memory_request_byte_seconds"] = vm_seconds * mem_request_bytes
+        vm["vm_memory_limit_byte_seconds"] = vm_seconds * mem_limit_bytes
 
         vm["vm_uptime_total_seconds"] = vm_seconds
 
