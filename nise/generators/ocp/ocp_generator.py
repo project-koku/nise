@@ -311,6 +311,17 @@ VM_GUEST_OS = (
 VM_GUEST_VERSION = ("10.0", "7.5", "8.1", "9.5")
 
 
+def get_storage_class_and_driver():
+    return choice(
+        (
+            ("gp3-csi", "ebs.csi.aws.com"),
+            ("fast", "disk.csi.azure.com"),
+            ("slow", "disk.csi.azure.com"),
+            ("gold", "pd.csi.storage.gke.io"),
+        )
+    )
+
+
 def get_owner_workload(pod, workload=None):
     if not workload:
         workload = choice(list(OCP_OWNER_WORKLOAD_CHOICES.keys())[:-2])  # omit job and manual_pod from random choices
@@ -361,18 +372,6 @@ def get_vm_instance():
     }
 
 
-def get_vm_disk(specified_vc=None):
-    specified_vc = specified_vc or {}
-    claim_capacity = specified_vc.get("capacity_gig", randint(30, 100)) * GIGABYTE
-    vol_claim = specified_vc.get("volume_claim_name", FAKER.word())
-    return {
-        "vm_device": "rootdisk",
-        "vm_volume_mode": "Block",
-        "vm_persistentvolumeclaim_name": vol_claim,
-        "vc_capacity": claim_capacity,
-    }
-
-
 def get_vm_from_label(labels):
     for label in labels.split("|"):
         key, value = label.split(":")
@@ -417,6 +416,8 @@ class OCPGenerator(AbstractGenerator):
             self.fake.word(),
             self.fake.word(),
         ]
+        self.pod_pvc_map = {}
+        self.vm_pod_map = {}
         self.nodes = self._gen_nodes()
         self.namespaces = self._gen_namespaces(self.nodes)
         self.pods, self.namespace2pods, self.ros_data = self._gen_pods(self.namespaces)
@@ -661,7 +662,7 @@ class OCPGenerator(AbstractGenerator):
                         pod_copy["vm_name"] = vm
                         vms.append(pod_copy)
                         node["namespaces"][namespace]["virtual_machines"] = vms
-
+                        self.vm_pod_map[vm] = pod_name
             else:
                 num_pods = randint(2, 20)
                 for _ in range(num_pods):
@@ -740,66 +741,58 @@ class OCPGenerator(AbstractGenerator):
 
         return pods, namespace2pod, ros_ocp_data_pods
 
+    def _gen_specific_volume(self, node, namespace, specified_volume):
+        storage_class_default, csi_default = get_storage_class_and_driver()
+        volume = specified_volume.get("volume_name", self.fake.word())
+        volume_request_gig = specified_volume.get("volume_request_gig") or 100
+        volume_request = volume_request_gig * GIGABYTE
+        specified_vol_claims = specified_volume.get("volume_claims", [])
+        volume_claims = {}
+        total_claims = 0
+        for specified_vc in specified_vol_claims:
+            if volume_request - total_claims <= GIGABYTE:
+                break
+            vol_claim = specified_vc.get("volume_claim_name", self.fake.word())
+            pod = specified_vc.get("pod_name")
+            claim_capacity = max(
+                specified_vc.get("capacity_gig") * GIGABYTE, (volume_request_gig * GIGABYTE - total_claims)
+            )
+            usage_gig = specified_vc.get("volume_claim_usage_gig")
+            if usage_gig:
+                for key, value in usage_gig.items():
+                    if value > claim_capacity / GIGABYTE:
+                        usage_gig[key] = claim_capacity / GIGABYTE
+            volume_claims[vol_claim] = {
+                "namespace": namespace,
+                "volume": volume,
+                "labels": specified_vc.get("labels", None),
+                "capacity": claim_capacity,
+                "pod": pod,
+                "volume_claim_usage_gig": usage_gig,
+            }
+            total_claims += claim_capacity
+            self.pod_pvc_map[pod] = vol_claim
+        return volume, {
+            "node": node.get("name"),
+            "namespace": namespace,
+            "volume": volume,
+            "storage_class": specified_volume.get("storage_class", storage_class_default),
+            "csi_driver": specified_volume.get("csi_driver", csi_default),
+            "csi_volume_handle": specified_volume.get("csi_volume_handle", f"vol-{self.fake.word()}"),
+            "volume_request": volume_request,
+            "labels": specified_volume.get("labels", None),
+            "volume_claims": volume_claims,
+        }
+
     def _gen_volumes(self, namespaces, namespace2pods):  # noqa: C901
         """Create volumes on specific namespaces and keep relationship."""
         volumes = []
         for namespace, node in namespaces.items():
-            storage_class_default, csi_default = choice(
-                (
-                    ("gp3-csi", "ebs.csi.aws.com"),
-                    ("fast", "disk.csi.azure.com"),
-                    ("slow", "disk.csi.azure.com"),
-                    ("gold", "pd.csi.storage.gke.io"),
-                )
-            )
             if node.get("namespaces"):
                 specified_volumes = node.get("namespaces").get(namespace).get("volumes", [])
                 for specified_volume in specified_volumes:
-                    volume = specified_volume.get("volume_name", self.fake.word())
-                    volume_request_gig = specified_volume.get("volume_request_gig")
-                    volume_request = volume_request_gig * GIGABYTE
-                    specified_vol_claims = specified_volume.get("volume_claims", [])
-                    volume_claims = {}
-                    total_claims = 0
-                    for specified_vc in specified_vol_claims:
-                        if volume_request - total_claims <= GIGABYTE:
-                            break
-                        vol_claim = specified_vc.get("volume_claim_name", self.fake.word())
-                        pod = specified_vc.get("pod_name")
-                        claim_capacity = max(
-                            specified_vc.get("capacity_gig") * GIGABYTE, (volume_request_gig * GIGABYTE - total_claims)
-                        )
-                        usage_gig = specified_vc.get("volume_claim_usage_gig")
-                        if usage_gig:
-                            for key, value in usage_gig.items():
-                                if value > claim_capacity / GIGABYTE:
-                                    usage_gig[key] = claim_capacity / GIGABYTE
-                        volume_claims[vol_claim] = {
-                            "namespace": namespace,
-                            "volume": volume,
-                            "labels": specified_vc.get("labels", None),
-                            "capacity": claim_capacity,
-                            "pod": pod,
-                            "volume_claim_usage_gig": usage_gig,
-                        }
-                        total_claims += claim_capacity
-                    volumes.append(
-                        {
-                            volume: {
-                                "node": node.get("name"),
-                                "namespace": namespace,
-                                "volume": volume,
-                                "storage_class": specified_volume.get("storage_class", storage_class_default),
-                                "csi_driver": specified_volume.get("csi_driver", csi_default),
-                                "csi_volume_handle": specified_volume.get(
-                                    "csi_volume_handle", f"vol-{self.fake.word()}"
-                                ),
-                                "volume_request": volume_request,
-                                "labels": specified_volume.get("labels", None),
-                                "volume_claims": volume_claims,
-                            }
-                        }
-                    )
+                    volume_name, volume = self._gen_specific_volume(node, namespace, specified_volume)
+                    volumes.append({volume_name: volume})
             else:
                 num_volumes = randint(1, 3)
                 num_vol_claims = randint(1, 2)
@@ -824,14 +817,8 @@ class OCPGenerator(AbstractGenerator):
                             "pod": pod,
                         }
                         total_claims += claim_capacity
-                    storage_class_default, csi_default = choice(
-                        (
-                            ("gp3-csi", "ebs.csi.aws.com"),
-                            ("fast", "disk.csi.azure.com"),
-                            ("slow", "disk.csi.azure.com"),
-                            ("gold", "pd.csi.storage.gke.io"),
-                        )
-                    )
+                        self.pod_pvc_map[pod] = vol_claim
+                    storage_class_default, csi_default = get_storage_class_and_driver()
                     volumes.append(
                         {
                             volume: {
@@ -848,6 +835,38 @@ class OCPGenerator(AbstractGenerator):
                         }
                     )
         return volumes
+
+    def get_specific_pvc_from_pod(self, pod_name):
+        if not (pvc := self.pod_pvc_map.get(pod_name)):
+            return "", {}
+        for volume in self.volumes:
+            for vol_name, vol in volume.items():
+                if specific_pvc := vol["volume_claims"].get(pvc):
+                    return pvc, specific_pvc
+        return "", {}
+
+    def get_vm_disk(self, *, specified_vc=None, pod_name=""):
+        vm_disk = {
+            "vm_device": "rootdisk",
+            "vm_volume_mode": "Block",
+        }
+        if _pod_name := specified_vc.get("pod_name") or pod_name:
+            pvc_name, pvc = self.get_specific_pvc_from_pod(_pod_name)
+            if pvc_name and pvc:
+                vm_disk |= {
+                    "vm_persistentvolumeclaim_name": pvc_name,
+                    "vc_capacity": pvc["capacity"],
+                }
+                return vm_disk
+        specified_vc = specified_vc or {}
+        claim_capacity = specified_vc.get("capacity_gig", randint(30, 100)) * GIGABYTE
+        vol_claim = specified_vc.get("volume_claim_name", FAKER.word())
+        return {
+            "vm_device": "rootdisk",
+            "vm_volume_mode": "Block",
+            "vm_persistentvolumeclaim_name": vol_claim,
+            "vc_capacity": claim_capacity,
+        }
 
     def _gen_virtual_machines(self, namespaces):  # noqa: C901
         """Create vms on specific namespaces and keep relationship."""
@@ -910,7 +929,7 @@ class OCPGenerator(AbstractGenerator):
                             "vm_seconds": specified_vm.get("vm_seconds"),
                         }
                         | get_vm_instance()
-                        | get_vm_disk(specified_vm)
+                        | self.get_vm_disk(specified_vc=specified_vm)
                     )
 
             else:
@@ -946,21 +965,33 @@ class OCPGenerator(AbstractGenerator):
                             "vm_labels": self._gen_openshift_labels(),
                         }
                         | get_vm_instance()
-                        | get_vm_disk()
+                        | self.get_vm_disk(pod_name=vm)
                     )
 
-        vms_defined_in_labels = {get_vm_from_label(pod["pod_labels"]) for _, pod in self.pods.items()}
+        vms_defined_in_pod_labels = {get_vm_from_label(pod["pod_labels"]) for _, pod in self.pods.items()}
         for namespace, node in namespaces.items():
             for vm in namespace2vm[namespace]:
-                if vm in self.pods or vm in vms_defined_in_labels:
-                    continue
-                specific_pod = deepcopy(vms[vm])
-                specific_pod["pod_name"] = vm
-                specific_pod["labels"] = f"label_vm_kubevirt_io_name:{vm}"
-                pod_name, pod, ros_pod = self._gen_specific_pod(node, namespace, specific_pod)
-                self.pods[pod_name] = pod
-                self.ros_data[pod_name] = ros_pod
-                self.namespace2pods[namespace].append(pod_name)
+                vm_copy = deepcopy(vms[vm])
+                if vm not in vms_defined_in_pod_labels or vm not in self.pods:
+                    # create pod corresponding to VM since it does not exist
+                    vm_copy["pod_name"] = vm
+                    vm_copy["labels"] = f"label_vm_kubevirt_io_name:{vm}"
+                    pod_name, pod, ros_pod = self._gen_specific_pod(node, namespace, vm_copy)
+                    self.pods[pod_name] = pod
+                    self.ros_data[pod_name] = ros_pod
+                    self.namespace2pods[namespace].append(pod_name)
+                if vm_copy["vm_persistentvolumeclaim_name"] not in self.pod_pvc_map.values():
+                    specified_volume = {
+                        "volume_claims": [
+                            {
+                                "pod_name": vm,
+                                "volume_claim_name": vm_copy["vm_persistentvolumeclaim_name"],
+                                "capacity_gig": vm_copy["vc_capacity"] / GIGABYTE,
+                            }
+                        ]
+                    }
+                    volume_name, volume = self._gen_specific_volume(node, namespace, specified_volume)
+                    self.volumes.append({volume_name: volume})
 
         return vms, namespace2vm
 
