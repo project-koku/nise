@@ -362,13 +362,14 @@ def generate_randomized_ros_usage(usage_dict, limit_value, generate_constant_val
     return avg_value, min_value, max_value
 
 
-def get_vm_instance():
+def get_vm_instance(vm=None):
+    vm = vm or {}
     return {
-        "vm_instance_type": choice(VM_INSTANCE_TYPES),
-        "vm_os": choice(VM_OS_TYPES),
-        "vm_guest_os_arch": choice(VM_GUEST_ARCH),
-        "vm_guest_os_name": choice(VM_GUEST_OS),
-        "vm_guest_os_version": choice(VM_GUEST_VERSION),
+        "vm_instance_type": vm.get("instance_type") or choice(VM_INSTANCE_TYPES),
+        "vm_os": vm.get("os") or choice(VM_OS_TYPES),
+        "vm_guest_os_arch": vm.get("guest_os_arch") or choice(VM_GUEST_ARCH),
+        "vm_guest_os_name": vm.get("guest_os_name") or choice(VM_GUEST_OS),
+        "vm_guest_os_version": vm.get("guest_os_version") or choice(VM_GUEST_VERSION),
     }
 
 
@@ -846,9 +847,10 @@ class OCPGenerator(AbstractGenerator):
         return "", {}
 
     def get_vm_disk(self, *, specified_vc=None, pod_name=""):
+        specified_vc = specified_vc or {}
         vm_disk = {
-            "vm_device": "rootdisk",
-            "vm_volume_mode": "Block",
+            "vm_device": specified_vc.get("vol_device") or "rootdisk",
+            "vm_volume_mode": specified_vc.get("volume_mode") or "Block",
         }
         if _pod_name := specified_vc.get("pod_name") or pod_name:
             pvc_name, pvc = self.get_specific_pvc_from_pod(_pod_name)
@@ -858,15 +860,11 @@ class OCPGenerator(AbstractGenerator):
                     "vc_capacity": pvc["capacity"],
                 }
                 return vm_disk
-        specified_vc = specified_vc or {}
-        claim_capacity = specified_vc.get("capacity_gig", randint(30, 100)) * GIGABYTE
-        vol_claim = specified_vc.get("volume_claim_name", FAKER.word())
-        return {
-            "vm_device": "rootdisk",
-            "vm_volume_mode": "Block",
-            "vm_persistentvolumeclaim_name": vol_claim,
-            "vc_capacity": claim_capacity,
+        vm_disk |= {
+            "vm_persistentvolumeclaim_name": specified_vc.get("volume_claim_name", FAKER.word()),
+            "vc_capacity": specified_vc.get("capacity_gig", randint(30, 100)) * GIGABYTE,
         }
+        return vm_disk
 
     def _gen_virtual_machines(self, namespaces):  # noqa: C901
         """Create vms on specific namespaces and keep relationship."""
@@ -928,7 +926,7 @@ class OCPGenerator(AbstractGenerator):
                             "vm_labels": specified_vm.get("labels", None),
                             "vm_seconds": specified_vm.get("vm_seconds"),
                         }
-                        | get_vm_instance()
+                        | get_vm_instance(vm=specified_vm)
                         | self.get_vm_disk(specified_vc=specified_vm)
                     )
 

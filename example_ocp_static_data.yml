@@ -1,7 +1,7 @@
 ---
 generators:
   - OCPGenerator:
-      start_date: 2024-05-01
+      # start_date: 2024-05-01
       nodes:
         - node:
           node_name: alpha
@@ -30,7 +30,7 @@ generators:
                     # 2-4-2019: 1
                     # 2-5-2019: 2
                     # 2-6-2019: 4
-                  labels: label_key1:label_value1|label_key2:label_value2
+                  labels: label_key1:label_value1|label_key2:label_value2|label_vm_kubevirt_io_name:pod_name1_vm
               volumes:
                 - volume:
                   volume_name: pvc-volume_1
@@ -60,3 +60,30 @@ generators:
                   csi_volume_handle: vol-55555555
                   volume_request_gig: 20
                   labels: label_key5:label_value5|label_key6:label_value6|label_storageclass:gp3-csi
+              virtual_machines:
+                - virtual_machine:
+                  vm_name: my_big_beautiful_vm_name
+                  cpu_cores: 10
+                  cpu_limit_cores: 5
+                  cpu_request_cores: 4
+                  cpu_request_sockets: 3
+                  cpu_request_threads: 2
+                  cpu_usage:
+                    full_period: 1
+                  memory_bytes: 500000000
+                  mem_request_gig: 100
+                  mem_limit_gig: 200
+                  mem_usage_gig:
+                    6-1-2025: 2
+                    6-8-2025: 1
+                  vm_seconds: 3500
+                  labels: label_key6:label_value6
+                  instance_type: n1.xlarge
+                  os: rhel.10.arm64
+                  guest_os_arch: aarch64
+                  guest_os_name: Red Hat Enterprise Linux
+                  guest_os_version: 10.0
+                  vol_device: nonrootdisk
+                  volume_mode: lowercaseblock
+                  capacity_gig: 40
+                  volume_claim_name: my_big_beautiful_vm_pvc_name
