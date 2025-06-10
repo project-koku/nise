@@ -374,6 +374,8 @@ def get_vm_instance(vm=None):
 
 
 def get_vm_from_label(labels):
+    if not labels:
+        return ""
     for label in labels.split("|"):
         key, value = label.split(":")
         if key == "label_vm_kubevirt_io_name":
@@ -862,7 +864,7 @@ class OCPGenerator(AbstractGenerator):
                 return vm_disk
         vm_disk |= {
             "vm_persistentvolumeclaim_name": specified_vc.get("volume_claim_name", FAKER.word()),
-            "vc_capacity": specified_vc.get("capacity_gig", randint(30, 100)) * GIGABYTE,
+            "vc_capacity": specified_vc.get("capacity_gig", randint(30, 50)) * GIGABYTE,
         }
         return vm_disk
 
