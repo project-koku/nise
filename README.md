@@ -63,10 +63,6 @@ To run unit tests from a single file, e.g.:
 
     tox -- tests.test_aws_generator
 
-To run a specific test from a specific file, e.g.:
-
-    make test test_source=<aws|azure|gcp|ocp>
-
 
 #### Linting
 
