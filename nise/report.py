@@ -110,7 +110,7 @@ def _write_csv(output_file, data, header):
     """Output csv file data."""
     LOG.info(f"Writing to {output_file.split('/')[-1]}")
     with open(output_file, "w") as file:
-        writer = csv.DictWriter(file, fieldnames=header)
+        writer = csv.DictWriter(file, fieldnames=header, extrasaction="ignore")
         writer.writeheader()
         for row in data:
             writer.writerow(row)
