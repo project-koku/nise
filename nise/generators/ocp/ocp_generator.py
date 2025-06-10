@@ -757,7 +757,7 @@ class OCPGenerator(AbstractGenerator):
                 break
             vol_claim = specified_vc.get("volume_claim_name", self.fake.word())
             pod = specified_vc.get("pod_name")
-            claim_capacity = max(
+            claim_capacity = min(
                 specified_vc.get("capacity_gig") * GIGABYTE, (volume_request_gig * GIGABYTE - total_claims)
             )
             usage_gig = specified_vc.get("volume_claim_usage_gig")

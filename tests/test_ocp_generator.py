@@ -35,7 +35,7 @@ from nise.generators.ocp.ocp_generator import OCP_STORAGE_COLUMNS
 from nise.generators.ocp.ocp_generator import OCP_STORAGE_USAGE
 from nise.generators.ocp.ocp_generator import OCPGenerator
 
-MAX_VOL_GIGS = 80
+MAX_VOL_GIGS = 100
 
 
 class OCPGeneratorTestCase(TestCase):
