@@ -23,6 +23,7 @@ import uuid
 from random import choice
 from random import randint
 from random import uniform
+from nise.util import NUMBER_OF_REPLICAS, pseudo_random_uuid
 
 from nise.generators.generator import AbstractGenerator
 
@@ -454,7 +455,7 @@ class AzureGenerator(AbstractGenerator):
 
         # NOTE: Commented out columns exist in the report, but we don't have enough
         # information to date to accurately simulate values.
-        row["ResourceName"] = resource_name
+        row["ResourceName"] = resource_name  # TODO UPDATE THIS
         row["IsAzureCreditEligible"] = "TRUE"
         row["ServiceFamily"] = service_family
         row["Frequency"] = "UsageBased"
@@ -526,8 +527,29 @@ class AzureGenerator(AbstractGenerator):
             start = day.get("start")
             end = day.get("end")
             row = self._init_data_row(start, end)
-            row = self._update_data(row, start, end)
-            data.append(row)
+            for i in range(NUMBER_OF_REPLICAS):
+                id_suffix = tag_suffix = ""
+                if NUMBER_OF_REPLICAS > 1:
+                    id_suffix = f"_{pseudo_random_uuid(i)}"
+                    tag_suffix = id_suffix.split("-")[0]
+
+                row = self._update_data(row, start, end)
+                if self.azure_columns is AZURE_COLUMNS_V2_SUBSCRIPTION:
+                    row["ResourceId"] += id_suffix
+                else:
+                    row["InstanceName"] += id_suffix
+
+                row["ResourceName"] += id_suffix
+
+                if azure_tags := json.loads(row.get("Tags")):
+                    for tag_key in azure_tags:
+                        if tag_key in ["openshift_node", "openshift_project"]:
+                            azure_tags[tag_key] += id_suffix
+                        elif tag_key == "managed_tables_matching":
+                            azure_tags[tag_key] += tag_suffix
+                    azure_tags = json.dumps(azure_tags)
+                    row["Tags"] = azure_tags
+                data.append(row)
         return data
 
     def generate_data(self, report_type=None):
