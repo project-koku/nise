@@ -455,7 +455,7 @@ class AzureGenerator(AbstractGenerator):
 
         # NOTE: Commented out columns exist in the report, but we don't have enough
         # information to date to accurately simulate values.
-        row["ResourceName"] = resource_name  # TODO UPDATE THIS
+        row["ResourceName"] = resource_name
         row["IsAzureCreditEligible"] = "TRUE"
         row["ServiceFamily"] = service_family
         row["Frequency"] = "UsageBased"
