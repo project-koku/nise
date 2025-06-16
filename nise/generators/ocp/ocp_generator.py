@@ -659,13 +659,14 @@ class OCPGenerator(AbstractGenerator):
                     if vm := get_vm_from_label(specified_pod.get("labels", "")):
                         vms = node["namespaces"][namespace].get("virtual_machines") or []
                         vm_names = {v.get("vm_name") for v in vms}
+                        if vm not in self.vm_pod_map:
+                            self.vm_pod_map[vm] = pod_name
                         if vm in vm_names:
                             continue
                         pod_copy = deepcopy(specified_pod)
                         pod_copy["vm_name"] = vm
                         vms.append(pod_copy)
                         node["namespaces"][namespace]["virtual_machines"] = vms
-                        self.vm_pod_map[vm] = pod_name
             else:
                 num_pods = randint(2, 20)
                 for _ in range(num_pods):
@@ -972,7 +973,7 @@ class OCPGenerator(AbstractGenerator):
         for namespace, node in namespaces.items():
             for vm in namespace2vm[namespace]:
                 vm_copy = deepcopy(vms[vm])
-                if vm not in vms_defined_in_pod_labels or vm not in self.pods:
+                if vm not in vms_defined_in_pod_labels or vm not in self.vm_pod_map:
                     # create pod corresponding to VM since it does not exist
                     vm_copy["pod_name"] = vm
                     vm_copy["labels"] = f"label_vm_kubevirt_io_name:{vm}"
