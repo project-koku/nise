@@ -665,6 +665,8 @@ class OCPGenerator(AbstractGenerator):
                             continue
                         pod_copy = deepcopy(specified_pod)
                         pod_copy["vm_name"] = vm
+                        if vm_seconds := pod_copy.get("pod_seconds"):
+                            pod_copy["vm_seconds"] = vm_seconds
                         vms.append(pod_copy)
                         node["namespaces"][namespace]["virtual_machines"] = vms
             else:
@@ -883,9 +885,9 @@ class OCPGenerator(AbstractGenerator):
                     cpu_cores = node.get("cpu_cores")
                     memory_bytes = node.get("memory_bytes")
 
-                    cpu_limit_cores = min(specified_vm.get("cpu_limit_cores", cpu_cores), cpu_cores)
+                    cpu_limit_cores = min(specified_vm.get("cpu_limit", cpu_cores), cpu_cores)
                     cpu_request_cores = min(
-                        specified_vm.get("cpu_request_cores", round(uniform(0.02, cpu_limit_cores), 5)),
+                        specified_vm.get("cpu_request", round(uniform(0.02, cpu_limit_cores), 5)),
                         cpu_limit_cores,
                     )
                     cpu_request_sockets = min(
@@ -917,7 +919,6 @@ class OCPGenerator(AbstractGenerator):
                             "resource_id": node.get("resource_id"),
                             "namespace": namespace,
                             "vm_name": vm,
-                            "vm_uptime_total_seconds": ("some number between 0 and 60"),
                             "vm_cpu_limit_cores": cpu_limit_cores,
                             "vm_cpu_request_cores": cpu_request_cores,
                             "vm_cpu_request_sockets": cpu_request_sockets,
@@ -956,7 +957,6 @@ class OCPGenerator(AbstractGenerator):
                             "resource_id": node.get("resource_id"),
                             "namespace": namespace,
                             "vm_name": vm,
-                            "vm_uptime_total_seconds": ("some number between 0 and 60"),
                             "vm_cpu_limit_cores": cpu_limit_cores,
                             "vm_cpu_request_cores": cpu_request_cores,
                             "vm_cpu_request_sockets": cpu_request_sockets,
@@ -977,6 +977,8 @@ class OCPGenerator(AbstractGenerator):
                     # create pod corresponding to VM since it does not exist
                     vm_copy["pod_name"] = vm
                     vm_copy["labels"] = f"label_vm_kubevirt_io_name:{vm}"
+                    if pod_seconds := vm_copy.get("vm_seconds"):
+                        vm_copy["pod_seconds"] = pod_seconds
                     pod_name, pod, ros_pod = self._gen_specific_pod(node, namespace, vm_copy)
                     self.pods[pod_name] = pod
                     self.ros_data[pod_name] = ros_pod

@@ -64,8 +64,8 @@ generators:
                 - virtual_machine:
                   vm_name: my_big_beautiful_vm_name
                   cpu_cores: 10
-                  cpu_limit_cores: 5
-                  cpu_request_cores: 4
+                  cpu_limit: 5  # corresponds to cpu_limit_cores
+                  cpu_request: 4  # corresponds to cpu_request_cores
                   cpu_request_sockets: 3
                   cpu_request_threads: 2
                   cpu_usage:
