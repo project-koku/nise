@@ -883,9 +883,9 @@ class OCPGenerator(AbstractGenerator):
                     cpu_cores = node.get("cpu_cores")
                     memory_bytes = node.get("memory_bytes")
 
-                    cpu_limit_cores = min(specified_vm.get("cpu_limit_cores", cpu_cores), cpu_cores)
+                    cpu_limit_cores = min(specified_vm.get("cpu_limit", cpu_cores), cpu_cores)
                     cpu_request_cores = min(
-                        specified_vm.get("cpu_request_cores", round(uniform(0.02, cpu_limit_cores), 5)),
+                        specified_vm.get("cpu_request", round(uniform(0.02, cpu_limit_cores), 5)),
                         cpu_limit_cores,
                     )
                     cpu_request_sockets = min(
