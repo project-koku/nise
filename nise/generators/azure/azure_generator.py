@@ -549,7 +549,8 @@ class AzureGenerator(AbstractGenerator):
                             azure_tags[tag_key] += tag_suffix
                     azure_tags = json.dumps(azure_tags)
                     row["Tags"] = azure_tags
-                data.append(row)
+                data.append(row.copy())
+
         return data
 
     def generate_data(self, report_type=None):
