@@ -38,6 +38,7 @@ from uuid import uuid4
 
 import boto3
 import requests
+import math
 from dateutil import parser
 from dateutil.relativedelta import relativedelta
 from faker import Faker
@@ -1031,7 +1032,7 @@ def write_gcp_file(start_date, end_date, data, options):
     # in case of GCP this is relevant only for customer filtered flow -> use default row_limit of 10,000,000
     # to ensure that we split reports only when --file-row-limit is passed via nise command
     row_limit = options.get("row_limit", 10000000)
-    num_reports = len(data) // row_limit + 1
+    num_reports = math.ceil(len(data) / row_limit)
     for i in range(num_reports):
         report_nr_suffix = "" if num_reports == 1 else f"_{i}"
         current_data = data[i * row_limit : i * row_limit + row_limit]
