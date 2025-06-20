@@ -1022,22 +1022,36 @@ def ocp_create_report(options):  # noqa: C901
 
 def write_gcp_file(start_date, end_date, data, options):
     """Write GCP data to a file."""
+    local_file_paths = []
+    output_file_names = []
     report_prefix = options.get("gcp_report_prefix")
     etag = options.get("gcp_etag") if options.get("gcp_etag") else str(uuid4())
-    if not report_prefix:
-        invoice_month = start_date.strftime("%Y%m")
-        scan_start = start_date.date()
-        scan_end = end_date.date()
-        file_name = f"{invoice_month}_{etag}_{scan_start}:{scan_end}.csv"
-    else:
-        file_name = report_prefix + ".csv"
-    local_file_path = f"{os.getcwd()}/{file_name}"
-    output_file_name = f"{etag}/{file_name}"
-    columns = GCP_REPORT_COLUMNS
-    if options.get("gcp_resource_level", False):
-        columns += GCP_RESOURCE_COLUMNS
-    _write_csv(local_file_path, data, columns)
-    return local_file_path, output_file_name
+
+    # split files if they exceed specified row_limit
+    # in case of GCP this is relevant only for customer filtered flow -> use default row_limit of 10,000,000
+    # to ensure that we split reports only when --file-row-limit is passed via nise command
+    row_limit = options.get("row_limit", 10000000)
+    num_reports = len(data) // row_limit + 1
+    for i in range(num_reports):
+        report_nr_suffix = "" if num_reports == 1 else f"_{i}"
+        current_data = data[i * row_limit : i * row_limit + row_limit]
+        if not report_prefix:
+            invoice_month = start_date.strftime("%Y%m")
+            scan_start = start_date.date()
+            scan_end = end_date.date()
+            file_name = f"{invoice_month}_{etag}_{scan_start}:{scan_end}{report_nr_suffix}.csv"
+        else:
+            file_name = f"{report_prefix}{report_nr_suffix}.csv"
+        local_file_path = f"{os.getcwd()}/{file_name}"
+        output_file_name = f"{etag}/{file_name}"
+        columns = GCP_REPORT_COLUMNS
+        if options.get("gcp_resource_level", False):
+            columns += GCP_RESOURCE_COLUMNS
+
+        _write_csv(local_file_path, current_data, columns)
+        local_file_paths.append(local_file_path)
+        output_file_names.append(output_file_name)
+    return local_file_paths, output_file_names
 
 
 def write_gcp_file_jsonl(start_date, end_date, data, options):
@@ -1195,10 +1209,11 @@ def gcp_create_report(options):  # noqa: C901
                     if count % ten_percent == 0:
                         LOG.info(f"Done with {count} of {num_gens} generators.")
 
-            local_file_path, output_file_name = write_gcp_file(gen_start_date, gen_end_date, data, options)
-            output_files.append(output_file_name)
-            if local_file_path not in monthly_files:
-                monthly_files.append(local_file_path)
+            local_file_paths, output_file_names = write_gcp_file(gen_start_date, gen_end_date, data, options)
+            output_files += output_file_names
+            for local_file_path in local_file_paths:
+                if local_file_path not in monthly_files:
+                    monthly_files.append(local_file_path)
 
         for index, month_file in enumerate(monthly_files):
             if gcp_bucket_name:
