@@ -136,11 +136,11 @@ def _remove_files(file_list):
             raise FileNotFoundError
 
 
-def _generate_azure_filename():
-    """Generate filename for azure report."""
-    output_file_name = "{}_{}".format("costreport", uuid4())
-    local_path = f"{os.getcwd()}/{output_file_name}.csv"
-    output_file_name = output_file_name + ".csv"
+def _generate_azure_filename(file_number):
+    """Generate filename for azure report with file number suffix."""
+    suffix = f"{file_number:04d}"
+    output_file_name = f"costreport-{suffix}.csv"
+    local_path = os.path.join(os.getcwd(), output_file_name)
     return (local_path, output_file_name)
 
 
@@ -731,9 +731,9 @@ def aws_create_report(options):  # noqa: C901
 
 def azure_create_report(options):  # noqa: C901
     """Create a cost usage report file."""
-    data = []
     start_date = options.get("start_date")
     end_date = options.get("end_date")
+    row_limit = options.get("row_limit", 100000)
     static_report_data = options.get("static_report_data")
     if static_report_data:
         generators = _get_generators(static_report_data.get("generators"))
@@ -767,6 +767,7 @@ def azure_create_report(options):  # noqa: C901
     write_monthly = options.get("write_monthly", False)
     for month in months:
         data = []
+        file_number = 0
         monthly_files = []
         num_gens = len(generators)
         ten_percent = int(num_gens * 0.1) if num_gens > 50 else 5
@@ -793,33 +794,40 @@ def azure_create_report(options):  # noqa: C901
             attributes["resource_group_export"] = resource_group_export
             gen = generator_cls(gen_start_date, gen_end_date, currency, account_info, attributes)
             azure_columns = gen.azure_columns
-            data += gen.generate_data()
+            for hour in gen.generate_data():
+                data.append(hour)
+                if len(data) == row_limit:
+                    file_number += 1
+                    local_path, output_file_name = _generate_azure_filename(file_number)
+                    _write_csv(local_path, data, azure_columns)
+                    monthly_files.append(local_path)
+                    data.clear()
+
             meter_cache = gen.get_meter_cache()
 
             if count % ten_percent == 0:
                 LOG.info(f"Done with {count} of {num_gens} generators.")
 
-        local_path, output_file_name = _generate_azure_filename()
+        if data:
+            file_number += 1
+            local_path, output_file_name = _generate_azure_filename(file_number)
+            _write_csv(local_path, data, azure_columns)
+            monthly_files.append(local_path)
+
         date_range = _generate_azure_date_range(month)
 
-        _write_csv(local_path, data, azure_columns)
-        monthly_files.append(local_path)
-
-        if azure_container_name:
-            file_path = ""
+        for path in monthly_files:
+            output_file_name = os.path.basename(path)
+            file_path = f"{azure_report_name}/{date_range}/{output_file_name}"
             if azure_prefix_name:
-                file_path += azure_prefix_name + "/"
-            file_path += azure_report_name + "/"
-            file_path += date_range + "/"
-            file_path += output_file_name
+                file_path = f"{azure_prefix_name}/{file_path}"
 
-            # azure blob upload
-            storage_account_name = options.get("azure_account_name", None)
-            if storage_account_name:
-                azure_route_file(storage_account_name, azure_container_name, local_path, file_path)
-            # local dir upload
-            else:
-                azure_route_file(azure_container_name, file_path, local_path)
+            if azure_container_name:
+                if storage_account_name:
+                    azure_route_file(storage_account_name, azure_container_name, path, file_path)
+                else:
+                    azure_route_file(azure_container_name, file_path, path)
+
         if not write_monthly:
             _remove_files(monthly_files)
 
