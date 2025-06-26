@@ -178,7 +178,11 @@ class JSONLComputeEngineGenerator(ComputeEngineGenerator):
         invoice = {}
         year = datetime.strptime(row.get("usage_start_time")[:7], "%Y-%m").year
         month = datetime.strptime(row.get("usage_start_time")[:7], "%Y-%m").month
-        invoice["month"] = f"{year}{month:02d}"
+        day = datetime.strptime(row.get("usage_start_time")[:10], "%Y-%m-%d").day
+        if month == 6 and row.get("sku", {}).get("id") == "CF4E-A0C7-E3BF" and day in [1, 2]:
+            invoice["month"] = f"{year}{(month - 1):02d}"
+        else:
+            invoice["month"] = f"{year}{month:02d}"
         row["invoice"] = invoice
         if self.resource_level:
             resource = self._generate_resource()
