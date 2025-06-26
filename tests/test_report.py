@@ -1787,7 +1787,7 @@ class GCPReportTestCase(TestCase):
             "end_date": now,
             "gcp_report_prefix": "test_report_gcp",
             "write_monthly": True,
-            "row_limit": 10,  # força múltiplos arquivos
+            "row_limit": 10,
         }
 
         fix_dates(options, "gcp")
