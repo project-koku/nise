@@ -1770,7 +1770,7 @@ class GCPReportTestCase(TestCase):
         yesterday = now - one_day
         report_prefix = "test_resource_report"
         data = [{"resource.name": "Baked", "resource.global_name": "Beans"}]
-        write_gcp_file(yesterday, now, data, {"gcp_report_prefix": report_prefix, "gcp_resource_level": True})
+        write_gcp_file(yesterday, now, data, {"gcp_report_prefix": report_prefix, "gcp_resource_level": True}, 1)
         output_file_name = "{}-{}.csv".format(report_prefix, yesterday.strftime("%Y-%m-%d"))
         expected_output_file_path = f"{os.getcwd()}/{output_file_name}"
 
