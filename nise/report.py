@@ -735,8 +735,6 @@ def azure_create_report(options):  # noqa: C901
     start_date = options.get("start_date")
     end_date = options.get("end_date")
     row_limit = options.get("row_limit")
-    if not row_limit:
-        row_limit = 10_000_000  # to avoid unintended splitting when flag is not passed
     static_report_data = options.get("static_report_data")
     if static_report_data:
         generators = _get_generators(static_report_data.get("generators"))
@@ -799,7 +797,7 @@ def azure_create_report(options):  # noqa: C901
             azure_columns = gen.azure_columns
             for hour in gen.generate_data():
                 data.append(hour)
-                if len(data) == row_limit:
+                if row_limit and len(data) >= row_limit:
                     file_number += 1
                     local_path, output_file_name = _generate_azure_filename(file_number)
                     _write_csv(local_path, data, azure_columns)
@@ -1031,7 +1029,7 @@ def ocp_create_report(options):  # noqa: C901
             _remove_files(monthly_ros_files)
 
 
-def write_gcp_file(start_date, end_date, data, options, file_number=None):
+def write_gcp_file(start_date, end_date, data, options, file_number):
     """Write GCP data to a file."""
     report_prefix = options.get("gcp_report_prefix")
     etag = options.get("gcp_etag") if options.get("gcp_etag") else str(uuid4())
@@ -1041,15 +1039,9 @@ def write_gcp_file(start_date, end_date, data, options, file_number=None):
         scan_end = end_date.date()
 
         base_name = f"{invoice_month}_{etag}_{scan_start}:{scan_end}"
-        if file_number is not None:
-            file_name = f"{base_name}_{file_number:04d}.csv"
-        else:
-            file_name = f"{base_name}.csv"
+        file_name = f"{base_name}_{file_number:04d}.csv"
     else:
-        if file_number is not None:
-            file_name = f"{report_prefix}_{file_number:04d}.csv"
-        else:
-            file_name = report_prefix + ".csv"
+        file_name = f"{report_prefix}_{file_number:04d}.csv"
 
     local_file_path = os.path.join(os.getcwd(), file_name)
     output_file_name = f"{etag}/{file_name}"
@@ -1186,8 +1178,6 @@ def gcp_create_report(options):  # noqa: C901
         monthly_files = []
         output_files = []
         row_limit = options.get("row_limit")
-        if not row_limit:
-            row_limit = 10_000_000  # to avoid unintended splitting when flag is not passed
         file_number = 0
         for month in months:
             data = []
@@ -1215,7 +1205,7 @@ def gcp_create_report(options):  # noqa: C901
                     gen = generator_cls(gen_start_date, gen_end_date, currency, project, attributes=attributes)
                     for hour in gen.generate_data():
                         data.append(hour)
-                        if len(data) == row_limit:
+                        if row_limit and len(data) >= row_limit:
                             file_number += 1
                             local_file_path, output_file_name = write_gcp_file(
                                 gen_start_date, gen_end_date, data, options, file_number=file_number
