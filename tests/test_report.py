@@ -1324,7 +1324,9 @@ class AzureReportTestCase(TestCase):
 
     def setUp(self):
         """Setup shared variables for AzureReportTestCase."""
-        self.MOCK_AZURE_REPORT_FILENAME = f"{os.getcwd()}/costreport_12345678-1234-5678-1234-567812345678.csv"
+        self.MOCK_AZURE_REPORT_FILENAME = os.path.join(
+            os.getcwd(), "costreport_12345678-1234-5678-1234-567812345678_0001.csv"
+        )
 
     @staticmethod
     def mock_generate_azure_filename(file_number):
@@ -1486,7 +1488,7 @@ class GCPReportTestCase(TestCase):
         options = {"start_date": yesterday, "end_date": now, "gcp_report_prefix": report_prefix, "write_monthly": True}
         fix_dates(options, "gcp")
         gcp_create_report(options)
-        output_file_name = f"{report_prefix}.csv"
+        output_file_name = f"{report_prefix}_0001.csv"
         expected_output_file_path = f"{os.getcwd()}/{output_file_name}"
 
         self.assertTrue(os.path.isfile(expected_output_file_path))
@@ -1576,7 +1578,7 @@ class GCPReportTestCase(TestCase):
         invoice_month = yesterday.strftime("%Y%m")
         scan_start = yesterday.date()
         scan_end = now.date()
-        expected_file_name = f"{invoice_month}_{patch_etag.return_value}_{scan_start}:{scan_end}.csv"
+        expected_file_name = f"{invoice_month}_{patch_etag.return_value}_{scan_start}:{scan_end}_0001.csv"
         expected_output_file_path = f"{os.getcwd()}/{expected_file_name}"
         self.assertTrue(os.path.isfile(expected_output_file_path))
         os.remove(expected_output_file_path)
@@ -1616,8 +1618,7 @@ class GCPReportTestCase(TestCase):
         fix_dates(options, "gcp")
         gcp_create_report(options)
         output_file_name = "{}-{}.csv".format(report_prefix, yesterday.strftime("%Y-%m-%d"))
-        expected_output_file_path = f"{os.getcwd()}/{output_file_name}"
-
+        expected_output_file_path = f"{os.getcwd()}/{output_file_name}_0001.csv"
         self.assertFalse(os.path.isfile(expected_output_file_path))
 
     def test_gcp_create_report_without_write_monthly_overlapping_month(self):
