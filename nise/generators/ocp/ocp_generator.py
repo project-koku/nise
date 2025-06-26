@@ -760,9 +760,7 @@ class OCPGenerator(AbstractGenerator):
                 break
             vol_claim = specified_vc.get("volume_claim_name", self.fake.word())
             pod = specified_vc.get("pod_name")
-            claim_capacity = min(
-                specified_vc.get("capacity_gig") * GIGABYTE, (volume_request_gig * GIGABYTE - total_claims)
-            )
+            claim_capacity = specified_vc.get("capacity_gig", volume_request_gig) * GIGABYTE
             usage_gig = specified_vc.get("volume_claim_usage_gig")
             if usage_gig:
                 for key, value in usage_gig.items():
@@ -777,6 +775,8 @@ class OCPGenerator(AbstractGenerator):
                 "volume_claim_usage_gig": usage_gig,
             }
             total_claims += claim_capacity
+            if total_claims > volume_request:
+                raise ValueError(f"Total claims {total_claims} is greater than volume request {volume_request}")
             self.pod_pvc_map[pod] = vol_claim
         return volume, {
             "node": node.get("name"),
@@ -1156,7 +1156,7 @@ class OCPGenerator(AbstractGenerator):
         volume_request = kwargs.get("volume_request", 0)
         # volume_request_storage_byte_seconds is empty for claimless PersistentVolumes
         volume_request_storage_byte_seconds = volume_request * HOUR if volume_request > 0 else None
-        vc_capacity_gig = max(kwargs.get("vc_capacity", 10.0), volume_request) / GIGABYTE
+        vc_capacity_gig = kwargs["vc_capacity"] / GIGABYTE
 
         vc_usage_gig = round(uniform(2.0, vc_capacity_gig), 2)
         if volume_claim_usage_gig:
