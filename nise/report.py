@@ -734,7 +734,9 @@ def azure_create_report(options):  # noqa: C901
     """Create a cost usage report file."""
     start_date = options.get("start_date")
     end_date = options.get("end_date")
-    row_limit = options.get("row_limit", 100000)
+    row_limit = options.get("row_limit")
+    if not row_limit:
+        row_limit = 10_000_000  # to avoid unintended splitting when flag is not passed
     static_report_data = options.get("static_report_data")
     if static_report_data:
         generators = _get_generators(static_report_data.get("generators"))
@@ -1183,7 +1185,9 @@ def gcp_create_report(options):  # noqa: C901
         months = _create_month_list(start_date, end_date)
         monthly_files = []
         output_files = []
-        row_limit = options.get("row_limit", 100000)
+        row_limit = options.get("row_limit")
+        if not row_limit:
+            row_limit = 10_000_000  # to avoid unintended splitting when flag is not passed
         file_number = 0
         for month in months:
             data = []
