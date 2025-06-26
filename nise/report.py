@@ -137,9 +137,10 @@ def _remove_files(file_list):
 
 
 def _generate_azure_filename(file_number):
-    """Generate filename for azure report with file number suffix."""
+    """Generate filename for azure report with uuid and file number suffix."""
+    uuid_part = str(uuid4())
     suffix = f"{file_number:04d}"
-    output_file_name = f"costreport-{suffix}.csv"
+    output_file_name = f"{uuid_part}_{suffix}.csv"
     local_path = os.path.join(os.getcwd(), output_file_name)
     return (local_path, output_file_name)
 
@@ -1028,7 +1029,7 @@ def ocp_create_report(options):  # noqa: C901
             _remove_files(monthly_ros_files)
 
 
-def write_gcp_file(start_date, end_date, data, options):
+def write_gcp_file(start_date, end_date, data, options, file_number=None):
     """Write GCP data to a file."""
     report_prefix = options.get("gcp_report_prefix")
     etag = options.get("gcp_etag") if options.get("gcp_etag") else str(uuid4())
@@ -1036,10 +1037,19 @@ def write_gcp_file(start_date, end_date, data, options):
         invoice_month = start_date.strftime("%Y%m")
         scan_start = start_date.date()
         scan_end = end_date.date()
-        file_name = f"{invoice_month}_{etag}_{scan_start}:{scan_end}.csv"
+
+        base_name = f"{invoice_month}_{etag}_{scan_start}:{scan_end}"
+        if file_number is not None:
+            file_name = f"{base_name}_{file_number:04d}.csv"
+        else:
+            file_name = f"{base_name}.csv"
     else:
-        file_name = report_prefix + ".csv"
-    local_file_path = f"{os.getcwd()}/{file_name}"
+        if file_number is not None:
+            file_name = f"{report_prefix}_{file_number:04d}.csv"
+        else:
+            file_name = report_prefix + ".csv"
+
+    local_file_path = os.path.join(os.getcwd(), file_name)
     output_file_name = f"{etag}/{file_name}"
     columns = GCP_REPORT_COLUMNS
     if options.get("gcp_resource_level", False):
@@ -1173,6 +1183,8 @@ def gcp_create_report(options):  # noqa: C901
         months = _create_month_list(start_date, end_date)
         monthly_files = []
         output_files = []
+        row_limit = options.get("row_limit", 100000)
+        file_number = 0
         for month in months:
             data = []
             gen_start_date = month.get("start")
@@ -1198,15 +1210,28 @@ def gcp_create_report(options):  # noqa: C901
                     generator_cls = generator.get("generator")
                     gen = generator_cls(gen_start_date, gen_end_date, currency, project, attributes=attributes)
                     for hour in gen.generate_data():
-                        data += [hour]
-                    count += 1
+                        data.append(hour)
+                        if len(data) == row_limit:
+                            file_number += 1
+                            local_file_path, output_file_name = write_gcp_file(
+                                gen_start_date, gen_end_date, data, options, file_number=file_number
+                            )
+                            output_files.append(output_file_name)
+                            if local_file_path not in monthly_files:
+                                monthly_files.append(local_file_path)
+                            data.clear()
+
                     if count % ten_percent == 0:
                         LOG.info(f"Done with {count} of {num_gens} generators.")
 
-            local_file_path, output_file_name = write_gcp_file(gen_start_date, gen_end_date, data, options)
-            output_files.append(output_file_name)
-            if local_file_path not in monthly_files:
-                monthly_files.append(local_file_path)
+            if data:
+                file_number += 1
+                local_file_path, output_file_name = write_gcp_file(
+                    gen_start_date, gen_end_date, data, options, file_number=file_number
+                )
+                output_files.append(output_file_name)
+                if local_file_path not in monthly_files:
+                    monthly_files.append(local_file_path)
 
         for index, month_file in enumerate(monthly_files):
             if gcp_bucket_name:
