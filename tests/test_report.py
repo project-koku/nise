@@ -1327,19 +1327,20 @@ class AzureReportTestCase(TestCase):
         self.MOCK_AZURE_REPORT_FILENAME = f"{os.getcwd()}/costreport_12345678-1234-5678-1234-567812345678.csv"
 
     @staticmethod
-    def mock_generate_azure_filename():
-        """Create a fake azure filename."""
+    def mock_generate_azure_filename(file_number):
+        """Create a fake azure filename with file number."""
         fake_uuid = "12345678-1234-5678-1234-567812345678"
-        output_file_name = "{}_{}".format("costreport", fake_uuid)
-        local_path = f"{os.getcwd()}/{output_file_name}.csv"
-        output_file_name = output_file_name + ".csv"
+        suffix = f"{file_number:04d}"
+        output_file_name = f"costreport_{fake_uuid}_{suffix}.csv"
+        local_path = os.path.join(os.getcwd(), output_file_name)
         return local_path, output_file_name
 
     def test_generate_azure_filename(self):
         """Test that _generate_azure_filename returns not empty tuple."""
-        tup = _generate_azure_filename()
+        tup = _generate_azure_filename(1)
         self.assertIsNotNone(tup[0])
         self.assertIsNotNone(tup[1])
+        self.assertTrue(tup[1].endswith("_0001.csv"))
 
     @patch("nise.report._generate_azure_filename")
     def test_azure_create_report(self, mock_name):
@@ -1738,7 +1739,7 @@ class GCPReportTestCase(TestCase):
         }
         fix_dates(options, "gcp")
         gcp_create_report(options)
-        output_file_name = f"{report_prefix}.csv"
+        output_file_name = f"{report_prefix}_0001.csv"
         expected_output_file_path = f"{os.getcwd()}/{output_file_name}"
 
         self.assertTrue(os.path.isfile(expected_output_file_path))
