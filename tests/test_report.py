@@ -1473,6 +1473,23 @@ class AzureReportTestCase(TestCase):
         local_path = self.MOCK_AZURE_REPORT_FILENAME
         self.assertFalse(os.path.isfile(local_path))
 
+    def test_azure_report_file_row_limit(self):
+        """Test Azure report splits files based on file_row_limit."""
+        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
+        one_day = datetime.timedelta(days=1)
+        yesterday = now - one_day
+
+        options = {"start_date": yesterday, "end_date": now, "write_monthly": True, "row_limit": 10}
+
+        fix_dates(options, "azure")
+        azure_create_report(options)
+
+        files = [f for f in os.listdir(os.getcwd()) if re.match(r"^[\w-]+_\d{4}\.csv$", f)]
+        self.assertGreater(len(files), 1)
+
+        for f in files:
+            os.remove(f)
+
 
 class GCPReportTestCase(TestCase):
     """
@@ -1758,3 +1775,26 @@ class GCPReportTestCase(TestCase):
         expected_output_file_path = f"{os.getcwd()}/{output_file_name}"
 
         self.assertFalse(os.path.isfile(expected_output_file_path))
+
+    def test_gcp_report_file_row_limit(self):
+        """Test GCP report splits files based on file_row_limit."""
+        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
+        one_day = datetime.timedelta(days=1)
+        yesterday = now - one_day
+
+        options = {
+            "start_date": yesterday,
+            "end_date": now,
+            "gcp_report_prefix": "test_report_gcp",
+            "write_monthly": True,
+            "row_limit": 10,  # força múltiplos arquivos
+        }
+
+        fix_dates(options, "gcp")
+        gcp_create_report(options)
+
+        files = [f for f in os.listdir(os.getcwd()) if re.match(r"^[\w-]+_\d{4}\.csv$", f)]
+        self.assertGreater(len(files), 1)
+
+        for f in files:
+            os.remove(f)
