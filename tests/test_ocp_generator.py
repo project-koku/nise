@@ -490,6 +490,44 @@ class OCPGeneratorTestCase(TestCase):
                                             self.assertLessEqual(value * GIGABYTE, capacity)
                             self.assertLessEqual(total_capacity, volume.get("volume_request", MAX_VOL_GIGS * GIGABYTE))
 
+    def test_gen_specific_volume_raises_valueerror_when_claims_exceed_request(self):
+        """Test that _gen_specific_volume raises ValueError when total claims exceed volume request."""
+        generator = OCPGenerator(self.two_hours_ago, self.now, {})
+
+        # Create a fake node and namespace
+        node = {"name": "test-node"}
+        namespace = "test-namespace"
+
+        # Create a volume specification where volume claims exceed the volume request
+        specified_volume = {
+            "volume_name": "test-volume",
+            "volume_request_gig": 10,  # 10 GiB volume request
+            "volume_claims": [
+                {
+                    "volume_claim_name": "claim1",
+                    "pod_name": "pod1",
+                    "capacity_gig": 8,  # 8 GiB claim
+                },
+                {
+                    "volume_claim_name": "claim2",
+                    "pod_name": "pod2",
+                    "capacity_gig": 5,  # 5 GiB claim - total 13 GiB > 10 GiB request
+                },
+            ],
+        }
+
+        # Verify that ValueError is raised with expected message
+        with self.assertRaises(ValueError) as context:
+            generator._gen_specific_volume(node, namespace, specified_volume)
+
+        expected_total_claims = (8 + 5) * GIGABYTE  # 13 GiB in bytes
+        expected_volume_request = 10 * GIGABYTE  # 10 GiB in bytes
+        expected_message = (
+            f"Total claims {expected_total_claims} is greater than volume request {expected_volume_request}"
+        )
+
+        self.assertEqual(str(context.exception), expected_message)
+
     def test_generate_hourly_data(self):
         """Test that generate_hourly_data calls the test method."""
         generator = OCPGenerator(self.two_hours_ago, self.now, self.attributes)
