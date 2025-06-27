@@ -30,6 +30,7 @@ class ComputeEngineGenerator(GCPGenerator):
 
     SKU = (  # (ID, Description, Usage Unit, Pricing Unit)
         ("CF4E-A0C7-E3BF", "Instance Core running in Americas", "seconds", "hour"),
+        ("CF4E-A0C7-E3BG", "Instance Core running in Americas", "seconds", "hour"),
         ("D973-5D65-BAB2", "Storage PD Capacity", "byte-seconds", "gibibyte month"),
         ("D0CC-50DF-59D2", "Network Inter Zone Ingress", "bytes", "gibibyte"),
         ("F449-33EC-A5EF", "E2 Instance Ram running in Americas", "byte-seconds", "gibibyte hour"),
@@ -179,7 +180,8 @@ class JSONLComputeEngineGenerator(ComputeEngineGenerator):
         year = datetime.strptime(row.get("usage_start_time")[:7], "%Y-%m").year
         month = datetime.strptime(row.get("usage_start_time")[:7], "%Y-%m").month
         day = datetime.strptime(row.get("usage_start_time")[:10], "%Y-%m-%d").day
-        if month == 6 and row.get("sku", {}).get("id") == "CF4E-A0C7-E3BF" and day in [1, 2]:
+        # todo replace this by current month
+        if month == 6 and row.get("sku", {}).get("id") == "CF4E-A0C7-E3BF" and day in [1]:  # [1, 2]
             invoice["month"] = f"{year}{(month - 1):02d}"
         else:
             invoice["month"] = f"{year}{month:02d}"
