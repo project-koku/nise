@@ -328,7 +328,7 @@ def gcp_bucket_to_dataset(
         #  partition time for some items in a day to investigate it - e.g., by using usage_end_time instead
         #  of usage_start_time, or by using export_time (would have to be adjusted first)
         partition_date_sql = f"""
-        UPDATE `{table_id}` SET _PARTITIONTIME=CAST(DATE_TRUNC(DATE(usage_start_time), DAY) AS timestamp) WHERE 1=1;
+        UPDATE `{table_id}` SET _PARTITIONTIME=CAST(DATE_TRUNC(DATE(usage_end_time), DAY) AS timestamp) WHERE 1=1;
         """
         bigquery_client.query(partition_date_sql)
 
