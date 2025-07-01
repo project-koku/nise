@@ -12,7 +12,7 @@
                                                     AWS/GCP/OCP: today at 23:59
                                                     Azure: now() + 24 hours
         -w, --write-monthly                     optional, keep the generated report files in the local dir.
-        --file-row-limit ROW_LIMIT              optional, default is 100,000. AWS and OCP only. Multiple reports
+        --file-row-limit ROW_LIMIT              optional, default is 1,000,000. Multiple reports
                                                 will be generated with line counts not exceeding the ROW_LIMIT.
         --static-report-file YAML_NAME          optional, static report generation based on specified yaml file.
                                                 See example_[provider]_static_data.yml for examples.
