@@ -703,15 +703,16 @@ class OCPGeneratorTestCase(TestCase):
 
     def test_update_storage_data_usage_lt_capacity(self):
         """Test that _update_storge_data keeps usage <= request <= capacity."""
+        request = self.fake.pyint(1, 100)
         kwargs = {
             "volume_claim_usage_gig": self._usage_dict(),
-            "vc_capacity": self.fake.pyint(1, 100),
+            "vc_capacity": self.fake.pyint(request, 100),
             "namespace": self.fake.word(),
             "pod": self.fake.word(),
             "volume_claim": self.fake.uuid4(),
             "volume_name": self.fake.word(),
             "storage_class": self.fake.word(),
-            "volume_request": self.fake.pyint(1, 100),
+            "volume_request": request,
             "volume_labels": (
                 f"label_{self.fake.word()}:{self.fake.word()}",
                 f"|label_{self.fake.word()}:{self.fake.word()}",

@@ -10,6 +10,8 @@ generators:
           memory_gig: 16
           resource_id: 55555555
           namespaces:
+            Empty_namespace:
+            # This will generate a namespace with no running pods, It's also possible to define namespace labels if desired.
             openshift-kube-controller-manager-operator:
               namespace_labels: label_key1:label_value1|label_key2:label_value2
               pods:
