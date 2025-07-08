@@ -482,7 +482,7 @@ class OCPGenerator(AbstractGenerator):
                     raw_namespaces = {}
                 # Handle empty namespace
                 processed_namespaces = {
-                    ns_name: ({} if ns_data is None else ns_data) for ns_name, ns_data in raw_namespaces
+                    ns_name: ({} if ns_data is None else ns_data) for ns_name, ns_data in raw_namespaces.items()
                 }
                 node = {
                     "name": item.get("node_name", "node_" + self.fake.word()),
