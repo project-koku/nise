@@ -476,9 +476,13 @@ class OCPGenerator(AbstractGenerator):
                 memory_gig = item.get("memory_gig", randint(2, 8))
                 memory_bytes = memory_gig * GIGABYTE
                 resource_id = str(item.get("resource_id", self.fake.word()))
-                # This allows empty namespaces to be defined
+                # Handle empty namespaces
+                raw_namespaces = item.get("namespaces", {})
+                if raw_namespaces is None:
+                    raw_namespaces = {}
+                # Handle empty namespace
                 processed_namespaces = {
-                    ns_name: ({} if ns_data is None else ns_data) for ns_name, ns_data in item.get("namespaces").items()
+                    ns_name: ({} if ns_data is None else ns_data) for ns_name, ns_data in raw_namespaces
                 }
                 node = {
                     "name": item.get("node_name", "node_" + self.fake.word()),
