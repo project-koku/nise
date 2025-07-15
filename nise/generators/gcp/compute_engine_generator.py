@@ -181,7 +181,7 @@ class JSONLComputeEngineGenerator(ComputeEngineGenerator):
         month = datetime.strptime(row.get("usage_start_time")[:7], "%Y-%m").month
         day = datetime.strptime(row.get("usage_start_time")[:10], "%Y-%m-%d").day
         # todo replace this by current month
-        if month == 6 and row.get("sku", {}).get("id") == "CF4E-A0C7-E3BF" and day in [1]:  # [1, 2]
+        if month == 7 and row.get("sku", {}).get("id") == "CF4E-A0C7-E3BF" and day in [1]:  # [1, 2]
             invoice["month"] = f"{year}{(month - 1):02d}"
         else:
             invoice["month"] = f"{year}{month:02d}"
