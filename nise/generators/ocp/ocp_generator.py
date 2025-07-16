@@ -597,7 +597,7 @@ class OCPGenerator(AbstractGenerator):
             "pod_seconds": specified_pod.get("pod_seconds"),
         }
 
-        owner_name, owner_kind, workload, workload_type = get_owner_workload(pod, specified_pod.get("workload"))
+        owner_name, owner_kind, workload, workload_type = get_owner_workload(pod_name, specified_pod.get("workload"))
 
         cpu_usage_avg, cpu_usage_min, cpu_usage_max = generate_randomized_ros_usage(
             cpu_usage, cpu_limit, generate_constant_value=self.constant_values_ros_ocp
@@ -682,8 +682,8 @@ class OCPGenerator(AbstractGenerator):
                 for _ in range(num_pods):
                     pod_suffix = "".join(choices(ascii_lowercase, k=5))
                     pod_type = choice(("build", "deploy", pod_suffix))
-                    pod = f"{self.fake.word()}_{pod_type}"
-                    namespace2pod[namespace].append(pod)
+                    pod_name = f"{self.fake.word()}_{pod_type}"
+                    namespace2pod[namespace].append(pod_name)
                     cpu_cores = node.get("cpu_cores")
                     cpu_limit = round(uniform(0.02, cpu_cores), 5)
                     cpu_request = round(uniform(0.02, cpu_limit), 5)
@@ -692,11 +692,11 @@ class OCPGenerator(AbstractGenerator):
                     mem_limit_gig = round(uniform(25.0, memory_gig), 2)
                     mem_request_gig = round(uniform(25.0, mem_limit_gig), 2)
 
-                    pods[pod] = {
+                    pods[pod_name] = {
                         "namespace": namespace,
                         "node": node.get("name"),
                         "resource_id": node.get("resource_id"),
-                        "pod": pod,
+                        "pod": pod_name,
                         "node_capacity_cpu_cores": cpu_cores,
                         "node_capacity_cpu_core_seconds": cpu_cores * HOUR,
                         "node_capacity_memory_bytes": memory_bytes,
@@ -707,7 +707,7 @@ class OCPGenerator(AbstractGenerator):
                         "mem_limit_gig": mem_limit_gig,
                         "pod_labels": self._gen_openshift_labels(),
                     }
-                    owner_name, owner_kind, workload, workload_type = get_owner_workload(pod)
+                    owner_name, owner_kind, workload, workload_type = get_owner_workload(pod_name)
                     cpu_usage_avg, cpu_usage_min, cpu_usage_max = generate_randomized_ros_usage(
                         {}, cpu_limit, generate_constant_value=self.constant_values_ros_ocp
                     )
@@ -717,12 +717,12 @@ class OCPGenerator(AbstractGenerator):
                     memory_rss_ratio = 1 / round(uniform(1.01, 1.9), 2)
                     cpu_throttle = choices([0, round(cpu_usage_avg / randint(10, 20), 5)], weights=(3, 1))[0]
 
-                    ros_ocp_data_pods[pod] = {
+                    ros_ocp_data_pods[pod_name] = {
                         "namespace": namespace,
                         "node": node.get("name"),
                         "resource_id": node.get("resource_id"),
-                        "pod": pod,
-                        "container_name": pod,
+                        "pod": pod_name,
+                        "container_name": pod_name,
                         "owner_name": owner_name,
                         "owner_kind": owner_kind,
                         "workload": workload,
