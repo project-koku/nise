@@ -1324,25 +1324,22 @@ class AzureReportTestCase(TestCase):
 
     def setUp(self):
         """Setup shared variables for AzureReportTestCase."""
-        self.MOCK_AZURE_REPORT_FILENAME = os.path.join(
-            os.getcwd(), "costreport_12345678-1234-5678-1234-567812345678_0001.csv"
-        )
+        self.MOCK_AZURE_REPORT_FILENAME = f"{os.getcwd()}/costreport_12345678-1234-5678-1234-567812345678.csv"
 
     @staticmethod
-    def mock_generate_azure_filename(file_number):
-        """Create a fake azure filename with file number."""
+    def mock_generate_azure_filename():
+        """Create a fake azure filename."""
         fake_uuid = "12345678-1234-5678-1234-567812345678"
-        suffix = f"{file_number:04d}"
-        output_file_name = f"costreport_{fake_uuid}_{suffix}.csv"
-        local_path = os.path.join(os.getcwd(), output_file_name)
+        output_file_name = "{}_{}".format("costreport", fake_uuid)
+        local_path = f"{os.getcwd()}/{output_file_name}.csv"
+        output_file_name = output_file_name + ".csv"
         return local_path, output_file_name
 
     def test_generate_azure_filename(self):
         """Test that _generate_azure_filename returns not empty tuple."""
-        tup = _generate_azure_filename(1)
+        tup = _generate_azure_filename()
         self.assertIsNotNone(tup[0])
         self.assertIsNotNone(tup[1])
-        self.assertTrue(tup[1].endswith("_0001.csv"))
 
     @patch("nise.report._generate_azure_filename")
     def test_azure_create_report(self, mock_name):
@@ -1473,23 +1470,6 @@ class AzureReportTestCase(TestCase):
         local_path = self.MOCK_AZURE_REPORT_FILENAME
         self.assertFalse(os.path.isfile(local_path))
 
-    def test_azure_report_file_row_limit(self):
-        """Test Azure report splits files based on file_row_limit."""
-        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
-        one_day = datetime.timedelta(days=1)
-        yesterday = now - one_day
-
-        options = {"start_date": yesterday, "end_date": now, "write_monthly": True, "row_limit": 10}
-
-        fix_dates(options, "azure")
-        azure_create_report(options)
-
-        files = [f for f in os.listdir(os.getcwd()) if re.match(r"^[\w-]+_\d{4}\.csv$", f)]
-        self.assertGreater(len(files), 1)
-
-        for f in files:
-            os.remove(f)
-
 
 class GCPReportTestCase(TestCase):
     """
@@ -1505,7 +1485,7 @@ class GCPReportTestCase(TestCase):
         options = {"start_date": yesterday, "end_date": now, "gcp_report_prefix": report_prefix, "write_monthly": True}
         fix_dates(options, "gcp")
         gcp_create_report(options)
-        output_file_name = f"{report_prefix}_0001.csv"
+        output_file_name = f"{report_prefix}.csv"
         expected_output_file_path = f"{os.getcwd()}/{output_file_name}"
 
         self.assertTrue(os.path.isfile(expected_output_file_path))
@@ -1595,7 +1575,7 @@ class GCPReportTestCase(TestCase):
         invoice_month = yesterday.strftime("%Y%m")
         scan_start = yesterday.date()
         scan_end = now.date()
-        expected_file_name = f"{invoice_month}_{patch_etag.return_value}_{scan_start}:{scan_end}_0001.csv"
+        expected_file_name = f"{invoice_month}_{patch_etag.return_value}_{scan_start}:{scan_end}.csv"
         expected_output_file_path = f"{os.getcwd()}/{expected_file_name}"
         self.assertTrue(os.path.isfile(expected_output_file_path))
         os.remove(expected_output_file_path)
@@ -1635,7 +1615,8 @@ class GCPReportTestCase(TestCase):
         fix_dates(options, "gcp")
         gcp_create_report(options)
         output_file_name = "{}-{}.csv".format(report_prefix, yesterday.strftime("%Y-%m-%d"))
-        expected_output_file_path = f"{os.getcwd()}/{output_file_name}_0001.csv"
+        expected_output_file_path = f"{os.getcwd()}/{output_file_name}"
+
         self.assertFalse(os.path.isfile(expected_output_file_path))
 
     def test_gcp_create_report_without_write_monthly_overlapping_month(self):
@@ -1757,7 +1738,7 @@ class GCPReportTestCase(TestCase):
         }
         fix_dates(options, "gcp")
         gcp_create_report(options)
-        output_file_name = f"{report_prefix}_0001.csv"
+        output_file_name = f"{report_prefix}.csv"
         expected_output_file_path = f"{os.getcwd()}/{output_file_name}"
 
         self.assertTrue(os.path.isfile(expected_output_file_path))
@@ -1770,31 +1751,8 @@ class GCPReportTestCase(TestCase):
         yesterday = now - one_day
         report_prefix = "test_resource_report"
         data = [{"resource.name": "Baked", "resource.global_name": "Beans"}]
-        write_gcp_file(yesterday, now, data, {"gcp_report_prefix": report_prefix, "gcp_resource_level": True}, 1)
+        write_gcp_file(yesterday, now, data, {"gcp_report_prefix": report_prefix, "gcp_resource_level": True})
         output_file_name = "{}-{}.csv".format(report_prefix, yesterday.strftime("%Y-%m-%d"))
         expected_output_file_path = f"{os.getcwd()}/{output_file_name}"
 
         self.assertFalse(os.path.isfile(expected_output_file_path))
-
-    def test_gcp_report_file_row_limit(self):
-        """Test GCP report splits files based on file_row_limit."""
-        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
-        one_day = datetime.timedelta(days=1)
-        yesterday = now - one_day
-
-        options = {
-            "start_date": yesterday,
-            "end_date": now,
-            "gcp_report_prefix": "test_report_gcp",
-            "write_monthly": True,
-            "row_limit": 10,
-        }
-
-        fix_dates(options, "gcp")
-        gcp_create_report(options)
-
-        files = [f for f in os.listdir(os.getcwd()) if re.match(r"^[\w-]+_\d{4}\.csv$", f)]
-        self.assertGreater(len(files), 1)
-
-        for f in files:
-            os.remove(f)
