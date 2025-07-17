@@ -752,3 +752,232 @@ class OCPGeneratorTestCase(TestCase):
         """Test that timestamp raises a ValueError with invalid input."""
         with self.assertRaises(ValueError):
             OCPGenerator.timestamp(self.fake.word())
+
+    def test_get_vm_disk_default_values(self):
+        """Test get_vm_disk with default values."""
+        generator = OCPGenerator(self.two_hours_ago, self.now, {})
+
+        with (
+            patch("nise.generators.ocp.ocp_generator.FAKER") as mock_faker,
+            patch("nise.generators.ocp.ocp_generator.randint") as mock_randint,
+        ):
+            mock_faker.word.return_value = "test-pvc"
+            mock_randint.return_value = 40
+
+            result = generator.get_vm_disk()
+
+            expected = {
+                "vm_device": "rootdisk",
+                "vm_volume_mode": "Block",
+                "vm_persistentvolumeclaim_name": "test-pvc",
+                "vc_capacity": 40 * GIGABYTE,
+            }
+            self.assertEqual(result, expected)
+
+    def test_get_vm_disk_with_specified_vc_device_and_mode(self):
+        """Test get_vm_disk with specified device and volume mode."""
+        generator = OCPGenerator(self.two_hours_ago, self.now, {})
+
+        specified_vc = {
+            "vol_device": "datadisk",
+            "volume_mode": "Filesystem",
+        }
+
+        with (
+            patch("nise.generators.ocp.ocp_generator.FAKER") as mock_faker,
+            patch("nise.generators.ocp.ocp_generator.randint") as mock_randint,
+        ):
+            mock_faker.word.return_value = "test-pvc"
+            mock_randint.return_value = 35
+
+            result = generator.get_vm_disk(specified_vc=specified_vc)
+
+            expected = {
+                "vm_device": "datadisk",
+                "vm_volume_mode": "Filesystem",
+                "vm_persistentvolumeclaim_name": "test-pvc",
+                "vc_capacity": 35 * GIGABYTE,
+            }
+            self.assertEqual(result, expected)
+
+    def test_get_vm_disk_with_pod_name_found_pvc(self):
+        """Test get_vm_disk with pod_name that has an associated PVC."""
+        generator = OCPGenerator(self.two_hours_ago, self.now, {})
+
+        # Mock the get_specific_pvc_from_pod method to return a PVC
+        mock_pvc = {"capacity": 50 * GIGABYTE}
+        with patch.object(generator, "get_specific_pvc_from_pod", return_value=("test-pvc-name", mock_pvc)):
+            result = generator.get_vm_disk(pod_name="test-pod")
+
+            expected = {
+                "vm_device": "rootdisk",
+                "vm_volume_mode": "Block",
+                "vm_persistentvolumeclaim_name": "test-pvc-name",
+                "vc_capacity": 50 * GIGABYTE,
+            }
+            self.assertEqual(result, expected)
+
+    def test_get_vm_disk_with_specified_vc_pod_name_found_pvc(self):
+        """Test get_vm_disk with pod_name in specified_vc that has an associated PVC."""
+        generator = OCPGenerator(self.two_hours_ago, self.now, {})
+
+        specified_vc = {
+            "pod_name": "test-pod-from-vc",
+            "vol_device": "mydisk",
+        }
+
+        mock_pvc = {"capacity": 75 * GIGABYTE}
+        with patch.object(generator, "get_specific_pvc_from_pod", return_value=("vc-pvc-name", mock_pvc)):
+            result = generator.get_vm_disk(specified_vc=specified_vc)
+
+            expected = {
+                "vm_device": "mydisk",
+                "vm_volume_mode": "Block",
+                "vm_persistentvolumeclaim_name": "vc-pvc-name",
+                "vc_capacity": 75 * GIGABYTE,
+            }
+            self.assertEqual(result, expected)
+
+    def test_get_vm_disk_pod_name_no_pvc_static_report_true(self):
+        """Test get_vm_disk with pod_name but no PVC and static_report=True."""
+        generator = OCPGenerator(self.two_hours_ago, self.now, {})
+
+        # Mock to return no PVC
+        with patch.object(generator, "get_specific_pvc_from_pod", return_value=("", {})):
+            result = generator.get_vm_disk(pod_name="test-pod", static_report=True)
+
+            self.assertEqual(result, {})
+
+    def test_get_vm_disk_pod_name_no_pvc_static_report_false(self):
+        """Test get_vm_disk with pod_name but no PVC and static_report=False."""
+        generator = OCPGenerator(self.two_hours_ago, self.now, {})
+
+        with (
+            patch.object(generator, "get_specific_pvc_from_pod", return_value=("", {})),
+            patch("nise.generators.ocp.ocp_generator.FAKER") as mock_faker,
+            patch("nise.generators.ocp.ocp_generator.randint") as mock_randint,
+        ):
+            mock_faker.word.return_value = "fallback-pvc"
+            mock_randint.return_value = 45
+
+            result = generator.get_vm_disk(pod_name="test-pod", static_report=False)
+
+            expected = {
+                "vm_device": "rootdisk",
+                "vm_volume_mode": "Block",
+                "vm_persistentvolumeclaim_name": "fallback-pvc",
+                "vc_capacity": 45 * GIGABYTE,
+            }
+            self.assertEqual(result, expected)
+
+    def test_get_vm_disk_with_specified_vc_volume_claim_and_capacity(self):
+        """Test get_vm_disk with specified volume_claim_name and capacity_gig."""
+        generator = OCPGenerator(self.two_hours_ago, self.now, {})
+
+        specified_vc = {
+            "volume_claim_name": "custom-pvc",
+            "capacity_gig": 100,
+            "vol_device": "storage",
+            "volume_mode": "Filesystem",
+        }
+
+        result = generator.get_vm_disk(specified_vc=specified_vc)
+
+        expected = {
+            "vm_device": "storage",
+            "vm_volume_mode": "Filesystem",
+            "vm_persistentvolumeclaim_name": "custom-pvc",
+            "vc_capacity": 100 * GIGABYTE,
+        }
+        self.assertEqual(result, expected)
+
+    def test_get_vm_disk_pod_name_priority_over_parameter(self):
+        """Test that pod_name in specified_vc takes priority over pod_name parameter."""
+        generator = OCPGenerator(self.two_hours_ago, self.now, {})
+
+        specified_vc = {
+            "pod_name": "priority-pod",
+        }
+
+        mock_pvc = {"capacity": 60 * GIGABYTE}
+        with patch.object(generator, "get_specific_pvc_from_pod") as mock_get_pvc:
+            mock_get_pvc.return_value = ("priority-pvc", mock_pvc)
+
+            result = generator.get_vm_disk(specified_vc=specified_vc, pod_name="ignored-pod")
+
+            # Should call with priority-pod, not ignored-pod
+            mock_get_pvc.assert_called_once_with("priority-pod")
+
+            expected = {
+                "vm_device": "rootdisk",
+                "vm_volume_mode": "Block",
+                "vm_persistentvolumeclaim_name": "priority-pvc",
+                "vc_capacity": 60 * GIGABYTE,
+            }
+            self.assertEqual(result, expected)
+
+    def test_get_vm_disk_parameter_pod_name_when_no_vc_pod_name(self):
+        """Test that pod_name parameter is used when specified_vc has no pod_name."""
+        generator = OCPGenerator(self.two_hours_ago, self.now, {})
+
+        specified_vc = {
+            "vol_device": "testdisk",
+        }
+
+        mock_pvc = {"capacity": 80 * GIGABYTE}
+        with patch.object(generator, "get_specific_pvc_from_pod") as mock_get_pvc:
+            mock_get_pvc.return_value = ("param-pvc", mock_pvc)
+
+            result = generator.get_vm_disk(specified_vc=specified_vc, pod_name="param-pod")
+
+            # Should call with param-pod
+            mock_get_pvc.assert_called_once_with("param-pod")
+
+            expected = {
+                "vm_device": "testdisk",
+                "vm_volume_mode": "Block",
+                "vm_persistentvolumeclaim_name": "param-pvc",
+                "vc_capacity": 80 * GIGABYTE,
+            }
+            self.assertEqual(result, expected)
+
+    def test_get_vm_disk_empty_pod_name_values(self):
+        """Test get_vm_disk with empty pod_name values."""
+        generator = OCPGenerator(self.two_hours_ago, self.now, {})
+
+        specified_vc = {
+            "pod_name": "",  # Empty string
+        }
+
+        with (
+            patch("nise.generators.ocp.ocp_generator.FAKER") as mock_faker,
+            patch("nise.generators.ocp.ocp_generator.randint") as mock_randint,
+        ):
+            mock_faker.word.return_value = "empty-pvc"
+            mock_randint.return_value = 42
+
+            result = generator.get_vm_disk(specified_vc=specified_vc, pod_name="")
+
+            expected = {
+                "vm_device": "rootdisk",
+                "vm_volume_mode": "Block",
+                "vm_persistentvolumeclaim_name": "empty-pvc",
+                "vc_capacity": 42 * GIGABYTE,
+            }
+            self.assertEqual(result, expected)
+
+    def test_get_vm_disk_randint_range(self):
+        """Test that get_vm_disk uses correct randint range for capacity."""
+        generator = OCPGenerator(self.two_hours_ago, self.now, {})
+
+        with (
+            patch("nise.generators.ocp.ocp_generator.FAKER") as mock_faker,
+            patch("nise.generators.ocp.ocp_generator.randint") as mock_randint,
+        ):
+            mock_faker.word.return_value = "test-pvc"
+            mock_randint.return_value = 35
+
+            generator.get_vm_disk()
+
+            # Verify randint was called with correct range (30, 50)
+            mock_randint.assert_called_once_with(30, 50)
