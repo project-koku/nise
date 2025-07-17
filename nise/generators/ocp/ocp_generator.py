@@ -859,7 +859,7 @@ class OCPGenerator(AbstractGenerator):
                     return pvc, specific_pvc
         return "", {}
 
-    def get_vm_disk(self, *, specified_vc=None, pod_name=""):
+    def get_vm_disk(self, *, specified_vc=None, pod_name="", static_report=False):
         specified_vc = specified_vc or {}
         vm_disk = {
             "vm_device": specified_vc.get("vol_device") or "rootdisk",
@@ -873,6 +873,8 @@ class OCPGenerator(AbstractGenerator):
                     "vc_capacity": pvc["capacity"],
                 }
                 return vm_disk
+            if static_report:
+                return {}
         vm_disk |= {
             "vm_persistentvolumeclaim_name": specified_vc.get("volume_claim_name", FAKER.word()),
             "vc_capacity": specified_vc.get("capacity_gig", randint(30, 50)) * GIGABYTE,
@@ -939,7 +941,7 @@ class OCPGenerator(AbstractGenerator):
                             "vm_seconds": specified_vm.get("vm_seconds"),
                         }
                         | get_vm_instance(vm=specified_vm)
-                        | self.get_vm_disk(specified_vc=specified_vm)
+                        | self.get_vm_disk(specified_vc=specified_vm, static_report=True)
                     )
 
             else:
@@ -991,12 +993,13 @@ class OCPGenerator(AbstractGenerator):
                     self.pods[pod_name] = pod
                     self.ros_data[pod_name] = ros_pod
                     self.namespace2pods[namespace].append(pod_name)
-                if vm_copy["vm_persistentvolumeclaim_name"] not in self.pod_pvc_map.values():
+                vcm = vm_copy.get("vm_persistentvolumeclaim_name")
+                if vcm and vcm not in self.pod_pvc_map.values():
                     specified_volume = {
                         "volume_claims": [
                             {
                                 "pod_name": vm,
-                                "volume_claim_name": vm_copy["vm_persistentvolumeclaim_name"],
+                                "volume_claim_name": vcm,
                                 "capacity_gig": vm_copy["vc_capacity"] / GIGABYTE,
                             }
                         ]
@@ -1112,7 +1115,8 @@ class OCPGenerator(AbstractGenerator):
 
         vm["vm_uptime_total_seconds"] = vm_seconds
 
-        vm["vm_disk_allocated_size_byte_seconds"] = kwargs.get("vc_capacity") * HOUR
+        if vc_capacity := kwargs.get("vc_capacity"):
+            vm["vm_disk_allocated_size_byte_seconds"] = vc_capacity * HOUR
 
         row.update(vm)
         return row
