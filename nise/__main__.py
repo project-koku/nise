@@ -357,8 +357,8 @@ def create_parser():
         dest="row_limit",
         required=False,
         type=int,
-        default=1_000_000,
-        help="Maximum number of lines per report file. Default is 1,000,000.",
+        default=100000,
+        help="Maximum number of lines per report file. Default is 100000.",
     )
     parent_parser.add_argument(
         "--static-report-file", dest="static_report_file", required=False, help="Generate static data based on yaml."
