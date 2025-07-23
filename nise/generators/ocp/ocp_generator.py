@@ -24,6 +24,7 @@ from random import choices
 from random import randint
 from random import uniform
 from string import ascii_lowercase
+from uuid import uuid4
 
 from dateutil import parser
 from faker import Faker
@@ -475,7 +476,7 @@ class OCPGenerator(AbstractGenerator):
             for item in self._nodes:
                 memory_gig = item.get("memory_gig", randint(2, 8))
                 memory_bytes = memory_gig * GIGABYTE
-                resource_id = str(item.get("resource_id", self.fake.word()))
+                resource_id = str(item.get("resource_id", uuid4().hex[:17]))
                 # Handle empty namespaces
                 raw_namespaces = item.get("namespaces", {})
                 if raw_namespaces is None:
@@ -485,7 +486,7 @@ class OCPGenerator(AbstractGenerator):
                     ns_name: ({} if ns_data is None else ns_data) for ns_name, ns_data in raw_namespaces.items()
                 }
                 node = {
-                    "name": item.get("node_name", "node_" + self.fake.word()),
+                    "name": item.get("node_name", "node_" + uuid4().hex[:17]),
                     "cpu_cores": item.get("cpu_cores", randint(2, 16)),
                     "memory_bytes": memory_bytes,
                     "resource_id": "i-" + resource_id,
@@ -500,10 +501,10 @@ class OCPGenerator(AbstractGenerator):
                 memory_gig = randint(2, 8)
                 memory_bytes = memory_gig * GIGABYTE
                 node = {
-                    "name": "node_" + self.fake.word(),
+                    "name": "node_" + uuid4().hex[:17],
                     "cpu_cores": randint(2, 16),
                     "memory_bytes": memory_bytes,
-                    "resource_id": "i-" + self.fake.word(),
+                    "resource_id": "i-" + uuid4().hex[:17],
                     "node_labels": self._gen_openshift_labels(seeding=seeded_labels),
                 }
                 nodes.append(node)
@@ -792,7 +793,7 @@ class OCPGenerator(AbstractGenerator):
             "volume": volume,
             "storage_class": specified_volume.get("storage_class", storage_class_default),
             "csi_driver": specified_volume.get("csi_driver", csi_default),
-            "csi_volume_handle": specified_volume.get("csi_volume_handle", f"vol-{self.fake.word()}"),
+            "csi_volume_handle": specified_volume.get("csi_volume_handle", f"vol-{uuid4().hex[:17]}"),
             "volume_request": volume_request,
             "labels": specified_volume.get("labels", None),
             "volume_claims": volume_claims,
@@ -841,7 +842,7 @@ class OCPGenerator(AbstractGenerator):
                                 "volume": volume,
                                 "storage_class": storage_class_default,
                                 "csi_driver": csi_default,
-                                "csi_volume_handle": f"vol-{self.fake.word()}",
+                                "csi_volume_handle": f"vol-{uuid4().hex[:17]}",
                                 "volume_request": vol_request,
                                 "labels": self._gen_openshift_labels(),
                                 "volume_claims": volume_claims,
