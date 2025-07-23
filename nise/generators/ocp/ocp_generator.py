@@ -36,6 +36,7 @@ FAKER = Faker()
 
 GIGABYTE = 1024 * 1024 * 1024
 HOUR = 60 * 60
+AWS_RESID_LENGTH = 17
 
 OCP_POD_USAGE = "ocp_pod_usage"
 OCP_STORAGE_USAGE = "ocp_storage_usage"
@@ -476,7 +477,7 @@ class OCPGenerator(AbstractGenerator):
             for item in self._nodes:
                 memory_gig = item.get("memory_gig", randint(2, 8))
                 memory_bytes = memory_gig * GIGABYTE
-                resource_id = str(item.get("resource_id", uuid4().hex[:17]))
+                resource_id = str(item.get("resource_id", uuid4().hex[:AWS_RESID_LENGTH]))
                 # Handle empty namespaces
                 raw_namespaces = item.get("namespaces", {})
                 if raw_namespaces is None:
@@ -486,7 +487,7 @@ class OCPGenerator(AbstractGenerator):
                     ns_name: ({} if ns_data is None else ns_data) for ns_name, ns_data in raw_namespaces.items()
                 }
                 node = {
-                    "name": item.get("node_name", "node_" + uuid4().hex[:17]),
+                    "name": item.get("node_name", "node_" + self.fake.word()),
                     "cpu_cores": item.get("cpu_cores", randint(2, 16)),
                     "memory_bytes": memory_bytes,
                     "resource_id": "i-" + resource_id,
@@ -501,10 +502,10 @@ class OCPGenerator(AbstractGenerator):
                 memory_gig = randint(2, 8)
                 memory_bytes = memory_gig * GIGABYTE
                 node = {
-                    "name": "node_" + uuid4().hex[:17],
+                    "name": "node_" + self.fake.word(),
                     "cpu_cores": randint(2, 16),
                     "memory_bytes": memory_bytes,
-                    "resource_id": "i-" + uuid4().hex[:17],
+                    "resource_id": "i-" + uuid4().hex[:AWS_RESID_LENGTH],
                     "node_labels": self._gen_openshift_labels(seeding=seeded_labels),
                 }
                 nodes.append(node)
@@ -793,7 +794,7 @@ class OCPGenerator(AbstractGenerator):
             "volume": volume,
             "storage_class": specified_volume.get("storage_class", storage_class_default),
             "csi_driver": specified_volume.get("csi_driver", csi_default),
-            "csi_volume_handle": specified_volume.get("csi_volume_handle", f"vol-{uuid4().hex[:17]}"),
+            "csi_volume_handle": specified_volume.get("csi_volume_handle", f"vol-{uuid4().hex[:AWS_RESID_LENGTH]}"),
             "volume_request": volume_request,
             "labels": specified_volume.get("labels", None),
             "volume_claims": volume_claims,
@@ -842,7 +843,7 @@ class OCPGenerator(AbstractGenerator):
                                 "volume": volume,
                                 "storage_class": storage_class_default,
                                 "csi_driver": csi_default,
-                                "csi_volume_handle": f"vol-{uuid4().hex[:17]}",
+                                "csi_volume_handle": f"vol-{uuid4().hex[:AWS_RESID_LENGTH]}",
                                 "volume_request": vol_request,
                                 "labels": self._gen_openshift_labels(),
                                 "volume_claims": volume_claims,
