@@ -768,7 +768,7 @@ class OCPGenerator(AbstractGenerator):
         for specified_vc in specified_vol_claims:
             if volume_request - total_claims <= GIGABYTE:
                 break
-            vol_claim = specified_vc.get("volume_claim_name", f"pvc-{self.fake.word()}")
+            vol_claim = specified_vc.get("volume_claim_name", self.fake.word())
             pod = specified_vc.get("pod_name")
             claim_capacity = specified_vc.get("capacity_gig", volume_request_gig) * GIGABYTE
             usage_gig = specified_vc.get("volume_claim_usage_gig")
@@ -822,7 +822,7 @@ class OCPGenerator(AbstractGenerator):
                     for _ in range(num_vol_claims):
                         if vol_request - total_claims <= GIGABYTE:
                             break
-                        vol_claim = f"pvc-{self.fake.word()}"
+                        vol_claim = self.fake.word()
                         pod = choice(namespace2pods[namespace])
                         claim_capacity = round(uniform(1.0, (vol_request_gig - total_claims / GIGABYTE)), 2) * GIGABYTE
                         volume_claims[vol_claim] = {
@@ -878,7 +878,7 @@ class OCPGenerator(AbstractGenerator):
             if static_report:
                 return {}
         vm_disk |= {
-            "vm_persistentvolumeclaim_name": specified_vc.get("volume_claim_name", f"pvc-{FAKER.word()}"),
+            "vm_persistentvolumeclaim_name": specified_vc.get("volume_claim_name", FAKER.word()),
             "vc_capacity": specified_vc.get("capacity_gig", randint(30, 50)) * GIGABYTE,
         }
         return vm_disk
