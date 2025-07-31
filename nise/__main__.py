@@ -261,6 +261,13 @@ def add_gcp_parser_args(parser):
     )
 
 
+def length_of_cluster_id(cluster_id):
+    """Check the length of the cluster id."""
+    if len(cluster_id) > 50:
+        raise argparse.ArgumentTypeError("--ocp-cluster-id must be less than 50 characters long.")
+    return cluster_id
+
+
 def add_ocp_parser_args(parser):
     """Add OCP sub-parser args."""
     parser.add_argument(
@@ -269,6 +276,7 @@ def add_ocp_parser_args(parser):
         dest="ocp_cluster_id",
         required=False,
         help="Cluster identifier for usage data.",
+        type=length_of_cluster_id,
     )
     parser.add_argument(
         "--insights-upload",
@@ -535,9 +543,7 @@ def _validate_ocp_arguments(parser, options):
 
     ocp_cluster_id, insights_upload, minio_upload, payload_name = _get_ocp_options(options)
     if ocp_cluster_id is None:
-        msg = "{} must be supplied."
-        msg = msg.format("--ocp-cluster-id")
-        parser.error(msg)
+        parser.error("--ocp-cluster-id must be supplied.")
     elif insights_upload is not None and not os.path.isdir(insights_upload):
         insights_user = os.environ.get("INSIGHTS_USER")
         insights_password = os.environ.get("INSIGHTS_PASSWORD")

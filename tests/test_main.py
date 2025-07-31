@@ -28,6 +28,7 @@ from unittest.mock import patch
 from nise.__main__ import _load_static_report_data
 from nise.__main__ import _validate_provider_inputs
 from nise.__main__ import create_parser
+from nise.__main__ import length_of_cluster_id
 from nise.__main__ import main
 from nise.__main__ import run
 from nise.__main__ import valid_currency
@@ -104,6 +105,30 @@ class CommandLineTestCase(TestCase):
         test_currency = "jpy"
         out_currency = valid_currency(test_currency)
         self.assertEqual(test_currency.upper(), out_currency)
+
+    def test_length_of_cluster_id_valid(self):
+        """
+        Test length_of_cluster_id with valid cluster ID (under 50 characters).
+        """
+        test_cluster_id = "my-cluster-123"
+        result = length_of_cluster_id(test_cluster_id)
+        self.assertEqual(test_cluster_id, result)
+
+    def test_length_of_cluster_id_valid_edge_case(self):
+        """
+        Test length_of_cluster_id with exactly 50 characters (edge case).
+        """
+        test_cluster_id = "a" * 50  # exactly 50 characters
+        result = length_of_cluster_id(test_cluster_id)
+        self.assertEqual(test_cluster_id, result)
+
+    def test_length_of_cluster_id_invalid(self):
+        """
+        Test length_of_cluster_id with invalid cluster ID (over 50 characters).
+        """
+        test_cluster_id = "a" * 51  # 51 characters, should be invalid
+        with self.assertRaises(argparse.ArgumentTypeError):
+            length_of_cluster_id(test_cluster_id)
 
     def test_valid_s3_no_input(self):
         """
