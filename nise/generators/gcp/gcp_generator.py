@@ -313,4 +313,6 @@ class GCPGenerator(AbstractGenerator):
             row = self._update_data(row)
             yield row
             if self._cross_over_data and start.day == 1:
-                yield self.apply_previous_invoice_month(row)
+                cross_over_row = self.apply_previous_invoice_month(row)
+                if cross_over_row:
+                    yield cross_over_row
