@@ -102,7 +102,7 @@ class GCPGenerator(AbstractGenerator):
         super().__init__(start_date, end_date)
         self.project = project
         self.num_instances = 1 if attributes else randint(2, 60)
-        self.attributes = attributes if attributes else {}
+        self.attributes = attributes or {}
         self.resource_level = self.attributes.get("resource_level", False)
         self.column_labels = GCP_REPORT_COLUMNS + GCP_RESOURCE_COLUMNS if self.resource_level else GCP_REPORT_COLUMNS
         self.return_list = False
