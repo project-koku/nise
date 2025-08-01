@@ -51,7 +51,6 @@ class GCPDatabaseGenerator(GCPGenerator):
                     if self.attributes.get("service.description").lower() == service[0].lower():
                         self._service = service
 
-
     def _update_data(self, row):  # noqa: C901
         """Update a data row with compute values."""
         service = choice(self.SERVICE)

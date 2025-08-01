@@ -20,7 +20,6 @@ import datetime
 import json
 import string
 from abc import abstractmethod
-from datetime import timedelta
 from dateutil.relativedelta import relativedelta
 from random import choice
 from random import randint
@@ -120,7 +119,6 @@ class GCPGenerator(AbstractGenerator):
         self._currency = self.attributes.get("currency", currency)
         self._sku = None
         self._cross_over_rows = []
-
 
     @staticmethod
     def _create_days_list(start_date, end_date):
