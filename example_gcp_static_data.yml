@@ -1,34 +1,46 @@
 ---
 generators:
   - ComputeEngineGenerator:
-      start_date: 2021-01-01
-      end_date: 2021-01-05
-      cost: 2557
-      currency: USD
+      start_date: last_month
+      price: 2
+      usage.amount_in_pricing_units: 1
+      sku_id: CF4E-A0C7-E3BF
+      instance_type: a2-highgpu-1g
+      location.region: us-east4-a
+      currency: EUR
+      resource.name: projects/tests
+      resource.global_name: //compute.googleapis.com/projects/tests
       labels: [{"environment": "ci", "project":"p1"}]
+      cross_over_data: True
   - CloudStorageGenerator:
-      start_date: 2021-01-01
-      end_date: 2021-01-05
-      currency: USD
+      start_date: last_month
+      price: 2
+      usage.amount_in_pricing_units: 1
+      service.description: Storage
+      currency: EUR
+      location.region: us-east4-a
+      credit_amount: -0.10
   - GCPNetworkGenerator:
-      start_date: 2021-01-01
-      end_date: 2021-01-05
-      currency: USD
+      start_date: last_month
+      service.description: Cloud
+      price: 2
+      usage.amount_in_pricing_units: 1
+      currency: EUR
+      location.region: us-east4-a
   - GCPDatabaseGenerator:
-      start_date: 2021-01-01
-      end_date: 2021-01-05
-      currency: USD
-
-
+      start_date: last_month
+      service.description: Fire
+      price: 1
+      usage.amount_in_pricing_units: 1
+      currency: EUR
+      location.region: us-east4-a
 
 projects:
   -
-    billing_account_id: random-words
-    project.name: billion-force-58425800
-    project.id: billion-force-58425800
+    billing_account_id: example_account_id
+    project.name: test-nise-0000
+    project.id: example-project-id
     project.labels: step:chair;year:each
-  -
-    billing_account_id: fake-account
-    project.name: winter-hill-23422098
-    project.id: winter-hill-23422098
-    project.labels:
+
+
+  # uv run nise report gcp --static-report-file example_gcp_static_data.yml -w

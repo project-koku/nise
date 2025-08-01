@@ -21,6 +21,7 @@ import json
 import string
 from abc import abstractmethod
 from datetime import timedelta
+from dateutil.relativedelta import relativedelta
 from random import choice
 from random import randint
 from random import uniform
@@ -57,6 +58,8 @@ GCP_REPORT_COLUMNS = (
     "invoice.month",
     "cost_type",
     "partition_date",
+    "resource.name",
+    "resource.global_name",
 )
 
 GCP_RESOURCE_COLUMNS = ("resource.name", "resource.global_name")
@@ -100,23 +103,24 @@ class GCPGenerator(AbstractGenerator):
         super().__init__(start_date, end_date)
         self.project = project
         self.num_instances = 1 if attributes else randint(2, 60)
-        self.attributes = attributes
+        self.attributes = attributes if attributes else {}
         self.resource_level = self.attributes.get("resource_level", False)
         self.column_labels = GCP_REPORT_COLUMNS + GCP_RESOURCE_COLUMNS if self.resource_level else GCP_REPORT_COLUMNS
         self.return_list = False
-        self.currency = currency
-        # class vars to be set by the child classes based off attributes.
-        self._resource_name = None
-        self._resource_global_name = None
-        self._labels = None
-        self._usage_amount = None
-        self._pricing_amount = None
-        self._price = None
+        self._usage_amount = self.attributes.get("usage.amount")
+        self._labels = self.attributes.get("labels")
+        self._pricing_amount = self.attributes.get("usage.amount_in_pricing_units")
+        self._price = self.attributes.get("price")
+        self._credit_amount = self.attributes.get("credit_amount")
+        self._resource_name = self.attributes.get("resource.name")
+        self._resource_global_name = self.attributes.get("resource.global_name")
+        self._service = self.attributes.get("service.description")
+        self._cross_over_data = self.attributes.get("cross_over_data")
+        self._instance_type = self.attributes.get("instance_type", choice(GCP_INSTANCE_TYPES))
+        self._currency = self.attributes.get("currency", currency)
         self._sku = None
-        self._instance_type = choice(GCP_INSTANCE_TYPES)
-        self._service = None
-        self._credit_amount = None
-        self._currency = currency
+        self._cross_over_rows = []
+
 
     @staticmethod
     def _create_days_list(start_date, end_date):
@@ -207,23 +211,6 @@ class GCPGenerator(AbstractGenerator):
         else:
             return round(uniform(0, 0.01), 7)
 
-    def _gcp_find_invoice_months_in_date_range(self):
-        """Finds all the invoice months in a given date range.
-        GCP invoice month format is {year}{month}.
-        Ex. 202011
-        Returns:
-            List of invoice months.
-        """
-        # Add a little buffer to end date for beginning of the month
-        # searches for invoice_month for dates < end_date
-        end_range = self.end_date + timedelta(1)
-        invoice_months = []
-        for day in range((end_range - self.start_date).days):
-            invoice_month = (self.start_date + timedelta(day)).strftime("%Y%m")
-            if invoice_month not in invoice_months:
-                invoice_months.append(invoice_month)
-        return invoice_months
-
     def _gen_credit(self, credit_amount, json_return=False):
         """Generate the credit dict based off the hourly credit_amount."""
         if json_return:
@@ -302,6 +289,19 @@ class GCPGenerator(AbstractGenerator):
     def _add_common_usage_info(self, row, start, end, **kwargs):
         """Not needed for GCP."""
 
+    def apply_previous_invoice_month(self, row):
+        new_row = row.copy()
+        if invoice_month := new_row.get("invoice.month"):
+            date_object = datetime.datetime.strptime(invoice_month, "%Y%m")
+            previous_month_object = date_object - relativedelta(months=1)
+            new_row["invoice.month"] = previous_month_object.strftime("%Y%m")
+            return new_row
+        if invoice_dict := new_row.get("invoice"):
+            date_object = datetime.datetime.strptime(invoice_dict["month"], "%Y%m")
+            previous_month_object = date_object - relativedelta(months=1)
+            new_row["invoice"] = {"month": previous_month_object.strftime("%Y%m")}
+            return new_row
+
     @abstractmethod
     def _update_data(self, row, start, end, **kwargs):
         """Update a data row."""
@@ -314,3 +314,5 @@ class GCPGenerator(AbstractGenerator):
             row = self._init_data_row(start, end)
             row = self._update_data(row)
             yield row
+            if self._cross_over_data and start.day == 1:
+                yield self.apply_previous_invoice_month(row)
