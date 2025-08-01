@@ -36,6 +36,8 @@ class TestGCPGenerator(TestCase):
             "cost_type": "regular",
             "labels": [{"cody": "test"}],
             "instance-type": "test",
+            "cross_over_data": True,
+            "service.description": "Fire",
         }
         self.usage_attributes = {
             "currency": fake.currency_code(),
