@@ -59,7 +59,7 @@ class ComputeEngineGenerator(GCPGenerator):
 
     LABELS = (([{"key": "vm_key_proj2", "value": "vm_label_proj2"}]), ([]))
 
-    def __init__(self, start_date, end_date, currency, project, attributes={}):  # noqa: C901
+    def __init__(self, start_date, end_date, currency, project, attributes=None):  # noqa: C901
         """Initialize the cloud storage generator."""
         super().__init__(start_date, end_date, currency, project, attributes)
         for attribute in self.attributes:

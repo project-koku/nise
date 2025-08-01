@@ -1190,10 +1190,7 @@ def gcp_create_report(options):  # noqa: C901
                     generator_cls = generator.get("generator")
                     gen = generator_cls(gen_start_date, gen_end_date, currency, project, attributes=attributes)
                     for hour in gen.generate_data():
-                        cross_over_data = hour.pop("cross_over_data", None)
                         data += [hour]
-                        if cross_over_data:
-                            data += [cross_over_data]
                     count += 1
                     if count % ten_percent == 0:
                         LOG.info(f"Done with {count} of {num_gens} generators.")
