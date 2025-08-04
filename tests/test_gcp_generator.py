@@ -4,7 +4,7 @@ from datetime import timedelta
 from unittest import TestCase
 
 from faker import Faker
-from nise.generators.gcp import GCPGenerator
+from nise.generators.gcp.gcp_generator import apply_previous_invoice_month
 from nise.generators.gcp import CloudStorageGenerator
 from nise.generators.gcp import ComputeEngineGenerator
 from nise.generators.gcp import GCPDatabaseGenerator
@@ -39,7 +39,6 @@ class TestGCPGenerator(TestCase):
             "instance-type": "test",
             "cross_over_data": True,
             "service.description": "Fire",
-            "start_date": datetime.today().replace(day=1),
         }
         self.usage_attributes = {
             "currency": fake.currency_code(),
@@ -49,7 +48,6 @@ class TestGCPGenerator(TestCase):
             "usage.amount_in_pricing_units": 10,
             "price": 2,
             "usage.pricing_unit": "hour",
-            "cross_over_data": True,
         }
         self.sku_attributes = {
             "currency": fake.currency_code(),
@@ -59,7 +57,6 @@ class TestGCPGenerator(TestCase):
             "usage.amount_in_pricing_units": 10,
             "price": 2,
             "sku_id": "CF4E-A0C7-E3BF",
-            "start_date": datetime.today().replace(day=1),
         }
         self.resource_attributes = {
             "currency": fake.currency_code(),
@@ -377,9 +374,10 @@ class TestGCPGenerator(TestCase):
                 credit_amount = row.get("credits", {}).get("amount", 0)
                 self.assertEqual(credit_amount, expected_credit_amount)
 
-    def test_gcp_cross_over_data(self):
-        gen = GCPGenerator(datetime.today().replace(day=1), datetime.today().replace(day=1), "USD", "test_project")
+    def test_apply_previous_invoice_month(self):
         invoice_month = "202508"
         expected_month = "202507"
-        output = gen.apply_previous_invoice_month({"invoice.month": invoice_month})
+        output = apply_previous_invoice_month({"invoice.month": invoice_month})
         self.assertEqual(expected_month, output.get("invoice.month"))
+        output = apply_previous_invoice_month({"invoice": {"month": invoice_month}})
+        self.assertEqual(expected_month, output.get("invoice", {}).get("month"))

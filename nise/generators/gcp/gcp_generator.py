@@ -84,6 +84,20 @@ GCP_REPORT_COLUMNS_JSONL = (
 GCP_INSTANCE_TYPES = ("e2-medium", "n1-standard-4", "m2-megamem-416", "a2-highgpu-1g")
 
 
+def apply_previous_invoice_month(row):
+    new_row = row.copy()
+    if invoice_month := new_row.get("invoice.month"):
+        date_object = datetime.datetime.strptime(invoice_month, "%Y%m")
+        previous_month_object = date_object - relativedelta(months=1)
+        new_row["invoice.month"] = previous_month_object.strftime("%Y%m")
+        return new_row
+    if invoice_dict := new_row.get("invoice"):
+        date_object = datetime.datetime.strptime(invoice_dict["month"], "%Y%m")
+        previous_month_object = date_object - relativedelta(months=1)
+        new_row["invoice"] = {"month": previous_month_object.strftime("%Y%m")}
+        return new_row
+
+
 class GCPGenerator(AbstractGenerator):
     """Abstract class for GCP generators."""
 
@@ -285,19 +299,6 @@ class GCPGenerator(AbstractGenerator):
     def _add_common_usage_info(self, row, start, end, **kwargs):
         """Not needed for GCP."""
 
-    def apply_previous_invoice_month(self, row):
-        new_row = row.copy()
-        if invoice_month := new_row.get("invoice.month"):
-            date_object = datetime.datetime.strptime(invoice_month, "%Y%m")
-            previous_month_object = date_object - relativedelta(months=1)
-            new_row["invoice.month"] = previous_month_object.strftime("%Y%m")
-            return new_row
-        if invoice_dict := new_row.get("invoice"):
-            date_object = datetime.datetime.strptime(invoice_dict["month"], "%Y%m")
-            previous_month_object = date_object - relativedelta(months=1)
-            new_row["invoice"] = {"month": previous_month_object.strftime("%Y%m")}
-            return new_row
-
     @abstractmethod
     def _update_data(self, row, start, end, **kwargs):
         """Update a data row."""
@@ -311,6 +312,6 @@ class GCPGenerator(AbstractGenerator):
             row = self._update_data(row)
             yield row
             if self._cross_over_data and start.day == 1:
-                cross_over_row = self.apply_previous_invoice_month(row)
+                cross_over_row = apply_previous_invoice_month(row)
                 if cross_over_row:
                     yield cross_over_row
