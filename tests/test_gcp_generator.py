@@ -48,6 +48,7 @@ class TestGCPGenerator(TestCase):
             "usage.amount_in_pricing_units": 10,
             "price": 2,
             "usage.pricing_unit": "hour",
+            "cross_over_data": True,
         }
         self.sku_attributes = {
             "currency": fake.currency_code(),
