@@ -58,6 +58,7 @@ class TestGCPGenerator(TestCase):
             "usage.amount_in_pricing_units": 10,
             "price": 2,
             "sku_id": "CF4E-A0C7-E3BF",
+            "start_date": datetime.today().replace(day=1),
         }
         self.resource_attributes = {
             "currency": fake.currency_code(),
