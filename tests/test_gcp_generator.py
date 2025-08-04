@@ -384,4 +384,4 @@ class TestGCPGenerator(TestCase):
 
     def test_apply_previous_invoice_month_no_invoice(self):
         output = apply_previous_invoice_month({})
-        self.assertEqual({}, output)
+        self.assertEqual(None, output)
