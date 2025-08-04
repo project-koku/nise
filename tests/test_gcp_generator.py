@@ -4,6 +4,7 @@ from datetime import timedelta
 from unittest import TestCase
 
 from faker import Faker
+from nise.generators.gcp import GCPGenerator
 from nise.generators.gcp import CloudStorageGenerator
 from nise.generators.gcp import ComputeEngineGenerator
 from nise.generators.gcp import GCPDatabaseGenerator
@@ -375,3 +376,10 @@ class TestGCPGenerator(TestCase):
             for row in list_data:
                 credit_amount = row.get("credits", {}).get("amount", 0)
                 self.assertEqual(credit_amount, expected_credit_amount)
+
+    def test_gcp_cross_over_data(self):
+        gen = GCPGenerator(datetime.today().replace(day=1), datetime.today().replace(day=1), "USD", "test_project")
+        invoice_month = "202508"
+        expected_month = "202507"
+        output = gen.apply_previous_invoice_month({"invoice.month": invoice_month})
+        self.assertEqual(expected_month, output.get("invoice.month"))
