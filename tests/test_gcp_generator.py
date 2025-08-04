@@ -38,6 +38,7 @@ class TestGCPGenerator(TestCase):
             "instance-type": "test",
             "cross_over_data": True,
             "service.description": "Fire",
+            "start_date": datetime.today().replace(day=1)
         }
         self.usage_attributes = {
             "currency": fake.currency_code(),
