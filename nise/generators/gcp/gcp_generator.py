@@ -169,7 +169,7 @@ class GCPGenerator(AbstractGenerator):
                 )
                 row[column] = GCPGenerator.timestamp(export_time)
             elif column == "partition_date":
-                row[column] = time_bill_start.strftime("%Y-%m-%d")
+                row[column] = time_bill_end.strftime("%Y-%m-%d")
         row.update(self.project)
         return row
 

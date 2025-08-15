@@ -113,7 +113,14 @@ class ComputeEngineGenerator(GCPGenerator):
         row["cost"] = cost
         row["credits"] = self._gen_credit(self._credit_amount)
         usage_date = datetime.strptime(row.get("usage_start_time")[:7], "%Y-%m")
-        row["invoice.month"] = f"{usage_date.year}{usage_date.month:02d}"
+        if (
+            sku[0] == "CF4E-A0C7-E3BG"
+            and datetime.strptime(row.get("usage_start_time")[:10], "%Y-%m-%d").month in [8]
+            and datetime.strptime(row.get("usage_start_time")[:10], "%Y-%m-%d").day in [1, 2]  # [1, 2]
+        ):
+            row["invoice.month"] = f"{usage_date.year}{(usage_date.month - 1):02d}"
+        else:
+            row["invoice.month"] = f"{usage_date.year}{usage_date.month:02d}"
 
         if self.attributes:
             for key in self.attributes:
@@ -181,7 +188,7 @@ class JSONLComputeEngineGenerator(ComputeEngineGenerator):
         month = datetime.strptime(row.get("usage_start_time")[:7], "%Y-%m").month
         day = datetime.strptime(row.get("usage_start_time")[:10], "%Y-%m-%d").day
         # todo replace this by current month
-        if month == 7 and row.get("sku", {}).get("id") == "CF4E-A0C7-E3BG" and day in [1]:  # [1, 2]
+        if month in [8] and row.get("sku", {}).get("id") == "CF4E-A0C7-E3BG" and day in [1, 2]:  # [1, 2]
             invoice["month"] = f"{year}{(month - 1):02d}"
         else:
             invoice["month"] = f"{year}{month:02d}"
