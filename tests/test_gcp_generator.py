@@ -481,4 +481,3 @@ class TestGCPGenerator(TestCase):
 
         for row in hourly_data:
             self.assertEqual(row["invoice.month"], start_date.strftime("%Y%m"))
-
