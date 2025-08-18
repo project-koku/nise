@@ -37,7 +37,6 @@ class TestGCPGenerator(TestCase):
             "cost_type": "regular",
             "labels": [{"cody": "test"}],
             "instance-type": "test",
-            "cross_over_data": True,
             "service.description": "Fire",
         }
         self.usage_attributes = {
@@ -418,7 +417,14 @@ class TestGCPGenerator(TestCase):
         if self.now.day > 1:
             expected_cross_over_days.append(str(self.now.replace(day=2).date()))
 
-        attributes = {"cross_over_data": True}
+        attributes = {
+            "cross_over":
+                {
+                    "month": "current",
+                    "days": [1, 2],
+                    "overwrite": True
+                }
+        }
         generator = ComputeEngineGenerator(start_date, end_date, self.currency, self.project, attributes=attributes)
         hourly_data = list(generator._generate_hourly_data())
 
@@ -455,7 +461,14 @@ class TestGCPGenerator(TestCase):
         start_date = datetime(2024, 1, 1, 0, 0, 0)
         end_date = datetime(2024, 1, 2, 23, 0, 0)
 
-        attributes = {"cross_over": {"overwrite": True}}
+        attributes = {
+            "cross_over":
+                {
+                    "month": "current",
+                    "days": [1, 2],
+                    "overwrite": True
+                }
+        }
         generator = ComputeEngineGenerator(start_date, end_date, self.currency, self.project, attributes=attributes)
 
         hourly_data = list(generator._generate_hourly_data())
@@ -471,7 +484,14 @@ class TestGCPGenerator(TestCase):
         start_date = self.now.replace(day=3)
         end_date = self.now.replace(day=4)
 
-        attributes = {"cross_over": {"overwrite": True}}
+        attributes = {
+            "cross_over":
+                {
+                    "month": "current",
+                    "days": [1, 2],
+                    "overwrite": True
+                }
+        }
         generator = ComputeEngineGenerator(start_date, end_date, self.currency, self.project, attributes=attributes)
 
         hourly_data = list(generator._generate_hourly_data())

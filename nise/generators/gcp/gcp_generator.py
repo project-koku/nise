@@ -304,18 +304,21 @@ class GCPGenerator(AbstractGenerator):
     def _generate_hourly_data(self, **kwargs):
         """Not needed for GCP."""
         now = datetime.datetime.now(datetime.UTC)
+        should_crossover = self._cross_over_metadata.get("days", [])
+        overwrite = self._cross_over_metadata.get("overwrite")
+        is_current_month = self._cross_over_metadata.get("month") == "current"
         for hour in self.hours:
             start = hour.get("start")
             end = hour.get("end")
             row = self._init_data_row(start, end)
             row = self._update_data(row)
-            if not self._cross_over_metadata or not self._cross_over_metadata.get("overwrite"):
-                yield row
-            if self._cross_over_metadata.get("month") == "current" and (
-                not start.month == now.month and not start.year == now.year
-            ):
-                continue
+            generate_crossover = False
+            if start.day in should_crossover:
+                if not is_current_month or (start.month == now.month and start.year == now.year):
+                    generate_crossover = True
 
-            if start.day in self._cross_over_metadata.get("days", [1]):
-                cross_over_row = apply_previous_invoice_month(row)
-                yield cross_over_row
+            if generate_crossover:
+                yield apply_previous_invoice_month(row)
+                if overwrite:
+                    continue
+            yield row

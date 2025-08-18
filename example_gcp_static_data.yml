@@ -24,6 +24,7 @@ generators:
       location.region: us-east4-a
       credit_amount: -0.10
       cross_over:
+        days: [1]
         overwrite: False
   - GCPNetworkGenerator:
       start_date: last_month
