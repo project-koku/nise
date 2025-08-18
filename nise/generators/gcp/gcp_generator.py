@@ -311,6 +311,6 @@ class GCPGenerator(AbstractGenerator):
             row = self._init_data_row(start, end)
             row = self._update_data(row)
             # shift invoice month
-            if self._cross_over_data and start.day in [1, 2] and start.month == now.month:
+            if self._cross_over_data and start.day in [1, 2] and start.month == now.month and start.year == now.year:
                 row = apply_previous_invoice_month(row)
             yield row
