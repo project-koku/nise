@@ -90,12 +90,11 @@ def apply_previous_invoice_month(row):
         date_object = datetime.datetime.strptime(invoice_month, "%Y%m")
         previous_month_object = date_object - relativedelta(months=1)
         new_row["invoice.month"] = previous_month_object.strftime("%Y%m")
-        return new_row
-    if invoice_dict := new_row.get("invoice"):
+    elif invoice_dict := new_row.get("invoice"):
         date_object = datetime.datetime.strptime(invoice_dict["month"], "%Y%m")
         previous_month_object = date_object - relativedelta(months=1)
         new_row["invoice"] = {"month": previous_month_object.strftime("%Y%m")}
-        return new_row
+    return new_row
 
 
 class GCPGenerator(AbstractGenerator):
@@ -305,13 +304,13 @@ class GCPGenerator(AbstractGenerator):
 
     def _generate_hourly_data(self, **kwargs):
         """Not needed for GCP."""
+        now = datetime.datetime.now(datetime.UTC)
         for hour in self.hours:
             start = hour.get("start")
             end = hour.get("end")
             row = self._init_data_row(start, end)
             row = self._update_data(row)
+            # shift invoice month
+            if self._cross_over_data and start.day in [1, 2] and start.month == now.month:
+                row = apply_previous_invoice_month(row)
             yield row
-            if self._cross_over_data and start.day == 1:
-                cross_over_row = apply_previous_invoice_month(row)
-                if cross_over_row:
-                    yield cross_over_row
