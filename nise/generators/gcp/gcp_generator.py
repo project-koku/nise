@@ -311,7 +311,9 @@ class GCPGenerator(AbstractGenerator):
             row = self._update_data(row)
             if not self._cross_over_metadata or not self._cross_over_metadata.get("overwrite"):
                 yield row
-            if self._cross_over_metadata.get("month") == "current" and (not start.month == now.month and not start.year == now.year):
+            if self._cross_over_metadata.get("month") == "current" and (
+                not start.month == now.month and not start.year == now.year
+            ):
                 continue
 
             if start.day in self._cross_over_metadata.get("days", [1]):
