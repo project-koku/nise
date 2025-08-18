@@ -125,11 +125,10 @@ class GCPGenerator(AbstractGenerator):
         self._resource_name = self.attributes.get("resource.name")
         self._resource_global_name = self.attributes.get("resource.global_name")
         self._service = self.attributes.get("service.description")
-        self._cross_over_data = self.attributes.get("cross_over_data")
+        self._cross_over_metadata = self.attributes.get("cross_over", {})
         self._instance_type = self.attributes.get("instance_type", choice(GCP_INSTANCE_TYPES))
         self._currency = self.attributes.get("currency", currency)
         self._sku = None
-        self._cross_over_rows = []
 
     @staticmethod
     def _create_days_list(start_date, end_date):
@@ -310,7 +309,11 @@ class GCPGenerator(AbstractGenerator):
             end = hour.get("end")
             row = self._init_data_row(start, end)
             row = self._update_data(row)
-            # shift invoice month
-            if self._cross_over_data and start.day in [1, 2] and start.month == now.month and start.year == now.year:
-                row = apply_previous_invoice_month(row)
-            yield row
+            if not self._cross_over_metadata or not self._cross_over_metadata.get("overwrite"):
+                yield row
+            if self._cross_over_metadata.get("month") == "current":
+                if not start.month == now.month and not start.year == now.year:
+                    continue
+            if start.day in self._cross_over_metadata.get("days", [1]):
+                cross_over_row = apply_previous_invoice_month(row)
+                yield cross_over_row
