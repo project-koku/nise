@@ -11,7 +11,10 @@ generators:
       resource.name: projects/tests
       resource.global_name: //compute.googleapis.com/projects/tests
       labels: [{"environment": "ci", "project":"p1"}]
-      cross_over_data: True
+      cross_over:
+        month: current # options: current & all
+        days: [1, 2]
+        overwrite: True
   - CloudStorageGenerator:
       start_date: last_month
       price: 2
@@ -20,6 +23,9 @@ generators:
       currency: EUR
       location.region: us-east4-a
       credit_amount: -0.10
+      cross_over:
+        days: [1]
+        overwrite: False
   - GCPNetworkGenerator:
       start_date: last_month
       service.description: Cloud

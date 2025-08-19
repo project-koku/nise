@@ -125,11 +125,10 @@ class GCPGenerator(AbstractGenerator):
         self._resource_name = self.attributes.get("resource.name")
         self._resource_global_name = self.attributes.get("resource.global_name")
         self._service = self.attributes.get("service.description")
-        self._cross_over_data = self.attributes.get("cross_over_data")
+        self._cross_over_metadata = self.attributes.get("cross_over", {})
         self._instance_type = self.attributes.get("instance_type", choice(GCP_INSTANCE_TYPES))
         self._currency = self.attributes.get("currency", currency)
         self._sku = None
-        self._cross_over_rows = []
 
     @staticmethod
     def _create_days_list(start_date, end_date):
@@ -305,12 +304,21 @@ class GCPGenerator(AbstractGenerator):
     def _generate_hourly_data(self, **kwargs):
         """Not needed for GCP."""
         now = datetime.datetime.now(datetime.UTC)
+        should_crossover = self._cross_over_metadata.get("days", [])
+        overwrite = self._cross_over_metadata.get("overwrite")
+        is_current_month = self._cross_over_metadata.get("month") == "current"
         for hour in self.hours:
             start = hour.get("start")
             end = hour.get("end")
             row = self._init_data_row(start, end)
             row = self._update_data(row)
-            # shift invoice month
-            if self._cross_over_data and start.day in [1, 2] and start.month == now.month and start.year == now.year:
-                row = apply_previous_invoice_month(row)
+            generate_crossover = False
+            if start.day in should_crossover:
+                if not is_current_month or (start.month == now.month and start.year == now.year):
+                    generate_crossover = True
+
+            if generate_crossover:
+                yield apply_previous_invoice_month(row)
+                if overwrite:
+                    continue
             yield row
