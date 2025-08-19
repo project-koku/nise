@@ -592,7 +592,6 @@ class TestGCPGenerator(TestCase):
         end_date = datetime(2024, 1, 2, 23, 0, 0)
 
         for overwrite_value in overwrite_params:
-            # Use self.subTest to create a distinct test cases
             with self.subTest(overwrite=overwrite_value):
                 attributes = {"cross_over": {"month": "current", "days": [1, 2], "overwrite": overwrite_value}}
 
@@ -622,7 +621,6 @@ class TestGCPGenerator(TestCase):
         end_date = self.now.replace(day=4)
 
         for month_value, overwrite_value in param_combinations:
-            # Use self.subTest to create a distinct test cases
             with self.subTest(month=month_value, overwrite=overwrite_value):
                 attributes = {"cross_over": {"month": month_value, "days": [1, 2, 5], "overwrite": overwrite_value}}
                 generator = ComputeEngineGenerator(
