@@ -97,6 +97,19 @@ def apply_previous_invoice_month(row):
     return new_row
 
 
+def apply_next_invoice_month(row):
+    new_row = row.copy()
+    if invoice_month := new_row.get("invoice.month"):
+        date_object = datetime.datetime.strptime(invoice_month, "%Y%m")
+        previous_month_object = date_object + relativedelta(months=1)
+        new_row["invoice.month"] = previous_month_object.strftime("%Y%m")
+    elif invoice_dict := new_row.get("invoice"):
+        date_object = datetime.datetime.strptime(invoice_dict["month"], "%Y%m")
+        previous_month_object = date_object + relativedelta(months=1)
+        new_row["invoice"] = {"month": previous_month_object.strftime("%Y%m")}
+    return new_row
+
+
 class GCPGenerator(AbstractGenerator):
     """Abstract class for GCP generators."""
 
@@ -321,4 +334,8 @@ class GCPGenerator(AbstractGenerator):
                 yield apply_previous_invoice_month(row)
                 if overwrite:
                     continue
+            # todo adjust this
+            if start.day == 31 and start.month == 7:
+                yield apply_next_invoice_month(row)
+                continue
             yield row
