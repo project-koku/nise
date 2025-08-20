@@ -335,7 +335,7 @@ class GCPGenerator(AbstractGenerator):
                 if overwrite:
                     continue
             # todo adjust this
-            if start.day == 31 and start.month == 7:
+            if start.day == 31 and start.month == 7 and row["sku.id"] == "CF4E-A0C7-E3BF":
                 yield apply_next_invoice_month(row)
                 continue
             yield row
