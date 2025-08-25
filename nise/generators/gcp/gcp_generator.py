@@ -84,16 +84,22 @@ GCP_REPORT_COLUMNS_JSONL = (
 GCP_INSTANCE_TYPES = ("e2-medium", "n1-standard-4", "m2-megamem-416", "a2-highgpu-1g")
 
 
-def apply_previous_invoice_month(row):
+def apply_different_invoice_month(row, invoice):
     new_row = row.copy()
     if invoice_month := new_row.get("invoice.month"):
         date_object = datetime.datetime.strptime(invoice_month, "%Y%m")
-        previous_month_object = date_object - relativedelta(months=1)
-        new_row["invoice.month"] = previous_month_object.strftime("%Y%m")
     elif invoice_dict := new_row.get("invoice"):
         date_object = datetime.datetime.strptime(invoice_dict["month"], "%Y%m")
-        previous_month_object = date_object - relativedelta(months=1)
-        new_row["invoice"] = {"month": previous_month_object.strftime("%Y%m")}
+    else:
+        return new_row
+
+    delta = relativedelta(months=1)
+    adjusted_date = date_object + delta if invoice == "next" else date_object - delta
+    adjusted_month = adjusted_date.strftime("%Y%m")
+    if "invoice.month" in new_row:
+        new_row["invoice.month"] = adjusted_month
+    elif "invoice" in new_row:
+        new_row["invoice"] = {"month": adjusted_month}
     return new_row
 
 
@@ -318,7 +324,7 @@ class GCPGenerator(AbstractGenerator):
                     generate_crossover = True
 
             if generate_crossover:
-                yield apply_previous_invoice_month(row)
+                yield apply_different_invoice_month(row, self._cross_over_metadata.get("invoice", "previous"))
                 if overwrite:
                     continue
             yield row

@@ -33,6 +33,11 @@ generators:
       usage.amount_in_pricing_units: 1
       currency: EUR
       location.region: us-east4-a
+      cross_over:
+        month: all # options: current & all
+        days: [29]
+        invoice: next
+        overwrite: True
   - GCPDatabaseGenerator:
       start_date: last_month
       service.description: Fire
