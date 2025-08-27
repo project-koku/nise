@@ -339,4 +339,8 @@ class GCPGenerator(AbstractGenerator):
                 if start.day in [29, 31] and start.month == 7 and sku_id in ["CF4E-A0C7-E3BF", "236F-83FC-852C"]:
                     yield apply_next_invoice_month(row)
                     continue
+            elif sku_id := row.get("sku.id").replace("\n", ""):
+                if start.day in [29, 31] and start.month == 7 and sku_id in ["CF4E-A0C7-E3BF", "236F-83FC-852C"]:
+                    yield apply_next_invoice_month(row)
+                    continue
             yield row
