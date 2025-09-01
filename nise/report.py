@@ -1177,14 +1177,13 @@ def gcp_create_report(options):  # noqa: C901
                 )
                 for count, generator in enumerate(generators):
                     attributes = generator.get("attributes", {})
+
                     if attributes:
-                        start_date = attributes.get("start_date", start_date)
-                        end_date = attributes.get("end_date", end_date)
                         currency = default_currency(options.get("currency"), attributes.get("currency"))
+                        if attributes.get("start_date"):
+                            gen_start_date, gen_end_date = _create_generator_dates_from_yaml(attributes, month)
                     else:
                         currency = default_currency(options.get("currency"), None)
-                    if gen_end_date > end_date:
-                        gen_end_date = end_date
                     attributes["resource_level"] = resource_level
 
                     generator_cls = generator.get("generator")
