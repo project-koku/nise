@@ -1194,10 +1194,12 @@ def gcp_create_report(options):  # noqa: C901
                     if count % ten_percent == 0:
                         LOG.info(f"Done with {count} of {num_gens} generators.")
 
-            local_file_path, output_file_name = write_gcp_file(gen_start_date, gen_end_date, data, options)
-            output_files.append(output_file_name)
-            if local_file_path not in monthly_files:
-                monthly_files.append(local_file_path)
+            # prevent generation of empty reports
+            if data:
+                local_file_path, output_file_name = write_gcp_file(gen_start_date, gen_end_date, data, options)
+                output_files.append(output_file_name)
+                if local_file_path not in monthly_files:
+                    monthly_files.append(local_file_path)
 
         for index, month_file in enumerate(monthly_files):
             if gcp_bucket_name:
