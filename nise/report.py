@@ -1184,7 +1184,7 @@ def gcp_create_report(options):  # noqa: C901
                             # Skip if generator usage is outside of current month
                             if attributes.get("end_date") < month.get("start"):
                                 continue
-                            if attributes.get("start_date") > month.get("end"):
+                            if attributes.get("start_date") > month.get("end").replace(hour=23):
                                 continue
                             gen_start_date, gen_end_date = _create_generator_dates_from_yaml(attributes, month)
                     else:
