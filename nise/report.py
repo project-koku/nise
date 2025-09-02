@@ -1178,13 +1178,13 @@ def gcp_create_report(options):  # noqa: C901
                 for count, generator in enumerate(generators):
                     attributes = generator.get("attributes", {})
                     if attributes:
-                        start_date = attributes.get("start_date", start_date)
-                        end_date = attributes.get("end_date", end_date)
+                        if attributes.get("start_date"):
+                            gen_start_date, gen_end_date = _create_generator_dates_from_yaml(attributes, month)
                         currency = default_currency(options.get("currency"), attributes.get("currency"))
                     else:
                         currency = default_currency(options.get("currency"), None)
-                    if gen_end_date > end_date:
-                        gen_end_date = end_date
+                    # if gen_end_date > end_date:
+                    #     gen_end_date = end_date
                     attributes["resource_level"] = resource_level
 
                     generator_cls = generator.get("generator")
@@ -1195,11 +1195,12 @@ def gcp_create_report(options):  # noqa: C901
                     if count % ten_percent == 0:
                         LOG.info(f"Done with {count} of {num_gens} generators.")
 
-            local_file_path, output_file_name = write_gcp_file(gen_start_date, gen_end_date, data, options)
-            output_files.append(output_file_name)
-            if local_file_path not in monthly_files:
-                monthly_files.append(local_file_path)
-
+            # do not create empty current month file if we have no data for current month
+            if data:
+                local_file_path, output_file_name = write_gcp_file(gen_start_date, gen_end_date, data, options)
+                output_files.append(output_file_name)
+                if local_file_path not in monthly_files:
+                    monthly_files.append(local_file_path)
         for index, month_file in enumerate(monthly_files):
             if gcp_bucket_name:
                 gcp_route_file(gcp_bucket_name, month_file, output_files[index])
@@ -1255,5 +1256,4 @@ def _gcp_bigquery_process(
         resource_level,
         gcp_daily_flow=gcp_daily_flow,
     )
-
     return monthly_files
