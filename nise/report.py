@@ -1181,6 +1181,11 @@ def gcp_create_report(options):  # noqa: C901
                     if attributes:
                         currency = default_currency(options.get("currency"), attributes.get("currency"))
                         if attributes.get("start_date"):
+                            # Skip if generator usage is outside of current month
+                            if attributes.get("end_date") < month.get("start"):
+                                continue
+                            if attributes.get("start_date") > month.get("end"):
+                                continue
                             gen_start_date, gen_end_date = _create_generator_dates_from_yaml(attributes, month)
                     else:
                         currency = default_currency(options.get("currency"), None)
