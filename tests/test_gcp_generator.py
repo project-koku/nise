@@ -4,7 +4,7 @@ from datetime import timedelta
 from unittest import TestCase
 
 from faker import Faker
-from nise.generators.gcp.gcp_generator import apply_previous_invoice_month
+from nise.generators.gcp.gcp_generator import apply_different_invoice_month
 from nise.generators.gcp import CloudStorageGenerator
 from nise.generators.gcp import ComputeEngineGenerator
 from nise.generators.gcp import GCPDatabaseGenerator
@@ -374,17 +374,17 @@ class TestGCPGenerator(TestCase):
                 credit_amount = row.get("credits", {}).get("amount", 0)
                 self.assertEqual(credit_amount, expected_credit_amount)
 
-    def test_apply_previous_invoice_month(self):
+    def test_apply_different_invoice_month(self):
         invoice_month = "202508"
         expected_month = "202507"
-        output = apply_previous_invoice_month({"invoice.month": invoice_month})
+        output = apply_different_invoice_month({"invoice.month": invoice_month}, -1)
         self.assertEqual(expected_month, output.get("invoice.month"))
-        output = apply_previous_invoice_month({"invoice": {"month": invoice_month}})
+        output = apply_different_invoice_month({"invoice": {"month": invoice_month}}, -1)
         self.assertEqual(expected_month, output.get("invoice", {}).get("month"))
 
-    def test_apply_previous_invoice_month_no_invoice(self):
+    def test_apply_different_invoice_month_no_invoice(self):
         input = {}
-        output = apply_previous_invoice_month(input)
+        output = apply_different_invoice_month(input, 1)
         self.assertEqual(input, output)
 
     def test_generate_hourly_data(self):
