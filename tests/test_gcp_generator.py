@@ -375,17 +375,36 @@ class TestGCPGenerator(TestCase):
                 self.assertEqual(credit_amount, expected_credit_amount)
 
     def test_apply_different_invoice_month(self):
+        """Test shifting the invoice month forward and backward."""
         invoice_month = "202508"
-        expected_month = "202507"
-        output = apply_different_invoice_month({"invoice.month": invoice_month}, -1)
-        self.assertEqual(expected_month, output.get("invoice.month"))
-        output = apply_different_invoice_month({"invoice": {"month": invoice_month}}, -1)
-        self.assertEqual(expected_month, output.get("invoice", {}).get("month"))
+
+        test_cases = [
+            # (invoice_shift, expected_month)
+            (-1, "202507"),  # Shift backward
+            (1, "202509"),  # Shift forward
+        ]
+
+        for shift, expected_month in test_cases:
+            with self.subTest(shift=shift, expected=expected_month):
+                # Test with flat structure: {"invoice.month": "..."}
+                row_flat = {"invoice.month": invoice_month}
+                output_flat = apply_different_invoice_month(row_flat, shift)
+                self.assertEqual(expected_month, output_flat.get("invoice.month"))
+
+                # Test with nested structure: {"invoice": {"month": "..."}}
+                row_nested = {"invoice": {"month": invoice_month}}
+                output_nested = apply_different_invoice_month(row_nested, shift)
+                self.assertEqual(expected_month, output_nested.get("invoice", {}).get("month"))
 
     def test_apply_different_invoice_month_no_invoice(self):
-        input = {}
-        output = apply_different_invoice_month(input, 1)
-        self.assertEqual(input, output)
+        """Test that the function returns the original row when no invoice key is present."""
+        input_row = {}
+        shifts_to_test = [1, -1]
+
+        for shift in shifts_to_test:
+            with self.subTest(shift=shift):
+                output = apply_different_invoice_month(input_row, shift)
+                self.assertEqual(input_row, output)
 
     def test_generate_hourly_data(self):
         """Test the _generate_hourly_data method."""
@@ -406,213 +425,228 @@ class TestGCPGenerator(TestCase):
             self.assertTrue(row["service.description"])  # Should not be empty
             self.assertTrue(row["sku.id"])  # Should not be empty
 
-    def test_generate_hourly_data_with_cross_over_overwrite_current_month(self):
+    def test_generate_hourly_data_with_cross_over_all_months(self):
         """
-        Verify the _generate_hourly_data method method with the cross-over feature enabled
-        for current month (month="current") in overwrite mode (overwrite=True)
+        Verify cross-over for all months in both overwrite and duplicate modes.
 
-        Ensures that for specified days of the 'current' month, the 'invoice.month' is correctly
-        shifted to the previous month.
+        Ensures that for specified days, 'invoice.month' is correctly shifted
+        to the previous month, respecting the 'overwrite' flag.
         """
-
-        start_date = (self.now.replace(day=1) - timedelta(days=1)).replace(day=1)  # first of the previous month
-        end_date = self.now
-        previous_invoice_month = start_date.strftime("%Y%m")
-
-        # only current month days from cross_over_day_settings should have shifted invoice month
-        cross_over_day_settings = [1, 2, 5]
-        expected_cross_over_days = [str(self.now.replace(day=day).date()) for day in cross_over_day_settings]
-
-        attributes = {"cross_over": {"month": "current", "days": cross_over_day_settings, "overwrite": True}}
-        generator = ComputeEngineGenerator(start_date, end_date, self.currency, self.project, attributes=attributes)
-        hourly_data = list(generator._generate_hourly_data())
-
-        expected_total_rows = len(generator.hours)
-        expected_cross_over_rows = len(
-            [h for h in generator.hours if h["start"].strftime("%Y-%m-%d") in expected_cross_over_days]
-        )
-        expected_regular_rows = expected_total_rows - expected_cross_over_rows
-
-        self.assertEqual(len(hourly_data), expected_total_rows)
-
-        cross_over_rows = []
-        regular_rows = []
-
-        for row in hourly_data:
-            if "invoice.month" in row:
-                if row["usage_start_time"][:10] in expected_cross_over_days:
-                    cross_over_rows.append(row)
-                    continue
-                regular_rows.append(row)
-
-        self.assertEqual(len(cross_over_rows), expected_cross_over_rows)
-        self.assertEqual(len(regular_rows), expected_regular_rows)
-        for cross_row in cross_over_rows:
-            self.assertEqual(cross_row["invoice.month"], previous_invoice_month)
-        for regular_row in regular_rows:
-            self.assertEqual(regular_row["invoice.month"], regular_row["usage_start_time"][:7].replace("-", ""))
-
-    def test_generate_hourly_data_with_cross_over_overwrite_all_months(self):
-        """
-        Verify the _generate_hourly_data method method with the cross-over feature enabled
-        for all months (month=None) in overwrite mode (overwrite=True)
-
-        Ensures that for specified days (regardless of the month), the 'invoice.month' is correctly
-        shifted to the previous month.
-        """
-        start_date = datetime(2024, 1, 1, 0, 0, 0)
-        end_date = datetime(2024, 1, 15, 2, 0, 0)
-        cross_over_day_settings = [2, 4]
-        expected_cross_over_days = [f"2024-01-{day:02d}" for day in cross_over_day_settings]
-
-        attributes = {"cross_over": {"days": cross_over_day_settings, "overwrite": True}}
-        generator = ComputeEngineGenerator(start_date, end_date, self.currency, self.project, attributes=attributes)
-
-        hourly_data = list(generator._generate_hourly_data())
-        expected_total_rows = len(generator.hours)
-        expected_cross_over_rows = len([h for h in generator.hours if h["start"].day in cross_over_day_settings])
-        expected_regular_rows = expected_total_rows - expected_cross_over_rows
-
-        self.assertEqual(len(hourly_data), expected_total_rows)
-        cross_over_rows = []
-        regular_rows = []
-
-        for row in hourly_data:
-            if "invoice.month" in row:
-                if row["usage_start_time"][:10] in expected_cross_over_days:
-                    cross_over_rows.append(row)
-                    continue
-                regular_rows.append(row)
-
-        self.assertTrue(len(cross_over_rows), expected_cross_over_rows)
-        self.assertTrue(len(regular_rows), expected_regular_rows)
-
-        for cross_over_row in cross_over_rows:
-            self.assertEqual(cross_over_row["invoice.month"], "202312")
-        for regular_row in regular_rows:
-            self.assertEqual(regular_row["invoice.month"], "202401")
-
-    def test_generate_hourly_data_with_cross_over_duplicate_current_month(self):
-        """
-        Verify the _generate_hourly_data method method with the cross-over feature enabled
-        for current month (month="current") in duplication mode (overwrite=False)
-
-        Ensures that for specified days of the 'current' month, original data
-        rows are preserved, while new, duplicate rows are created with their
-        'invoice.month' correctly shifted to the previous month.
-        """
-
-        start_date = (self.now.replace(day=1) - timedelta(days=1)).replace(day=1)  # first of the previous month
-        end_date = self.now
-        previous_invoice_month = start_date.strftime("%Y%m")
-
-        # only current month days from cross_over_day_settings should have shifted invoice month
-        cross_over_day_settings = [1, 2, 6]
-        expected_cross_over_days = [str(self.now.replace(day=day).date()) for day in cross_over_day_settings]
-
-        attributes = {"cross_over": {"month": "current", "days": cross_over_day_settings, "overwrite": False}}
-        generator = ComputeEngineGenerator(start_date, end_date, self.currency, self.project, attributes=attributes)
-        hourly_data = list(generator._generate_hourly_data())
-
-        expected_regular_rows = len(generator.hours)
-        expected_cross_over_rows = len(
-            [h for h in generator.hours if h["start"].strftime("%Y-%m-%d") in expected_cross_over_days]
-        )
-        expected_total_rows = expected_regular_rows + expected_cross_over_rows
-
-        self.assertEqual(len(hourly_data), expected_total_rows)
-
-        cross_over_rows = []
-        regular_rows = []
-
-        for row in hourly_data:
-            if "invoice.month" in row:
-                if (
-                    row["usage_start_time"][:10] in expected_cross_over_days
-                    and row["invoice.month"] == previous_invoice_month
-                ):
-                    cross_over_rows.append(row)
-                    continue
-                regular_rows.append(row)
-
-        self.assertTrue(len(cross_over_rows), expected_cross_over_rows)
-        self.assertTrue(len(regular_rows), expected_regular_rows)
-
-        for regular_row in regular_rows:
-            self.assertEqual(regular_row["invoice.month"], regular_row["usage_start_time"][:7].replace("-", ""))
-
-    def test_generate_hourly_data_with_cross_over_duplicate_all_months(self):
-        """
-        Verify the _generate_hourly_data method method with the cross-over feature enabled
-        for all months (month=None) in duplication mode (overwrite=False)
-
-        Ensures that for specified days (regardless of the month), original data
-        rows are preserved, while new, duplicate rows are created with their
-        'invoice.month' correctly shifted to the previous month.
-        """
-        start_date = datetime(2024, 1, 1, 0, 0, 0)
-        end_date = datetime(2024, 1, 15, 2, 0, 0)
-        cross_over_day_settings = [1, 3]
-        expected_cross_over_days = [f"2024-01-{day:02d}" for day in cross_over_day_settings]
-
-        attributes = {"cross_over": {"days": cross_over_day_settings, "overwrite": False}}
-        generator = ComputeEngineGenerator(start_date, end_date, self.currency, self.project, attributes=attributes)
-
-        hourly_data = list(generator._generate_hourly_data())
-        expected_regular_rows = len(generator.hours)
-        expected_cross_over_rows = len([h for h in generator.hours if h["start"].day in cross_over_day_settings])
-        expected_total_rows = expected_regular_rows + expected_cross_over_rows
-
-        self.assertEqual(len(hourly_data), expected_total_rows)
-        cross_over_rows = []
-        regular_rows = []
-
-        for row in hourly_data:
-            if "invoice.month" in row:
-                if row["usage_start_time"][:10] in expected_cross_over_days and row["invoice.month"] == "202312":
-                    cross_over_rows.append(row)
-                    continue
-                regular_rows.append(row)
-
-        self.assertTrue(len(cross_over_rows), expected_cross_over_rows)
-        self.assertTrue(len(regular_rows), expected_regular_rows)
-
-        for regular_row in regular_rows:
-            self.assertEqual(regular_row["invoice.month"], "202401")
-
-    def test_generate_hourly_data_no_cross_over_not_current_month(self):
-        """
-        Test that cross_over_data are not generated when not current month,
-        for both overwrite=True and overwrite=False params.
-        """
-
-        overwrite_params = [True, False]
-
-        start_date = datetime(2024, 1, 1, 0, 0, 0)
-        end_date = datetime(2024, 1, 2, 23, 0, 0)
-
-        for overwrite_value in overwrite_params:
+        for overwrite_value in [True, False]:
             with self.subTest(overwrite=overwrite_value):
-                attributes = {"cross_over": {"month": "current", "days": [1, 2], "overwrite": overwrite_value}}
+                start_date = datetime(2024, 1, 1, 0, 0, 0)
+                end_date = datetime(2024, 1, 15, 2, 0, 0)
+                cross_over_day_settings = [1, 3]
+                expected_cross_over_days_str = [f"2024-01-{day:02d}" for day in cross_over_day_settings]
+                shifted_invoice_month = "202312"
+                original_invoice_month = "202401"
+
+                attributes = {"cross_over": {"days": cross_over_day_settings, "overwrite": overwrite_value}}
+                generator = ComputeEngineGenerator(
+                    start_date, end_date, self.currency, self.project, attributes=attributes
+                )
+                hourly_data = list(generator._generate_hourly_data())
+
+                # Calculate expected row counts
+                expected_cross_over_hours = len(
+                    [h for h in generator.hours if h["start"].day in cross_over_day_settings]
+                )
+                expected_regular_hours = len(generator.hours)
+
+                if overwrite_value:
+                    expected_total_rows = expected_regular_hours
+                else:  # duplicate mode
+                    expected_total_rows = expected_regular_hours + expected_cross_over_hours
+
+                self.assertEqual(len(hourly_data), expected_total_rows)
+
+                # Separate and verify the rows
+                cross_over_rows = []
+                regular_rows = []
+                for row in hourly_data:
+                    usage_day_str = row["usage_start_time"][:10]
+                    invoice_month = row["invoice.month"]
+
+                    if usage_day_str in expected_cross_over_days_str and invoice_month == shifted_invoice_month:
+                        cross_over_rows.append(row)
+                    else:
+                        regular_rows.append(row)
+
+                self.assertEqual(len(cross_over_rows), expected_cross_over_hours)
+
+                if overwrite_value:
+                    self.assertEqual(len(regular_rows), expected_regular_hours - expected_cross_over_hours)
+                else:  # duplicate mode
+                    self.assertEqual(len(regular_rows), expected_regular_hours)
+
+                for cross_row in cross_over_rows:
+                    self.assertEqual(cross_row["invoice.month"], shifted_invoice_month)
+                for regular_row in regular_rows:
+                    self.assertEqual(regular_row["invoice.month"], original_invoice_month)
+
+    def test_generate_hourly_data_with_cross_over_current_month(self):
+        """
+        Verify cross-over for 'current' month in both overwrite and duplicate modes.
+
+        Ensures that for specified days of the 'current' month, the invoice month
+        is correctly shifted to the previous month, respecting the 'overwrite' flag.
+        """
+        for overwrite_value in [True, False]:
+            with self.subTest(overwrite=overwrite_value):
+                start_date = (self.now.replace(day=1) - timedelta(days=1)).replace(day=1)
+                end_date = self.now
+                previous_invoice_month = start_date.strftime("%Y%m")
+
+                cross_over_day_settings = [1, 2, 5]
+                expected_cross_over_days = [str(self.now.replace(day=day).date()) for day in cross_over_day_settings]
+
+                attributes = {
+                    "cross_over": {"month": "current", "days": cross_over_day_settings, "overwrite": overwrite_value}
+                }
+                generator = ComputeEngineGenerator(
+                    start_date, end_date, self.currency, self.project, attributes=attributes
+                )
+                hourly_data = list(generator._generate_hourly_data())
+
+                # Calculate expected row counts
+                expected_cross_over_hours = len(
+                    [h for h in generator.hours if h["start"].strftime("%Y-%m-%d") in expected_cross_over_days]
+                )
+                expected_regular_hours = len(generator.hours)
+                if overwrite_value:
+                    expected_total_rows = expected_regular_hours
+                else:
+                    expected_total_rows = expected_regular_hours + expected_cross_over_hours
+                self.assertEqual(len(hourly_data), expected_total_rows)
+
+                # Separate and verify the rows
+                cross_over_rows = []
+                regular_rows = []
+                for row in hourly_data:
+                    usage_day_str = row["usage_start_time"][:10]
+                    invoice_month = row["invoice.month"]
+
+                    if usage_day_str in expected_cross_over_days and invoice_month == previous_invoice_month:
+                        cross_over_rows.append(row)
+                    else:
+                        regular_rows.append(row)
+
+                self.assertEqual(len(cross_over_rows), expected_cross_over_hours)
+                if overwrite_value:
+                    self.assertEqual(len(regular_rows), expected_regular_hours - expected_cross_over_hours)
+                else:
+                    self.assertEqual(len(regular_rows), expected_regular_hours)
+
+                for regular_row in regular_rows:
+                    original_month = regular_row["usage_start_time"][:7].replace("-", "")
+                    self.assertEqual(regular_row["invoice.month"], original_month)
+
+    def test_generate_hourly_data_with_cross_over_all_months_to_next_month(self):
+        """
+        Verify cross-over feature shifting costs to the *next* month using negative day specifiers.
+
+        Tests both overwrite=True and overwrite=False modes by shifting costs incurred at the end
+        of a month to the following month's invoice.
+        """
+        start_date = datetime(2024, 1, 1)
+        end_date = datetime(2024, 1, 31, 23, 0, 0)
+        # Shift the last day (-1) and third to last day (-3) of January (days 31 and 29).
+        cross_over_day_settings = [-1, -3]
+        expected_cross_over_days_of_month = [29, 31]
+        expected_cross_over_days_str = [f"2024-01-{day}" for day in expected_cross_over_days_of_month]
+        next_invoice_month = "202402"
+        original_invoice_month = "202401"
+
+        for overwrite_value in [True, False]:
+            with self.subTest(overwrite=overwrite_value):
+                attributes = {
+                    "cross_over": {"month": "all", "days": cross_over_day_settings, "overwrite": overwrite_value}
+                }
 
                 generator = ComputeEngineGenerator(
                     start_date, end_date, self.currency, self.project, attributes=attributes
                 )
-
                 hourly_data = list(generator._generate_hourly_data())
 
+                # Calculate expected row counts
+                expected_cross_over_hours = len(
+                    [h for h in generator.hours if h["start"].day in expected_cross_over_days_of_month]
+                )
+                expected_regular_hours = len(generator.hours)
+
+                if overwrite_value:
+                    expected_total_rows = expected_regular_hours
+                else:
+                    expected_total_rows = expected_regular_hours + expected_cross_over_hours
+
+                self.assertEqual(len(hourly_data), expected_total_rows)
+
+                # Separate and verify the rows
+                cross_over_rows = []
+                regular_rows = []
+                for row in hourly_data:
+                    usage_day_str = row["usage_start_time"][:10]
+                    invoice_month = row["invoice.month"]
+
+                    # A row is a "cross_over_row" if its day is a crossover day AND its invoice is shifted
+                    if usage_day_str in expected_cross_over_days_str and invoice_month == next_invoice_month:
+                        cross_over_rows.append(row)
+                    else:
+                        regular_rows.append(row)
+
+                self.assertEqual(len(cross_over_rows), expected_cross_over_hours)
+                # Verify the count of non-shifted rows
+                if overwrite_value:
+                    self.assertEqual(len(regular_rows), expected_regular_hours - expected_cross_over_hours)
+                else:
+                    self.assertEqual(len(regular_rows), expected_regular_hours)
+
+                # Verify invoice months in the separated lists
+                for cross_row in cross_over_rows:
+                    self.assertEqual(cross_row["invoice.month"], next_invoice_month)
+                for regular_row in regular_rows:
+                    self.assertEqual(regular_row["invoice.month"], original_invoice_month)
+
+    def test_generate_hourly_data_no_cross_over_not_specified_month(self):
+        """
+        Verify no cross-over occurs when the data's month doesn't match the setting.
+
+        Tests that when `month` is set to "current" or "previous", no invoice shifts
+        happen for data generated for other months (e.g., a month in the past).
+        This is tested for both overwrite=True and overwrite=False.
+        """
+        month_params = ["current", "previous"]
+        overwrite_params = [True, False]
+        param_combinations = itertools.product(month_params, overwrite_params)
+
+        # Use a fixed date range in the past that is neither 'current' nor 'previous'
+        start_date = datetime(2024, 1, 1, 0, 0, 0)
+        end_date = datetime(2024, 1, 2, 23, 0, 0)
+        expected_invoice_month = "202401"
+
+        for month_value, overwrite_value in param_combinations:
+            with self.subTest(month=month_value, overwrite=overwrite_value):
+                attributes = {"cross_over": {"month": month_value, "days": [1, 2, -3], "overwrite": overwrite_value}}
+
+                generator = ComputeEngineGenerator(
+                    start_date, end_date, self.currency, self.project, attributes=attributes
+                )
+                hourly_data = list(generator._generate_hourly_data())
+
+                # The number of rows should be unchanged because the month doesn't match
                 expected_rows = len(generator.hours)
                 self.assertEqual(len(hourly_data), expected_rows)
 
+                # All rows should have their original invoice month
                 for row in hourly_data:
-                    self.assertEqual(row["invoice.month"], "202401")
+                    self.assertEqual(row["invoice.month"], expected_invoice_month)
 
     def test_generate_hourly_data_no_cross_over_not_specified_days(self):
         """
         Test that cross_over_data are not generated when not on specified day,
         for multiple `month` and `overwrite` param combinations.
         """
-        month_params = ["current", None]
+        month_params = ["current", "previous", None]
         overwrite_params = [True, False]
 
         param_combinations = itertools.product(month_params, overwrite_params)
