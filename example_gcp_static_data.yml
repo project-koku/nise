@@ -11,7 +11,10 @@ generators:
       resource.name: projects/tests
       resource.global_name: //compute.googleapis.com/projects/tests
       labels: [{"environment": "ci", "project":"p1"}]
-      cross_over_data: True
+      cross_over:
+        month: current
+        days: [ 1 ] # shift invoice of 1st of the current month to the previous month
+        overwrite: True
   - CloudStorageGenerator:
       start_date: last_month
       price: 2
@@ -20,6 +23,10 @@ generators:
       currency: EUR
       location.region: us-east4-a
       credit_amount: -0.10
+      cross_over:
+        month: previous
+        days: [ -1, -3 ] # shift invoice of the last and 3rd to the last of previous month to the next month
+        overwrite: False
   - GCPNetworkGenerator:
       start_date: last_month
       service.description: Cloud
@@ -27,6 +34,10 @@ generators:
       usage.amount_in_pricing_units: 1
       currency: EUR
       location.region: us-east4-a
+      cross_over:
+        month: all
+        days: [2, -1] # on every month, shift invoice of 2nd day to previous month and invoice of the last day to the next month
+        overwrite: True
   - GCPDatabaseGenerator:
       start_date: last_month
       service.description: Fire
