@@ -1114,7 +1114,7 @@ def gcp_create_report(options):  # noqa: C901
             generators = [
                 {"generator": JSONLCloudStorageGenerator, "attributes": {}},
                 {"generator": JSONLComputeEngineGenerator, "attributes": {}},
-                {"generator": JSONLPersistentDiskGenerator, "atttributes": {}},
+                {"generator": JSONLPersistentDiskGenerator, "attributes": {}},
                 {"generator": JSONLGCPNetworkGenerator, "attributes": {}},
                 {"generator": JSONLGCPDatabaseGenerator, "attributes": {}},
                 {"generator": JSONLHCSGenerator, "attributes": {}},
