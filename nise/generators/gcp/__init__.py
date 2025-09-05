@@ -15,5 +15,5 @@ from nise.generators.gcp.hcs_generator import HCSGenerator  # noqa: F401
 from nise.generators.gcp.hcs_generator import JSONLHCSGenerator  # noqa: F401
 from nise.generators.gcp.project_generator import JSONLProjectGenerator  # noqa: F401
 from nise.generators.gcp.project_generator import ProjectGenerator  # noqa: F401
-from nise.generators.gcp.disk_generator import PersistentDiskGenerator # noqa: F401
-from nise.generators.gcp.disk_generator import JSONLPersistentDiskGenerator # noqa: F401
+from nise.generators.gcp.disk_generator import PersistentDiskGenerator  # noqa: F401
+from nise.generators.gcp.disk_generator import JSONLPersistentDiskGenerator  # noqa: F401

@@ -172,7 +172,6 @@ class GCPGenerator(AbstractGenerator):
         self._currency = self.attributes.get("currency", currency)
         self._sku = None
 
-
     @property
     def project_id(self):
         if proj_id := self.project.get("project.id"):

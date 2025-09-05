@@ -787,11 +787,7 @@ class TestGCPGenerator(TestCase):
 
     def test_persistent_disk_validate_attributes_unsupported(self):
         """Test that unsupported attributes raise ValueError for Persistent Disk."""
-        unsupported_attributes = {
-            "usage.amount": 10,
-            "usage.amount_in_pricing_units": 5,
-            "capacity": 100
-        }
+        unsupported_attributes = {"usage.amount": 10, "usage.amount_in_pricing_units": 5, "capacity": 100}
         with self.assertRaises(ValueError) as context:
             PersistentDiskGenerator(
                 self.yesterday, self.now, self.currency, self.project, attributes=unsupported_attributes
@@ -800,9 +796,7 @@ class TestGCPGenerator(TestCase):
 
     def test_persistent_disk_default_properties(self):
         """Test default properties for Persistent Disk."""
-        generator = PersistentDiskGenerator(
-            self.yesterday, self.now, self.currency, self.project, attributes={}
-        )
+        generator = PersistentDiskGenerator(self.yesterday, self.now, self.currency, self.project, attributes={})
         self.assertIn("pvc-", generator.disk_id)
         self.assertIn(generator.capacity, generator.DEFAULT_CAPACITIES)
         self.assertIn(generator.region, generator.DEFAULT_REGIONS)
@@ -836,7 +830,7 @@ class TestGCPGenerator(TestCase):
         generator = PersistentDiskGenerator(
             self.yesterday, self.now, self.currency, self.project, attributes=custom_attributes
         )
-        expected_bytes = 100 * (1024 ** 3)
+        expected_bytes = 100 * (1024**3)
         expected_usage = expected_bytes * 3600
         self.assertEqual(generator.usage_amount, expected_usage)
         self.assertIsInstance(generator.usage_in_pricing_units, float)
@@ -844,15 +838,13 @@ class TestGCPGenerator(TestCase):
 
     def test_persistent_disk_sku_descriptions(self):
         """Test SKU descriptions mapping for Persistent Disk."""
-        generator = PersistentDiskGenerator(
-            self.yesterday, self.now, self.currency, self.project, attributes={}
-        )
+        generator = PersistentDiskGenerator(self.yesterday, self.now, self.currency, self.project, attributes={})
         for sku_id, description in generator.SKU_DESCRIPTION.items():
             generator.attributes = {"sku_id": sku_id}
-            if hasattr(generator, '_sku_id'):
-                delattr(generator, '_sku_id')
-            if hasattr(generator, '_sku_description'):
-                delattr(generator, '_sku_description')
+            if hasattr(generator, "_sku_id"):
+                delattr(generator, "_sku_id")
+            if hasattr(generator, "_sku_description"):
+                delattr(generator, "_sku_description")
             test_generator = PersistentDiskGenerator(
                 self.yesterday, self.now, self.currency, self.project, attributes={"sku_id": sku_id}
             )
@@ -860,15 +852,12 @@ class TestGCPGenerator(TestCase):
 
     def test_persistent_disk_resource_names(self):
         """Test resource name generation for Persistent Disk."""
-        generator = PersistentDiskGenerator(
-            self.yesterday, self.now, self.currency, self.project, attributes={}
+        generator = PersistentDiskGenerator(self.yesterday, self.now, self.currency, self.project, attributes={})
+        expected_pattern = (
+            f"/compute.googleapis.com/projects/{generator.project_id}/zones/{generator.region}/disk/{generator.disk_id}"
         )
-        expected_pattern = f"/compute.googleapis.com/projects/{generator.project_id}/zones/{generator.region}/disk/{generator.disk_id}"
         self.assertEqual(generator._resource_global_name, expected_pattern)
-        custom_attrs = {
-            "resource.name": "my-custom-disk",
-            "resource.global_name": "/custom/global/name"
-        }
+        custom_attrs = {"resource.name": "my-custom-disk", "resource.global_name": "/custom/global/name"}
         custom_generator = PersistentDiskGenerator(
             self.yesterday, self.now, self.currency, self.project, attributes=custom_attrs
         )
@@ -877,9 +866,7 @@ class TestGCPGenerator(TestCase):
 
     def test_persistent_disk_data_structure(self):
         """Test the data structure returned by Persistent Disk generator."""
-        generator = PersistentDiskGenerator(
-            self.yesterday, self.now, self.currency, self.project, attributes={}
-        )
+        generator = PersistentDiskGenerator(self.yesterday, self.now, self.currency, self.project, attributes={})
         generated_data = generator.generate_data()
         list_data = list(generated_data)
 
@@ -899,9 +886,7 @@ class TestGCPGenerator(TestCase):
 
     def test_jsonl_persistent_disk_data_structure(self):
         """Test the data structure returned by JSONL Persistent Disk generator."""
-        generator = JSONLPersistentDiskGenerator(
-            self.yesterday, self.now, self.currency, self.project, attributes={}
-        )
+        generator = JSONLPersistentDiskGenerator(self.yesterday, self.now, self.currency, self.project, attributes={})
         generated_data = generator.generate_data()
         list_data = list(generated_data)
 

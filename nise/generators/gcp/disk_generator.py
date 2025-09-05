@@ -43,10 +43,7 @@ class PersistentDiskGenerator(GCPGenerator):
     SERVICE = "Compute Engine"  # Service Description and Service ID
     SERVICE_ID = "6F81-5844-456A"
 
-    SKU_DESCRIPTION = {
-        "3C62-891B-C73C": "Regional Storage PD Capacity",
-        "D973-5D65-BAB2": "Storage PD Capacity"
-    }
+    SKU_DESCRIPTION = {"3C62-891B-C73C": "Regional Storage PD Capacity", "D973-5D65-BAB2": "Storage PD Capacity"}
     USAGE_UNIT = "byte-seconds"
     PRICING_UNIT = "gibibyte month"
     LABELS = (([{"key": "vm_key_proj2", "value": "vm_label_proj2"}]), ([]))
@@ -57,21 +54,20 @@ class PersistentDiskGenerator(GCPGenerator):
         """Initialize the cloud storage generator."""
         super().__init__(start_date, end_date, currency, project, attributes)
         if not self._resource_global_name:
-            self._resource_global_name = f"/compute.googleapis.com/projects/{self.project_id}/zones/{self.region}/disk/{self.disk_id}"
+            self._resource_global_name = (
+                f"/compute.googleapis.com/projects/{self.project_id}/zones/{self.region}/disk/{self.disk_id}"
+            )
         if not self._resource_name:
             self._resource_name = self.fake.word()
         if not self._price:
             self._price = round(uniform(0, 0.01), 7)
-        self.bytes_to_gibibyte = (1024 ** 3)
+        self.bytes_to_gibibyte = 1024**3
         self.seconds_in_hour = 3600
         self.hours_in_month = calendar.monthrange(self.start_date.year, self.start_date.month)[1] * 24
         self.validate_attributes()
 
     def validate_attributes(self):
-        unsupported_attributes = [
-            "usage.amount",
-            "usage.amount_in_pricing_units"
-        ]
+        unsupported_attributes = ["usage.amount", "usage.amount_in_pricing_units"]
         for attr in unsupported_attributes:
             if self.attributes.get(attr):
                 raise ValueError(f"Attribute {attr} is populated through capacity with provisioned disk.")
@@ -96,7 +92,7 @@ class PersistentDiskGenerator(GCPGenerator):
 
     @cached_property
     def sku_id(self):
-        return self.attributes.get('sku_id', choice(list(self.SKU_DESCRIPTION.keys())))
+        return self.attributes.get("sku_id", choice(list(self.SKU_DESCRIPTION.keys())))
 
     @cached_property
     def sku_description(self):
@@ -164,10 +160,7 @@ class JSONLPersistentDiskGenerator(PersistentDiskGenerator):
 
     def _update_data(self, row):  # noqa: C901
         """Update a data row with compute values."""
-        row["service"] = {
-            "description": self.SERVICE,
-            "id": self.SERVICE_ID
-        }
+        row["service"] = {"description": self.SERVICE, "id": self.SERVICE_ID}
         row["sku"] = {
             "id": self.sku_id,
             "description": self.sku_description,
@@ -176,19 +169,14 @@ class JSONLPersistentDiskGenerator(PersistentDiskGenerator):
             "unit": self.USAGE_UNIT,
             "pricing_unit": self.PRICING_UNIT,
             "amount": self.usage_amount,
-            "amount_in_pricing_units": self.usage_in_pricing_units
+            "amount_in_pricing_units": self.usage_in_pricing_units,
         }
         row["cost"] = self.cost
         row["credits"] = self._gen_credit(self._credit_amount, json_return=True)
         row["cost_type"] = "regular"
         row["currency_conversion_rate"] = 1
-        row["invoice"] = {
-            "month": datetime.strptime(row.get("usage_start_time")[:7], "%Y-%m").strftime("%Y%m")
-        }
-        row["resource"] = {
-            "name": self._resource_name,
-            "global_name": self._resource_global_name
-        }
+        row["invoice"] = {"month": datetime.strptime(row.get("usage_start_time")[:7], "%Y-%m").strftime("%Y%m")}
+        row["resource"] = {"name": self._resource_name, "global_name": self._resource_global_name}
         row["currency"] = self._currency
         row["labels"] = self.determine_labels(self.LABELS)
         row["system_labels"] = []
