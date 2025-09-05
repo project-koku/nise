@@ -172,6 +172,14 @@ class GCPGenerator(AbstractGenerator):
         self._currency = self.attributes.get("currency", currency)
         self._sku = None
 
+
+    @property
+    def project_id(self):
+        if proj_id := self.project.get("project.id"):
+            return proj_id
+        if proj_id := self.project.get("id"):
+            return proj_id
+
     @staticmethod
     def _create_days_list(start_date, end_date):
         """Create a list of days given the date range args."""
@@ -322,18 +330,15 @@ class GCPGenerator(AbstractGenerator):
         else:
             return json.dumps(label_format)
 
-    def _generate_resource(self, resource_name=None, resource_global_name=None, region=None):
-        name = resource_name
-        global_name = resource_global_name
-        proj_id = self.project.get("project.id")
-        if proj_id is None:
-            proj_id = self.project.get("id")
-        if not name:
+    def _generate_resource(self, region=None):
+        name = self._resource_name
+        global_name = self._resource_global_name
+        if not self._resource_name:
             name = self.fake.word()
-            name = f"projects/{proj_id}/instances/{name}"
-        if not global_name:
+            name = f"projects/{self.project_id}/instances/{name}"
+        if not self._resource_global_name:
             id = "".join([choice(string.digits) for _ in range(19)])
-            global_name = f"//compute.googleapis.com/projects/{proj_id}/zones/{region}/instances/{id}"
+            global_name = f"//compute.googleapis.com/projects/{self.project_id}/zones/{region}/instances/{id}"
         return {"name": name, "global_name": global_name}
 
     def _add_common_usage_info(self, row, start, end, **kwargs):

@@ -7,11 +7,13 @@ from faker import Faker
 from nise.generators.gcp.gcp_generator import apply_different_invoice_month
 from nise.generators.gcp import CloudStorageGenerator
 from nise.generators.gcp import ComputeEngineGenerator
+from nise.generators.gcp import PersistentDiskGenerator
 from nise.generators.gcp import GCPDatabaseGenerator
 from nise.generators.gcp import GCPNetworkGenerator
 from nise.generators.gcp import JSONLCloudStorageGenerator
 from nise.generators.gcp import JSONLComputeEngineGenerator
 from nise.generators.gcp import JSONLGCPDatabaseGenerator
+from nise.generators.gcp import JSONLPersistentDiskGenerator
 from nise.generators.gcp import JSONLGCPNetworkGenerator
 from nise.generators.gcp import JSONLProjectGenerator
 from nise.generators.gcp import ProjectGenerator
@@ -64,6 +66,42 @@ class TestGCPGenerator(TestCase):
             "cost_type": "regular",
             "usage.amount": 10,
             "usage.amount_in_pricing_units": 10,
+            "price": 2,
+            "sku_id": "CF4E-A0C7-E3BF",
+            "resource.name": "resource-name",
+            "resource.global_name": "global-name",
+            "resource_level": True,
+        }
+        # Disk-specific attributes (usage.amount not allowed)
+        self.disk_usage_attributes = {
+            "currency": fake.currency_code(),
+            "currency_conversion_rate": 1,
+            "cost_type": "regular",
+            "capacity": 50,
+            "price": 2,
+            "usage.pricing_unit": "gibibyte month",
+        }
+        self.disk_sku_attributes = {
+            "currency": fake.currency_code(),
+            "currency_conversion_rate": 1,
+            "cost_type": "regular",
+            "capacity": 75,
+            "price": 2,
+            "sku_id": "3C62-891B-C73C",
+        }
+        self.disk_resource_attributes = {
+            "currency": fake.currency_code(),
+            "currency_conversion_rate": 1,
+            "cost_type": "regular",
+            "capacity": 100,
+            "price": 2,
+            "sku_id": "D973-5D65-BAB2",
+            "resource.name": "disk-resource-name",
+            "resource.global_name": "/compute.googleapis.com/projects/test/zones/us-central1/disk/test-disk",
+            "disk_id": "test-disk-123",
+        }
+        self.persistent_disk_attributes = {
+            "disk_id": "test12345",
             "price": 2,
             "sku_id": "CF4E-A0C7-E3BF",
             "resource.name": "resource-name",
@@ -303,6 +341,84 @@ class TestGCPGenerator(TestCase):
         generated_data = generator.generate_data()
         list_data = list(generated_data)
         self.assertEqual(list_data[0]["cost"], self.usage_attributes["usage.amount"] * self.usage_attributes["price"])
+
+    def test_persistent_disk_init_with_attributes(self):
+        """Test the init with attribute for Persistent Disk."""
+        generator = PersistentDiskGenerator(
+            self.yesterday, self.now, self.currency, self.project, attributes=self.attributes
+        )
+        generated_data = generator.generate_data()
+        list_data = list(generated_data)
+        self.assertEqual(list_data[0]["cost"], self.attributes["cost"])
+
+    def test_persistent_disk_init_with_usage_attributes(self):
+        """Test the init with usage attributes for Persistent Disk."""
+        generator = PersistentDiskGenerator(
+            self.yesterday, self.now, self.currency, self.project, attributes=self.disk_usage_attributes
+        )
+        generated_data = generator.generate_data()
+        list_data = list(generated_data)
+        expected_cost = list_data[0]["usage.amount_in_pricing_units"] * self.disk_usage_attributes["price"]
+        self.assertEqual(list_data[0]["cost"], expected_cost)
+
+    def test_persistent_disk_init_with_sku_attributes(self):
+        """Test the init with sku attributes for Persistent Disk."""
+        generator = PersistentDiskGenerator(
+            self.yesterday, self.now, self.currency, self.project, attributes=self.disk_sku_attributes
+        )
+        generated_data = generator.generate_data()
+        list_data = list(generated_data)
+        expected_cost = list_data[0]["usage.amount_in_pricing_units"] * self.disk_sku_attributes["price"]
+        self.assertEqual(list_data[0]["cost"], expected_cost)
+
+    def test_persistent_disk_init_with_resource_attributes(self):
+        """Test the init with resource attributes for Persistent Disk."""
+        generator = PersistentDiskGenerator(
+            self.yesterday, self.now, self.currency, self.project, attributes=self.disk_resource_attributes
+        )
+        generated_data = generator.generate_data()
+        list_data = list(generated_data)
+        expected_cost = list_data[0]["usage.amount_in_pricing_units"] * self.disk_resource_attributes["price"]
+        self.assertEqual(list_data[0]["cost"], expected_cost)
+
+    def test_jsonl_persistent_disk_init_with_attributes(self):
+        """Test the init with attribute for JSONL Persistent Disk."""
+        generator = JSONLPersistentDiskGenerator(
+            self.yesterday, self.now, self.currency, self.project, attributes=self.attributes
+        )
+        generated_data = generator.generate_data()
+        list_data = list(generated_data)
+        self.assertEqual(list_data[0]["cost"], self.attributes["cost"])
+
+    def test_jsonl_persistent_disk_init_with_usage_attributes(self):
+        """Test the init with usage attributes for JSONL Persistent Disk."""
+        generator = JSONLPersistentDiskGenerator(
+            self.yesterday, self.now, self.currency, self.project, attributes=self.disk_usage_attributes
+        )
+        generated_data = generator.generate_data()
+        list_data = list(generated_data)
+        expected_cost = list_data[0]["usage"]["amount_in_pricing_units"] * self.disk_usage_attributes["price"]
+        self.assertEqual(list_data[0]["cost"], expected_cost)
+
+    def test_jsonl_persistent_disk_init_with_sku_attributes(self):
+        """Test the init with sku attributes for JSONL Persistent Disk."""
+        generator = JSONLPersistentDiskGenerator(
+            self.yesterday, self.now, self.currency, self.project, attributes=self.disk_sku_attributes
+        )
+        generated_data = generator.generate_data()
+        list_data = list(generated_data)
+        expected_cost = list_data[0]["usage"]["amount_in_pricing_units"] * self.disk_sku_attributes["price"]
+        self.assertEqual(list_data[0]["cost"], expected_cost)
+
+    def test_jsonl_persistent_disk_init_with_resource_attributes(self):
+        """Test the init with resource attributes for JSONL Persistent Disk."""
+        generator = JSONLPersistentDiskGenerator(
+            self.yesterday, self.now, self.currency, self.project, attributes=self.disk_resource_attributes
+        )
+        generated_data = generator.generate_data()
+        list_data = list(generated_data)
+        expected_cost = list_data[0]["usage"]["amount_in_pricing_units"] * self.disk_resource_attributes["price"]
+        self.assertEqual(list_data[0]["cost"], expected_cost)
 
     def test_set_hours_invalid_start(self):
         """Test that the start date must be a date object."""
@@ -668,3 +784,142 @@ class TestGCPGenerator(TestCase):
 
                 for row in hourly_data:
                     self.assertEqual(row["invoice.month"], start_date.strftime("%Y%m"))
+
+    def test_persistent_disk_validate_attributes_unsupported(self):
+        """Test that unsupported attributes raise ValueError for Persistent Disk."""
+        unsupported_attributes = {
+            "usage.amount": 10,
+            "usage.amount_in_pricing_units": 5,
+            "capacity": 100
+        }
+        with self.assertRaises(ValueError) as context:
+            PersistentDiskGenerator(
+                self.yesterday, self.now, self.currency, self.project, attributes=unsupported_attributes
+            )
+        self.assertIn("usage.amount", str(context.exception))
+
+    def test_persistent_disk_default_properties(self):
+        """Test default properties for Persistent Disk."""
+        generator = PersistentDiskGenerator(
+            self.yesterday, self.now, self.currency, self.project, attributes={}
+        )
+        self.assertIn("pvc-", generator.disk_id)
+        self.assertIn(generator.capacity, generator.DEFAULT_CAPACITIES)
+        self.assertIn(generator.region, generator.DEFAULT_REGIONS)
+        self.assertIn(generator.sku_id, generator.SKU_DESCRIPTION.keys())
+        self.assertIsNotNone(generator.usage_amount)
+        self.assertIsNotNone(generator.usage_in_pricing_units)
+        self.assertIsNotNone(generator.cost)
+
+    def test_persistent_disk_custom_properties(self):
+        """Test custom properties for Persistent Disk."""
+        custom_attributes = {
+            "disk_id": "custom-disk-123",
+            "capacity": 500,
+            "location.region": "us-east1",
+            "sku_id": "3C62-891B-C73C",
+        }
+        generator = PersistentDiskGenerator(
+            self.yesterday, self.now, self.currency, self.project, attributes=custom_attributes
+        )
+
+        self.assertEqual(generator.disk_id, "custom-disk-123")
+        self.assertEqual(generator.capacity, 500)
+        self.assertEqual(generator.region, "us-east1")
+        self.assertEqual(generator.sku_id, "3C62-891B-C73C")
+
+    def test_persistent_disk_usage_calculations(self):
+        """Test usage amount and pricing calculations for Persistent Disk."""
+        custom_attributes = {
+            "capacity": 100,
+        }
+        generator = PersistentDiskGenerator(
+            self.yesterday, self.now, self.currency, self.project, attributes=custom_attributes
+        )
+        expected_bytes = 100 * (1024 ** 3)
+        expected_usage = expected_bytes * 3600
+        self.assertEqual(generator.usage_amount, expected_usage)
+        self.assertIsInstance(generator.usage_in_pricing_units, float)
+        self.assertGreater(generator.usage_in_pricing_units, 0)
+
+    def test_persistent_disk_sku_descriptions(self):
+        """Test SKU descriptions mapping for Persistent Disk."""
+        generator = PersistentDiskGenerator(
+            self.yesterday, self.now, self.currency, self.project, attributes={}
+        )
+        for sku_id, description in generator.SKU_DESCRIPTION.items():
+            generator.attributes = {"sku_id": sku_id}
+            if hasattr(generator, '_sku_id'):
+                delattr(generator, '_sku_id')
+            if hasattr(generator, '_sku_description'):
+                delattr(generator, '_sku_description')
+            test_generator = PersistentDiskGenerator(
+                self.yesterday, self.now, self.currency, self.project, attributes={"sku_id": sku_id}
+            )
+            self.assertEqual(test_generator.sku_description, description)
+
+    def test_persistent_disk_resource_names(self):
+        """Test resource name generation for Persistent Disk."""
+        generator = PersistentDiskGenerator(
+            self.yesterday, self.now, self.currency, self.project, attributes={}
+        )
+        expected_pattern = f"/compute.googleapis.com/projects/{generator.project_id}/zones/{generator.region}/disk/{generator.disk_id}"
+        self.assertEqual(generator._resource_global_name, expected_pattern)
+        custom_attrs = {
+            "resource.name": "my-custom-disk",
+            "resource.global_name": "/custom/global/name"
+        }
+        custom_generator = PersistentDiskGenerator(
+            self.yesterday, self.now, self.currency, self.project, attributes=custom_attrs
+        )
+        self.assertEqual(custom_generator._resource_name, "my-custom-disk")
+        self.assertEqual(custom_generator._resource_global_name, "/custom/global/name")
+
+    def test_persistent_disk_data_structure(self):
+        """Test the data structure returned by Persistent Disk generator."""
+        generator = PersistentDiskGenerator(
+            self.yesterday, self.now, self.currency, self.project, attributes={}
+        )
+        generated_data = generator.generate_data()
+        list_data = list(generated_data)
+
+        self.assertGreater(len(list_data), 0)
+        first_row = list_data[0]
+        self.assertEqual(first_row["service.description"], "Compute Engine")
+        self.assertEqual(first_row["service.id"], "6F81-5844-456A")
+        self.assertEqual(first_row["usage.unit"], "byte-seconds")
+        self.assertEqual(first_row["usage.pricing_unit"], "gibibyte month")
+        self.assertIsInstance(first_row["usage.amount"], (int, float))
+        self.assertIsInstance(first_row["usage.amount_in_pricing_units"], float)
+        self.assertIsInstance(first_row["cost"], float)
+        self.assertEqual(first_row["cost_type"], "regular")
+        self.assertEqual(first_row["currency_conversion_rate"], 1)
+        self.assertIsNotNone(first_row["resource.name"])
+        self.assertIsNotNone(first_row["resource.global_name"])
+
+    def test_jsonl_persistent_disk_data_structure(self):
+        """Test the data structure returned by JSONL Persistent Disk generator."""
+        generator = JSONLPersistentDiskGenerator(
+            self.yesterday, self.now, self.currency, self.project, attributes={}
+        )
+        generated_data = generator.generate_data()
+        list_data = list(generated_data)
+
+        self.assertGreater(len(list_data), 0)
+        first_row = list_data[0]
+        self.assertIsInstance(first_row["service"], dict)
+        self.assertEqual(first_row["service"]["description"], "Compute Engine")
+        self.assertEqual(first_row["service"]["id"], "6F81-5844-456A")
+        self.assertIsInstance(first_row["sku"], dict)
+        self.assertIn("id", first_row["sku"])
+        self.assertIn("description", first_row["sku"])
+        self.assertIsInstance(first_row["usage"], dict)
+        self.assertEqual(first_row["usage"]["unit"], "byte-seconds")
+        self.assertEqual(first_row["usage"]["pricing_unit"], "gibibyte month")
+        self.assertIn("amount", first_row["usage"])
+        self.assertIn("amount_in_pricing_units", first_row["usage"])
+        self.assertIsInstance(first_row["resource"], dict)
+        self.assertIn("name", first_row["resource"])
+        self.assertIn("global_name", first_row["resource"])
+        self.assertIsInstance(first_row["invoice"], dict)
+        self.assertIn("month", first_row["invoice"])

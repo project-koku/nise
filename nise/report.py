@@ -63,6 +63,7 @@ from nise.generators.azure import VMGenerator
 from nise.generators.azure import VNGenerator
 from nise.generators.gcp import CloudStorageGenerator
 from nise.generators.gcp import ComputeEngineGenerator
+from nise.generators.gcp import PersistentDiskGenerator
 from nise.generators.gcp import GCP_REPORT_COLUMNS
 from nise.generators.gcp import GCP_RESOURCE_COLUMNS
 from nise.generators.gcp import GCPDatabaseGenerator
@@ -70,6 +71,7 @@ from nise.generators.gcp import GCPNetworkGenerator
 from nise.generators.gcp import HCSGenerator
 from nise.generators.gcp import JSONLCloudStorageGenerator
 from nise.generators.gcp import JSONLComputeEngineGenerator
+from nise.generators.gcp import JSONLPersistentDiskGenerator
 from nise.generators.gcp import JSONLGCPDatabaseGenerator
 from nise.generators.gcp import JSONLGCPNetworkGenerator
 from nise.generators.gcp import JSONLHCSGenerator
@@ -1112,6 +1114,7 @@ def gcp_create_report(options):  # noqa: C901
             generators = [
                 {"generator": JSONLCloudStorageGenerator, "attributes": {}},
                 {"generator": JSONLComputeEngineGenerator, "attributes": {}},
+                {"generator": JSONLPersistentDiskGenerator, "atttributes": {}},
                 {"generator": JSONLGCPNetworkGenerator, "attributes": {}},
                 {"generator": JSONLGCPDatabaseGenerator, "attributes": {}},
                 {"generator": JSONLHCSGenerator, "attributes": {}},
@@ -1139,6 +1142,7 @@ def gcp_create_report(options):  # noqa: C901
     else:
         generators = [
             {"generator": CloudStorageGenerator, "attributes": {}},
+            {"generator": PersistentDiskGenerator, "attributes": {}},
             {"generator": ComputeEngineGenerator, "attributes": {}},
             {"generator": GCPNetworkGenerator, "attributes": {}},
             {"generator": GCPDatabaseGenerator, "attributes": {}},
