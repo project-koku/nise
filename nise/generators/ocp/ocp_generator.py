@@ -387,11 +387,14 @@ def get_vm_from_label(labels):
 class OCPGenerator(AbstractGenerator):
     """Defines a abstract class for generators."""
 
-    def __init__(self, start_date, end_date, attributes, ros_ocp_info=False, constant_values_ros_ocp=False):
+    def __init__(
+        self, start_date, end_date, attributes, ros_ocp_info=False, constant_values_ros_ocp=False, container=False
+    ):
         """Initialize the generator."""
         self._nodes = None
         self.ros_ocp_info = ros_ocp_info
         self.constant_values_ros_ocp = constant_values_ros_ocp
+        self.container = container
         if attributes:
             self._nodes = attributes.get("nodes")
 

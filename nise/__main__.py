@@ -320,6 +320,13 @@ def add_ocp_parser_args(parser):
         action="store_true",
         help="Flag to generate constant values for ROS for Openshift",
     )
+    parser.add_argument(
+        "--container",
+        dest="container",
+        required=False,
+        action="store_true",
+        help="Generate ROS-specific container CSV report (used with --ros-ocp-info)",
+    )
 
 
 def create_parser():
@@ -580,6 +587,10 @@ def _validate_ocp_arguments(parser, options):
         msg = "\n\t--payload-name is only used with --minio-upload\n"
         msg = msg.format("--payload-name", payload_name)
         parser.error(msg)
+
+    # Validate --container flag can only be used with --ros-ocp-info
+    if options.get("container") and not options.get("ros_ocp_info"):
+        parser.error("--container can only be used with --ros-ocp-info")
 
     return True
 

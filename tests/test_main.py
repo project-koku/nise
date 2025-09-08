@@ -26,6 +26,7 @@ from unittest import TestCase
 from unittest.mock import patch
 
 from nise.__main__ import _load_static_report_data
+from nise.__main__ import _validate_ocp_arguments
 from nise.__main__ import _validate_provider_inputs
 from nise.__main__ import create_parser
 from nise.__main__ import length_of_cluster_id
@@ -750,3 +751,24 @@ class MainDateTest(TestCase):
 
         with self.assertRaises(SystemExit):
             _load_static_report_data(options)
+
+    def test_validate_ocp_arguments_container_requires_ros_ocp_info(self):
+        """
+        Test that --container flag requires --ros-ocp-info flag.
+        """
+        parser = create_parser()
+
+        # Test case 1: container=True but ros_ocp_info=False should raise error
+        options = {"ocp_cluster_id": "test-cluster", "container": True, "ros_ocp_info": False}
+        with self.assertRaises(SystemExit):
+            _validate_ocp_arguments(parser, options)
+
+        # Test case 2: container=True and ros_ocp_info=True should pass
+        options = {"ocp_cluster_id": "test-cluster", "container": True, "ros_ocp_info": True}
+        result = _validate_ocp_arguments(parser, options)
+        self.assertTrue(result)
+
+        # Test case 3: container=False and ros_ocp_info=False should pass
+        options = {"ocp_cluster_id": "test-cluster", "container": False, "ros_ocp_info": False}
+        result = _validate_ocp_arguments(parser, options)
+        self.assertTrue(result)

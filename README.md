@@ -136,6 +136,9 @@ All of the deployment is driven entirely by a Github Action workflow, so if issu
         --ros-ocp-info                          Optional, Generate ROS for Openshift data.
         --constant-values-ros-ocp               Optional, Generate constant values for ROS for OpenShift data only
                                                 when used with the ros-ocp-info parameter.
+        --container                             Optional, Generate ROS-specific container CSV report
+                                                (MUST be used with --ros-ocp-info).
+
 
     Common YAML Options:
         -o, --output YAML_NAME                  REQUIRED, Output file path (i.e "large.yml").
