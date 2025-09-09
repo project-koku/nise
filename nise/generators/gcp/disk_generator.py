@@ -17,7 +17,6 @@
 """Module for gcp persistent disk."""
 
 import uuid
-import calendar
 from datetime import datetime
 from random import choice
 from random import uniform
@@ -25,6 +24,8 @@ from random import uniform
 from nise.generators.gcp.gcp_generator import GCP_REPORT_COLUMNS_JSONL
 from nise.generators.gcp.gcp_generator import GCPGenerator
 from functools import cached_property
+from nise.helpers import gcp_calculate_persistent_disk_usage_amount
+from nise.helpers import gcp_calculate_usage_amount_in_pricing
 
 
 # Persistent Disk sku lists:
@@ -61,9 +62,6 @@ class PersistentDiskGenerator(GCPGenerator):
             self._resource_name = self.fake.word()
         if not self._price:
             self._price = round(uniform(0, 0.01), 7)
-        self.bytes_to_gibibyte = 1024**3
-        self.seconds_in_hour = 3600
-        self.hours_in_month = calendar.monthrange(self.start_date.year, self.start_date.month)[1] * 24
         self.validate_attributes()
 
     def validate_attributes(self):
@@ -100,14 +98,13 @@ class PersistentDiskGenerator(GCPGenerator):
 
     @cached_property
     def usage_amount(self):
-        bytes_conversion = self.capacity * self.bytes_to_gibibyte
-        return bytes_conversion * self.seconds_in_hour
+        # Added as cached property to avoid recalculating per row
+        return gcp_calculate_persistent_disk_usage_amount(self.capacity)
 
     @cached_property
     def usage_in_pricing_units(self):
-        seconds_in_month = self.hours_in_month * self.seconds_in_hour
-        usage_amount = self.usage_amount / (self.bytes_to_gibibyte * seconds_in_month)
-        return round(usage_amount, 8)
+        # Added to cache property to avoid recalculating per row
+        return gcp_calculate_usage_amount_in_pricing(self.start_date, self.usage_amount)
 
     @cached_property
     def cost(self):

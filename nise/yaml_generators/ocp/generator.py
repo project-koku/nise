@@ -26,6 +26,7 @@ from nise.yaml_generators.generator import Generator
 from nise.yaml_generators.utils import dicta
 from nise.yaml_generators.utils import generate_name
 from nise.yaml_generators.utils import generate_resource_id
+from nise.util.constants import SECONDS_IN_HOUR
 
 
 FAKER = faker.Faker()
@@ -258,7 +259,7 @@ class OCPGenerator(Generator):
             max_node_namespaces=1,
             max_node_namespace_pods=1,
             min_node_namespace_pod_seconds=300,
-            max_node_namespace_pod_seconds=3600,
+            max_node_namespace_pod_seconds=SECONDS_IN_HOUR,
             max_node_namespace_pod_labels=1,
             max_node_namespace_volumes=1,
             max_node_namespace_volume_request_gig=20,

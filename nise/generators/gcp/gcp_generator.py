@@ -25,6 +25,7 @@ from random import choice
 from random import randint
 from random import uniform
 import calendar
+from nise.util.constants import SECONDS_IN_HOUR
 
 from nise.generators.generator import AbstractGenerator
 
@@ -244,7 +245,7 @@ class GCPGenerator(AbstractGenerator):
         if usage_unit == "bytes":
             return self.fake.pyint(min_value=1000, max_value=10000000)
         if usage_unit == "seconds":
-            return self.fake.pyfloat(max_value=3600, positive=True)
+            return self.fake.pyfloat(max_value=SECONDS_IN_HOUR, positive=True)
         return 0
 
     def _gen_pricing_unit_amount(self, pricing_unit, amount):
@@ -258,7 +259,7 @@ class GCPGenerator(AbstractGenerator):
         if pricing_unit == "gibibyte":
             return amount * (9.31323 * 10**-0)
         if pricing_unit == "hour":
-            return amount / 3600.00
+            return amount / SECONDS_IN_HOUR
         return 0
 
     def _gen_cost(self, pricing_amount):
