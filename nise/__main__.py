@@ -325,7 +325,7 @@ def add_ocp_parser_args(parser):
         dest="container",
         required=False,
         action="store_true",
-        help="Generate ROS-specific container CSV report (used with --ros-ocp-info)",
+        help="Generate ROS-specific container CSV report (Must be used with --ros-ocp-info)",
     )
 
 

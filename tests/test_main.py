@@ -772,3 +772,8 @@ class MainDateTest(TestCase):
         options = {"ocp_cluster_id": "test-cluster", "container": False, "ros_ocp_info": False}
         result = _validate_ocp_arguments(parser, options)
         self.assertTrue(result)
+
+        # Test case 4: container and ros_ocp_info are omitted, should pass
+        options = {"ocp_cluster_id": "test-cluster"}
+        result = _validate_ocp_arguments(parser, options)
+        self.assertTrue(result)
