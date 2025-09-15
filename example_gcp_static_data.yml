@@ -15,6 +15,15 @@ generators:
         month: current
         days: [ 1 ] # shift invoice of 1st of the current month to the previous month
         overwrite: True
+  - PersistentDiskGenerator:
+      start_date: last_month
+      price: 2
+      capacity: 20 # Gibibytes
+      sku_id: D973-5D65-BAB2
+      location.region: us-east4-a
+      currency: EUR
+      resource.name: projects/tests
+      resource.global_name: //compute.googleapis.com/projects/tests
   - CloudStorageGenerator:
       start_date: last_month
       price: 2

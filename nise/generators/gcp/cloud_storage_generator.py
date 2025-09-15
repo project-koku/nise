@@ -79,9 +79,7 @@ class CloudStorageGenerator(GCPGenerator):
         row["labels"] = self.determine_labels(self.LABELS)
         row["system_labels"] = choice(self.SYSTEM_LABELS)
         if self.resource_level:
-            resource = self._generate_resource(
-                self._resource_name, self._resource_global_name, self.project.get("region")
-            )
+            resource = self._generate_resource(self.project.get("region"))
             row["resource.name"] = resource.get("name")
             row["resource.global_name"] = resource.get("global_name")
 

@@ -89,9 +89,7 @@ class GCPNetworkGenerator(GCPGenerator):
         row["currency"] = self._currency
         row["labels"] = self.determine_labels(self.LABELS)
         if self.resource_level:
-            resource = self._generate_resource(
-                self._resource_name, self._resource_global_name, self.project.get("region")
-            )
+            resource = self._generate_resource(self.project.get("region"))
             row["resource.name"] = resource.get("name")
             row["resource.global_name"] = resource.get("global_name")
 
