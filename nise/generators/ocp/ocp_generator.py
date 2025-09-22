@@ -44,6 +44,7 @@ OCP_NODE_LABEL = "ocp_node_label"
 OCP_NAMESPACE_LABEL = "ocp_namespace_label"
 OCP_VM_USAGE = "ocp_vm_usage"
 OCP_ROS_USAGE = "ocp_ros_usage"
+OCP_ROS_NAMESPACE_USAGE = "ocp_ros_namespace_usage"
 OCP_POD_USAGE_COLUMNS = (
     "report_period_start",
     "report_period_end",
@@ -175,6 +176,33 @@ OCP_ROS_USAGE_COLUMN = (
     "memory_rss_usage_container_max",
     "memory_rss_usage_container_sum",
 )
+OCP_ROS_NAMESPACE_USAGE_COLUMN = (
+    "report_period_start",
+    "report_period_end",
+    "interval_start",
+    "interval_end",
+    "namespace",
+    "cpu_request_namespace_sum",
+    "cpu_limit_namespace_sum",
+    "cpu_usage_namespace_avg",
+    "cpu_usage_namespace_max",
+    "cpu_usage_namespace_min",
+    "cpu_throttle_namespace_avg",
+    "cpu_throttle_namespace_max",
+    "cpu_throttle_namespace_min",
+    "memory_request_namespace_sum",
+    "memory_limit_namespace_sum",
+    "memory_usage_namespace_avg",
+    "memory_usage_namespace_max",
+    "memory_usage_namespace_min",
+    "memory_rss_usage_namespace_avg",
+    "memory_rss_usage_namespace_max",
+    "memory_rss_usage_namespace_min",
+    "namespace_running_pods_max",
+    "namespace_running_pods_avg",
+    "namespace_total_pods_max",
+    "namespace_total_pods_avg",
+)
 OCP_REPORT_TYPE_TO_COLS = {
     OCP_POD_USAGE: OCP_POD_USAGE_COLUMNS,
     OCP_STORAGE_USAGE: OCP_STORAGE_COLUMNS,
@@ -182,6 +210,7 @@ OCP_REPORT_TYPE_TO_COLS = {
     OCP_NAMESPACE_LABEL: OCP_NAMESPACE_LABEL_COLUMNS,
     OCP_VM_USAGE: OCP_VM_COLUMNS,
     OCP_ROS_USAGE: OCP_ROS_USAGE_COLUMN,
+    OCP_ROS_NAMESPACE_USAGE: OCP_ROS_NAMESPACE_USAGE_COLUMN,
 }
 
 # No recommendations are generated for job and manual_pod workloads! Keep these two options as the last two items
@@ -459,7 +488,11 @@ class OCPGenerator(AbstractGenerator):
                     OCP_ROS_USAGE: {
                         "_generate_hourly_data": self._gen_quarter_hourly_ros_ocp_pods_usage,
                         "_update_data": self._update_ros_ocp_pod_data,
-                    }
+                    },
+                    OCP_ROS_NAMESPACE_USAGE: {
+                        "_generate_hourly_data": self._gen_quarter_hourly_ros_ocp_namespace_usage,
+                        "_update_data": self._update_ros_ocp_namespace_data,
+                    },
                 }
             )
 
@@ -1323,6 +1356,113 @@ class OCPGenerator(AbstractGenerator):
                     pod = deepcopy(self.ros_data[pod_name])
                     row = self._init_data_row(start, end, **kwargs)
                     yield self._update_data(row, start, end, pod=pod, **kwargs)
+
+    def _aggregate_namespace_data(self, namespace, start, end):
+        """Aggregate container data into namespace-level data."""
+        namespace_pods = [
+            pod_name for pod_name, pod_data in self.ros_data.items() if pod_data.get("namespace") == namespace
+        ]
+
+        if not namespace_pods:
+            return {}
+        cpu_request_sum = 0
+        cpu_limit_sum = 0
+        cpu_usage_avgs = []
+        cpu_usage_mins = []
+        cpu_usage_maxs = []
+        cpu_throttle_avgs = []
+        cpu_throttle_maxs = []
+        memory_request_sum = 0
+        memory_limit_sum = 0
+        memory_usage_avgs = []
+        memory_usage_mins = []
+        memory_usage_maxs = []
+        memory_rss_usage_avgs = []
+        memory_rss_usage_mins = []
+        memory_rss_usage_maxs = []
+
+        total_pods = len(namespace_pods)
+        running_pods = total_pods  # Assuming all pods are running
+
+        for pod_name in namespace_pods:
+            pod_data = self.ros_data[pod_name]
+            cpu_request_sum += pod_data.get("cpu_request_container_sum", 0)
+            cpu_limit_sum += pod_data.get("cpu_limit_container_sum", 0)
+            cpu_usage_avgs.append(pod_data.get("cpu_usage_container_avg", 0))
+            cpu_usage_mins.append(pod_data.get("cpu_usage_container_min", 0))
+            cpu_usage_maxs.append(pod_data.get("cpu_usage_container_max", 0))
+            cpu_throttle_avgs.append(pod_data.get("cpu_throttle_container_avg", 0))
+            cpu_throttle_maxs.append(pod_data.get("cpu_throttle_container_max", 0))
+            memory_request_sum += pod_data.get("memory_request_container_sum", 0)
+            memory_limit_sum += pod_data.get("memory_limit_container_sum", 0)
+            memory_usage_avgs.append(pod_data.get("memory_usage_container_avg", 0))
+            memory_usage_mins.append(pod_data.get("memory_usage_container_min", 0))
+            memory_usage_maxs.append(pod_data.get("memory_usage_container_max", 0))
+            memory_rss_usage_avgs.append(pod_data.get("memory_rss_usage_container_avg", 0))
+            memory_rss_usage_mins.append(pod_data.get("memory_rss_usage_container_min", 0))
+            memory_rss_usage_maxs.append(pod_data.get("memory_rss_usage_container_max", 0))
+
+        # Calculate aggregated metrics
+        namespace_data = {
+            "namespace": namespace,
+            "cpu_request_namespace_sum": cpu_request_sum,
+            "cpu_limit_namespace_sum": cpu_limit_sum,
+            "cpu_usage_namespace_avg": round(sum(cpu_usage_avgs) / len(cpu_usage_avgs), 5) if cpu_usage_avgs else 0,
+            "cpu_usage_namespace_max": max(cpu_usage_maxs) if cpu_usage_maxs else 0,
+            "cpu_usage_namespace_min": min(cpu_usage_mins) if cpu_usage_mins else 0,
+            "cpu_throttle_namespace_avg": round(sum(cpu_throttle_avgs) / len(cpu_throttle_avgs), 5)
+            if cpu_throttle_avgs
+            else 0,
+            "cpu_throttle_namespace_max": max(cpu_throttle_maxs) if cpu_throttle_maxs else 0,
+            "cpu_throttle_namespace_min": min(cpu_throttle_avgs) if cpu_throttle_avgs else 0,
+            "memory_request_namespace_sum": memory_request_sum,
+            "memory_limit_namespace_sum": memory_limit_sum,
+            "memory_usage_namespace_avg": round(sum(memory_usage_avgs) / len(memory_usage_avgs))
+            if memory_usage_avgs
+            else 0,
+            "memory_usage_namespace_max": max(memory_usage_maxs) if memory_usage_maxs else 0,
+            "memory_usage_namespace_min": min(memory_usage_mins) if memory_usage_mins else 0,
+            "memory_rss_usage_namespace_avg": round(sum(memory_rss_usage_avgs) / len(memory_rss_usage_avgs))
+            if memory_rss_usage_avgs
+            else 0,
+            "memory_rss_usage_namespace_max": max(memory_rss_usage_maxs) if memory_rss_usage_maxs else 0,
+            "memory_rss_usage_namespace_min": min(memory_rss_usage_mins) if memory_rss_usage_mins else 0,
+            "namespace_running_pods_max": running_pods,
+            "namespace_running_pods_avg": running_pods,
+            "namespace_total_pods_max": total_pods,
+            "namespace_total_pods_avg": total_pods,
+        }
+
+        return namespace_data
+
+    def _gen_quarter_hourly_ros_ocp_namespace_usage(self, **kwargs):
+        """Create quarter-hourly namespace aggregated data from container data."""
+        for quarter_hour in self.quarter_hours:
+            start = quarter_hour.get("start")
+            end = quarter_hour.get("end")
+            unique_namespaces = set()
+            for pod_data in self.ros_data.values():
+                namespace = pod_data.get("namespace")
+                if namespace:
+                    unique_namespaces.add(namespace)
+
+            # Generate data for each namespace
+            for namespace in unique_namespaces:
+                namespace_data = self._aggregate_namespace_data(namespace, start, end)
+                if namespace_data and namespace_data.get("namespace"):
+                    namespace_kwargs = kwargs.copy()
+                    namespace_kwargs[REPORT_TYPE] = OCP_ROS_NAMESPACE_USAGE
+                    namespace_kwargs["namespace"] = namespace
+
+                    row = self._init_data_row(start, end, **namespace_kwargs)
+                    yield self._update_data(row, start, end, **namespace_kwargs)
+
+    def _update_ros_ocp_namespace_data(self, row, start, end, **kwargs):
+        """Update the data row with aggregated namespace data."""
+        namespace = kwargs.get("namespace", "")
+        aggregated_data = self._aggregate_namespace_data(namespace, start, end)
+        row.update(aggregated_data)
+        return row
 
     def _gen_hourly_storage_usage(self, **kwargs):
         """Create hourly data for storage usage."""

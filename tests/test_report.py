@@ -1085,7 +1085,7 @@ class OCPReportTestCase(TestCase):
         ocp_create_report(options)
 
         for report_type in OCP_REPORT_TYPE_TO_COLS.keys():
-            if "ocp_ros_usage" == report_type:
+            if report_type in ["ocp_ros_usage", "ocp_ros_namespace_usage"]:
                 continue
             month_output_file_name = f"{calendar.month_name[now.month]}-{now.year}-{cluster_id}-{report_type}"
             expected_month_output_file = f"{os.getcwd()}/{month_output_file_name}.csv"
@@ -1170,7 +1170,7 @@ class OCPReportTestCase(TestCase):
         ocp_create_report(options)
 
         for report_type in OCP_REPORT_TYPE_TO_COLS.keys():
-            if "ocp_ros_usage" == report_type:
+            if report_type in ["ocp_ros_usage", "ocp_ros_namespace_usage"]:
                 continue
             month_output_file_name = f"{calendar.month_name[now.month]}-{now.year}-{cluster_id}-{report_type}"
             expected_month_output_file = f"{os.getcwd()}/{month_output_file_name}.csv"
@@ -1285,7 +1285,7 @@ class OCPReportTestCase(TestCase):
         ocp_create_report(options)
 
         for report_type in OCP_REPORT_TYPE_TO_COLS.keys():
-            if "ocp_ros_usage" == report_type:
+            if report_type in ["ocp_ros_usage", "ocp_ros_namespace_usage"]:
                 continue
             with self.subTest(report=report_type):
                 month_output_file_name = f"{calendar.month_name[now.month]}-{now.year}-{cluster_id}-{report_type}"
