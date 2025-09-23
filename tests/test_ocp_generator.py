@@ -985,10 +985,11 @@ class OCPGeneratorTestCase(TestCase):
             mock_randint.assert_called_once_with(30, 50)
 
     def test_ros_namespace_usage_columns_defined(self):
-        """Test that ROS namespace usage columns are properly defined."""
+        """Test that ROS namespace usage columns are properly defined in the correct order."""
         self.assertEqual(len(OCP_ROS_NAMESPACE_USAGE_COLUMN), 25)
 
-        expected_columns = [
+        # Expected columns in the exact order specified in the original requirements
+        expected_columns_in_order = (
             "report_period_start",
             "report_period_end",
             "interval_start",
@@ -1014,11 +1015,34 @@ class OCPGeneratorTestCase(TestCase):
             "namespace_running_pods_avg",
             "namespace_total_pods_max",
             "namespace_total_pods_avg",
-        ]
+        )
 
-        for column in expected_columns:
+        # Test 1: Verify exact order and length
+        self.assertEqual(OCP_ROS_NAMESPACE_USAGE_COLUMN, expected_columns_in_order)
+
+        # Test 2: Verify each column is present (redundant but explicit)
+        for column in expected_columns_in_order:
             with self.subTest(column=column):
                 self.assertIn(column, OCP_ROS_NAMESPACE_USAGE_COLUMN)
+
+        # Test 3: Verify specific column positions for key fields
+        key_positions = {
+            "namespace": 4,  # 5th position (0-indexed)
+            "cpu_request_namespace_sum": 5,  # 6th position
+            "memory_request_namespace_sum": 13,  # 14th position
+            "namespace_running_pods_max": 21,  # 22nd position
+            "namespace_total_pods_avg": 24,  # 25th position (last)
+        }
+
+        for column_name, expected_position in key_positions.items():
+            with self.subTest(column=column_name, position=expected_position):
+                actual_position = OCP_ROS_NAMESPACE_USAGE_COLUMN.index(column_name)
+                self.assertEqual(
+                    actual_position,
+                    expected_position,
+                    f"Column '{column_name}' should be at position {expected_position}, "
+                    f"but found at position {actual_position}",
+                )
 
     def test_init_with_ros_ocp_info(self):
         """Test that generator initializes correctly with ros_ocp_info enabled."""
@@ -1081,22 +1105,6 @@ class OCPGeneratorTestCase(TestCase):
         self.assertEqual(updated_row["cpu_request_namespace_sum"], 10.0)
         self.assertEqual(updated_row["memory_limit_namespace_sum"], 2048)
 
-    def test_debug_namespace_generation_simple(self):
-        """Debug test to verify basic namespace data generation."""
-        generator = OCPGenerator(self.two_hours_ago, self.now, {}, ros_ocp_info=True)
-
-        generator.ros_data = {"pod1": {"namespace": "testns", "cpu_request_container_sum": 1.0}}
-
-        result = generator._aggregate_namespace_data("testns", self.two_hours_ago, self.now)
-        self.assertEqual(result["namespace"], "testns")
-        self.assertEqual(result["cpu_request_namespace_sum"], 1.0)
-
-        from nise.generators.generator import REPORT_TYPE
-
-        row = generator._init_data_row(self.two_hours_ago, self.now, **{REPORT_TYPE: OCP_ROS_NAMESPACE_USAGE})
-        updated_row = generator._update_ros_ocp_namespace_data(row, self.two_hours_ago, self.now, namespace="testns")
-        self.assertEqual(updated_row["namespace"], "testns")
-
     def test_ocp_report_type_to_cols_includes_namespace_usage(self):
         """Test that OCP_REPORT_TYPE_TO_COLS includes namespace usage mapping."""
         from nise.generators.ocp.ocp_generator import OCP_REPORT_TYPE_TO_COLS
@@ -1104,3 +1112,58 @@ class OCPGeneratorTestCase(TestCase):
         self.assertIn(OCP_ROS_NAMESPACE_USAGE, OCP_REPORT_TYPE_TO_COLS)
 
         self.assertEqual(OCP_REPORT_TYPE_TO_COLS[OCP_ROS_NAMESPACE_USAGE], OCP_ROS_NAMESPACE_USAGE_COLUMN)
+
+    def test_gen_quarter_hourly_ros_ocp_namespace_usage_empty_ros_data(self):
+        """Test _gen_quarter_hourly_ros_ocp_namespace_usage with empty ros_data.
+
+        Verifies that an empty generator.ros_data results in no output
+        and no exceptions from _gen_quarter_hourly_ros_ocp_namespace_usage.
+        """
+        generator = OCPGenerator(self.two_hours_ago, self.now, {}, ros_ocp_info=True)
+
+        generator.ros_data = {}
+
+        results = list(generator._gen_quarter_hourly_ros_ocp_namespace_usage())
+
+        self.assertEqual(len(results), 0)
+        self.assertEqual(results, [])
+
+    def test_update_ros_ocp_namespace_data_missing_namespace_kwargs(self):
+        """Test _update_ros_ocp_namespace_data with missing namespace in kwargs.
+
+        Verifies that _update_ros_ocp_namespace_data handles the absence
+        of 'namespace' key in kwargs correctly.
+        """
+        generator = OCPGenerator(self.two_hours_ago, self.now, {}, ros_ocp_info=True)
+        row = {
+            "namespace": "",
+            "cpu_request_namespace_sum": 0,
+            "memory_limit_namespace_sum": 0,
+        }
+
+        generator.ros_data = {"pod1": {"namespace": "test-ns", "cpu_request_container_sum": 1.0}}
+
+        with patch.object(generator, "_aggregate_namespace_data", return_value={}) as mock_aggregate:
+            updated_row = generator._update_ros_ocp_namespace_data(row, self.two_hours_ago, self.now)
+
+            mock_aggregate.assert_called_once_with("", self.two_hours_ago, self.now)
+            self.assertEqual(updated_row["namespace"], "")
+            self.assertEqual(updated_row["cpu_request_namespace_sum"], 0)
+
+    def test_aggregate_namespace_data_no_pods_for_namespace(self):
+        """Test _aggregate_namespace_data when no pods exist for a namespace.
+
+        Verifies that _aggregate_namespace_data returns appropriate default values
+        when the namespace is missing from ros_data.
+        """
+        generator = OCPGenerator(self.two_hours_ago, self.now, {}, ros_ocp_info=True)
+
+        generator.ros_data = {
+            "pod1": {"namespace": "existing-namespace", "cpu_request_container_sum": 1.0},
+            "pod2": {"namespace": "existing-namespace", "memory_limit_container_sum": 2048},
+        }
+
+        result = generator._aggregate_namespace_data("non-existent-namespace", self.two_hours_ago, self.now)
+        self.assertIsInstance(result, dict)
+        self.assertEqual(result, {})
+        self.assertEqual(len(result), 0)

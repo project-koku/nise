@@ -35,6 +35,7 @@ from tempfile import gettempdir
 from tempfile import NamedTemporaryFile
 from tempfile import TemporaryDirectory
 from uuid import uuid4
+import logging
 
 import boto3
 import requests
@@ -954,6 +955,10 @@ def ocp_create_report(options):  # noqa: C901
                             month_num = datetime.strptime(month_name, "%B").month
                             yearmonth_part = f"{year}{month_num:02d}"
                         except ValueError:
+                            logging.warning(
+                                f"Filename format issue: could not parse month '{month_name}' in '{basename}'. "
+                                f"Falling back to current month/year."
+                            )
                             yearmonth_part = f"{year}{datetime.now().month:02d}"
                     else:
                         yearmonth_part = f"{datetime.now().year}{datetime.now().month:02d}"

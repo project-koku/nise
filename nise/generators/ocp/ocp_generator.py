@@ -1408,25 +1408,25 @@ class OCPGenerator(AbstractGenerator):
             "cpu_request_namespace_sum": cpu_request_sum,
             "cpu_limit_namespace_sum": cpu_limit_sum,
             "cpu_usage_namespace_avg": round(sum(cpu_usage_avgs) / len(cpu_usage_avgs), 5) if cpu_usage_avgs else 0,
-            "cpu_usage_namespace_max": max(cpu_usage_maxs) if cpu_usage_maxs else 0,
-            "cpu_usage_namespace_min": min(cpu_usage_mins) if cpu_usage_mins else 0,
+            "cpu_usage_namespace_max": max(cpu_usage_maxs, default=0),
+            "cpu_usage_namespace_min": min(cpu_usage_mins, default=0),
             "cpu_throttle_namespace_avg": round(sum(cpu_throttle_avgs) / len(cpu_throttle_avgs), 5)
             if cpu_throttle_avgs
             else 0,
-            "cpu_throttle_namespace_max": max(cpu_throttle_maxs) if cpu_throttle_maxs else 0,
-            "cpu_throttle_namespace_min": min(cpu_throttle_avgs) if cpu_throttle_avgs else 0,
+            "cpu_throttle_namespace_max": max(cpu_throttle_maxs, default=0),
+            "cpu_throttle_namespace_min": min(cpu_throttle_avgs, default=0),
             "memory_request_namespace_sum": memory_request_sum,
             "memory_limit_namespace_sum": memory_limit_sum,
-            "memory_usage_namespace_avg": round(sum(memory_usage_avgs) / len(memory_usage_avgs))
+            "memory_usage_namespace_avg": round(sum(memory_usage_avgs) / len(memory_usage_avgs), 5)
             if memory_usage_avgs
             else 0,
-            "memory_usage_namespace_max": max(memory_usage_maxs) if memory_usage_maxs else 0,
-            "memory_usage_namespace_min": min(memory_usage_mins) if memory_usage_mins else 0,
+            "memory_usage_namespace_max": max(memory_usage_maxs, default=0),
+            "memory_usage_namespace_min": min(memory_usage_mins, default=0),
             "memory_rss_usage_namespace_avg": round(sum(memory_rss_usage_avgs) / len(memory_rss_usage_avgs))
             if memory_rss_usage_avgs
             else 0,
-            "memory_rss_usage_namespace_max": max(memory_rss_usage_maxs) if memory_rss_usage_maxs else 0,
-            "memory_rss_usage_namespace_min": min(memory_rss_usage_mins) if memory_rss_usage_mins else 0,
+            "memory_rss_usage_namespace_max": max(memory_rss_usage_maxs, default=0),
+            "memory_rss_usage_namespace_min": min(memory_rss_usage_mins, default=0),
             "namespace_running_pods_max": running_pods,
             "namespace_running_pods_avg": running_pods,
             "namespace_total_pods_max": total_pods,
@@ -1442,8 +1442,7 @@ class OCPGenerator(AbstractGenerator):
             end = quarter_hour.get("end")
             unique_namespaces = set()
             for pod_data in self.ros_data.values():
-                namespace = pod_data.get("namespace")
-                if namespace:
+                if namespace := pod_data.get("namespace"):
                     unique_namespaces.add(namespace)
 
             # Generate data for each namespace
