@@ -203,15 +203,20 @@ OCP_ROS_NAMESPACE_USAGE_COLUMN = (
     "namespace_total_pods_max",
     "namespace_total_pods_avg",
 )
-OCP_REPORT_TYPE_TO_COLS = {
+COST_OCP_REPORT_TYPE_TO_COLS = {
     OCP_POD_USAGE: OCP_POD_USAGE_COLUMNS,
     OCP_STORAGE_USAGE: OCP_STORAGE_COLUMNS,
     OCP_NODE_LABEL: OCP_NODE_LABEL_COLUMNS,
     OCP_NAMESPACE_LABEL: OCP_NAMESPACE_LABEL_COLUMNS,
     OCP_VM_USAGE: OCP_VM_COLUMNS,
+}
+
+ROS_OCP_REPORT_TYPE_TO_COLS = {
     OCP_ROS_USAGE: OCP_ROS_USAGE_COLUMN,
     OCP_ROS_NAMESPACE_USAGE: OCP_ROS_NAMESPACE_USAGE_COLUMN,
 }
+
+OCP_REPORT_TYPE_TO_COLS = {**COST_OCP_REPORT_TYPE_TO_COLS, **ROS_OCP_REPORT_TYPE_TO_COLS}
 
 # No recommendations are generated for job and manual_pod workloads! Keep these two options as the last two items
 # in the dict to guarantee they are not randomly picked in get_owner_workload function.
@@ -1409,6 +1414,8 @@ class OCPGenerator(AbstractGenerator):
             "cpu_limit_namespace_sum": cpu_limit_sum,
             "cpu_usage_namespace_avg": round(sum(cpu_usage_avgs) / len(cpu_usage_avgs), 5) if cpu_usage_avgs else 0,
             "cpu_usage_namespace_max": max(cpu_usage_maxs, default=0),
+            # TODO: Consider using cpu_throttle_container_min (project-koku/koku-metrics-operator#705)
+            # once the next operator release makes it available.
             "cpu_usage_namespace_min": min(cpu_usage_mins, default=0),
             "cpu_throttle_namespace_avg": round(sum(cpu_throttle_avgs) / len(cpu_throttle_avgs), 5)
             if cpu_throttle_avgs

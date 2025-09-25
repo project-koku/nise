@@ -33,8 +33,12 @@ from nise.generators.ocp.ocp_generator import OCP_POD_USAGE
 from nise.generators.ocp.ocp_generator import OCP_POD_USAGE_COLUMNS
 from nise.generators.ocp.ocp_generator import OCP_ROS_NAMESPACE_USAGE
 from nise.generators.ocp.ocp_generator import OCP_ROS_NAMESPACE_USAGE_COLUMN
+from nise.generators.ocp.ocp_generator import OCP_ROS_USAGE
 from nise.generators.ocp.ocp_generator import OCP_STORAGE_COLUMNS
 from nise.generators.ocp.ocp_generator import OCP_STORAGE_USAGE
+from nise.generators.ocp.ocp_generator import OCP_REPORT_TYPE_TO_COLS
+from nise.generators.ocp.ocp_generator import COST_OCP_REPORT_TYPE_TO_COLS
+from nise.generators.ocp.ocp_generator import ROS_OCP_REPORT_TYPE_TO_COLS
 from nise.generators.ocp.ocp_generator import OCPGenerator
 
 MAX_VOL_GIGS = 100
@@ -1027,11 +1031,11 @@ class OCPGeneratorTestCase(TestCase):
 
         # Test 3: Verify specific column positions for key fields
         key_positions = {
-            "namespace": 4,  # 5th position (0-indexed)
-            "cpu_request_namespace_sum": 5,  # 6th position
-            "memory_request_namespace_sum": 13,  # 14th position
-            "namespace_running_pods_max": 21,  # 22nd position
-            "namespace_total_pods_avg": 24,  # 25th position (last)
+            "namespace": 4,
+            "cpu_request_namespace_sum": 5,
+            "memory_request_namespace_sum": 13,
+            "namespace_running_pods_max": 21,
+            "namespace_total_pods_avg": 24,
         }
 
         for column_name, expected_position in key_positions.items():
@@ -1106,12 +1110,22 @@ class OCPGeneratorTestCase(TestCase):
         self.assertEqual(updated_row["memory_limit_namespace_sum"], 2048)
 
     def test_ocp_report_type_to_cols_includes_namespace_usage(self):
-        """Test that OCP_REPORT_TYPE_TO_COLS includes namespace usage mapping."""
-        from nise.generators.ocp.ocp_generator import OCP_REPORT_TYPE_TO_COLS
-
+        """Test that OCP_REPORT_TYPE_TO_COLS includes namespace usage mapping and verify separation."""
+        # Test merged dictionary includes namespace usage
         self.assertIn(OCP_ROS_NAMESPACE_USAGE, OCP_REPORT_TYPE_TO_COLS)
-
         self.assertEqual(OCP_REPORT_TYPE_TO_COLS[OCP_ROS_NAMESPACE_USAGE], OCP_ROS_NAMESPACE_USAGE_COLUMN)
+
+        # Test separation: namespace usage should be in ROS dict, not in COST dict
+        self.assertIn(OCP_ROS_NAMESPACE_USAGE, ROS_OCP_REPORT_TYPE_TO_COLS)
+        self.assertNotIn(OCP_ROS_NAMESPACE_USAGE, COST_OCP_REPORT_TYPE_TO_COLS)
+
+        # Test that cost-related reports are in COST dict
+        self.assertIn(OCP_POD_USAGE, COST_OCP_REPORT_TYPE_TO_COLS)
+        self.assertIn(OCP_STORAGE_USAGE, COST_OCP_REPORT_TYPE_TO_COLS)
+
+        # Test that ROS reports are not in COST dict
+        self.assertNotIn(OCP_ROS_USAGE, COST_OCP_REPORT_TYPE_TO_COLS)
+        self.assertNotIn(OCP_ROS_NAMESPACE_USAGE, COST_OCP_REPORT_TYPE_TO_COLS)
 
     def test_gen_quarter_hourly_ros_ocp_namespace_usage_empty_ros_data(self):
         """Test _gen_quarter_hourly_ros_ocp_namespace_usage with empty ros_data.

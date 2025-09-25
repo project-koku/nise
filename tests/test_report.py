@@ -34,6 +34,7 @@ from dateutil.relativedelta import relativedelta
 
 from nise.__main__ import fix_dates
 from nise.generators.ocp.ocp_generator import OCP_REPORT_TYPE_TO_COLS
+from nise.generators.ocp.ocp_generator import ROS_OCP_REPORT_TYPE_TO_COLS
 from nise.report import _convert_bytes
 from nise.report import _create_generator_dates_from_yaml
 from nise.report import _create_month_list
@@ -1085,7 +1086,7 @@ class OCPReportTestCase(TestCase):
         ocp_create_report(options)
 
         for report_type in OCP_REPORT_TYPE_TO_COLS.keys():
-            if report_type in ["ocp_ros_usage", "ocp_ros_namespace_usage"]:
+            if report_type in ROS_OCP_REPORT_TYPE_TO_COLS:
                 continue
             month_output_file_name = f"{calendar.month_name[now.month]}-{now.year}-{cluster_id}-{report_type}"
             expected_month_output_file = f"{os.getcwd()}/{month_output_file_name}.csv"
@@ -1170,7 +1171,7 @@ class OCPReportTestCase(TestCase):
         ocp_create_report(options)
 
         for report_type in OCP_REPORT_TYPE_TO_COLS.keys():
-            if report_type in ["ocp_ros_usage", "ocp_ros_namespace_usage"]:
+            if report_type in ROS_OCP_REPORT_TYPE_TO_COLS:
                 continue
             month_output_file_name = f"{calendar.month_name[now.month]}-{now.year}-{cluster_id}-{report_type}"
             expected_month_output_file = f"{os.getcwd()}/{month_output_file_name}.csv"
@@ -1285,7 +1286,7 @@ class OCPReportTestCase(TestCase):
         ocp_create_report(options)
 
         for report_type in OCP_REPORT_TYPE_TO_COLS.keys():
-            if report_type in ["ocp_ros_usage", "ocp_ros_namespace_usage"]:
+            if report_type in ROS_OCP_REPORT_TYPE_TO_COLS:
                 continue
             with self.subTest(report=report_type):
                 month_output_file_name = f"{calendar.month_name[now.month]}-{now.year}-{cluster_id}-{report_type}"
