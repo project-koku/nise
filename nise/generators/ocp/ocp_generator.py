@@ -216,7 +216,7 @@ ROS_OCP_REPORT_TYPE_TO_COLS = {
     OCP_ROS_NAMESPACE_USAGE: OCP_ROS_NAMESPACE_USAGE_COLUMN,
 }
 
-OCP_REPORT_TYPE_TO_COLS = {**COST_OCP_REPORT_TYPE_TO_COLS, **ROS_OCP_REPORT_TYPE_TO_COLS}
+OCP_REPORT_TYPE_TO_COLS = COST_OCP_REPORT_TYPE_TO_COLS | ROS_OCP_REPORT_TYPE_TO_COLS
 
 # No recommendations are generated for job and manual_pod workloads! Keep these two options as the last two items
 # in the dict to guarantee they are not randomly picked in get_owner_workload function.
