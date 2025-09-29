@@ -33,6 +33,7 @@ import faker
 from dateutil.relativedelta import relativedelta
 
 from nise.__main__ import fix_dates
+from nise.generators.ocp.ocp_generator import COST_OCP_REPORT_TYPE_TO_COLS
 from nise.generators.ocp.ocp_generator import OCP_REPORT_TYPE_TO_COLS
 from nise.report import _convert_bytes
 from nise.report import _create_generator_dates_from_yaml
@@ -1084,9 +1085,7 @@ class OCPReportTestCase(TestCase):
         fix_dates(options, "ocp")
         ocp_create_report(options)
 
-        for report_type in OCP_REPORT_TYPE_TO_COLS.keys():
-            if "ocp_ros_usage" == report_type:
-                continue
+        for report_type in COST_OCP_REPORT_TYPE_TO_COLS:
             month_output_file_name = f"{calendar.month_name[now.month]}-{now.year}-{cluster_id}-{report_type}"
             expected_month_output_file = f"{os.getcwd()}/{month_output_file_name}.csv"
             self.assertTrue(os.path.isfile(expected_month_output_file))
@@ -1169,9 +1168,7 @@ class OCPReportTestCase(TestCase):
         fix_dates(options, "ocp")
         ocp_create_report(options)
 
-        for report_type in OCP_REPORT_TYPE_TO_COLS.keys():
-            if "ocp_ros_usage" == report_type:
-                continue
+        for report_type in COST_OCP_REPORT_TYPE_TO_COLS:
             month_output_file_name = f"{calendar.month_name[now.month]}-{now.year}-{cluster_id}-{report_type}"
             expected_month_output_file = f"{os.getcwd()}/{month_output_file_name}.csv"
             self.assertTrue(os.path.isfile(expected_month_output_file))
@@ -1284,9 +1281,7 @@ class OCPReportTestCase(TestCase):
         fix_dates(options, "ocp")
         ocp_create_report(options)
 
-        for report_type in OCP_REPORT_TYPE_TO_COLS.keys():
-            if "ocp_ros_usage" == report_type:
-                continue
+        for report_type in COST_OCP_REPORT_TYPE_TO_COLS:
             with self.subTest(report=report_type):
                 month_output_file_name = f"{calendar.month_name[now.month]}-{now.year}-{cluster_id}-{report_type}"
                 month_output_file_pt_1 = f"{month_output_file_name}-1"
