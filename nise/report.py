@@ -35,6 +35,7 @@ from tempfile import gettempdir
 from tempfile import NamedTemporaryFile
 from tempfile import TemporaryDirectory
 from uuid import uuid4
+import logging
 
 import boto3
 import requests
@@ -63,6 +64,7 @@ from nise.generators.azure import VMGenerator
 from nise.generators.azure import VNGenerator
 from nise.generators.gcp import CloudStorageGenerator
 from nise.generators.gcp import ComputeEngineGenerator
+from nise.generators.gcp import PersistentDiskGenerator
 from nise.generators.gcp import GCP_REPORT_COLUMNS
 from nise.generators.gcp import GCP_RESOURCE_COLUMNS
 from nise.generators.gcp import GCPDatabaseGenerator
@@ -70,6 +72,7 @@ from nise.generators.gcp import GCPNetworkGenerator
 from nise.generators.gcp import HCSGenerator
 from nise.generators.gcp import JSONLCloudStorageGenerator
 from nise.generators.gcp import JSONLComputeEngineGenerator
+from nise.generators.gcp import JSONLPersistentDiskGenerator
 from nise.generators.gcp import JSONLGCPDatabaseGenerator
 from nise.generators.gcp import JSONLGCPNetworkGenerator
 from nise.generators.gcp import JSONLHCSGenerator
@@ -80,6 +83,7 @@ from nise.generators.ocp import OCP_NODE_LABEL
 from nise.generators.ocp import OCP_POD_USAGE
 from nise.generators.ocp import OCP_REPORT_TYPE_TO_COLS
 from nise.generators.ocp import OCP_ROS_USAGE
+from nise.generators.ocp import OCP_ROS_NAMESPACE_USAGE
 from nise.generators.ocp import OCP_STORAGE_USAGE
 from nise.generators.ocp import OCP_VM_USAGE
 from nise.generators.ocp import OCPGenerator
@@ -825,7 +829,8 @@ def azure_create_report(options):  # noqa: C901
 
 
 def write_ocp_file(file_number, cluster_id, month_name, year, report_type, data):
-    """Write OCP data to a file."""
+    """Write OCP data to a file with unified standard naming format."""
+    # Standard filename format for all report types
     if file_number != 0:
         file_name = f"{month_name}-{year}-{cluster_id}-{report_type}-{str(file_number)}"
     else:
@@ -833,7 +838,6 @@ def write_ocp_file(file_number, cluster_id, month_name, year, report_type, data)
 
     full_file_name = f"{os.getcwd()}/{file_name}.csv"
     _write_csv(full_file_name, data, OCP_REPORT_TYPE_TO_COLS[report_type])
-
     return full_file_name
 
 
@@ -871,8 +875,8 @@ def ocp_create_report(options):  # noqa: C901
             OCP_VM_USAGE: 0,
         }
         if ros_ocp_info:
-            data.update({OCP_ROS_USAGE: []})
-            file_numbers.update({OCP_ROS_USAGE: 0})
+            data.update({OCP_ROS_USAGE: [], OCP_ROS_NAMESPACE_USAGE: []})
+            file_numbers.update({OCP_ROS_USAGE: 0, OCP_ROS_NAMESPACE_USAGE: 0})
         monthly_files = []
         monthly_ros_files = []
         for generator in generators:
@@ -919,7 +923,7 @@ def ocp_create_report(options):  # noqa: C901
                 report_type,
                 data[report_type],
             )
-            if report_type == OCP_ROS_USAGE:
+            if report_type in (OCP_ROS_USAGE, OCP_ROS_NAMESPACE_USAGE):
                 monthly_ros_files.append(month_output_file)
             else:
                 monthly_files.append(month_output_file)
@@ -934,8 +938,35 @@ def ocp_create_report(options):  # noqa: C901
                 temp_filename = f"{ocp_assembly_id}_openshift_report.{num_file}.csv"
                 temp_files[temp_filename] = create_temporary_copy(monthly_files[num_file], temp_filename, "payload")
 
+            # Continue numbering from where regular files left off
+            total_file_count = len(monthly_files)
             for num_file in range(len(monthly_ros_files)):
-                temp_filename = f"{ocp_assembly_id}_openshift_report.{num_file + len(monthly_files)}.csv"
+                original_file = monthly_ros_files[num_file]
+                current_file_number = total_file_count + num_file
+
+                # Check if this is a namespace file (contains 'ocp_ros_namespace_usage')
+                if "ocp_ros_namespace_usage" in original_file:
+                    basename = os.path.basename(original_file)
+                    parts = basename.split("-")
+                    if len(parts) >= 2:
+                        month_name = parts[0]
+                        year = parts[1]
+                        try:
+                            month_num = datetime.strptime(month_name, "%B").month
+                            yearmonth_part = f"{year}{month_num:02d}"
+                        except ValueError:
+                            logging.warning(
+                                f"Filename format issue: could not parse month '{month_name}' in '{basename}'. "
+                                f"Falling back to current month/year."
+                            )
+                            yearmonth_part = f"{year}{datetime.now().month:02d}"
+                    else:
+                        yearmonth_part = f"{datetime.now().year}{datetime.now().month:02d}"
+                    temp_filename = (
+                        f"{ocp_assembly_id}-ros-openshift-namespace-{yearmonth_part}.{current_file_number}.csv"
+                    )
+                else:
+                    temp_filename = f"{ocp_assembly_id}_openshift_report.{current_file_number}.csv"
                 temp_ros_files[temp_filename] = create_temporary_copy(
                     monthly_ros_files[num_file], temp_filename, "payload"
                 )
@@ -1112,6 +1143,7 @@ def gcp_create_report(options):  # noqa: C901
             generators = [
                 {"generator": JSONLCloudStorageGenerator, "attributes": {}},
                 {"generator": JSONLComputeEngineGenerator, "attributes": {}},
+                {"generator": JSONLPersistentDiskGenerator, "attributes": {}},
                 {"generator": JSONLGCPNetworkGenerator, "attributes": {}},
                 {"generator": JSONLGCPDatabaseGenerator, "attributes": {}},
                 {"generator": JSONLHCSGenerator, "attributes": {}},
@@ -1139,6 +1171,7 @@ def gcp_create_report(options):  # noqa: C901
     else:
         generators = [
             {"generator": CloudStorageGenerator, "attributes": {}},
+            {"generator": PersistentDiskGenerator, "attributes": {}},
             {"generator": ComputeEngineGenerator, "attributes": {}},
             {"generator": GCPNetworkGenerator, "attributes": {}},
             {"generator": GCPDatabaseGenerator, "attributes": {}},
@@ -1177,14 +1210,18 @@ def gcp_create_report(options):  # noqa: C901
                 )
                 for count, generator in enumerate(generators):
                     attributes = generator.get("attributes", {})
+
                     if attributes:
-                        start_date = attributes.get("start_date", start_date)
-                        end_date = attributes.get("end_date", end_date)
                         currency = default_currency(options.get("currency"), attributes.get("currency"))
+                        if attributes.get("start_date"):
+                            # Skip if generator usage is outside of current month
+                            if attributes.get("end_date") < month.get("start"):
+                                continue
+                            if attributes.get("start_date") > month.get("end").replace(hour=23):
+                                continue
+                            gen_start_date, gen_end_date = _create_generator_dates_from_yaml(attributes, month)
                     else:
                         currency = default_currency(options.get("currency"), None)
-                    if gen_end_date > end_date:
-                        gen_end_date = end_date
                     attributes["resource_level"] = resource_level
 
                     generator_cls = generator.get("generator")
@@ -1195,10 +1232,12 @@ def gcp_create_report(options):  # noqa: C901
                     if count % ten_percent == 0:
                         LOG.info(f"Done with {count} of {num_gens} generators.")
 
-            local_file_path, output_file_name = write_gcp_file(gen_start_date, gen_end_date, data, options)
-            output_files.append(output_file_name)
-            if local_file_path not in monthly_files:
-                monthly_files.append(local_file_path)
+            # prevent generation of empty reports
+            if data:
+                local_file_path, output_file_name = write_gcp_file(gen_start_date, gen_end_date, data, options)
+                output_files.append(output_file_name)
+                if local_file_path not in monthly_files:
+                    monthly_files.append(local_file_path)
 
         for index, month_file in enumerate(monthly_files):
             if gcp_bucket_name:

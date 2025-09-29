@@ -20,10 +20,12 @@ import datetime
 import json
 import string
 from abc import abstractmethod
-from datetime import timedelta
+from dateutil.relativedelta import relativedelta
 from random import choice
 from random import randint
 from random import uniform
+import calendar
+from nise.util.constants import SECONDS_IN_HOUR
 
 from nise.generators.generator import AbstractGenerator
 
@@ -84,6 +86,60 @@ GCP_REPORT_COLUMNS_JSONL = (
 GCP_INSTANCE_TYPES = ("e2-medium", "n1-standard-4", "m2-megamem-416", "a2-highgpu-1g")
 
 
+def apply_different_invoice_month(row, invoice_shift):
+    """
+    Adjusts the invoice month of a data row by a given month shift.
+
+    This function handles two possible data structures for the invoice month:
+    1. A flat key: `{"invoice.month": "202509", ...}`
+    2. A nested dictionary: `{"invoice": {"month": "202509"}, ...}`
+
+    It creates a copy of the row, finds the month, applies the shift, and
+    updates the row while preserving the original structure.
+
+    Args:
+        row (dict): The data row containing invoice information.
+        invoice_shift (int): The number of months to shift. Can be positive
+                             (for future months) or negative (for past months).
+
+    Returns:
+        dict: A new dictionary with the adjusted invoice month. If the invoice
+              month cannot be found or is malformed, it returns an unmodified
+              copy of the original row.
+    """
+    new_row = row.copy()
+    if invoice_month := new_row.get("invoice.month"):
+        invoice_month_date_object = datetime.datetime.strptime(invoice_month, "%Y%m")
+    elif invoice_dict := new_row.get("invoice"):
+        invoice_month_date_object = datetime.datetime.strptime(invoice_dict["month"], "%Y%m")
+    else:
+        return new_row
+
+    adjusted_date = invoice_month_date_object + relativedelta(months=invoice_shift)
+    adjusted_month = adjusted_date.strftime("%Y%m")
+    if "invoice.month" in new_row:
+        new_row["invoice.month"] = adjusted_month
+    elif "invoice" in new_row:
+        new_row["invoice"] = {"month": adjusted_month}
+    return new_row
+
+
+def get_months_in_range(start_date, end_date):
+    """
+    Generates a list of all months between a start and end date, inclusive.
+    """
+
+    months = []
+    current_date = start_date.date().replace(day=1)
+    end_month_start = end_date.date().replace(day=1)
+
+    while current_date <= end_month_start:
+        months.append(current_date)
+        current_date += relativedelta(months=1)
+
+    return months
+
+
 class GCPGenerator(AbstractGenerator):
     """Abstract class for GCP generators."""
 
@@ -100,23 +156,29 @@ class GCPGenerator(AbstractGenerator):
         super().__init__(start_date, end_date)
         self.project = project
         self.num_instances = 1 if attributes else randint(2, 60)
-        self.attributes = attributes
+        self.attributes = attributes or {}
         self.resource_level = self.attributes.get("resource_level", False)
         self.column_labels = GCP_REPORT_COLUMNS + GCP_RESOURCE_COLUMNS if self.resource_level else GCP_REPORT_COLUMNS
         self.return_list = False
-        self.currency = currency
-        # class vars to be set by the child classes based off attributes.
-        self._resource_name = None
-        self._resource_global_name = None
-        self._labels = None
-        self._usage_amount = None
-        self._pricing_amount = None
-        self._price = None
+        self._usage_amount = self.attributes.get("usage.amount")
+        self._labels = self.attributes.get("labels")
+        self._pricing_amount = self.attributes.get("usage.amount_in_pricing_units")
+        self._price = self.attributes.get("price")
+        self._credit_amount = self.attributes.get("credit_amount")
+        self._resource_name = self.attributes.get("resource.name")
+        self._resource_global_name = self.attributes.get("resource.global_name")
+        self._service = self.attributes.get("service.description")
+        self._cross_over_metadata = self.attributes.get("cross_over", {})
+        self._instance_type = self.attributes.get("instance_type", choice(GCP_INSTANCE_TYPES))
+        self._currency = self.attributes.get("currency", currency)
         self._sku = None
-        self._instance_type = choice(GCP_INSTANCE_TYPES)
-        self._service = None
-        self._credit_amount = None
-        self._currency = currency
+
+    @property
+    def project_id(self):
+        if proj_id := self.project.get("project.id"):
+            return proj_id
+        if proj_id := self.project.get("id"):
+            return proj_id
 
     @staticmethod
     def _create_days_list(start_date, end_date):
@@ -183,7 +245,7 @@ class GCPGenerator(AbstractGenerator):
         if usage_unit == "bytes":
             return self.fake.pyint(min_value=1000, max_value=10000000)
         if usage_unit == "seconds":
-            return self.fake.pyfloat(max_value=3600, positive=True)
+            return self.fake.pyfloat(max_value=SECONDS_IN_HOUR, positive=True)
         return 0
 
     def _gen_pricing_unit_amount(self, pricing_unit, amount):
@@ -197,7 +259,7 @@ class GCPGenerator(AbstractGenerator):
         if pricing_unit == "gibibyte":
             return amount * (9.31323 * 10**-0)
         if pricing_unit == "hour":
-            return amount / 3600.00
+            return amount / SECONDS_IN_HOUR
         return 0
 
     def _gen_cost(self, pricing_amount):
@@ -206,23 +268,6 @@ class GCPGenerator(AbstractGenerator):
             return pricing_amount * self._price
         else:
             return round(uniform(0, 0.01), 7)
-
-    def _gcp_find_invoice_months_in_date_range(self):
-        """Finds all the invoice months in a given date range.
-        GCP invoice month format is {year}{month}.
-        Ex. 202011
-        Returns:
-            List of invoice months.
-        """
-        # Add a little buffer to end date for beginning of the month
-        # searches for invoice_month for dates < end_date
-        end_range = self.end_date + timedelta(1)
-        invoice_months = []
-        for day in range((end_range - self.start_date).days):
-            invoice_month = (self.start_date + timedelta(day)).strftime("%Y%m")
-            if invoice_month not in invoice_months:
-                invoice_months.append(invoice_month)
-        return invoice_months
 
     def _gen_credit(self, credit_amount, json_return=False):
         """Generate the credit dict based off the hourly credit_amount."""
@@ -285,18 +330,15 @@ class GCPGenerator(AbstractGenerator):
         else:
             return json.dumps(label_format)
 
-    def _generate_resource(self, resource_name=None, resource_global_name=None, region=None):
-        name = resource_name
-        global_name = resource_global_name
-        proj_id = self.project.get("project.id")
-        if proj_id is None:
-            proj_id = self.project.get("id")
-        if not name:
+    def _generate_resource(self, region=None):
+        name = self._resource_name
+        global_name = self._resource_global_name
+        if not self._resource_name:
             name = self.fake.word()
-            name = f"projects/{proj_id}/instances/{name}"
-        if not global_name:
+            name = f"projects/{self.project_id}/instances/{name}"
+        if not self._resource_global_name:
             id = "".join([choice(string.digits) for _ in range(19)])
-            global_name = f"//compute.googleapis.com/projects/{proj_id}/zones/{region}/instances/{id}"
+            global_name = f"//compute.googleapis.com/projects/{self.project_id}/zones/{region}/instances/{id}"
         return {"name": name, "global_name": global_name}
 
     def _add_common_usage_info(self, row, start, end, **kwargs):
@@ -306,11 +348,111 @@ class GCPGenerator(AbstractGenerator):
     def _update_data(self, row, start, end, **kwargs):
         """Update a data row."""
 
+    def _is_invoice_shift_applicable_to_month(self, month_to_check_start):
+        """
+        Determines if the cross-over logic applies to a specific month.
+
+        Args:
+            month_to_check_start (datetime.date): The first day of the month to check.
+
+        Returns:
+            bool: True if the invoice shift logic should be applied, False otherwise.
+        """
+        now = datetime.datetime.now(datetime.UTC)
+        month_setting = self._cross_over_metadata.get("month", "all")
+
+        if month_setting == "current":
+            current_month_start = now.date().replace(day=1)
+            is_applicable_this_month = month_to_check_start == current_month_start
+        elif month_setting == "previous":
+            previous_month_start = (now - relativedelta(months=1)).date().replace(day=1)
+            is_applicable_this_month = month_to_check_start == previous_month_start
+        else:
+            is_applicable_this_month = True
+        return is_applicable_this_month
+
+    def _get_day_to_shift_map(self, cross_over_day_specifiers, start_dt, end_dt):
+        """
+        Calculates the map of days to invoice shifts based on cross-over settings.
+        """
+        day_to_shift_map = {}
+        if not cross_over_day_specifiers:
+            return day_to_shift_map
+
+        # Get list of all months generated in current batch
+        months_in_data = get_months_in_range(start_dt, end_dt)
+
+        # Check which of those months the invoice shift is applicable to
+        months_to_shift = [month for month in months_in_data if self._is_invoice_shift_applicable_to_month(month)]
+
+        # Build a mapping of {month: {day_of_month: invoice_month_shift}}
+        for month in months_to_shift:
+            month_key = month.month
+            day_to_shift_map[month_key] = {}
+            _, num_days_in_month = calendar.monthrange(month.year, month_key)
+
+            # A shift of -1 moves the cost to the previous month's invoice.
+            # A shift of +1 moves the cost to the next month's invoice.
+            for day in cross_over_day_specifiers:
+                if day > 0:  # Day is from the start of the month
+                    day_to_shift_map[month_key][day] = -1
+                else:  # Day is from the end of the month
+                    day_from_start = num_days_in_month + day + 1
+                    day_to_shift_map[month_key][day_from_start] = 1
+
+        return day_to_shift_map
+
     def _generate_hourly_data(self, **kwargs):
-        """Not needed for GCP."""
+        """
+        Generates hourly cost data, applying invoice date shifts for specific days.
+
+        This generator function iterates through hourly usage data. For specific days
+        defined in the 'cross_over' configuration, it can shift the cost to the
+        invoice of the previous or next month. This is useful for simulating billing
+        scenarios where costs incurred at the very beginning or end of a month are
+        billed in an adjacent month.
+
+        The behavior is controlled by `self._cross_over_metadata` (from YAML):
+        - `month` (str): 'current', 'previous', or 'all'. Determines to which month(s)
+                         the cross-over logic should apply. Defaults to 'all'.
+        - `days` (list[int]): A list of day specifiers.
+                            - Positive numbers (e.g., 2) shift costs to the *previous* month.
+                            - Negative numbers (e.g., -1 for the last day) count from the end of the month and shift
+                            costs to the *next* month.
+        - `overwrite` (bool): If True, the original cost entry is replaced by the
+                              shifted one. If False, the original is kept, and a new
+                              shifted entry is also created.
+
+        Note:
+            This function assumes that all data in `self.hours` belongs to the
+            same calendar month. Behavior is undefined if hours span a month boundary.
+        """
+
+        if not self.hours:
+            return
+
+        # --- 1. Initialization and Setup ---
+        overwrite = self._cross_over_metadata.get("overwrite", False)
+        cross_over_day_specifiers = self._cross_over_metadata.get("days", [])
+
+        # --- 2. Calculate Invoice Shifts  ---
+        start_dt = self.hours[0].get("start")
+        end_dt = self.hours[-1].get("start")
+        day_to_shift_map = self._get_day_to_shift_map(cross_over_day_specifiers, start_dt, end_dt)
+
+        # --- 3. Process Each Hour, Applying Invoice Shifts Where Necessary ---
         for hour in self.hours:
-            start = hour.get("start")
-            end = hour.get("end")
+            start, end = hour.get("start"), hour.get("end")
             row = self._init_data_row(start, end)
             row = self._update_data(row)
+
+            # Check if the current day has a defined shift
+            if shift_direction := day_to_shift_map.get(start.month, {}).get(start.day):
+                # This is a cross-over day, so yield the modified row.
+                yield apply_different_invoice_month(row, shift_direction)
+                if overwrite:
+                    # If overwriting, skip yielding the original row.
+                    continue
+
+            # Yield the original row (always, unless it was overwritten).
             yield row

@@ -45,26 +45,11 @@ class GCPDatabaseGenerator(GCPGenerator):
     def __init__(self, start_date, end_date, currency, project, attributes=None):  # noqa: C901
         """Initialize the cloud storage generator."""
         super().__init__(start_date, end_date, currency, project, attributes)
-        self._currency = currency
         if self.attributes:
-            if self.attributes.get("labels"):
-                self._labels = self.attributes.get("labels")
-            if self.attributes.get("usage.amount"):
-                self._usage_amount = self.attributes.get("usage.amount")
-            if self.attributes.get("usage.amount_in_pricing_units"):
-                self._pricing_amount = self.attributes.get("usage.amount_in_pricing_units")
-            if self.attributes.get("price"):
-                self._price = self.attributes.get("price")
             if self.attributes.get("service.description"):
                 for service in self.SERVICE:
                     if self.attributes.get("service.description").lower() == service[0].lower():
                         self._service = service
-            if self.attributes.get("credit_amount"):
-                self._credit_amount = self.attributes.get("credit_amount")
-            if self.attributes.get("resource.name"):
-                self._resource_name = self.attributes.get("resource.name")
-            if self.attributes.get("resource.global_name"):
-                self._resource_global_name = self.attributes.get("resource.global_name")
 
     def _update_data(self, row):  # noqa: C901
         """Update a data row with compute values."""
@@ -99,9 +84,7 @@ class GCPDatabaseGenerator(GCPGenerator):
         row["currency"] = self._currency
         row["labels"] = self.determine_labels(self.LABELS)
         if self.resource_level:
-            resource = self._generate_resource(
-                self._resource_name, self._resource_global_name, self.project.get("region")
-            )
+            resource = self._generate_resource(self.project.get("region"))
             row["resource.name"] = resource.get("name")
             row["resource.global_name"] = resource.get("global_name")
 

@@ -54,7 +54,6 @@ include = [
 
 [tool.hatch.build.targets.wheel.force-include]
 "nise/aws-template-manifest.json" = "nise/aws-template-manifest.json"
-"nise/yaml_generators/static" = "nise/yaml_generators/static"
 
 [tool.hatch.build.targets.sdist]
 include = [
