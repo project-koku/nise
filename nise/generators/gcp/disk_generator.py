@@ -175,7 +175,6 @@ class JSONLPersistentDiskGenerator(PersistentDiskGenerator):
         row["invoice"] = {"month": datetime.strptime(row.get("usage_start_time")[:7], "%Y-%m").strftime("%Y%m")}
         row["resource"] = {"name": self._resource_name, "global_name": self._resource_global_name}
         row["currency"] = self._currency
-        row["labels"] = self.determine_labels(self.LABELS)
         row["system_labels"] = []
         if self.attributes:
             for key in self.attributes:
@@ -184,6 +183,8 @@ class JSONLPersistentDiskGenerator(PersistentDiskGenerator):
                 elif key.split(".")[0] in self.column_labels:
                     outer_key, inner_key = key.split(".")
                     row[outer_key][inner_key] = self.attributes[key]
+        row["labels"] = self.determine_labels(self.LABELS)
+
         return row
 
     def generate_data(self, report_type=None):
