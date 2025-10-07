@@ -802,8 +802,6 @@ class TestGCPGenerator(TestCase):
         self.assertIn(generator.region, generator.DEFAULT_REGIONS)
         self.assertIn(generator.sku_id, generator.SKU_DESCRIPTION.keys())
         self.assertIsNotNone(generator.usage_amount)
-        self.assertIsNotNone(generator.usage_in_pricing_units)
-        self.assertIsNotNone(generator.cost)
 
     def test_persistent_disk_custom_properties(self):
         """Test custom properties for Persistent Disk."""
@@ -833,8 +831,6 @@ class TestGCPGenerator(TestCase):
         expected_bytes = 100 * (1024**3)
         expected_usage = expected_bytes * 3600
         self.assertEqual(generator.usage_amount, expected_usage)
-        self.assertIsInstance(generator.usage_in_pricing_units, float)
-        self.assertGreater(generator.usage_in_pricing_units, 0)
 
     def test_persistent_disk_sku_descriptions(self):
         """Test SKU descriptions mapping for Persistent Disk."""

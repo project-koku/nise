@@ -101,17 +101,11 @@ class PersistentDiskGenerator(GCPGenerator):
         # Added as cached property to avoid recalculating per row
         return gcp_calculate_persistent_disk_usage_amount(self.capacity)
 
-    @cached_property
-    def usage_in_pricing_units(self):
-        # Added to cache property to avoid recalculating per row
-        return gcp_calculate_usage_amount_in_pricing(self.start_date, self.usage_amount)
-
-    @cached_property
-    def cost(self):
-        return self.usage_in_pricing_units * self._price
-
     def _update_data(self, row):  # noqa: C901
         """Update a data row with compute values."""
+        usage_date = datetime.strptime(row.get("usage_start_time"), "%Y-%m-%dT%H:%M:%S")
+        usage_in_pricing_units = gcp_calculate_usage_amount_in_pricing(usage_date, self.usage_amount)
+        cost = usage_in_pricing_units * self._price
         row["service.description"] = self.SERVICE
         row["service.id"] = self.SERVICE_ID
         row["sku.id"] = self.sku_id
@@ -121,10 +115,9 @@ class PersistentDiskGenerator(GCPGenerator):
         row["cost_type"] = "regular"
         row["currency_conversion_rate"] = 1
         row["usage.amount"] = self.usage_amount
-        row["usage.amount_in_pricing_units"] = self.usage_in_pricing_units
-        row["cost"] = self.cost
+        row["usage.amount_in_pricing_units"] = usage_in_pricing_units
+        row["cost"] = cost
         row["credits"] = self._gen_credit(self._credit_amount)
-        usage_date = datetime.strptime(row.get("usage_start_time")[:7], "%Y-%m")
         row["invoice.month"] = f"{usage_date.year}{usage_date.month:02d}"
 
         if self.attributes:
@@ -157,6 +150,10 @@ class JSONLPersistentDiskGenerator(PersistentDiskGenerator):
 
     def _update_data(self, row):  # noqa: C901
         """Update a data row with compute values."""
+        usage_date = datetime.strptime(row.get("usage_start_time"), "%Y-%m-%dT%H:%M:%S")
+        usage_in_pricing_units = gcp_calculate_usage_amount_in_pricing(usage_date, self.usage_amount)
+        cost = usage_in_pricing_units * self._price
+
         row["service"] = {"description": self.SERVICE, "id": self.SERVICE_ID}
         row["sku"] = {
             "id": self.sku_id,
@@ -166,9 +163,9 @@ class JSONLPersistentDiskGenerator(PersistentDiskGenerator):
             "unit": self.USAGE_UNIT,
             "pricing_unit": self.PRICING_UNIT,
             "amount": self.usage_amount,
-            "amount_in_pricing_units": self.usage_in_pricing_units,
+            "amount_in_pricing_units": usage_in_pricing_units,
         }
-        row["cost"] = self.cost
+        row["cost"] = cost
         row["credits"] = self._gen_credit(self._credit_amount, json_return=True)
         row["cost_type"] = "regular"
         row["currency_conversion_rate"] = 1
