@@ -70,4 +70,3 @@ generators:
                     - gpu:
                       gpu_model: "H100"
                       gpu_memory_capacity_mib: 81920
-
