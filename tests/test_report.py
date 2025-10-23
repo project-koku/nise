@@ -1243,6 +1243,9 @@ class OCPReportTestCase(TestCase):
                                                 "cpu_limit": 5,
                                                 "mem_limit_gig": 2,
                                                 "pod_seconds": 3600,
+                                                "gpus": [
+                                                    {"gpu_model": "A100", "gpu_memory_capacity_mib": 40960},
+                                                ],
                                             }
                                         ],
                                         "volumes": [
@@ -1310,6 +1313,95 @@ class OCPReportTestCase(TestCase):
                             os.remove(fname)
 
         shutil.rmtree(local_insights_upload)
+
+    def test_ocp_create_report_with_gpu(self):
+        """Test OCP GPU report creation."""
+        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
+        one_day = datetime.timedelta(days=1)
+        yesterday = now - one_day
+        cluster_id = "11112222-3333-4444-5555-666677778888"
+
+        gpu_static_data = {
+            "generators": [
+                {
+                    "OCPGenerator": {
+                        "start_date": yesterday.isoformat(),
+                        "end_date": now.isoformat(),
+                        "nodes": [
+                            {
+                                "node_name": "gpu-test-node",
+                                "cpu_cores": 16,
+                                "memory_gig": 64,
+                                "namespaces": {
+                                    "gpu-test-namespace": {
+                                        "pods": [
+                                            {
+                                                "pod_name": "gpu-test-pod",
+                                                "cpu_request": 4,
+                                                "mem_request_gig": 16,
+                                                "cpu_limit": 8,
+                                                "mem_limit_gig": 32,
+                                                "pod_seconds": 3600,
+                                                "gpus": [
+                                                    {"gpu_model": "Tesla T4", "gpu_memory_capacity_mib": 15360},
+                                                ],
+                                            }
+                                        ]
+                                    }
+                                },
+                            }
+                        ],
+                    }
+                }
+            ]
+        }
+
+        options = {
+            "start_date": yesterday,
+            "end_date": now,
+            "ocp_cluster_id": cluster_id,
+            "static_report_data": gpu_static_data,
+            "write_monthly": True,
+        }
+        fix_dates(options, "ocp")
+        ocp_create_report(options)
+
+        # Check that GPU usage file was created
+        month_name = yesterday.strftime("%B")
+        year = yesterday.year
+        expected_gpu_file = f"{month_name}-{year}-{cluster_id}-ocp_gpu_usage.csv"
+        expected_gpu_path = f"{os.getcwd()}/{expected_gpu_file}"
+
+        self.assertTrue(os.path.isfile(expected_gpu_path))
+
+        # Verify the GPU file has correct data
+        with open(expected_gpu_path) as f:
+            reader = csv.DictReader(f)
+            rows = list(reader)
+            self.assertGreater(len(rows), 0)
+            for row in rows:
+                self.assertEqual(row["node"], "gpu-test-node")
+                self.assertEqual(row["namespace"], "gpu-test-namespace")
+                self.assertEqual(row["pod"], "gpu-test-pod")
+                self.assertEqual(row["gpu_model_name"], "Tesla T4")
+                self.assertEqual(row["gpu_memory_capacity_mib"], "15360")
+                self.assertEqual(row["gpu_vendor_name"], "nvidia_com_gpu")
+                self.assertIn("GPU-", row["gpu_uuid"])
+                self.assertGreater(float(row["gpu_pod_uptime"]), 0)
+
+        # Clean up
+        os.remove(expected_gpu_path)
+        # Also remove other OCP files that were created
+        for report_type in [
+            "ocp_pod_usage",
+            "ocp_storage_usage",
+            "ocp_node_label",
+            "ocp_namespace_label",
+            "ocp_vm_usage",
+        ]:
+            file_path = f"{os.getcwd()}/{month_name}-{year}-{cluster_id}-{report_type}.csv"
+            if os.path.isfile(file_path):
+                os.remove(file_path)
 
 
 class AzureReportTestCase(TestCase):

@@ -177,6 +177,7 @@ class OCPGenerator(Generator):
                         mem_limit_gig=mem_lim,
                         pod_seconds=pod_sec,
                         labels=pod_labels,
+                        gpus=[],  # Will be populated when GPUs are specified in YAML
                     )
                     namespace.pods.append(pod)
 

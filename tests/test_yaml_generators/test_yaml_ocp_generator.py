@@ -88,7 +88,16 @@ class OCPGeneratorTestCase(TestCase):
             node_keys = sorted(["name", "cpu_cores", "memory_gig", "resource_id", "namespaces"])
             namespace_keys = sorted(["name", "pods", "volumes"])
             pod_keys = sorted(
-                ["name", "cpu_request", "mem_request_gig", "cpu_limit", "mem_limit_gig", "pod_seconds", "labels"]
+                [
+                    "name",
+                    "cpu_request",
+                    "mem_request_gig",
+                    "cpu_limit",
+                    "mem_limit_gig",
+                    "pod_seconds",
+                    "labels",
+                    "gpus",
+                ]
             )
             volume_keys = sorted(["name", "storage_class", "volume_request_gig", "labels", "volume_claims"])
             volume_claim_keys = sorted(["name", "pod_name", "labels", "capacity_gig"])

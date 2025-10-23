@@ -16,6 +16,7 @@
 #
 """Module for ocp data generators."""
 
+from nise.generators.ocp.ocp_generator import OCP_GPU_USAGE  # noqa: F401
 from nise.generators.ocp.ocp_generator import OCP_NAMESPACE_LABEL  # noqa: F401
 from nise.generators.ocp.ocp_generator import OCP_NODE_LABEL  # noqa: F401
 from nise.generators.ocp.ocp_generator import OCP_POD_USAGE  # noqa: F401

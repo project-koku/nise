@@ -27,6 +27,10 @@ from unittest.mock import patch
 from faker import Faker
 
 from nise.generators.ocp.ocp_generator import GIGABYTE
+from nise.generators.ocp.ocp_generator import GPU_MODELS
+from nise.generators.ocp.ocp_generator import GPU_VENDOR
+from nise.generators.ocp.ocp_generator import OCP_GPU_USAGE
+from nise.generators.ocp.ocp_generator import OCP_GPU_USAGE_COLUMNS
 from nise.generators.ocp.ocp_generator import OCP_NODE_LABEL
 from nise.generators.ocp.ocp_generator import OCP_NODE_LABEL_COLUMNS
 from nise.generators.ocp.ocp_generator import OCP_POD_USAGE
@@ -1181,3 +1185,202 @@ class OCPGeneratorTestCase(TestCase):
         self.assertIsInstance(result, dict)
         self.assertEqual(result, {})
         self.assertEqual(len(result), 0)
+
+    def test_gpu_usage_columns_defined(self):
+        """Test that GPU usage columns are properly defined."""
+        self.assertEqual(len(OCP_GPU_USAGE_COLUMNS), 12)
+        expected_columns = (
+            "report_period_start",
+            "report_period_end",
+            "interval_start",
+            "interval_end",
+            "node",
+            "namespace",
+            "pod",
+            "gpu_uuid",
+            "gpu_model_name",
+            "gpu_vendor_name",
+            "gpu_memory_capacity_mib",
+            "gpu_pod_uptime",
+        )
+        self.assertEqual(OCP_GPU_USAGE_COLUMNS, expected_columns)
+
+    def test_gpu_usage_in_report_type_to_cols(self):
+        """Test that GPU usage is in the report type mapping."""
+        self.assertIn(OCP_GPU_USAGE, OCP_REPORT_TYPE_TO_COLS)
+        self.assertEqual(OCP_REPORT_TYPE_TO_COLS[OCP_GPU_USAGE], OCP_GPU_USAGE_COLUMNS)
+        self.assertIn(OCP_GPU_USAGE, COST_OCP_REPORT_TYPE_TO_COLS)
+        self.assertNotIn(OCP_GPU_USAGE, ROS_OCP_REPORT_TYPE_TO_COLS)
+
+    def test_gen_gpus_with_yaml_specification(self):
+        """Test GPU generation with YAML specification."""
+        gpu_attributes = {
+            "nodes": [
+                {
+                    "node_name": "gpu-node",
+                    "cpu_cores": 16,
+                    "memory_gig": 64,
+                    "namespaces": {
+                        "gpu-namespace": {
+                            "pods": [
+                                {
+                                    "pod_name": "gpu-pod",
+                                    "cpu_request": 4,
+                                    "mem_request_gig": 16,
+                                    "cpu_limit": 8,
+                                    "mem_limit_gig": 32,
+                                    "gpus": [
+                                        {"gpu_model": "Tesla T4", "gpu_memory_capacity_mib": 15360},
+                                        {"gpu_model": "A100", "gpu_memory_capacity_mib": 40960},
+                                    ],
+                                }
+                            ]
+                        }
+                    },
+                }
+            ]
+        }
+        generator = OCPGenerator(self.two_hours_ago, self.now, gpu_attributes)
+        self.assertIsNotNone(generator.gpus)
+        self.assertIn("gpu-pod", generator.gpus)
+        pod_gpus = generator.gpus["gpu-pod"]
+        self.assertEqual(len(pod_gpus), 2)
+        self.assertEqual(pod_gpus[0]["gpu_model_name"], "Tesla T4")
+        self.assertEqual(pod_gpus[0]["gpu_memory_capacity_mib"], 15360)
+        self.assertEqual(pod_gpus[0]["gpu_vendor_name"], GPU_VENDOR)
+        self.assertIn("GPU-", pod_gpus[0]["gpu_uuid"])
+        self.assertEqual(pod_gpus[1]["gpu_model_name"], "A100")
+        self.assertEqual(pod_gpus[1]["gpu_memory_capacity_mib"], 40960)
+
+    def test_gen_gpus_random_generation(self):
+        """Test random GPU generation (10% of pods)."""
+        generator = OCPGenerator(self.two_hours_ago, self.now, {})
+        self.assertIsNotNone(generator.gpus)
+        # With random generation, some pods might have GPUs
+        # We can't guarantee exactly which ones, but the structure should be correct
+        for pod_name, pod_gpus in generator.gpus.items():
+            self.assertIsInstance(pod_gpus, list)
+            self.assertGreater(len(pod_gpus), 0)
+            for gpu in pod_gpus:
+                self.assertIn("gpu_uuid", gpu)
+                self.assertIn("gpu_model_name", gpu)
+                self.assertIn("gpu_vendor_name", gpu)
+                self.assertIn("gpu_memory_capacity_mib", gpu)
+                self.assertIn(gpu["gpu_model_name"], GPU_MODELS)
+                self.assertEqual(gpu["gpu_vendor_name"], GPU_VENDOR)
+                self.assertGreater(gpu["gpu_memory_capacity_mib"], 0)
+
+    def test_gen_hourly_gpu_usage(self):
+        """Test GPU usage data generation."""
+        gpu_attributes = {
+            "nodes": [
+                {
+                    "node_name": "gpu-node",
+                    "cpu_cores": 16,
+                    "memory_gig": 64,
+                    "namespaces": {
+                        "gpu-namespace": {
+                            "pods": [
+                                {
+                                    "pod_name": "gpu-pod",
+                                    "cpu_request": 4,
+                                    "mem_request_gig": 16,
+                                    "cpu_limit": 8,
+                                    "mem_limit_gig": 32,
+                                    "pod_seconds": 3600,
+                                    "gpus": [{"gpu_model": "Tesla T4", "gpu_memory_capacity_mib": 15360}],
+                                }
+                            ]
+                        }
+                    },
+                }
+            ]
+        }
+        generator = OCPGenerator(self.two_hours_ago, self.now, gpu_attributes)
+        gpu_data = list(generator.generate_data(OCP_GPU_USAGE))
+        self.assertGreater(len(gpu_data), 0)
+        for row in gpu_data:
+            self.assertIn("node", row)
+            self.assertIn("namespace", row)
+            self.assertIn("pod", row)
+            self.assertIn("gpu_uuid", row)
+            self.assertIn("gpu_model_name", row)
+            self.assertIn("gpu_vendor_name", row)
+            self.assertIn("gpu_memory_capacity_mib", row)
+            self.assertIn("gpu_pod_uptime", row)
+            self.assertEqual(row["node"], "gpu-node")
+            self.assertEqual(row["namespace"], "gpu-namespace")
+            self.assertEqual(row["pod"], "gpu-pod")
+            self.assertEqual(row["gpu_model_name"], "Tesla T4")
+            self.assertEqual(row["gpu_memory_capacity_mib"], 15360)
+            self.assertEqual(row["gpu_vendor_name"], GPU_VENDOR)
+            self.assertGreater(row["gpu_pod_uptime"], 0)
+            self.assertLessEqual(row["gpu_pod_uptime"], 3600)
+
+    def test_update_gpu_data(self):
+        """Test GPU data row update."""
+        generator = OCPGenerator(self.two_hours_ago, self.now, {})
+        row = generator._init_data_row(self.two_hours_ago, self.now, report_type=OCP_GPU_USAGE)
+        kwargs = {
+            "node": "test-node",
+            "namespace": "test-namespace",
+            "pod": "test-pod",
+            "gpu_uuid": "GPU-test-uuid",
+            "gpu_model_name": "Tesla T4",
+            "gpu_vendor_name": GPU_VENDOR,
+            "gpu_memory_capacity_mib": 15360,
+            "gpu_pod_uptime": 3000.123456,
+        }
+        updated_row = generator._update_gpu_data(row, self.two_hours_ago, self.now, **kwargs)
+        self.assertEqual(updated_row["node"], "test-node")
+        self.assertEqual(updated_row["namespace"], "test-namespace")
+        self.assertEqual(updated_row["pod"], "test-pod")
+        self.assertEqual(updated_row["gpu_uuid"], "GPU-test-uuid")
+        self.assertEqual(updated_row["gpu_model_name"], "Tesla T4")
+        self.assertEqual(updated_row["gpu_vendor_name"], GPU_VENDOR)
+        self.assertEqual(updated_row["gpu_memory_capacity_mib"], 15360)
+        self.assertEqual(updated_row["gpu_pod_uptime"], 3000.123456)
+
+    def test_gpu_usage_with_multiple_gpus_per_pod(self):
+        """Test that multiple GPUs per pod generate separate rows."""
+        gpu_attributes = {
+            "nodes": [
+                {
+                    "node_name": "multi-gpu-node",
+                    "cpu_cores": 32,
+                    "memory_gig": 256,
+                    "namespaces": {
+                        "ml-namespace": {
+                            "pods": [
+                                {
+                                    "pod_name": "multi-gpu-pod",
+                                    "cpu_request": 16,
+                                    "mem_request_gig": 128,
+                                    "cpu_limit": 32,
+                                    "mem_limit_gig": 256,
+                                    "gpus": [
+                                        {"gpu_model": "H100", "gpu_memory_capacity_mib": 81920},
+                                        {"gpu_model": "H100", "gpu_memory_capacity_mib": 81920},
+                                        {"gpu_model": "H100", "gpu_memory_capacity_mib": 81920},
+                                        {"gpu_model": "H100", "gpu_memory_capacity_mib": 81920},
+                                    ],
+                                }
+                            ]
+                        }
+                    },
+                }
+            ]
+        }
+        generator = OCPGenerator(self.two_hours_ago, self.now, gpu_attributes)
+        gpu_data = list(generator.generate_data(OCP_GPU_USAGE))
+        # Should generate rows for each GPU * number of hours
+        num_hours = len(generator.hours)
+        expected_rows = 4 * num_hours  # 4 GPUs
+        self.assertEqual(len(gpu_data), expected_rows)
+        # All rows should be for the same pod but different GPUs
+        pod_names = set(row["pod"] for row in gpu_data)
+        self.assertEqual(len(pod_names), 1)
+        self.assertEqual(pod_names.pop(), "multi-gpu-pod")
+        # Check that we have 4 unique GPU UUIDs
+        gpu_uuids = set(row["gpu_uuid"] for row in gpu_data)
+        self.assertEqual(len(gpu_uuids), 4)
