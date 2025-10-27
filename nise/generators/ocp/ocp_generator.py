@@ -45,6 +45,7 @@ OCP_NAMESPACE_LABEL = "ocp_namespace_label"
 OCP_VM_USAGE = "ocp_vm_usage"
 OCP_ROS_USAGE = "ocp_ros_usage"
 OCP_ROS_NAMESPACE_USAGE = "ocp_ros_namespace_usage"
+OCP_GPU_USAGE = "ocp_gpu_usage"
 OCP_POD_USAGE_COLUMNS = (
     "report_period_start",
     "report_period_end",
@@ -203,12 +204,27 @@ OCP_ROS_NAMESPACE_USAGE_COLUMN = (
     "namespace_total_pods_max",
     "namespace_total_pods_avg",
 )
+OCP_GPU_USAGE_COLUMNS = (
+    "report_period_start",
+    "report_period_end",
+    "interval_start",
+    "interval_end",
+    "node",
+    "namespace",
+    "pod",
+    "gpu_uuid",
+    "gpu_model_name",
+    "gpu_vendor_name",
+    "gpu_memory_capacity_mib",
+    "gpu_pod_uptime",
+)
 COST_OCP_REPORT_TYPE_TO_COLS = {
     OCP_POD_USAGE: OCP_POD_USAGE_COLUMNS,
     OCP_STORAGE_USAGE: OCP_STORAGE_COLUMNS,
     OCP_NODE_LABEL: OCP_NODE_LABEL_COLUMNS,
     OCP_NAMESPACE_LABEL: OCP_NAMESPACE_LABEL_COLUMNS,
     OCP_VM_USAGE: OCP_VM_COLUMNS,
+    OCP_GPU_USAGE: OCP_GPU_USAGE_COLUMNS,
 }
 
 ROS_OCP_REPORT_TYPE_TO_COLS = {
@@ -346,6 +362,28 @@ VM_GUEST_OS = (
 
 VM_GUEST_VERSION = ("10.0", "7.5", "8.1", "9.5")
 
+GPU_MODELS = (
+    "Tesla T4",
+    "A100",
+    "V100",
+    "H100",
+    "A30",
+    "L40S",
+    "A10",
+)
+
+GPU_MEMORY_CAPACITY = {
+    "Tesla T4": 15360,
+    "A100": 40960,
+    "V100": 32768,
+    "H100": 81920,
+    "A30": 24576,
+    "L40S": 49152,
+    "A10": 24576,
+}
+
+GPU_VENDOR = "nvidia_com_gpu"
+
 
 def get_storage_class_and_driver():
     return choice(
@@ -463,6 +501,7 @@ class OCPGenerator(AbstractGenerator):
 
         self.volumes = self._gen_volumes(self.namespaces, self.namespace2pods)
         self.vms, self.namespace2vm = self._gen_virtual_machines(self.namespaces)
+        self.gpus = self._gen_gpus()
 
         self.ocp_report_generation = {
             OCP_POD_USAGE: {
@@ -484,6 +523,10 @@ class OCPGenerator(AbstractGenerator):
             OCP_VM_USAGE: {
                 "_generate_hourly_data": self._gen_hourly_vm_usage,
                 "_update_data": self._update_vm_data,
+            },
+            OCP_GPU_USAGE: {
+                "_generate_hourly_data": self._gen_hourly_gpu_usage,
+                "_update_data": self._update_gpu_data,
             },
         }
 
@@ -1555,6 +1598,107 @@ class OCPGenerator(AbstractGenerator):
                             **kwargs,
                         )
                         yield row
+
+    def _gen_gpus(self):
+        """Create GPUs for pods that need them."""
+        gpus = {}
+        for pod_name, pod_data in self.pods.items():
+            # Check if pod specifies GPUs in YAML
+            if self._nodes:
+                # When using YAML configuration, check for GPU specification
+                node = next((n for n in self.nodes if n.get("name") == pod_data.get("node")), None)
+                if node and node.get("namespaces"):
+                    namespace = pod_data.get("namespace")
+                    ns_data = node.get("namespaces", {}).get(namespace, {})
+                    pods_spec = ns_data.get("pods", [])
+                    pod_spec = next((p for p in pods_spec if p.get("pod_name") == pod_name), None)
+                    if pod_spec and pod_spec.get("gpus"):
+                        # GPU explicitly specified in YAML
+                        pod_gpus = []
+                        for gpu_spec in pod_spec.get("gpus"):
+                            gpu_model = gpu_spec.get("gpu_model", choice(GPU_MODELS))
+                            pod_gpus.append(
+                                {
+                                    "gpu_uuid": f"GPU-{uuid4()}",
+                                    "gpu_model_name": gpu_model,
+                                    "gpu_vendor_name": GPU_VENDOR,
+                                    "gpu_memory_capacity_mib": gpu_spec.get(
+                                        "gpu_memory_capacity_mib", GPU_MEMORY_CAPACITY.get(gpu_model, 15360)
+                                    ),
+                                }
+                            )
+                        gpus[pod_name] = pod_gpus
+            else:
+                # Random generation: 10% of pods get GPUs
+                if randint(1, 10) == 1:
+                    num_gpus = choice([1, 2, 4, 8])
+                    pod_gpus = []
+                    for _ in range(num_gpus):
+                        gpu_model = choice(GPU_MODELS)
+                        pod_gpus.append(
+                            {
+                                "gpu_uuid": f"GPU-{uuid4()}",
+                                "gpu_model_name": gpu_model,
+                                "gpu_vendor_name": GPU_VENDOR,
+                                "gpu_memory_capacity_mib": GPU_MEMORY_CAPACITY.get(gpu_model, 15360),
+                            }
+                        )
+                    gpus[pod_name] = pod_gpus
+        return gpus
+
+    def _gen_hourly_gpu_usage(self, **kwargs):
+        """Create hourly data for GPU usage."""
+        for hour in self.hours:
+            start = hour.get("start")
+            end = hour.get("end")
+
+            for pod_name, pod_gpus in self.gpus.items():
+                pod_data = self.pods.get(pod_name)
+                if not pod_data:
+                    continue
+
+                node = pod_data.get("node")
+                namespace = pod_data.get("namespace")
+                pod_seconds = pod_data.get("pod_seconds")
+
+                for gpu in pod_gpus:
+                    row = self._init_data_row(start, end, **kwargs)
+                    # gpu_pod_uptime should be <= HOUR and <= pod_seconds if specified
+                    max_uptime = HOUR
+                    if pod_seconds:
+                        max_uptime = min(HOUR, pod_seconds)
+                    gpu_pod_uptime = round(uniform(60, max_uptime), 6)
+
+                    row = self._update_data(
+                        row,
+                        start,
+                        end,
+                        node=node,
+                        namespace=namespace,
+                        pod=pod_name,
+                        gpu_uuid=gpu["gpu_uuid"],
+                        gpu_model_name=gpu["gpu_model_name"],
+                        gpu_vendor_name=gpu["gpu_vendor_name"],
+                        gpu_memory_capacity_mib=gpu["gpu_memory_capacity_mib"],
+                        gpu_pod_uptime=gpu_pod_uptime,
+                        **kwargs,
+                    )
+                    yield row
+
+    def _update_gpu_data(self, row, start, end, **kwargs):
+        """Update data with GPU specific data."""
+        data = {
+            "node": kwargs.get("node"),
+            "namespace": kwargs.get("namespace"),
+            "pod": kwargs.get("pod"),
+            "gpu_uuid": kwargs.get("gpu_uuid"),
+            "gpu_model_name": kwargs.get("gpu_model_name"),
+            "gpu_vendor_name": kwargs.get("gpu_vendor_name"),
+            "gpu_memory_capacity_mib": kwargs.get("gpu_memory_capacity_mib"),
+            "gpu_pod_uptime": kwargs.get("gpu_pod_uptime"),
+        }
+        row.update(data)
+        return row
 
     def _generate_hourly_data(self, **kwargs):
         """Create hourly data."""

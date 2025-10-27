@@ -78,6 +78,7 @@ from nise.generators.gcp import JSONLGCPNetworkGenerator
 from nise.generators.gcp import JSONLHCSGenerator
 from nise.generators.gcp import JSONLProjectGenerator
 from nise.generators.gcp import ProjectGenerator
+from nise.generators.ocp import OCP_GPU_USAGE
 from nise.generators.ocp import OCP_NAMESPACE_LABEL
 from nise.generators.ocp import OCP_NODE_LABEL
 from nise.generators.ocp import OCP_POD_USAGE
@@ -866,6 +867,7 @@ def ocp_create_report(options):  # noqa: C901
             OCP_NODE_LABEL: [],
             OCP_NAMESPACE_LABEL: [],
             OCP_VM_USAGE: [],
+            OCP_GPU_USAGE: [],
         }
         file_numbers = {
             OCP_POD_USAGE: 0,
@@ -873,6 +875,7 @@ def ocp_create_report(options):  # noqa: C901
             OCP_NODE_LABEL: 0,
             OCP_NAMESPACE_LABEL: 0,
             OCP_VM_USAGE: 0,
+            OCP_GPU_USAGE: 0,
         }
         if ros_ocp_info:
             data.update({OCP_ROS_USAGE: [], OCP_ROS_NAMESPACE_USAGE: []})

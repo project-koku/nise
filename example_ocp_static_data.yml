@@ -33,6 +33,21 @@ generators:
                     # 2-5-2019: 2
                     # 2-6-2019: 4
                   labels: label_key1:label_value1|label_key2:label_value2|label_vm_kubevirt_io_name:pod_name1_vm
+                - pod:
+                  pod_name: gpu_workload_pod
+                  cpu_request: 4
+                  mem_request_gig: 16
+                  cpu_limit: 8
+                  mem_limit_gig: 32
+                  pod_seconds: 3600
+                  labels: label_app:ai-training|label_gpu:enabled|label_workload:ml
+                  gpus:
+                    - gpu:
+                      gpu_model: "Tesla T4"
+                      gpu_memory_capacity_mib: 15360
+                    - gpu:
+                      gpu_model: "A100"
+                      gpu_memory_capacity_mib: 40960
               volumes:
                 - volume:
                   volume_name: pvc-volume_1

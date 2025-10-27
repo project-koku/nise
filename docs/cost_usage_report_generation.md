@@ -115,7 +115,7 @@ Generated reports will be generated in daily .csv files with the file format `<R
 
 ## OCP reports
 
-Generated reports will be produced in monthly .csv files with the file format `<Month>-<Year>-<Cluster-ID>-<Report-type>.csv`. Three report types are generated for each month: `ocp_node_label`, `ocp_pod_usage`, and `ocp_storage_usage`.
+Generated reports will be produced in monthly .csv files with the file format `<Month>-<Year>-<Cluster-ID>-<Report-type>.csv`. Six report types are generated for each month: `ocp_node_label`, `ocp_namespace_label`, `ocp_pod_usage`, `ocp_storage_usage`, `ocp_vm_usage`, and `ocp_gpu_usage`.
 
 Below are example usages of `nise` for OCP data:
 
@@ -140,6 +140,45 @@ To generate completely random data and save the report files in the
 local directory along with ROS-OCP metrix data:
 
     nise report ocp -s 2020-06-03 -w --ocp-cluster-id test-001 --ros-ocp-info
+
+### GPU workloads
+
+To generate OCP data with GPU workloads, use a static YAML file that includes GPU specifications for pods. When generating random data (without a static file), approximately 10% of pods will be assigned GPUs with random configurations.
+
+Example YAML configuration for GPU workloads:
+
+```yaml
+generators:
+  - OCPGenerator:
+      nodes:
+        - node:
+          node_name: gpu-node-1
+          cpu_cores: 32
+          memory_gig: 256
+          namespaces:
+            ai-training:
+              pods:
+                - pod:
+                  pod_name: ml-training-pod
+                  cpu_request: 16
+                  mem_request_gig: 128
+                  cpu_limit: 24
+                  mem_limit_gig: 192
+                  pod_seconds: 86400
+                  gpus:
+                    - gpu_model: H100
+                      gpu_memory_capacity_mib: 81920
+                    - gpu_model: H100
+                      gpu_memory_capacity_mib: 81920
+```
+
+Supported GPU models include: `H100`, `A100`, `A30`, `A10`, `Tesla T4`, `V100`, and `L40S`.
+
+To generate GPU data using a static file:
+
+    nise report ocp --ocp-cluster-id gpu-cluster --static-report-file ocp_gpu_static_data.yml
+
+This will generate all standard OCP reports, with the `ocp_gpu_usage.csv` containing GPU-specific metrics including GPU model, vendor, memory capacity, and pod uptime.
 
 
 ## OCP-on-Cloud reports
