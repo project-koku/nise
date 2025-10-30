@@ -41,7 +41,7 @@ jobs:
         run: |
           git fetch origin ${{ github.base_ref }}
           VERSION_DIFF=$(git diff origin/${{ github.base_ref }}...HEAD -- nise/__init__.py | grep "^[+-]__version__" || true)
-          
+
           if [ -n "$VERSION_DIFF" ]; then
             echo "bumped=true" >> $GITHUB_OUTPUT
           else
@@ -59,4 +59,3 @@ jobs:
               repo: context.repo.repo,
               body: '⚠️ This PR modifies code in `nise/` but doesn\'t update the version in `nise/__init__.py`. Consider bumping the version if this includes functional changes.'
             });
-

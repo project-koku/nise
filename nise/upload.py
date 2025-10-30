@@ -65,7 +65,6 @@ def upload_to_azure_container(storage_file_name, local_path, storage_file_path):
 
     Returns:
         (Boolean): True if file was uploaded
-        test comment
     """
     try:
         # Retrieve the connection string for use with the application.
