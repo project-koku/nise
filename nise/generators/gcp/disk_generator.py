@@ -86,7 +86,10 @@ class PersistentDiskGenerator(GCPGenerator):
 
     @cached_property
     def capacity(self):
-        return self.attributes.get("capacity", choice(self.DEFAULT_CAPACITIES))
+        if capacity := self.attributes.get("capacity"):
+            return int(capacity)
+
+        return choice(self.DEFAULT_CAPACITIES)
 
     @cached_property
     def sku_id(self):
