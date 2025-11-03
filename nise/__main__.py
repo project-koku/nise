@@ -649,6 +649,7 @@ def _load_static_report_data(options):
             start_dates.append(generated_start_date)
 
             end_date = attributes.get("end_date", options.get("end_date"))
+
             generated_end_date = today()
             if end_date and (
                 end_date != today().date()
@@ -657,6 +658,7 @@ def _load_static_report_data(options):
                     and (end_date.date() != today().date() or end_date.hour != 0)
                 )
             ):
+
                 generated_end_date = calculate_end_date(generated_start_date, end_date)
 
             if options.get("provider") == "azure":
@@ -673,7 +675,13 @@ def _load_static_report_data(options):
     options["start_date"] = min(start_dates)
     latest_date = max(end_dates)
     last_day_of_month = calendar.monthrange(year=latest_date.year, month=latest_date.month)[1]
-    options["end_date"] = latest_date.replace(day=last_day_of_month, hour=0, minute=0)
+    if not (
+            options.get("end_date") and
+            isinstance(options["end_date"], datetime.datetime) and
+            options["end_date"].day == last_day_of_month
+    ):
+        options["end_date"] = latest_date.replace(day=last_day_of_month, hour=0, minute=0)
+
     options["static_report_data"] = static_report_data
 
     if options.get("provider") == "aws" and aws_tags:
@@ -713,6 +721,7 @@ def calculate_start_date(start_date):
 
 def calculate_end_date(start_date, end_date):
     """Return a datetime for the end date."""
+
     try:
         if end_date == "last_month":
             generated_end_date = today().replace(day=1, hour=0, minute=0, second=0) + relativedelta(months=-1)
@@ -720,6 +729,8 @@ def calculate_end_date(start_date, end_date):
             generated_end_date = today().replace(hour=0, minute=0, second=0)
         elif end_date and isinstance(end_date, datetime.datetime):
             generated_end_date = end_date
+        # elif end_date and  isinstance(end_date, str) and "T" in end_date:
+        #     generated_end_date = end_date
         elif end_date and isinstance(end_date, datetime.date):
             generated_end_date = datetime.datetime(end_date.year, end_date.month, end_date.day)
         else:
@@ -755,6 +766,7 @@ def fix_dates(options, provider_type):
 def run(provider_type, options):
     """Run nise."""
     static_data_bool = _load_static_report_data(options)
+
     if not options.get("start_date"):
         raise NiseError("'start_date' is required in static files.")
     if not static_data_bool:
