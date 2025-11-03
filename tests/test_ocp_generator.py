@@ -1384,3 +1384,65 @@ class OCPGeneratorTestCase(TestCase):
         # Check that we have 4 unique GPU UUIDs
         gpu_uuids = set(row["gpu_uuid"] for row in gpu_data)
         self.assertEqual(len(gpu_uuids), 4)
+        # Check that all GPUs for the same pod in the same hour have the same uptime
+        uptimes_by_hour = {}
+        for row in gpu_data:
+            hour_key = (row["interval_start"], row["pod"])
+            if hour_key not in uptimes_by_hour:
+                uptimes_by_hour[hour_key] = []
+            uptimes_by_hour[hour_key].append(row["gpu_pod_uptime"])
+        # All GPUs in the same hour should have identical uptime
+        for hour_key, uptimes in uptimes_by_hour.items():
+            unique_uptimes = set(uptimes)
+            self.assertEqual(
+                len(unique_uptimes),
+                1,
+                f"Expected all GPUs in hour {hour_key} to have same uptime, got {uptimes}",
+            )
+
+    def test_gpu_pod_uptime_matches_pod_seconds(self):
+        """Test that gpu_pod_uptime equals pod_seconds when specified in YAML."""
+        # Define specific pod_seconds value
+        specific_pod_seconds = 2500
+        gpu_attributes = {
+            "nodes": [
+                {
+                    "node_name": "gpu-node-with-uptime",
+                    "cpu_cores": 16,
+                    "memory_gig": 128,
+                    "namespaces": {
+                        "ai-training": {
+                            "pods": [
+                                {
+                                    "pod_name": "training-pod-with-uptime",
+                                    "cpu_request": 8,
+                                    "mem_request_gig": 64,
+                                    "cpu_limit": 16,
+                                    "mem_limit_gig": 128,
+                                    "pod_seconds": specific_pod_seconds,  # Specify exact uptime
+                                    "gpus": [
+                                        {"gpu_model": "A100", "gpu_memory_capacity_mib": 40960},
+                                        {"gpu_model": "A100", "gpu_memory_capacity_mib": 40960},
+                                        {"gpu_model": "H100", "gpu_memory_capacity_mib": 81920},
+                                    ],
+                                }
+                            ]
+                        }
+                    },
+                }
+            ]
+        }
+        generator = OCPGenerator(self.two_hours_ago, self.now, gpu_attributes)
+        gpu_data = list(generator.generate_data(OCP_GPU_USAGE))
+        # All GPU rows should have gpu_pod_uptime equal to pod_seconds
+        for row in gpu_data:
+            self.assertEqual(
+                row["gpu_pod_uptime"],
+                specific_pod_seconds,
+                f"Expected gpu_pod_uptime to be {specific_pod_seconds}, got {row['gpu_pod_uptime']}",
+            )
+        # Verify all GPUs have the same value
+        uptimes = [row["gpu_pod_uptime"] for row in gpu_data]
+        unique_uptimes = set(uptimes)
+        self.assertEqual(len(unique_uptimes), 1, f"Expected all GPUs to have same uptime, got {unique_uptimes}")
+        self.assertEqual(unique_uptimes.pop(), specific_pod_seconds)
