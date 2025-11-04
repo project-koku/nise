@@ -672,13 +672,16 @@ def _load_static_report_data(options):
     options["start_date"] = min(start_dates)
     latest_date = max(end_dates)
     last_day_of_month = calendar.monthrange(year=latest_date.year, month=latest_date.month)[1]
+
+    # Allow partial data generation on the last day of the month (e.g., 8 a.m. - 2 p.m.).
+    # Otherwise, the start date could be > the month's end date, which would skip data generation
+    # (options["end_date"] is later used to set the month's end date).
     if (
         options.get("end_date")
         and isinstance(options["end_date"], datetime.datetime)
         and options["end_date"].day == last_day_of_month
     ):
         options["end_date"] = latest_date.replace(tzinfo=datetime.UTC)
-        # options["end_date"] = options["end_date"].replace(tzinfo=datetime.timezone.utc)
     else:
         options["end_date"] = latest_date.replace(day=last_day_of_month, hour=0, minute=0)
 
