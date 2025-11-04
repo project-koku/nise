@@ -1661,13 +1661,11 @@ class OCPGenerator(AbstractGenerator):
                 namespace = pod_data.get("namespace")
                 pod_seconds = pod_data.get("pod_seconds")
 
+                # gpu_pod_uptime matches pod uptime (all GPUs in a pod have same uptime)
+                gpu_pod_uptime = pod_seconds if pod_seconds else randint(2, HOUR)
+
                 for gpu in pod_gpus:
                     row = self._init_data_row(start, end, **kwargs)
-                    # gpu_pod_uptime should be <= HOUR and <= pod_seconds if specified
-                    max_uptime = HOUR
-                    if pod_seconds:
-                        max_uptime = min(HOUR, pod_seconds)
-                    gpu_pod_uptime = round(uniform(60, max_uptime), 6)
 
                     row = self._update_data(
                         row,
