@@ -134,11 +134,12 @@ def _write_jsonl(output_file, data):
 def _remove_files(file_list):
     """Remove files."""
     for file_path in file_list:
-        try:
-            os.remove(file_path)
-        except FileNotFoundError:
-            LOG.error(f"File {file_path} was not found.")
-            raise FileNotFoundError
+        if "gpu" not in file_path:
+            try:
+                os.remove(file_path)
+            except FileNotFoundError:
+                LOG.error(f"File {file_path} was not found.")
+                raise FileNotFoundError
 
 
 def _generate_azure_filename():
@@ -1046,10 +1047,10 @@ def ocp_create_report(options):  # noqa: C901
                 ocp_route_file_minio(minio_upload, temp_usage_zip, payload_key)
                 os.remove(temp_usage_zip)
 
-            _remove_files(report_files)
-            os.remove(temp_manifest)
+            # _remove_files(report_files)
+            # os.remove(temp_manifest)
         if not write_monthly:
-            LOG.info("Cleaning up local directory")
+            LOG.info("Not Cleaning up local directory")
             _remove_files(monthly_files)
             _remove_files(monthly_ros_files)
 
