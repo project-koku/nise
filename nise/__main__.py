@@ -683,7 +683,7 @@ def _load_static_report_data(options):
         and options["end_date"].month == latest_date.month
         and options["end_date"].day == last_day_of_month
     ):
-        options["end_date"] = latest_date.replace(tzinfo=datetime.UTC)
+        options["end_date"] = latest_date
     else:
         options["end_date"] = latest_date.replace(day=last_day_of_month, hour=0, minute=0)
 
