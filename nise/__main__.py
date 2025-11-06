@@ -679,8 +679,7 @@ def _load_static_report_data(options):
     if (
         options.get("end_date")
         and isinstance(options["end_date"], datetime.datetime)
-        and (options["end_date"].year, options["end_date"].month, options["end_date"].day)
-        == (latest_date.year, latest_date.month, last_day_of_month)
+        and options["end_date"].date() == datetime.date(latest_date.year, latest_date.month, last_day_of_month)
     ):
         options["end_date"] = options["end_date"].replace(tzinfo=datetime.UTC)
     else:
