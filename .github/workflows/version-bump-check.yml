@@ -1,0 +1,61 @@
+name: Version Bump Check
+
+on:
+  pull_request:
+    branches:
+      - main
+      - master
+
+jobs:
+  check-version-bump:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5.0.0
+        with:
+          fetch-depth: 0
+
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v45
+        with:
+          files: |
+            nise/**/*.py
+          files_ignore: |
+            nise/**/__pycache__/**
+            nise/__init__.py
+            **/*.pyc
+
+      - name: Check if nise code changed
+        id: nise-changed
+        run: |
+          if [ "${{ steps.changed-files.outputs.any_changed }}" == "true" ]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Check if version was bumped
+        id: version-changed
+        if: steps.nise-changed.outputs.changed == 'true'
+        run: |
+          git fetch origin ${{ github.base_ref }}
+          VERSION_DIFF=$(git diff origin/${{ github.base_ref }}...HEAD -- nise/__init__.py | grep "^[+-]__version__" || true)
+
+          if [ -n "$VERSION_DIFF" ]; then
+            echo "bumped=true" >> $GITHUB_OUTPUT
+          else
+            echo "bumped=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Comment if version not bumped
+        if: steps.nise-changed.outputs.changed == 'true' && steps.version-changed.outputs.bumped != 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '⚠️ This PR modifies code in `nise/` but doesn\'t update the version in `nise/__init__.py`. Consider bumping the version if this includes functional changes.'
+            });
