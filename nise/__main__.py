@@ -647,7 +647,6 @@ def _load_static_report_data(options):
             start_date = get_start_date(attributes, options)
             generated_start_date = calculate_start_date(start_date)
             start_dates.append(generated_start_date)
-
             end_date = attributes.get("end_date", options.get("end_date"))
             generated_end_date = today()
             if end_date and (
@@ -673,12 +672,23 @@ def _load_static_report_data(options):
     options["start_date"] = min(start_dates)
     latest_date = max(end_dates)
     last_day_of_month = calendar.monthrange(year=latest_date.year, month=latest_date.month)[1]
-    options["end_date"] = latest_date.replace(day=last_day_of_month, hour=0, minute=0)
+
+    # Allow partial data generation on the last day of the month (e.g., 8 a.m. - 2 p.m.).
+    # Otherwise, the start date could be > the month's end date, which would skip data generation
+    # (options["end_date"] is later used to set the month's end date).
+    if (
+        options.get("end_date")
+        and isinstance(options["end_date"], datetime.datetime)
+        and options["end_date"].date() == datetime.date(latest_date.year, latest_date.month, last_day_of_month)
+    ):
+        options["end_date"] = options["end_date"].replace(tzinfo=datetime.UTC)
+    else:
+        options["end_date"] = latest_date.replace(day=last_day_of_month, hour=0, minute=0)
+
     options["static_report_data"] = static_report_data
 
     if options.get("provider") == "aws" and aws_tags:
         options["aws_tags"] = aws_tags
-
     return True
 
 
