@@ -1676,20 +1676,16 @@ class OCPGenerator(AbstractGenerator):
             end = hour.get("end")
 
             for gpu_key, gpu_list in self.gpus.items():
-                # Check if this is a node-level GPU (tuple key) or pod-level GPU (string key)
                 if isinstance(gpu_key, tuple):
-                    # Node-level GPU: gpu_key is (node_name, None)
                     node_name = gpu_key[0]
                     node_obj = next((n for n in self.nodes if n.get("name") == node_name), None)
                     if not node_obj:
                         continue
-                    node = node_name  # Use node name string for output
-                    namespace = ""  # Empty string for node-level GPUs
-                    pod_name = ""  # Empty string for node-level GPUs
-                    # For node-level GPUs, use a default uptime (full hour)
+                    node = node_name
+                    namespace = ""
+                    pod_name = ""
                     gpu_pod_uptime = HOUR
                 else:
-                    # Pod-level GPU: gpu_key is pod_name
                     pod_name = gpu_key
                     pod_data = self.pods.get(pod_name)
                     if not pod_data:
@@ -1697,7 +1693,6 @@ class OCPGenerator(AbstractGenerator):
                     node = pod_data.get("node")
                     namespace = pod_data.get("namespace")
                     pod_seconds = pod_data.get("pod_seconds")
-                    # gpu_pod_uptime matches pod uptime (all GPUs in a pod have same uptime)
                     gpu_pod_uptime = pod_seconds if pod_seconds else randint(2, HOUR)
 
                 for gpu in gpu_list:
