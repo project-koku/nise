@@ -422,7 +422,8 @@ def _generate_azure_account_info(static_report_data=None):
     fake = Faker()
     company_name = fake.company()
     company_name_sanitized = company_name.replace(" ", "_").replace(",")
-    email_suffix = f"@{company_name_sanitized}.com"
+    company_email = company_name.replace(" ", "").replace(",", "")
+    email_suffix = f"@{company_email}.com"
 
     billing_account_id = fake.ean(length=8)
     billing_account_name = company_name
