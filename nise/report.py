@@ -421,6 +421,8 @@ def _generate_azure_account_info(static_report_data=None):
     """Return Azure subscription, billing, and usage account info."""
     fake = Faker()
     company_name = fake.company()
+    company_name = company_name.replace(",", "")
+    company_name = company_name.replace(" ", "_")
     company_email = company_name.replace(" ", "").replace(",", "")
     email_suffix = f"@{company_email}.com"
 
