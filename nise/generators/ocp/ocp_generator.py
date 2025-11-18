@@ -1648,9 +1648,7 @@ class OCPGenerator(AbstractGenerator):
         if self._nodes:
             for node_index, node in enumerate(self.nodes):
                 node_name = node.get("name")
-                node_item = next((item for item in self._nodes if item.get("node_name") == node_name), None)
-                if not node_item and node_index < len(self._nodes):
-                    node_item = self._nodes[node_index]
+                node_item = self._nodes[node_index]
                 if node_item and node_item.get("gpus"):
                     node_gpus = []
                     for gpu_spec in node_item.get("gpus"):
