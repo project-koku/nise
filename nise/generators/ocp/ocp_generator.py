@@ -1600,7 +1600,7 @@ class OCPGenerator(AbstractGenerator):
                         yield row
 
     def _gen_gpus(self):
-        """Create GPUs for pods that need them."""
+        """Create GPUs for pods and nodes that need them."""
         gpus = {}
         for pod_name, pod_data in self.pods.items():
             # Check if pod specifies GPUs in YAML
@@ -1644,6 +1644,29 @@ class OCPGenerator(AbstractGenerator):
                             }
                         )
                     gpus[pod_name] = pod_gpus
+
+        if self._nodes:
+            for node_index, node in enumerate(self.nodes):
+                node_name = node.get("name")
+                node_item = next((item for item in self._nodes if item.get("node_name") == node_name), None)
+                if not node_item and node_index < len(self._nodes):
+                    node_item = self._nodes[node_index]
+                if node_item and node_item.get("gpus"):
+                    node_gpus = []
+                    for gpu_spec in node_item.get("gpus"):
+                        gpu_model = gpu_spec.get("gpu_model", choice(GPU_MODELS))
+                        node_gpus.append(
+                            {
+                                "gpu_uuid": f"GPU-{uuid4()}",
+                                "gpu_model_name": gpu_model,
+                                "gpu_vendor_name": GPU_VENDOR,
+                                "gpu_memory_capacity_mib": gpu_spec.get(
+                                    "gpu_memory_capacity_mib", GPU_MEMORY_CAPACITY.get(gpu_model, 15360)
+                                ),
+                            }
+                        )
+                    gpus[(node_name, None)] = node_gpus
+
         return gpus
 
     def _gen_hourly_gpu_usage(self, **kwargs):
@@ -1652,19 +1675,32 @@ class OCPGenerator(AbstractGenerator):
             start = hour.get("start")
             end = hour.get("end")
 
-            for pod_name, pod_gpus in self.gpus.items():
-                pod_data = self.pods.get(pod_name)
-                if not pod_data:
-                    continue
+            for gpu_key, gpu_list in self.gpus.items():
+                # Check if this is a node-level GPU (tuple key) or pod-level GPU (string key)
+                if isinstance(gpu_key, tuple):
+                    # Node-level GPU: gpu_key is (node_name, None)
+                    node_name = gpu_key[0]
+                    node_obj = next((n for n in self.nodes if n.get("name") == node_name), None)
+                    if not node_obj:
+                        continue
+                    node = node_name  # Use node name string for output
+                    namespace = ""  # Empty string for node-level GPUs
+                    pod_name = ""  # Empty string for node-level GPUs
+                    # For node-level GPUs, use a default uptime (full hour)
+                    gpu_pod_uptime = HOUR
+                else:
+                    # Pod-level GPU: gpu_key is pod_name
+                    pod_name = gpu_key
+                    pod_data = self.pods.get(pod_name)
+                    if not pod_data:
+                        continue
+                    node = pod_data.get("node")
+                    namespace = pod_data.get("namespace")
+                    pod_seconds = pod_data.get("pod_seconds")
+                    # gpu_pod_uptime matches pod uptime (all GPUs in a pod have same uptime)
+                    gpu_pod_uptime = pod_seconds if pod_seconds else randint(2, HOUR)
 
-                node = pod_data.get("node")
-                namespace = pod_data.get("namespace")
-                pod_seconds = pod_data.get("pod_seconds")
-
-                # gpu_pod_uptime matches pod uptime (all GPUs in a pod have same uptime)
-                gpu_pod_uptime = pod_seconds if pod_seconds else randint(2, HOUR)
-
-                for gpu in pod_gpus:
+                for gpu in gpu_list:
                     row = self._init_data_row(start, end, **kwargs)
 
                     row = self._update_data(

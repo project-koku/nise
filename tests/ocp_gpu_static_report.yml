@@ -45,6 +45,13 @@ generators:
           cpu_cores: 64
           memory_gig: 512
           resource_id: i-gpu67890
+          gpus:
+            - gpu:
+              gpu_model: "A100"
+              gpu_memory_capacity_mib: 40960
+            - gpu:
+              gpu_model: "A100"
+              gpu_memory_capacity_mib: 40960
           namespaces:
             ai-research:
               namespace_labels: label_team:research|label_purpose:experimentation
@@ -70,3 +77,4 @@ generators:
                     - gpu:
                       gpu_model: "H100"
                       gpu_memory_capacity_mib: 81920
+
