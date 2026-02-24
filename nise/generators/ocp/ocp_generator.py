@@ -1671,13 +1671,14 @@ class OCPGenerator(AbstractGenerator):
                             "mig_slice_count, and mig_memory_capacity_mib"
                         )
 
+                    mig_instance_uuid = f"MIG-{uuid4()}"
                     pod_gpus.append(
                         {
-                            "gpu_uuid": parent_gpu_uuid,
+                            "gpu_uuid": mig_instance_uuid,
                             "gpu_model_name": gpu_model,
                             "gpu_vendor_name": GPU_VENDOR,
                             "gpu_memory_capacity_mib": gpu_memory,
-                            "mig_instance_uuid": f"MIG-{uuid4()}",
+                            "mig_instance_uuid": mig_instance_uuid,
                             "mig_profile": mig_profile,
                             "mig_slice_count": mig_slice_count,
                             "parent_gpu_max_slices": max_slices,
