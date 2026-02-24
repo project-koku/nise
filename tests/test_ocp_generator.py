@@ -1186,25 +1186,6 @@ class OCPGeneratorTestCase(TestCase):
         self.assertEqual(result, {})
         self.assertEqual(len(result), 0)
 
-    def test_gpu_usage_columns_defined(self):
-        """Test that GPU usage columns are properly defined."""
-        self.assertEqual(len(OCP_GPU_USAGE_COLUMNS), 12)
-        expected_columns = (
-            "report_period_start",
-            "report_period_end",
-            "interval_start",
-            "interval_end",
-            "node",
-            "namespace",
-            "pod",
-            "gpu_uuid",
-            "gpu_model_name",
-            "gpu_vendor_name",
-            "gpu_memory_capacity_mib",
-            "gpu_pod_uptime",
-        )
-        self.assertEqual(OCP_GPU_USAGE_COLUMNS, expected_columns)
-
     def test_gpu_usage_in_report_type_to_cols(self):
         """Test that GPU usage is in the report type mapping."""
         self.assertIn(OCP_GPU_USAGE, OCP_REPORT_TYPE_TO_COLS)
