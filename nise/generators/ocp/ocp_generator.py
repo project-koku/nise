@@ -217,6 +217,12 @@ OCP_GPU_USAGE_COLUMNS = (
     "gpu_vendor_name",
     "gpu_memory_capacity_mib",
     "gpu_pod_uptime",
+    "mig_instance_uuid",
+    "mig_profile",
+    "mig_slice_count",
+    "parent_gpu_max_slices",
+    "parent_gpu_uuid",
+    "mig_memory_capacity_mib",
 )
 COST_OCP_REPORT_TYPE_TO_COLS = {
     OCP_POD_USAGE: OCP_POD_USAGE_COLUMNS,
@@ -1599,51 +1605,89 @@ class OCPGenerator(AbstractGenerator):
                         )
                         yield row
 
-    def _gen_gpus(self):
-        """Create GPUs for pods that need them."""
+    def _gen_gpus(self):  # noqa: C901
+        """Create GPUs for pods and nodes that need them."""
         gpus = {}
         for pod_name, pod_data in self.pods.items():
-            # Check if pod specifies GPUs in YAML
-            if self._nodes:
-                # When using YAML configuration, check for GPU specification
-                node = next((n for n in self.nodes if n.get("name") == pod_data.get("node")), None)
-                if node and node.get("namespaces"):
-                    namespace = pod_data.get("namespace")
-                    ns_data = node.get("namespaces", {}).get(namespace, {})
-                    pods_spec = ns_data.get("pods", [])
-                    pod_spec = next((p for p in pods_spec if p.get("pod_name") == pod_name), None)
-                    if pod_spec and pod_spec.get("gpus"):
-                        # GPU explicitly specified in YAML
-                        pod_gpus = []
-                        for gpu_spec in pod_spec.get("gpus"):
-                            gpu_model = gpu_spec.get("gpu_model", choice(GPU_MODELS))
-                            pod_gpus.append(
-                                {
-                                    "gpu_uuid": f"GPU-{uuid4()}",
-                                    "gpu_model_name": gpu_model,
-                                    "gpu_vendor_name": GPU_VENDOR,
-                                    "gpu_memory_capacity_mib": gpu_spec.get(
-                                        "gpu_memory_capacity_mib", GPU_MEMORY_CAPACITY.get(gpu_model, 15360)
-                                    ),
-                                }
-                            )
-                        gpus[pod_name] = pod_gpus
-            else:
+            if not self._nodes:
                 # Random generation: 10% of pods get GPUs
                 if randint(1, 10) == 1:
-                    num_gpus = choice([1, 2, 4, 8])
-                    pod_gpus = []
-                    for _ in range(num_gpus):
-                        gpu_model = choice(GPU_MODELS)
-                        pod_gpus.append(
-                            {
-                                "gpu_uuid": f"GPU-{uuid4()}",
-                                "gpu_model_name": gpu_model,
-                                "gpu_vendor_name": GPU_VENDOR,
-                                "gpu_memory_capacity_mib": GPU_MEMORY_CAPACITY.get(gpu_model, 15360),
-                            }
+                    gpus[pod_name] = [
+                        {
+                            "gpu_uuid": f"GPU-{uuid4()}",
+                            "gpu_model_name": (gpu_model := choice(GPU_MODELS)),
+                            "gpu_vendor_name": GPU_VENDOR,
+                            "gpu_memory_capacity_mib": GPU_MEMORY_CAPACITY.get(gpu_model, 15360),
+                        }
+                        for _ in range(choice([1, 2, 4, 8]))
+                    ]
+                continue
+
+            node = next((n for n in self.nodes if n.get("name") == pod_data.get("node")), None)
+            if not node or not node.get("namespaces"):
+                continue
+
+            ns_data = node.get("namespaces", {}).get(pod_data.get("namespace"), {})
+            pod_spec = next((p for p in ns_data.get("pods", []) if p.get("pod_name") == pod_name), None)
+            if not pod_spec or not pod_spec.get("gpus"):
+                continue
+
+            pod_gpus = []
+            for gpu_spec in pod_spec.get("gpus"):
+                gpu_model = gpu_spec.get("gpu_model", choice(GPU_MODELS))
+                parent_gpu_uuid = f"GPU-{uuid4()}"
+                max_slices = gpu_spec.get("gpu_max_slices")
+                gpu_memory = gpu_spec.get("gpu_memory_capacity_mib", GPU_MEMORY_CAPACITY.get(gpu_model, 15360))
+
+                mig_instances = gpu_spec.get("mig_instances", [])
+                if not mig_instances:
+                    pod_gpus.append(
+                        {
+                            "gpu_uuid": parent_gpu_uuid,
+                            "gpu_model_name": gpu_model,
+                            "gpu_vendor_name": GPU_VENDOR,
+                            "gpu_memory_capacity_mib": gpu_memory,
+                            "mig_instance_uuid": None,
+                            "mig_profile": None,
+                            "mig_slice_count": None,
+                            "parent_gpu_max_slices": None,
+                            "parent_gpu_uuid": None,
+                            "mig_memory_capacity_mib": None,
+                        }
+                    )
+                    continue
+
+                if not max_slices:
+                    raise ValueError(f"GPU with MIG instances for pod '{pod_name}' requires gpu_max_slices")
+
+                for mig_spec in mig_instances:
+                    mig_profile = mig_spec.get("mig_profile")
+                    mig_slice_count = mig_spec.get("mig_slice_count")
+                    mig_memory = mig_spec.get("mig_memory_capacity_mib")
+
+                    if not all([mig_profile, mig_slice_count, mig_memory]):
+                        raise ValueError(
+                            f"MIG instance for pod '{pod_name}' requires mig_profile, "
+                            "mig_slice_count, and mig_memory_capacity_mib"
                         )
-                    gpus[pod_name] = pod_gpus
+
+                    pod_gpus.append(
+                        {
+                            "gpu_uuid": parent_gpu_uuid,
+                            "gpu_model_name": gpu_model,
+                            "gpu_vendor_name": GPU_VENDOR,
+                            "gpu_memory_capacity_mib": gpu_memory,
+                            "mig_instance_uuid": f"MIG-{uuid4()}",
+                            "mig_profile": mig_profile,
+                            "mig_slice_count": mig_slice_count,
+                            "parent_gpu_max_slices": max_slices,
+                            "parent_gpu_uuid": parent_gpu_uuid,
+                            "mig_memory_capacity_mib": mig_memory,
+                        }
+                    )
+
+            gpus[pod_name] = pod_gpus
+
         return gpus
 
     def _gen_hourly_gpu_usage(self, **kwargs):
@@ -1679,6 +1723,12 @@ class OCPGenerator(AbstractGenerator):
                         gpu_vendor_name=gpu["gpu_vendor_name"],
                         gpu_memory_capacity_mib=gpu["gpu_memory_capacity_mib"],
                         gpu_pod_uptime=gpu_pod_uptime,
+                        mig_instance_uuid=gpu.get("mig_instance_uuid"),
+                        mig_profile=gpu.get("mig_profile"),
+                        mig_slice_count=gpu.get("mig_slice_count"),
+                        parent_gpu_max_slices=gpu.get("parent_gpu_max_slices"),
+                        parent_gpu_uuid=gpu.get("parent_gpu_uuid"),
+                        mig_memory_capacity_mib=gpu.get("mig_memory_capacity_mib"),
                         **kwargs,
                     )
                     yield row
@@ -1694,6 +1744,12 @@ class OCPGenerator(AbstractGenerator):
             "gpu_vendor_name": kwargs.get("gpu_vendor_name"),
             "gpu_memory_capacity_mib": kwargs.get("gpu_memory_capacity_mib"),
             "gpu_pod_uptime": kwargs.get("gpu_pod_uptime"),
+            "mig_instance_uuid": kwargs.get("mig_instance_uuid"),
+            "mig_profile": kwargs.get("mig_profile"),
+            "mig_slice_count": kwargs.get("mig_slice_count"),
+            "parent_gpu_max_slices": kwargs.get("parent_gpu_max_slices"),
+            "parent_gpu_uuid": kwargs.get("parent_gpu_uuid"),
+            "mig_memory_capacity_mib": kwargs.get("mig_memory_capacity_mib"),
         }
         row.update(data)
         return row
