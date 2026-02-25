@@ -458,7 +458,9 @@ class MiscReportTestCase(TestCase):
             mock_response,
         ]
 
-        response = post_payload_to_ingest_service("http://test-upload", temp_file.name, max_retries=3, initial_backoff=1)
+        response = post_payload_to_ingest_service(
+            "http://test-upload", temp_file.name, max_retries=3, initial_backoff=1
+        )
 
         self.assertEqual(response.status_code, 202)
         self.assertEqual(mock_post.call_count, 3)
