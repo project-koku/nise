@@ -280,7 +280,7 @@ def _convert_bytes(num):
     return None
 
 
-def post_payload_to_ingest_service(insights_upload, local_path, max_retries=3, initial_backoff=2):
+def post_payload_to_ingest_service(insights_upload, local_path, max_retries=3, initial_backoff=2):  # noqa: C901
     """POST the payload to Insights via header or basic auth with retry logic"""
     insights_account_id = os.environ.get("INSIGHTS_ACCOUNT_ID")
     insights_org_id = os.environ.get("INSIGHTS_ORG_ID")
