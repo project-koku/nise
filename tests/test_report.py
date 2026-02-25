@@ -421,6 +421,115 @@ class MiscReportTestCase(TestCase):
         post_payload_to_ingest_service(insights_upload, temp_file.name)
         self.assertEqual(mock_post.call_args[1].get("data"), data)
 
+    @patch.dict(os.environ, {"HCC_SERVICE_ACCOUNT_ID": "12345", "HCC_SERVICE_ACCOUNT_SECRET": "54321"})
+    @patch("nise.report.requests.post")
+    def test_post_payload_to_ingest_service_oauth_token_failure(self, mock_post):
+        """Test that RequestException is raised when OAuth token request fails."""
+        import requests
+
+        temp_file = NamedTemporaryFile(mode="w", delete=False)
+        headers = ["col1", "col2"]
+        data = [{"col1": "r1c1", "col2": "r1c2"}, {"col1": "r2c1", "col2": "r2c2"}]
+        _write_csv(temp_file.name, data, headers)
+
+        mock_post.side_effect = requests.exceptions.RequestException("Token request failed")
+
+        with self.assertRaises(requests.exceptions.RequestException):
+            post_payload_to_ingest_service("http://test-upload", temp_file.name)
+
+        os.remove(temp_file.name)
+
+    @patch.dict(os.environ, {"INSIGHTS_USER": "12345", "INSIGHTS_PASSWORD": "54321"})
+    @patch("nise.report.time.sleep")
+    @patch("nise.report.requests.post")
+    def test_post_payload_to_ingest_service_connection_error_retry_success(self, mock_post, mock_sleep):
+        """Test that ConnectionError triggers retry and eventually succeeds."""
+        import requests
+
+        temp_file = NamedTemporaryFile(mode="w", delete=False)
+        headers = ["col1", "col2"]
+        data = [{"col1": "r1c1", "col2": "r1c2"}, {"col1": "r2c1", "col2": "r2c2"}]
+        _write_csv(temp_file.name, data, headers)
+
+        mock_response = type("MockResponse", (), {"status_code": 202})()
+        mock_post.side_effect = [
+            requests.exceptions.ConnectionError("Connection refused"),
+            requests.exceptions.ConnectionError("Connection refused"),
+            mock_response,
+        ]
+
+        response = post_payload_to_ingest_service("http://test-upload", temp_file.name, max_retries=3, initial_backoff=1)
+
+        self.assertEqual(response.status_code, 202)
+        self.assertEqual(mock_post.call_count, 3)
+        self.assertEqual(mock_sleep.call_count, 2)
+        mock_sleep.assert_any_call(1)
+        mock_sleep.assert_any_call(2)
+
+        os.remove(temp_file.name)
+
+    @patch.dict(os.environ, {"INSIGHTS_USER": "12345", "INSIGHTS_PASSWORD": "54321"})
+    @patch("nise.report.time.sleep")
+    @patch("nise.report.requests.post")
+    def test_post_payload_to_ingest_service_connection_error_exhausted_retries(self, mock_post, mock_sleep):
+        """Test that ConnectionError raises after exhausting all retries."""
+        import requests
+
+        temp_file = NamedTemporaryFile(mode="w", delete=False)
+        headers = ["col1", "col2"]
+        data = [{"col1": "r1c1", "col2": "r1c2"}, {"col1": "r2c1", "col2": "r2c2"}]
+        _write_csv(temp_file.name, data, headers)
+
+        mock_post.side_effect = requests.exceptions.ConnectionError("Connection refused")
+
+        with self.assertRaises(requests.exceptions.ConnectionError):
+            post_payload_to_ingest_service("http://test-upload", temp_file.name, max_retries=2, initial_backoff=1)
+
+        self.assertEqual(mock_post.call_count, 3)
+        self.assertEqual(mock_sleep.call_count, 2)
+
+        os.remove(temp_file.name)
+
+    @patch.dict(os.environ, {"INSIGHTS_USER": "12345", "INSIGHTS_PASSWORD": "54321"})
+    @patch("nise.report.requests.post")
+    def test_post_payload_to_ingest_service_non_retryable_request_exception(self, mock_post):
+        """Test that non-ConnectionError RequestException is not retried."""
+        import requests
+
+        temp_file = NamedTemporaryFile(mode="w", delete=False)
+        headers = ["col1", "col2"]
+        data = [{"col1": "r1c1", "col2": "r1c2"}, {"col1": "r2c1", "col2": "r2c2"}]
+        _write_csv(temp_file.name, data, headers)
+
+        mock_post.side_effect = requests.exceptions.HTTPError("400 Bad Request")
+
+        with self.assertRaises(requests.exceptions.RequestException):
+            post_payload_to_ingest_service("http://test-upload", temp_file.name, max_retries=3)
+
+        self.assertEqual(mock_post.call_count, 1)
+
+        os.remove(temp_file.name)
+
+    @patch.dict(os.environ, {"INSIGHTS_USER": "12345", "INSIGHTS_PASSWORD": "54321"})
+    @patch("nise.report.requests.post")
+    def test_post_payload_to_ingest_service_unknown_filesize(self, mock_post):
+        """Test that filesize is 'unknown' when local_path is not a valid file."""
+        mock_response = type("MockResponse", (), {"status_code": 202})()
+        mock_post.return_value = mock_response
+
+        non_existent_path = "/tmp/non_existent_file_12345.tar.gz"
+
+        with patch("nise.report.LOG") as mock_log:
+            with patch("builtins.open", create=True) as mock_open:
+                mock_open.return_value.__enter__ = lambda s: s
+                mock_open.return_value.__exit__ = lambda s, *args: None
+                mock_open.return_value.read = lambda: b"test data"
+
+                post_payload_to_ingest_service("http://test-upload", non_existent_path)
+
+                log_calls = [str(call) for call in mock_log.info.call_args_list]
+                self.assertTrue(any("unknown" in call for call in log_calls))
+
     def test_defaulting_currency(self):
         """Test that if no currency is provide in options or static it defaults to USD."""
         currency = None
