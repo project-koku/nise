@@ -28,6 +28,7 @@ import random
 import shutil
 import string
 import tarfile
+import time
 from datetime import datetime
 from datetime import UTC
 from random import randint
@@ -279,8 +280,8 @@ def _convert_bytes(num):
     return None
 
 
-def post_payload_to_ingest_service(insights_upload, local_path):
-    """POST the payload to Insights via header or basic auth."""
+def post_payload_to_ingest_service(insights_upload, local_path, max_retries=3, initial_backoff=2):  # noqa: C901
+    """POST the payload to Insights via header or basic auth with retry logic"""
     insights_account_id = os.environ.get("INSIGHTS_ACCOUNT_ID")
     insights_org_id = os.environ.get("INSIGHTS_ORG_ID")
     insights_user = os.environ.get("INSIGHTS_USER")
@@ -292,54 +293,106 @@ def post_payload_to_ingest_service(insights_upload, local_path):
     )
     hcc_token_scope = os.environ.get("HCC_TOKEN_SCOPE", "api.console")
     content_type = "application/vnd.redhat.hccm.tar+tgz"
+
     if os.path.isfile(local_path):
         file_info = os.stat(local_path)
         filesize = _convert_bytes(file_info.st_size)
+    else:
+        filesize = "unknown"
+
     LOG.info(f"Upload File: ({local_path}) filesize is {filesize}.")
-    with open(local_path, "rb") as upload_file:
-        if insights_account_id and insights_org_id:
-            header = {
-                "identity": {
-                    "account_number": insights_account_id,
-                    "org_id": insights_org_id,
-                    "internal": {"org_id": insights_org_id},
-                    "type": content_type,
-                }
+
+    # Determine authentication method and prepare headers
+    auth_method = None
+    auth = None
+    headers = None
+    token = None
+
+    if insights_account_id and insights_org_id:
+        auth_method = "identity_header"
+        header = {
+            "identity": {
+                "account_number": insights_account_id,
+                "org_id": insights_org_id,
+                "internal": {"org_id": insights_org_id},
+                "type": content_type,
             }
-            headers = {"x-rh-identity": base64.b64encode(json.dumps(header).encode("UTF-8"))}
-            return requests.post(
-                insights_upload,
-                data={},
-                files={"file": ("payload.tar.gz", upload_file, content_type)},
-                headers=headers,
-            )
+        }
+        headers = {"x-rh-identity": base64.b64encode(json.dumps(header).encode("UTF-8"))}
+    elif insights_user and insights_password:
+        auth_method = "basic_auth"
+        auth = (insights_user, insights_password)
+    else:
+        auth_method = "bearer_token"
+        # Get OAuth token
+        token_headers = {"Content-Type": "application/x-www-form-urlencoded"}
+        token_data = f"client_id={hcc_service_account_id}&client_secret={hcc_service_account_secret}"
+        token_data += f"&grant_type=client_credentials&scope={hcc_token_scope}"
 
-        if insights_user and insights_password:
-            return requests.post(
-                insights_upload,
-                data={},
-                files={"file": ("payload.tar.gz", upload_file, content_type)},
-                auth=(insights_user, insights_password),
-                verify=False,
-            )
-
-        headers = {"Content-Type": "application/x-www-form-urlencoded"}
-        data = f"client_id={hcc_service_account_id}&client_secret={hcc_service_account_secret}"
-        data += f"&grant_type=client_credentials&scope={hcc_token_scope}"
-        token_resp = requests.post(hcc_token_url, data=data, headers=headers)
-        token = None
-        if token_resp.ok:
+        try:
+            token_resp = requests.post(hcc_token_url, data=token_data, headers=token_headers)
+            token_resp.raise_for_status()
             token_json = token_resp.json()
             token = token_json.get("access_token")
+            headers = {"Authorization": f"Bearer {token}"}
+        except requests.exceptions.RequestException as e:
+            LOG.error(f"Failed to obtain OAuth token: {e}")
+            raise
 
-        headers = {"Authorization": f"Bearer {token}"}
-        return requests.post(
-            insights_upload,
-            data={},
-            files={"file": ("payload.tar.gz", upload_file, content_type)},
-            headers=headers,
-            verify=False,
-        )
+    # Retry logic with exponential backoff
+
+    for attempt in range(max_retries + 1):
+        try:
+            # Read file for each attempt (file pointer needs to be reset)
+            with open(local_path, "rb") as upload_file:
+                LOG.info(f"Uploading to ingress service (attempt {attempt + 1}/{max_retries + 1})...")
+
+                # Make the POST request based on auth method
+                if auth_method == "identity_header":
+                    response = requests.post(
+                        insights_upload,
+                        data={},
+                        files={"file": ("payload.tar.gz", upload_file, content_type)},
+                        headers=headers,
+                    )
+                elif auth_method == "basic_auth":
+                    response = requests.post(
+                        insights_upload,
+                        data={},
+                        files={"file": ("payload.tar.gz", upload_file, content_type)},
+                        auth=auth,
+                        verify=False,
+                    )
+                else:  # bearer_token
+                    response = requests.post(
+                        insights_upload,
+                        data={},
+                        files={"file": ("payload.tar.gz", upload_file, content_type)},
+                        headers=headers,
+                        verify=False,
+                    )
+
+                # If we get here, the request succeeded
+                LOG.info(f"Upload attempt {attempt + 1} completed with status code: {response.status_code}")
+                return response
+
+        except requests.exceptions.ConnectionError as e:
+            if attempt < max_retries:
+                # Add exponential cooling timer
+                backoff_time = initial_backoff * (2**attempt)
+                LOG.warning(
+                    f"Upload attempt {attempt + 1} failed with {type(e).__name__}: {e}. "
+                    f"Retrying in {backoff_time:.2f} seconds..."
+                )
+                time.sleep(backoff_time)
+            else:
+                LOG.error(f"Upload failed after {max_retries + 1} attempts. Last error: {type(e).__name__}: {e}")
+                raise
+
+        except requests.exceptions.RequestException as e:
+            # For other request exceptions (4xx errors, etc.), don't retry
+            LOG.error(f"Upload failed with non-retryable error: {type(e).__name__}: {e}")
+            raise
 
 
 def post_payload_to_minio(minio_upload, local_path, key):  # pragma: no cover
