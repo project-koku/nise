@@ -24,7 +24,9 @@ from random import choices
 from random import randint
 from random import uniform
 from string import ascii_lowercase
+from uuid import NAMESPACE_DNS
 from uuid import uuid4
+from uuid import uuid5
 
 from dateutil import parser
 from faker import Faker
@@ -1614,12 +1616,15 @@ class OCPGenerator(AbstractGenerator):
                     pod_spec = next((p for p in pods_spec if p.get("pod_name") == pod_name), None)
                     if pod_spec and pod_spec.get("gpus"):
                         # GPU explicitly specified in YAML
+                        node_name = node.get("name", "")
                         pod_gpus = []
-                        for gpu_spec in pod_spec.get("gpus"):
+                        for gpu_idx, gpu_spec in enumerate(pod_spec.get("gpus")):
                             gpu_model = gpu_spec.get("gpu_model", choice(GPU_MODELS))
+                            name = f"nise.ocp.gpu.{node_name}.{pod_name}.{gpu_idx}"
+                            gpu_uuid = f"GPU-{uuid5(NAMESPACE_DNS, name)}"
                             pod_gpus.append(
                                 {
-                                    "gpu_uuid": f"GPU-{uuid4()}",
+                                    "gpu_uuid": gpu_uuid,
                                     "gpu_model_name": gpu_model,
                                     "gpu_vendor_name": GPU_VENDOR,
                                     "gpu_memory_capacity_mib": gpu_spec.get(
@@ -1631,13 +1636,16 @@ class OCPGenerator(AbstractGenerator):
             else:
                 # Random generation: 10% of pods get GPUs
                 if randint(1, 10) == 1:
+                    node_name = pod_data.get("node") or "random"
                     num_gpus = choice([1, 2, 4, 8])
                     pod_gpus = []
-                    for _ in range(num_gpus):
+                    for gpu_idx in range(num_gpus):
                         gpu_model = choice(GPU_MODELS)
+                        name = f"nise.ocp.gpu.{node_name}.{pod_name}.{gpu_idx}"
+                        gpu_uuid = f"GPU-{uuid5(NAMESPACE_DNS, name)}"
                         pod_gpus.append(
                             {
-                                "gpu_uuid": f"GPU-{uuid4()}",
+                                "gpu_uuid": gpu_uuid,
                                 "gpu_model_name": gpu_model,
                                 "gpu_vendor_name": GPU_VENDOR,
                                 "gpu_memory_capacity_mib": GPU_MEMORY_CAPACITY.get(gpu_model, 15360),
