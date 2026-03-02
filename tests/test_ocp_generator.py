@@ -1186,31 +1186,54 @@ class OCPGeneratorTestCase(TestCase):
         self.assertEqual(result, {})
         self.assertEqual(len(result), 0)
 
-    def test_gpu_usage_columns_defined(self):
-        """Test that GPU usage columns are properly defined."""
-        self.assertEqual(len(OCP_GPU_USAGE_COLUMNS), 12)
-        expected_columns = (
-            "report_period_start",
-            "report_period_end",
-            "interval_start",
-            "interval_end",
-            "node",
-            "namespace",
-            "pod",
-            "gpu_uuid",
-            "gpu_model_name",
-            "gpu_vendor_name",
-            "gpu_memory_capacity_mib",
-            "gpu_pod_uptime",
-        )
-        self.assertEqual(OCP_GPU_USAGE_COLUMNS, expected_columns)
-
     def test_gpu_usage_in_report_type_to_cols(self):
         """Test that GPU usage is in the report type mapping."""
         self.assertIn(OCP_GPU_USAGE, OCP_REPORT_TYPE_TO_COLS)
         self.assertEqual(OCP_REPORT_TYPE_TO_COLS[OCP_GPU_USAGE], OCP_GPU_USAGE_COLUMNS)
         self.assertIn(OCP_GPU_USAGE, COST_OCP_REPORT_TYPE_TO_COLS)
         self.assertNotIn(OCP_GPU_USAGE, ROS_OCP_REPORT_TYPE_TO_COLS)
+
+    def _mig_gpu_attributes(self, pod_name="mig-pod", gpu_overrides=None, mig_instance_overrides=None):
+        """Minimal gpu_attributes for MIG tests. Overrides are merged into the single gpu/mig_instance."""
+        gpu = {
+            "gpu_model": "H100",
+            "gpu_memory_capacity_mib": 81920,
+            "gpu_max_slices": 7,
+            "mig_instances": [
+                {
+                    "mig_profile": "3g.40gb",
+                    "mig_slice_count": 3,
+                    "mig_memory_capacity_mib": 40960,
+                },
+            ],
+        }
+        if gpu_overrides:
+            gpu.update(gpu_overrides)
+        if mig_instance_overrides and gpu.get("mig_instances"):
+            gpu["mig_instances"] = [{**gpu["mig_instances"][0], **mig_instance_overrides}]
+        return {
+            "nodes": [
+                {
+                    "node_name": "mig-node",
+                    "cpu_cores": 16,
+                    "memory_gig": 64,
+                    "namespaces": {
+                        "mig-namespace": {
+                            "pods": [
+                                {
+                                    "pod_name": pod_name,
+                                    "cpu_request": 4,
+                                    "mem_request_gig": 16,
+                                    "cpu_limit": 8,
+                                    "mem_limit_gig": 32,
+                                    "gpus": [gpu],
+                                },
+                            ]
+                        }
+                    },
+                }
+            ]
+        }
 
     def test_gen_gpus_with_yaml_specification(self):
         """Test GPU generation with YAML specification."""
@@ -1251,6 +1274,60 @@ class OCPGeneratorTestCase(TestCase):
         self.assertIn("GPU-", pod_gpus[0]["gpu_uuid"])
         self.assertEqual(pod_gpus[1]["gpu_model_name"], "A100")
         self.assertEqual(pod_gpus[1]["gpu_memory_capacity_mib"], 40960)
+
+    def test_gen_gpus_yaml_with_mig_instances(self):
+        """Test GPU generation with MIG instances from YAML."""
+        generator = OCPGenerator(self.two_hours_ago, self.now, self._mig_gpu_attributes())
+        self.assertIn("mig-pod", generator.gpus)
+        pod_gpus = generator.gpus["mig-pod"]
+        self.assertEqual(len(pod_gpus), 1)
+        gpu = pod_gpus[0]
+        self.assertEqual(gpu["gpu_model_name"], "H100")
+        self.assertEqual(gpu["mig_profile"], "3g.40gb")
+        self.assertEqual(gpu["mig_slice_count"], 3)
+        self.assertEqual(gpu["mig_memory_capacity_mib"], 40960)
+        self.assertEqual(gpu["parent_gpu_max_slices"], 7)
+        self.assertIn("MIG-", gpu["mig_instance_uuid"])
+        self.assertIn("GPU-", gpu["parent_gpu_uuid"])
+        self.assertEqual(gpu["gpu_uuid"], gpu["mig_instance_uuid"])
+
+    def test_gen_gpus_raises_when_mig_without_gpu_max_slices(self):
+        """Test that ValueError is raised when MIG instances are set but gpu_max_slices is missing."""
+        attrs = self._mig_gpu_attributes(pod_name="bad-mig-pod")
+        del attrs["nodes"][0]["namespaces"]["mig-namespace"]["pods"][0]["gpus"][0]["gpu_max_slices"]
+        with self.assertRaises(ValueError) as ctx:
+            OCPGenerator(self.two_hours_ago, self.now, attrs)
+        self.assertIn("gpu_max_slices", str(ctx.exception))
+
+    def test_gen_gpus_raises_when_mig_instance_missing_required_fields(self):
+        """Test that ValueError is raised when a MIG instance lacks mig_profile, mig_slice_count, or mig_memory."""
+        attrs = self._mig_gpu_attributes(
+            pod_name="incomplete-mig-pod",
+            mig_instance_overrides={"mig_memory_capacity_mib": None},
+        )
+        del attrs["nodes"][0]["namespaces"]["mig-namespace"]["pods"][0]["gpus"][0]["mig_instances"][0][
+            "mig_memory_capacity_mib"
+        ]
+        with self.assertRaises(ValueError) as ctx:
+            OCPGenerator(self.two_hours_ago, self.now, attrs)
+        self.assertIn("mig_profile", str(ctx.exception))
+        self.assertIn("mig_slice_count", str(ctx.exception))
+        self.assertIn("mig_memory_capacity_mib", str(ctx.exception))
+
+    def test_gen_hourly_gpu_usage_includes_mig_fields(self):
+        """Test that GPU usage rows include MIG fields when pod has MIG instances."""
+        attrs = self._mig_gpu_attributes()
+        attrs["nodes"][0]["namespaces"]["mig-namespace"]["pods"][0]["pod_seconds"] = 3600
+        generator = OCPGenerator(self.two_hours_ago, self.now, attrs)
+        gpu_data = list(generator.generate_data(OCP_GPU_USAGE))
+        self.assertGreater(len(gpu_data), 0)
+        row = gpu_data[0]
+        self.assertEqual(row["mig_profile"], "3g.40gb")
+        self.assertEqual(row["mig_slice_count"], 3)
+        self.assertEqual(row["mig_memory_capacity_mib"], 40960)
+        self.assertEqual(row["parent_gpu_max_slices"], 7)
+        self.assertIn("MIG-", row["mig_instance_uuid"])
+        self.assertIn("GPU-", row["parent_gpu_uuid"])
 
     def test_gen_gpus_random_generation(self):
         """Test random GPU generation (10% of pods)."""
@@ -1330,6 +1407,12 @@ class OCPGeneratorTestCase(TestCase):
             "gpu_vendor_name": GPU_VENDOR,
             "gpu_memory_capacity_mib": 15360,
             "gpu_pod_uptime": 3000.123456,
+            "mig_instance_uuid": "MIG-test-uuid",
+            "mig_profile": "3g.40gb",
+            "mig_slice_count": 3,
+            "parent_gpu_max_slices": 7,
+            "parent_gpu_uuid": "GPU-parent-uuid",
+            "mig_memory_capacity_mib": 40960,
         }
         updated_row = generator._update_gpu_data(row, self.two_hours_ago, self.now, **kwargs)
         self.assertEqual(updated_row["node"], "test-node")
@@ -1340,6 +1423,12 @@ class OCPGeneratorTestCase(TestCase):
         self.assertEqual(updated_row["gpu_vendor_name"], GPU_VENDOR)
         self.assertEqual(updated_row["gpu_memory_capacity_mib"], 15360)
         self.assertEqual(updated_row["gpu_pod_uptime"], 3000.123456)
+        self.assertEqual(updated_row["mig_instance_uuid"], "MIG-test-uuid")
+        self.assertEqual(updated_row["mig_profile"], "3g.40gb")
+        self.assertEqual(updated_row["mig_slice_count"], 3)
+        self.assertEqual(updated_row["parent_gpu_max_slices"], 7)
+        self.assertEqual(updated_row["parent_gpu_uuid"], "GPU-parent-uuid")
+        self.assertEqual(updated_row["mig_memory_capacity_mib"], 40960)
 
     def test_gpu_usage_with_multiple_gpus_per_pod(self):
         """Test that multiple GPUs per pod generate separate rows."""

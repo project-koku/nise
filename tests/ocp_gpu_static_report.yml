@@ -61,9 +61,33 @@ generators:
                     - gpu:
                       gpu_model: "H100"
                       gpu_memory_capacity_mib: 81920
+                      gpu_max_slices: 7
+                      mig_instances:
+                        - mig_instance:
+                          mig_profile: "3g.40gb"
+                          mig_slice_count: 3
+                          mig_memory_capacity_mib: 40960
+                        - mig_instance:
+                          mig_profile: "3g.40gb"
+                          mig_slice_count: 3
+                          mig_memory_capacity_mib: 40960
                     - gpu:
-                      gpu_model: "H100"
-                      gpu_memory_capacity_mib: 81920
+                      gpu_model: "A100"
+                      gpu_memory_capacity_mib: 40960
+                      gpu_max_slices: 7
+                      mig_instances:
+                        - mig_instance:
+                          mig_profile: "1g.5gb"
+                          mig_slice_count: 1
+                          mig_memory_capacity_mib: 5120
+                        - mig_instance:
+                          mig_profile: "2g.10gb"
+                          mig_slice_count: 2
+                          mig_memory_capacity_mib: 10240
+                        - mig_instance:
+                          mig_profile: "4g.20gb"
+                          mig_slice_count: 4
+                          mig_memory_capacity_mib: 20480
                     - gpu:
                       gpu_model: "H100"
                       gpu_memory_capacity_mib: 81920
