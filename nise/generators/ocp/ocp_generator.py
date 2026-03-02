@@ -1648,9 +1648,7 @@ class OCPGenerator(AbstractGenerator):
                 name = f"nise.ocp.gpu.{node_name}.{pod_name}.{gpu_idx}"
                 parent_gpu_uuid = f"GPU-{uuid5(NAMESPACE_DNS, name)}"
                 max_slices = gpu_spec.get("gpu_max_slices")
-                gpu_memory = gpu_spec.get(
-                    "gpu_memory_capacity_mib", GPU_MEMORY_CAPACITY.get(gpu_model, 15360)
-                )
+                gpu_memory = gpu_spec.get("gpu_memory_capacity_mib", GPU_MEMORY_CAPACITY.get(gpu_model, 15360))
                 mig_instances = gpu_spec.get("mig_instances", [])
                 if not mig_instances:
                     pod_gpus.append(
@@ -1670,9 +1668,7 @@ class OCPGenerator(AbstractGenerator):
                     continue
 
                 if not max_slices:
-                    raise ValueError(
-                        f"GPU with MIG instances for pod '{pod_name}' requires gpu_max_slices"
-                    )
+                    raise ValueError(f"GPU with MIG instances for pod '{pod_name}' requires gpu_max_slices")
 
                 for mig_idx, mig_spec in enumerate(mig_instances):
                     mig_profile = mig_spec.get("mig_profile")
