@@ -24,7 +24,9 @@ from random import choices
 from random import randint
 from random import uniform
 from string import ascii_lowercase
+from uuid import NAMESPACE_DNS
 from uuid import uuid4
+from uuid import uuid5
 
 from dateutil import parser
 from faker import Faker
@@ -1610,17 +1612,24 @@ class OCPGenerator(AbstractGenerator):
         gpus = {}
         for pod_name, pod_data in self.pods.items():
             if not self._nodes:
-                # Random generation: 10% of pods get GPUs
+                # Random generation: 10% of pods get GPUs - stable UUID per (node, pod, index)
                 if randint(1, 10) == 1:
-                    gpus[pod_name] = [
-                        {
-                            "gpu_uuid": f"GPU-{uuid4()}",
-                            "gpu_model_name": (gpu_model := choice(GPU_MODELS)),
-                            "gpu_vendor_name": GPU_VENDOR,
-                            "gpu_memory_capacity_mib": GPU_MEMORY_CAPACITY.get(gpu_model, 15360),
-                        }
-                        for _ in range(choice([1, 2, 4, 8]))
-                    ]
+                    node_name = pod_data.get("node") or "random"
+                    num_gpus = choice([1, 2, 4, 8])
+                    pod_gpus = []
+                    for gpu_idx in range(num_gpus):
+                        gpu_model = choice(GPU_MODELS)
+                        name = f"nise.ocp.gpu.{node_name}.{pod_name}.{gpu_idx}"
+                        gpu_uuid = f"GPU-{uuid5(NAMESPACE_DNS, name)}"
+                        pod_gpus.append(
+                            {
+                                "gpu_uuid": gpu_uuid,
+                                "gpu_model_name": gpu_model,
+                                "gpu_vendor_name": GPU_VENDOR,
+                                "gpu_memory_capacity_mib": GPU_MEMORY_CAPACITY.get(gpu_model, 15360),
+                            }
+                        )
+                    gpus[pod_name] = pod_gpus
                 continue
 
             node = next((n for n in self.nodes if n.get("name") == pod_data.get("node")), None)
@@ -1632,13 +1641,14 @@ class OCPGenerator(AbstractGenerator):
             if not pod_spec or not pod_spec.get("gpus"):
                 continue
 
+            node_name = node.get("name", "")
             pod_gpus = []
-            for gpu_spec in pod_spec.get("gpus"):
+            for gpu_idx, gpu_spec in enumerate(pod_spec.get("gpus")):
                 gpu_model = gpu_spec.get("gpu_model", choice(GPU_MODELS))
-                parent_gpu_uuid = f"GPU-{uuid4()}"
+                name = f"nise.ocp.gpu.{node_name}.{pod_name}.{gpu_idx}"
+                parent_gpu_uuid = f"GPU-{uuid5(NAMESPACE_DNS, name)}"
                 max_slices = gpu_spec.get("gpu_max_slices")
                 gpu_memory = gpu_spec.get("gpu_memory_capacity_mib", GPU_MEMORY_CAPACITY.get(gpu_model, 15360))
-
                 mig_instances = gpu_spec.get("mig_instances", [])
                 if not mig_instances:
                     pod_gpus.append(
@@ -1660,18 +1670,17 @@ class OCPGenerator(AbstractGenerator):
                 if not max_slices:
                     raise ValueError(f"GPU with MIG instances for pod '{pod_name}' requires gpu_max_slices")
 
-                for mig_spec in mig_instances:
+                for mig_idx, mig_spec in enumerate(mig_instances):
                     mig_profile = mig_spec.get("mig_profile")
                     mig_slice_count = mig_spec.get("mig_slice_count")
                     mig_memory = mig_spec.get("mig_memory_capacity_mib")
-
                     if not all([mig_profile, mig_slice_count, mig_memory]):
                         raise ValueError(
                             f"MIG instance for pod '{pod_name}' requires mig_profile, "
                             "mig_slice_count, and mig_memory_capacity_mib"
                         )
-
-                    mig_instance_uuid = f"MIG-{uuid4()}"
+                    mig_name = f"nise.ocp.mig.{node_name}.{pod_name}.{gpu_idx}.{mig_idx}"
+                    mig_instance_uuid = f"MIG-{uuid5(NAMESPACE_DNS, mig_name)}"
                     pod_gpus.append(
                         {
                             "gpu_uuid": mig_instance_uuid,
