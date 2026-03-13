@@ -1666,9 +1666,7 @@ class OCPGenerator(AbstractGenerator):
                     mig_profile = mig_spec.get("mig_profile")
                     mig_slice_count = mig_spec.get("mig_slice_count")
                     if not all([mig_profile, mig_slice_count]):
-                        raise ValueError(
-                            f"MIG instance for pod '{pod_name}' requires mig_profile and mig_slice_count"
-                        )
+                        raise ValueError(f"MIG instance for pod '{pod_name}' requires mig_profile and mig_slice_count")
                     mig_name = f"nise.ocp.mig.{node_name}.{pod_name}.{gpu_idx}.{mig_idx}"
                     mig_instance_uuid = f"MIG-{uuid5(NAMESPACE_DNS, mig_name)}"
                     pod_gpus.append(
