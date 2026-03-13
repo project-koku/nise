@@ -222,9 +222,7 @@ OCP_GPU_USAGE_COLUMNS = (
     "mig_instance_uuid",
     "mig_profile",
     "mig_slice_count",
-    "parent_gpu_max_slices",
     "parent_gpu_uuid",
-    "mig_memory_capacity_mib",
 )
 COST_OCP_REPORT_TYPE_TO_COLS = {
     OCP_POD_USAGE: OCP_POD_USAGE_COLUMNS,
@@ -1647,7 +1645,6 @@ class OCPGenerator(AbstractGenerator):
                 gpu_model = gpu_spec.get("gpu_model", choice(GPU_MODELS))
                 name = f"nise.ocp.gpu.{node_name}.{pod_name}.{gpu_idx}"
                 parent_gpu_uuid = f"GPU-{uuid5(NAMESPACE_DNS, name)}"
-                max_slices = gpu_spec.get("gpu_max_slices")
                 gpu_memory = gpu_spec.get("gpu_memory_capacity_mib", GPU_MEMORY_CAPACITY.get(gpu_model, 15360))
                 mig_instances = gpu_spec.get("mig_instances", [])
                 if not mig_instances:
@@ -1660,24 +1657,17 @@ class OCPGenerator(AbstractGenerator):
                             "mig_instance_uuid": None,
                             "mig_profile": None,
                             "mig_slice_count": None,
-                            "parent_gpu_max_slices": None,
                             "parent_gpu_uuid": None,
-                            "mig_memory_capacity_mib": None,
                         }
                     )
                     continue
 
-                if not max_slices:
-                    raise ValueError(f"GPU with MIG instances for pod '{pod_name}' requires gpu_max_slices")
-
                 for mig_idx, mig_spec in enumerate(mig_instances):
                     mig_profile = mig_spec.get("mig_profile")
                     mig_slice_count = mig_spec.get("mig_slice_count")
-                    mig_memory = mig_spec.get("mig_memory_capacity_mib")
-                    if not all([mig_profile, mig_slice_count, mig_memory]):
+                    if not all([mig_profile, mig_slice_count]):
                         raise ValueError(
-                            f"MIG instance for pod '{pod_name}' requires mig_profile, "
-                            "mig_slice_count, and mig_memory_capacity_mib"
+                            f"MIG instance for pod '{pod_name}' requires mig_profile and mig_slice_count"
                         )
                     mig_name = f"nise.ocp.mig.{node_name}.{pod_name}.{gpu_idx}.{mig_idx}"
                     mig_instance_uuid = f"MIG-{uuid5(NAMESPACE_DNS, mig_name)}"
@@ -1690,9 +1680,7 @@ class OCPGenerator(AbstractGenerator):
                             "mig_instance_uuid": mig_instance_uuid,
                             "mig_profile": mig_profile,
                             "mig_slice_count": mig_slice_count,
-                            "parent_gpu_max_slices": max_slices,
                             "parent_gpu_uuid": parent_gpu_uuid,
-                            "mig_memory_capacity_mib": mig_memory,
                         }
                     )
 
@@ -1736,9 +1724,7 @@ class OCPGenerator(AbstractGenerator):
                         mig_instance_uuid=gpu.get("mig_instance_uuid"),
                         mig_profile=gpu.get("mig_profile"),
                         mig_slice_count=gpu.get("mig_slice_count"),
-                        parent_gpu_max_slices=gpu.get("parent_gpu_max_slices"),
                         parent_gpu_uuid=gpu.get("parent_gpu_uuid"),
-                        mig_memory_capacity_mib=gpu.get("mig_memory_capacity_mib"),
                         **kwargs,
                     )
                     yield row
@@ -1757,9 +1743,7 @@ class OCPGenerator(AbstractGenerator):
             "mig_instance_uuid": kwargs.get("mig_instance_uuid"),
             "mig_profile": kwargs.get("mig_profile"),
             "mig_slice_count": kwargs.get("mig_slice_count"),
-            "parent_gpu_max_slices": kwargs.get("parent_gpu_max_slices"),
             "parent_gpu_uuid": kwargs.get("parent_gpu_uuid"),
-            "mig_memory_capacity_mib": kwargs.get("mig_memory_capacity_mib"),
         }
         row.update(data)
         return row
