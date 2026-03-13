@@ -1283,9 +1283,8 @@ class OCPGeneratorTestCase(TestCase):
         self.assertEqual(gpu["gpu_model_name"], "H100")
         self.assertEqual(gpu["mig_profile"], "3g.40gb")
         self.assertEqual(gpu["mig_slice_count"], 3)
-        self.assertIn("MIG-", gpu["mig_instance_uuid"])
-        self.assertIn("GPU-", gpu["parent_gpu_uuid"])
-        self.assertEqual(gpu["gpu_uuid"], gpu["mig_instance_uuid"])
+        self.assertIn("MIG-", gpu["mig_instance_id"])
+        self.assertEqual(gpu["gpu_uuid"], gpu["mig_instance_id"])
 
     def test_gen_gpus_raises_when_mig_instance_missing_required_fields(self):
         """Test that ValueError is raised when a MIG instance lacks mig_profile or mig_slice_count."""
@@ -1308,8 +1307,7 @@ class OCPGeneratorTestCase(TestCase):
         row = gpu_data[0]
         self.assertEqual(row["mig_profile"], "3g.40gb")
         self.assertEqual(row["mig_slice_count"], 3)
-        self.assertIn("MIG-", row["mig_instance_uuid"])
-        self.assertIn("GPU-", row["parent_gpu_uuid"])
+        self.assertIn("MIG-", row["mig_instance_id"])
 
     def test_gen_gpus_random_generation(self):
         """Test random GPU generation (10% of pods)."""
@@ -1389,10 +1387,9 @@ class OCPGeneratorTestCase(TestCase):
             "gpu_vendor_name": GPU_VENDOR,
             "gpu_memory_capacity_mib": 15360,
             "gpu_pod_uptime": 3000.123456,
-            "mig_instance_uuid": "MIG-test-uuid",
+            "mig_instance_id": "MIG-test-uuid",
             "mig_profile": "3g.40gb",
             "mig_slice_count": 3,
-            "parent_gpu_uuid": "GPU-parent-uuid",
         }
         updated_row = generator._update_gpu_data(row, self.two_hours_ago, self.now, **kwargs)
         self.assertEqual(updated_row["node"], "test-node")
@@ -1403,10 +1400,9 @@ class OCPGeneratorTestCase(TestCase):
         self.assertEqual(updated_row["gpu_vendor_name"], GPU_VENDOR)
         self.assertEqual(updated_row["gpu_memory_capacity_mib"], 15360)
         self.assertEqual(updated_row["gpu_pod_uptime"], 3000.123456)
-        self.assertEqual(updated_row["mig_instance_uuid"], "MIG-test-uuid")
+        self.assertEqual(updated_row["mig_instance_id"], "MIG-test-uuid")
         self.assertEqual(updated_row["mig_profile"], "3g.40gb")
         self.assertEqual(updated_row["mig_slice_count"], 3)
-        self.assertEqual(updated_row["parent_gpu_uuid"], "GPU-parent-uuid")
 
     def test_gpu_usage_with_multiple_gpus_per_pod(self):
         """Test that multiple GPUs per pod generate separate rows."""
