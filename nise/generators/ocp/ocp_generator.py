@@ -221,7 +221,7 @@ OCP_GPU_USAGE_COLUMNS = (
     "gpu_pod_uptime",
     "mig_instance_id",
     "mig_profile",
-    "mig_slice_count",
+    "mig_strategy",
 )
 COST_OCP_REPORT_TYPE_TO_COLS = {
     OCP_POD_USAGE: OCP_POD_USAGE_COLUMNS,
@@ -1655,27 +1655,36 @@ class OCPGenerator(AbstractGenerator):
                             "gpu_memory_capacity_mib": gpu_memory,
                             "mig_instance_id": None,
                             "mig_profile": None,
-                            "mig_slice_count": None,
+                            "mig_strategy": None,
                         }
                     )
                     continue
 
                 for mig_idx, mig_spec in enumerate(mig_instances):
                     mig_profile = mig_spec.get("mig_profile")
-                    mig_slice_count = mig_spec.get("mig_slice_count")
-                    if not all([mig_profile, mig_slice_count]):
-                        raise ValueError(f"MIG instance for pod '{pod_name}' requires mig_profile and mig_slice_count")
+                    mig_strategy = mig_spec.get("mig_strategy")
+                    if not all([mig_profile, mig_strategy]):
+                        raise ValueError(f"MIG instance for pod '{pod_name}' requires mig_profile and mig_strategy")
                     mig_name = f"nise.ocp.mig.{node_name}.{pod_name}.{gpu_idx}.{mig_idx}"
-                    mig_instance_id = f"MIG-{uuid5(NAMESPACE_DNS, mig_name)}"
+                    mig_uuid = f"MIG-{uuid5(NAMESPACE_DNS, mig_name)}"
+                    raw_mig_instance_id = mig_spec.get("mig_instance_id", mig_idx + 1)
+                    try:
+                        # MIG instance IDs are numeric; default to 1-based per-GPU-slice index when not provided.
+                        mig_instance_id = int(raw_mig_instance_id)
+                    except (ValueError, TypeError) as exc:
+                        raise ValueError(
+                            f"pod {pod_name}: mig_instance_id must be an integer value, got {raw_mig_instance_id}"
+                        ) from exc
+
                     pod_gpus.append(
                         {
-                            "gpu_uuid": mig_instance_id,
+                            "gpu_uuid": mig_uuid,
                             "gpu_model_name": gpu_model,
                             "gpu_vendor_name": GPU_VENDOR,
                             "gpu_memory_capacity_mib": gpu_memory,
                             "mig_instance_id": mig_instance_id,
                             "mig_profile": mig_profile,
-                            "mig_slice_count": mig_slice_count,
+                            "mig_strategy": mig_strategy,
                         }
                     )
 
@@ -1718,7 +1727,7 @@ class OCPGenerator(AbstractGenerator):
                         gpu_pod_uptime=gpu_pod_uptime,
                         mig_instance_id=gpu.get("mig_instance_id"),
                         mig_profile=gpu.get("mig_profile"),
-                        mig_slice_count=gpu.get("mig_slice_count"),
+                        mig_strategy=gpu.get("mig_strategy"),
                         **kwargs,
                     )
                     yield row
@@ -1736,7 +1745,7 @@ class OCPGenerator(AbstractGenerator):
             "gpu_pod_uptime": kwargs.get("gpu_pod_uptime"),
             "mig_instance_id": kwargs.get("mig_instance_id"),
             "mig_profile": kwargs.get("mig_profile"),
-            "mig_slice_count": kwargs.get("mig_slice_count"),
+            "mig_strategy": kwargs.get("mig_strategy"),
         }
         row.update(data)
         return row

@@ -1201,7 +1201,7 @@ class OCPGeneratorTestCase(TestCase):
             "mig_instances": [
                 {
                     "mig_profile": "3g.40gb",
-                    "mig_slice_count": 3,
+                    "mig_strategy": "mixed",
                 },
             ],
         }
@@ -1282,20 +1282,29 @@ class OCPGeneratorTestCase(TestCase):
         gpu = pod_gpus[0]
         self.assertEqual(gpu["gpu_model_name"], "H100")
         self.assertEqual(gpu["mig_profile"], "3g.40gb")
-        self.assertEqual(gpu["mig_slice_count"], 3)
-        self.assertIn("MIG-", gpu["mig_instance_id"])
-        self.assertEqual(gpu["gpu_uuid"], gpu["mig_instance_id"])
+        self.assertEqual(gpu["mig_strategy"], "mixed")
+        self.assertIn("MIG-", gpu["gpu_uuid"])
+        self.assertIsInstance(gpu["mig_instance_id"], int)
+        self.assertEqual(gpu["mig_instance_id"], 1)
 
     def test_gen_gpus_raises_when_mig_instance_missing_required_fields(self):
-        """Test that ValueError is raised when a MIG instance lacks mig_profile or mig_slice_count."""
+        """Test that ValueError is raised when a MIG instance lacks mig_profile or mig_strategy."""
         attrs = self._mig_gpu_attributes(pod_name="incomplete-mig-pod")
-        del attrs["nodes"][0]["namespaces"]["mig-namespace"]["pods"][0]["gpus"][0]["mig_instances"][0][
-            "mig_slice_count"
-        ]
+        del attrs["nodes"][0]["namespaces"]["mig-namespace"]["pods"][0]["gpus"][0]["mig_instances"][0]["mig_strategy"]
         with self.assertRaises(ValueError) as ctx:
             OCPGenerator(self.two_hours_ago, self.now, attrs)
         self.assertIn("mig_profile", str(ctx.exception))
-        self.assertIn("mig_slice_count", str(ctx.exception))
+        self.assertIn("mig_strategy", str(ctx.exception))
+
+    def test_gen_gpus_raises_when_mig_instance_id_is_not_integer(self):
+        """Test that ValueError is raised when mig_instance_id cannot be coerced to int."""
+        attrs = self._mig_gpu_attributes(
+            pod_name="invalid-mig-id-pod", mig_instance_overrides={"mig_instance_id": "not-an-int"}
+        )
+        with self.assertRaises(ValueError) as ctx:
+            OCPGenerator(self.two_hours_ago, self.now, attrs)
+        self.assertIn("invalid-mig-id-pod", str(ctx.exception))
+        self.assertIn("mig_instance_id must be an integer value", str(ctx.exception))
 
     def test_gen_hourly_gpu_usage_includes_mig_fields(self):
         """Test that GPU usage rows include MIG fields when pod has MIG instances."""
@@ -1306,8 +1315,9 @@ class OCPGeneratorTestCase(TestCase):
         self.assertGreater(len(gpu_data), 0)
         row = gpu_data[0]
         self.assertEqual(row["mig_profile"], "3g.40gb")
-        self.assertEqual(row["mig_slice_count"], 3)
-        self.assertIn("MIG-", row["mig_instance_id"])
+        self.assertEqual(row["mig_strategy"], "mixed")
+        self.assertIsInstance(row["mig_instance_id"], int)
+        self.assertEqual(row["mig_instance_id"], 1)
 
     def test_gen_gpus_random_generation(self):
         """Test random GPU generation (10% of pods)."""
@@ -1387,9 +1397,9 @@ class OCPGeneratorTestCase(TestCase):
             "gpu_vendor_name": GPU_VENDOR,
             "gpu_memory_capacity_mib": 15360,
             "gpu_pod_uptime": 3000.123456,
-            "mig_instance_id": "MIG-test-uuid",
+            "mig_instance_id": 1,
             "mig_profile": "3g.40gb",
-            "mig_slice_count": 3,
+            "mig_strategy": "mixed",
         }
         updated_row = generator._update_gpu_data(row, self.two_hours_ago, self.now, **kwargs)
         self.assertEqual(updated_row["node"], "test-node")
@@ -1400,9 +1410,9 @@ class OCPGeneratorTestCase(TestCase):
         self.assertEqual(updated_row["gpu_vendor_name"], GPU_VENDOR)
         self.assertEqual(updated_row["gpu_memory_capacity_mib"], 15360)
         self.assertEqual(updated_row["gpu_pod_uptime"], 3000.123456)
-        self.assertEqual(updated_row["mig_instance_id"], "MIG-test-uuid")
+        self.assertEqual(updated_row["mig_instance_id"], 1)
         self.assertEqual(updated_row["mig_profile"], "3g.40gb")
-        self.assertEqual(updated_row["mig_slice_count"], 3)
+        self.assertEqual(updated_row["mig_strategy"], "mixed")
 
     def test_gpu_usage_with_multiple_gpus_per_pod(self):
         """Test that multiple GPUs per pod generate separate rows."""
