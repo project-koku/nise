@@ -64,26 +64,33 @@ generators:
                       mig_instances:
                         - mig_instance:
                           mig_profile: "3g.40gb"
-                          mig_slice_count: 3
+                          mig_strategy: "mixed"
                         - mig_instance:
                           mig_profile: "3g.40gb"
-                          mig_slice_count: 3
+                          mig_strategy: "mixed"
                     - gpu:
                       gpu_model: "A100"
                       gpu_memory_capacity_mib: 40960
                       mig_instances:
                         - mig_instance:
                           mig_profile: "1g.5gb"
-                          mig_slice_count: 1
+                          mig_strategy: "mixed"
                         - mig_instance:
                           mig_profile: "2g.10gb"
-                          mig_slice_count: 2
+                          mig_strategy: "mixed"
                         - mig_instance:
                           mig_profile: "4g.20gb"
-                          mig_slice_count: 4
+                          mig_strategy: "mixed"
                     - gpu:
                       gpu_model: "H100"
                       gpu_memory_capacity_mib: 81920
                     - gpu:
                       gpu_model: "H100"
                       gpu_memory_capacity_mib: 81920
+                    - gpu:
+                      gpu_model: "GH100"
+                      gpu_memory_capacity_mib: 40960
+                      mig_instances:
+                        - mig_instance:
+                          mig_profile: "3g.40gb"
+                          mig_strategy: "single"
