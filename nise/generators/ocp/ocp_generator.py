@@ -387,7 +387,7 @@ GPU_MEMORY_CAPACITY = {
     "A10": 24576,
 }
 
-GPU_VENDOR = "nvidia"
+GPU_VENDOR = "nvidia_com_gpu"
 
 
 def get_storage_class_and_driver():
