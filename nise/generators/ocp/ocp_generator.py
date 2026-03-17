@@ -1667,8 +1667,15 @@ class OCPGenerator(AbstractGenerator):
                         raise ValueError(f"MIG instance for pod '{pod_name}' requires mig_profile and mig_strategy")
                     mig_name = f"nise.ocp.mig.{node_name}.{pod_name}.{gpu_idx}.{mig_idx}"
                     mig_uuid = f"MIG-{uuid5(NAMESPACE_DNS, mig_name)}"
-                    # MIG instance IDs are numeric; default to 1-based per-GPU-slice index when not provided.
-                    mig_instance_id = int(mig_spec.get("mig_instance_id", (mig_idx + 1)))
+                    raw_mig_instance_id = mig_spec.get("mig_instance_id", mig_idx + 1)
+                    try:
+                        # MIG instance IDs are numeric; default to 1-based per-GPU-slice index when not provided.
+                        mig_instance_id = int(raw_mig_instance_id)
+                    except (ValueError, TypeError) as exc:
+                        raise ValueError(
+                            f"pod {pod_name}: mig_instance_id must be an integer value, got {raw_mig_instance_id}"
+                        ) from exc
+
                     pod_gpus.append(
                         {
                             "gpu_uuid": mig_uuid,
