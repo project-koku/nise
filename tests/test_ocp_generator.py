@@ -1296,6 +1296,16 @@ class OCPGeneratorTestCase(TestCase):
         self.assertIn("mig_profile", str(ctx.exception))
         self.assertIn("mig_strategy", str(ctx.exception))
 
+    def test_gen_gpus_raises_when_mig_instance_id_is_not_integer(self):
+        """Test that ValueError is raised when mig_instance_id cannot be coerced to int."""
+        attrs = self._mig_gpu_attributes(
+            pod_name="invalid-mig-id-pod", mig_instance_overrides={"mig_instance_id": "not-an-int"}
+        )
+        with self.assertRaises(ValueError) as ctx:
+            OCPGenerator(self.two_hours_ago, self.now, attrs)
+        self.assertIn("invalid-mig-id-pod", str(ctx.exception))
+        self.assertIn("mig_instance_id must be an integer value", str(ctx.exception))
+
     def test_gen_hourly_gpu_usage_includes_mig_fields(self):
         """Test that GPU usage rows include MIG fields when pod has MIG instances."""
         attrs = self._mig_gpu_attributes()
