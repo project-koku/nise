@@ -1604,6 +1604,22 @@ class OCPGenerator(AbstractGenerator):
                         )
                         yield row
 
+    @staticmethod
+    def _resolve_mig_partition_id(pod_name, mig_name, raw_mig_id):
+        """Stable MIG partition id: generated from mig_name, or from YAML string/int."""
+        if raw_mig_id is None:
+            return f"MIG-{uuid5(NAMESPACE_DNS, mig_name)}"
+        if isinstance(raw_mig_id, str):
+            return raw_mig_id
+        if isinstance(raw_mig_id, int):
+            return f"MIG-{raw_mig_id}"
+        try:
+            return f"MIG-{int(raw_mig_id)}"
+        except (ValueError, TypeError) as exc:
+            raise ValueError(
+                f"pod {pod_name}: mig_instance_id must be a string or integer, got {type(raw_mig_id).__name__}"
+            ) from exc
+
     def _gen_gpus(self):  # noqa: C901
         """Create GPUs for pods and nodes that need them."""
         gpus = {}
@@ -1666,23 +1682,9 @@ class OCPGenerator(AbstractGenerator):
                     if not all([mig_profile, mig_strategy]):
                         raise ValueError(f"MIG instance for pod '{pod_name}' requires mig_profile and mig_strategy")
                     mig_name = f"nise.ocp.mig.{node_name}.{pod_name}.{gpu_idx}.{mig_idx}"
-                    # One gpu_uuid (GPU-...) per physical GPU; each MIG partition gets a unique mig_instance_id (MIG-...).
-                    raw_mig_id = mig_spec.get("mig_instance_id")
-                    if raw_mig_id is not None:
-                        if isinstance(raw_mig_id, str):
-                            mig_partition_id = raw_mig_id
-                        elif isinstance(raw_mig_id, int):
-                            mig_partition_id = f"MIG-{raw_mig_id}"
-                        else:
-                            try:
-                                mig_partition_id = f"MIG-{int(raw_mig_id)}"
-                            except (ValueError, TypeError) as exc:
-                                raise ValueError(
-                                    f"pod {pod_name}: mig_instance_id must be a string or integer, "
-                                    f"got {type(raw_mig_id).__name__}"
-                                ) from exc
-                    else:
-                        mig_partition_id = f"MIG-{uuid5(NAMESPACE_DNS, mig_name)}"
+                    mig_partition_id = self._resolve_mig_partition_id(
+                        pod_name, mig_name, mig_spec.get("mig_instance_id")
+                    )
 
                     # Physical GPU uuid is shared by all MIG slices on this YAML gpu entry.
                     pod_gpus.append(

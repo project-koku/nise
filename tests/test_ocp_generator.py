@@ -21,6 +21,8 @@ from copy import copy
 from datetime import datetime
 from datetime import timedelta
 from unittest import TestCase
+from uuid import NAMESPACE_DNS
+from uuid import uuid5
 from unittest.mock import Mock
 from unittest.mock import patch
 
@@ -1298,9 +1300,7 @@ class OCPGeneratorTestCase(TestCase):
 
     def test_gen_gpus_raises_when_mig_instance_id_invalid_type(self):
         """Test that ValueError is raised when mig_instance_id is not a string or integer."""
-        attrs = self._mig_gpu_attributes(
-            pod_name="invalid-mig-id-pod", mig_instance_overrides={"mig_instance_id": {}}
-        )
+        attrs = self._mig_gpu_attributes(pod_name="invalid-mig-id-pod", mig_instance_overrides={"mig_instance_id": {}})
         with self.assertRaises(ValueError) as ctx:
             OCPGenerator(self.two_hours_ago, self.now, attrs)
         self.assertIn("invalid-mig-id-pod", str(ctx.exception))
@@ -1566,3 +1566,53 @@ class OCPGeneratorTestCase(TestCase):
         unique_uptimes = set(uptimes)
         self.assertEqual(len(unique_uptimes), 1, f"Expected all GPUs to have same uptime, got {unique_uptimes}")
         self.assertEqual(unique_uptimes.pop(), specific_pod_seconds)
+
+
+class ResolveMigPartitionIdTest(TestCase):
+    """Tests for OCPGenerator._resolve_mig_partition_id."""
+
+    def test_none_uses_stable_uuid_from_mig_name(self):
+        mig_name = "nise.ocp.mig.node-a.pod-b.0.1"
+        expected = f"MIG-{uuid5(NAMESPACE_DNS, mig_name)}"
+        result = OCPGenerator._resolve_mig_partition_id("pod-b", mig_name, None)
+        self.assertEqual(result, expected)
+        self.assertTrue(result.startswith("MIG-"))
+
+    def test_none_same_mig_name_same_id(self):
+        mig_name = "nise.ocp.mig.n.p.0.0"
+        a = OCPGenerator._resolve_mig_partition_id("p", mig_name, None)
+        b = OCPGenerator._resolve_mig_partition_id("p", mig_name, None)
+        self.assertEqual(a, b)
+
+    def test_none_different_mig_name_different_id(self):
+        a = OCPGenerator._resolve_mig_partition_id("p", "nise.ocp.mig.n.p.0.0", None)
+        b = OCPGenerator._resolve_mig_partition_id("p", "nise.ocp.mig.n.p.0.1", None)
+        self.assertNotEqual(a, b)
+
+    def test_string_returned_unchanged(self):
+        self.assertEqual(
+            OCPGenerator._resolve_mig_partition_id("pod", "mig", "MIG-abc-123"),
+            "MIG-abc-123",
+        )
+        self.assertEqual(
+            OCPGenerator._resolve_mig_partition_id("pod", "mig", "custom-partition"),
+            "custom-partition",
+        )
+
+    def test_int_prefixed_with_mig(self):
+        self.assertEqual(OCPGenerator._resolve_mig_partition_id("p", "m", 7), "MIG-7")
+        self.assertEqual(OCPGenerator._resolve_mig_partition_id("p", "m", 0), "MIG-0")
+
+    def test_coerces_numeric_non_int_via_int(self):
+        self.assertEqual(OCPGenerator._resolve_mig_partition_id("p", "m", 3.9), "MIG-3")
+
+    def test_invalid_type_raises_value_error(self):
+        with self.assertRaises(ValueError) as ctx:
+            OCPGenerator._resolve_mig_partition_id("my-pod", "m", {})
+        self.assertIn("my-pod", str(ctx.exception))
+        self.assertIn("mig_instance_id must be a string or integer", str(ctx.exception))
+        self.assertIn("dict", str(ctx.exception))
+
+    def test_invalid_type_list(self):
+        with self.assertRaises(ValueError):
+            OCPGenerator._resolve_mig_partition_id("p", "m", [])
