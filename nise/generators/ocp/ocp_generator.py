@@ -1666,23 +1666,32 @@ class OCPGenerator(AbstractGenerator):
                     if not all([mig_profile, mig_strategy]):
                         raise ValueError(f"MIG instance for pod '{pod_name}' requires mig_profile and mig_strategy")
                     mig_name = f"nise.ocp.mig.{node_name}.{pod_name}.{gpu_idx}.{mig_idx}"
-                    mig_uuid = f"MIG-{uuid5(NAMESPACE_DNS, mig_name)}"
-                    raw_mig_instance_id = mig_spec.get("mig_instance_id", mig_idx + 1)
-                    try:
-                        # MIG instance IDs are numeric; default to 1-based per-GPU-slice index when not provided.
-                        mig_instance_id = int(raw_mig_instance_id)
-                    except (ValueError, TypeError) as exc:
-                        raise ValueError(
-                            f"pod {pod_name}: mig_instance_id must be an integer value, got {raw_mig_instance_id}"
-                        ) from exc
+                    # One gpu_uuid (GPU-...) per physical GPU; each MIG partition gets a unique mig_instance_id (MIG-...).
+                    raw_mig_id = mig_spec.get("mig_instance_id")
+                    if raw_mig_id is not None:
+                        if isinstance(raw_mig_id, str):
+                            mig_partition_id = raw_mig_id
+                        elif isinstance(raw_mig_id, int):
+                            mig_partition_id = f"MIG-{raw_mig_id}"
+                        else:
+                            try:
+                                mig_partition_id = f"MIG-{int(raw_mig_id)}"
+                            except (ValueError, TypeError) as exc:
+                                raise ValueError(
+                                    f"pod {pod_name}: mig_instance_id must be a string or integer, "
+                                    f"got {type(raw_mig_id).__name__}"
+                                ) from exc
+                    else:
+                        mig_partition_id = f"MIG-{uuid5(NAMESPACE_DNS, mig_name)}"
 
+                    # Physical GPU uuid is shared by all MIG slices on this YAML gpu entry.
                     pod_gpus.append(
                         {
-                            "gpu_uuid": mig_uuid,
+                            "gpu_uuid": parent_gpu_uuid,
                             "gpu_model_name": gpu_model,
                             "gpu_vendor_name": GPU_VENDOR,
                             "gpu_memory_capacity_mib": gpu_memory,
-                            "mig_instance_id": mig_instance_id,
+                            "mig_instance_id": mig_partition_id,
                             "mig_profile": mig_profile,
                             "mig_strategy": mig_strategy,
                         }
