@@ -904,6 +904,7 @@ def ocp_create_report(options):  # noqa: C901
     static_report_data = options.get("static_report_data")
     ros_ocp_info = options.get("ros_ocp_info")
     constant_values_ros_ocp = options.get("constant_values_ros_ocp")
+    ros_only = options.get("ros_only")
 
     if static_report_data:
         generators = _get_generators(static_report_data.get("generators"))
@@ -915,25 +916,36 @@ def ocp_create_report(options):  # noqa: C901
     minio_upload = options.get("minio_upload")
     write_monthly = options.get("write_monthly", False)
     for month in months:
-        data = {
-            OCP_POD_USAGE: [],
-            OCP_STORAGE_USAGE: [],
-            OCP_NODE_LABEL: [],
-            OCP_NAMESPACE_LABEL: [],
-            OCP_VM_USAGE: [],
-            OCP_GPU_USAGE: [],
-        }
-        file_numbers = {
-            OCP_POD_USAGE: 0,
-            OCP_STORAGE_USAGE: 0,
-            OCP_NODE_LABEL: 0,
-            OCP_NAMESPACE_LABEL: 0,
-            OCP_VM_USAGE: 0,
-            OCP_GPU_USAGE: 0,
-        }
-        if ros_ocp_info:
-            data.update({OCP_ROS_USAGE: [], OCP_ROS_NAMESPACE_USAGE: []})
-            file_numbers.update({OCP_ROS_USAGE: 0, OCP_ROS_NAMESPACE_USAGE: 0})
+        if ros_only:
+            # Only ROS reports
+            data = {
+                OCP_ROS_USAGE: [],
+                OCP_ROS_NAMESPACE_USAGE: [],
+            }
+            file_numbers = {
+                OCP_ROS_USAGE: 0,
+                OCP_ROS_NAMESPACE_USAGE: 0,
+            }
+        else:
+            data = {
+                OCP_POD_USAGE: [],
+                OCP_STORAGE_USAGE: [],
+                OCP_NODE_LABEL: [],
+                OCP_NAMESPACE_LABEL: [],
+                OCP_VM_USAGE: [],
+                OCP_GPU_USAGE: [],
+            }
+            file_numbers = {
+                OCP_POD_USAGE: 0,
+                OCP_STORAGE_USAGE: 0,
+                OCP_NODE_LABEL: 0,
+                OCP_NAMESPACE_LABEL: 0,
+                OCP_VM_USAGE: 0,
+                OCP_GPU_USAGE: 0,
+            }
+            if ros_ocp_info:
+                data.update({OCP_ROS_USAGE: [], OCP_ROS_NAMESPACE_USAGE: []})
+                file_numbers.update({OCP_ROS_USAGE: 0, OCP_ROS_NAMESPACE_USAGE: 0})
         monthly_files = []
         monthly_ros_files = []
         for generator in generators:
@@ -950,7 +962,9 @@ def ocp_create_report(options):  # noqa: C901
 
                 gen_start_date, gen_end_date = _create_generator_dates_from_yaml(attributes, month)
 
-            gen = generator_cls(gen_start_date, gen_end_date, attributes, ros_ocp_info, constant_values_ros_ocp)
+            gen = generator_cls(
+                gen_start_date, gen_end_date, attributes, ros_ocp_info, constant_values_ros_ocp, ros_only
+            )
             for report_type in gen.ocp_report_generation.keys():
                 LOG.info(f"Generating data for {report_type} for {month}")
                 for hour in gen.generate_data(report_type):

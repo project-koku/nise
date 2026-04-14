@@ -464,11 +464,14 @@ def get_vm_from_label(labels):
 class OCPGenerator(AbstractGenerator):
     """Defines a abstract class for generators."""
 
-    def __init__(self, start_date, end_date, attributes, ros_ocp_info=False, constant_values_ros_ocp=False):
+    def __init__(
+        self, start_date, end_date, attributes, ros_ocp_info=False, constant_values_ros_ocp=False, ros_only=False
+    ):
         """Initialize the generator."""
         self._nodes = None
         self.ros_ocp_info = ros_ocp_info
         self.constant_values_ros_ocp = constant_values_ros_ocp
+        self.ros_only = ros_only
         if attributes:
             self._nodes = attributes.get("nodes")
 
@@ -508,46 +511,59 @@ class OCPGenerator(AbstractGenerator):
         self.vms, self.namespace2vm = self._gen_virtual_machines(self.namespaces)
         self.gpus = self._gen_gpus()
 
-        self.ocp_report_generation = {
-            OCP_POD_USAGE: {
-                "_generate_hourly_data": self._gen_hourly_pods_usage,
-                "_update_data": self._update_pod_data,
-            },
-            OCP_STORAGE_USAGE: {
-                "_generate_hourly_data": self._gen_hourly_storage_usage,
-                "_update_data": self._update_storage_data,
-            },
-            OCP_NODE_LABEL: {
-                "_generate_hourly_data": self._gen_hourly_node_label_usage,
-                "_update_data": self._update_node_label_data,
-            },
-            OCP_NAMESPACE_LABEL: {
-                "_generate_hourly_data": self._gen_hourly_namespace_label_usage,
-                "_update_data": self._update_namespace_label_data,
-            },
-            OCP_VM_USAGE: {
-                "_generate_hourly_data": self._gen_hourly_vm_usage,
-                "_update_data": self._update_vm_data,
-            },
-            OCP_GPU_USAGE: {
-                "_generate_hourly_data": self._gen_hourly_gpu_usage,
-                "_update_data": self._update_gpu_data,
-            },
-        }
+        if self.ros_only:
+            # ONLY ROS reports
+            self.ocp_report_generation = {
+                OCP_ROS_USAGE: {
+                    "_generate_hourly_data": self._gen_quarter_hourly_ros_ocp_pods_usage,
+                    "_update_data": self._update_ros_ocp_pod_data,
+                },
+                OCP_ROS_NAMESPACE_USAGE: {
+                    "_generate_hourly_data": self._gen_quarter_hourly_ros_ocp_namespace_usage,
+                    "_update_data": self._update_ros_ocp_namespace_data,
+                },
+            }
+        else:
+            self.ocp_report_generation = {
+                OCP_POD_USAGE: {
+                    "_generate_hourly_data": self._gen_hourly_pods_usage,
+                    "_update_data": self._update_pod_data,
+                },
+                OCP_STORAGE_USAGE: {
+                    "_generate_hourly_data": self._gen_hourly_storage_usage,
+                    "_update_data": self._update_storage_data,
+                },
+                OCP_NODE_LABEL: {
+                    "_generate_hourly_data": self._gen_hourly_node_label_usage,
+                    "_update_data": self._update_node_label_data,
+                },
+                OCP_NAMESPACE_LABEL: {
+                    "_generate_hourly_data": self._gen_hourly_namespace_label_usage,
+                    "_update_data": self._update_namespace_label_data,
+                },
+                OCP_VM_USAGE: {
+                    "_generate_hourly_data": self._gen_hourly_vm_usage,
+                    "_update_data": self._update_vm_data,
+                },
+                OCP_GPU_USAGE: {
+                    "_generate_hourly_data": self._gen_hourly_gpu_usage,
+                    "_update_data": self._update_gpu_data,
+                },
+            }
 
-        if self.ros_ocp_info:
-            self.ocp_report_generation.update(
-                {
-                    OCP_ROS_USAGE: {
-                        "_generate_hourly_data": self._gen_quarter_hourly_ros_ocp_pods_usage,
-                        "_update_data": self._update_ros_ocp_pod_data,
-                    },
-                    OCP_ROS_NAMESPACE_USAGE: {
-                        "_generate_hourly_data": self._gen_quarter_hourly_ros_ocp_namespace_usage,
-                        "_update_data": self._update_ros_ocp_namespace_data,
-                    },
-                }
-            )
+            if self.ros_ocp_info:
+                self.ocp_report_generation.update(
+                    {
+                        OCP_ROS_USAGE: {
+                            "_generate_hourly_data": self._gen_quarter_hourly_ros_ocp_pods_usage,
+                            "_update_data": self._update_ros_ocp_pod_data,
+                        },
+                        OCP_ROS_NAMESPACE_USAGE: {
+                            "_generate_hourly_data": self._gen_quarter_hourly_ros_ocp_namespace_usage,
+                            "_update_data": self._update_ros_ocp_namespace_data,
+                        },
+                    }
+                )
 
     @staticmethod
     def timestamp(in_date):
