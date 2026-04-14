@@ -511,18 +511,20 @@ class OCPGenerator(AbstractGenerator):
         self.vms, self.namespace2vm = self._gen_virtual_machines(self.namespaces)
         self.gpus = self._gen_gpus()
 
+        ros_reports = {
+            OCP_ROS_USAGE: {
+                "_generate_hourly_data": self._gen_quarter_hourly_ros_ocp_pods_usage,
+                "_update_data": self._update_ros_ocp_pod_data,
+            },
+            OCP_ROS_NAMESPACE_USAGE: {
+                "_generate_hourly_data": self._gen_quarter_hourly_ros_ocp_namespace_usage,
+                "_update_data": self._update_ros_ocp_namespace_data,
+            },
+        }
+
         if self.ros_only:
             # ONLY ROS reports
-            self.ocp_report_generation = {
-                OCP_ROS_USAGE: {
-                    "_generate_hourly_data": self._gen_quarter_hourly_ros_ocp_pods_usage,
-                    "_update_data": self._update_ros_ocp_pod_data,
-                },
-                OCP_ROS_NAMESPACE_USAGE: {
-                    "_generate_hourly_data": self._gen_quarter_hourly_ros_ocp_namespace_usage,
-                    "_update_data": self._update_ros_ocp_namespace_data,
-                },
-            }
+            self.ocp_report_generation = ros_reports
         else:
             self.ocp_report_generation = {
                 OCP_POD_USAGE: {
@@ -552,18 +554,7 @@ class OCPGenerator(AbstractGenerator):
             }
 
             if self.ros_ocp_info:
-                self.ocp_report_generation.update(
-                    {
-                        OCP_ROS_USAGE: {
-                            "_generate_hourly_data": self._gen_quarter_hourly_ros_ocp_pods_usage,
-                            "_update_data": self._update_ros_ocp_pod_data,
-                        },
-                        OCP_ROS_NAMESPACE_USAGE: {
-                            "_generate_hourly_data": self._gen_quarter_hourly_ros_ocp_namespace_usage,
-                            "_update_data": self._update_ros_ocp_namespace_data,
-                        },
-                    }
-                )
+                self.ocp_report_generation.update(ros_reports)
 
     @staticmethod
     def timestamp(in_date):
