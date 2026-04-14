@@ -33,6 +33,7 @@ from nise.generators.ocp.ocp_generator import GPU_MODELS
 from nise.generators.ocp.ocp_generator import GPU_VENDOR
 from nise.generators.ocp.ocp_generator import OCP_GPU_USAGE
 from nise.generators.ocp.ocp_generator import OCP_GPU_USAGE_COLUMNS
+from nise.generators.ocp.ocp_generator import OCP_NAMESPACE_LABEL
 from nise.generators.ocp.ocp_generator import OCP_NODE_LABEL
 from nise.generators.ocp.ocp_generator import OCP_NODE_LABEL_COLUMNS
 from nise.generators.ocp.ocp_generator import OCP_POD_USAGE
@@ -42,6 +43,7 @@ from nise.generators.ocp.ocp_generator import OCP_ROS_NAMESPACE_USAGE_COLUMN
 from nise.generators.ocp.ocp_generator import OCP_ROS_USAGE
 from nise.generators.ocp.ocp_generator import OCP_STORAGE_COLUMNS
 from nise.generators.ocp.ocp_generator import OCP_STORAGE_USAGE
+from nise.generators.ocp.ocp_generator import OCP_VM_USAGE
 from nise.generators.ocp.ocp_generator import OCP_REPORT_TYPE_TO_COLS
 from nise.generators.ocp.ocp_generator import COST_OCP_REPORT_TYPE_TO_COLS
 from nise.generators.ocp.ocp_generator import ROS_OCP_REPORT_TYPE_TO_COLS
@@ -1114,6 +1116,31 @@ class OCPGeneratorTestCase(TestCase):
         self.assertEqual(updated_row["namespace"], "test-namespace")
         self.assertEqual(updated_row["cpu_request_namespace_sum"], 10.0)
         self.assertEqual(updated_row["memory_limit_namespace_sum"], 2048)
+
+    def test_init_with_ros_only(self):
+        """Test that generator initializes correctly with ros_only enabled."""
+        generator = OCPGenerator(self.two_hours_ago, self.now, {}, ros_only=True)
+
+        # Should have ONLY ROS reports in ocp_report_generation
+        self.assertEqual(len(generator.ocp_report_generation), 2)
+        self.assertIn(OCP_ROS_USAGE, generator.ocp_report_generation)
+        self.assertIn(OCP_ROS_NAMESPACE_USAGE, generator.ocp_report_generation)
+
+        # Should NOT have standard reports
+        self.assertNotIn(OCP_POD_USAGE, generator.ocp_report_generation)
+        self.assertNotIn(OCP_STORAGE_USAGE, generator.ocp_report_generation)
+        self.assertNotIn(OCP_NODE_LABEL, generator.ocp_report_generation)
+        self.assertNotIn(OCP_NAMESPACE_LABEL, generator.ocp_report_generation)
+        self.assertNotIn(OCP_VM_USAGE, generator.ocp_report_generation)
+        self.assertNotIn(OCP_GPU_USAGE, generator.ocp_report_generation)
+
+        ros_usage_config = generator.ocp_report_generation[OCP_ROS_USAGE]
+        self.assertIn("_generate_hourly_data", ros_usage_config)
+        self.assertIn("_update_data", ros_usage_config)
+
+        ros_namespace_config = generator.ocp_report_generation[OCP_ROS_NAMESPACE_USAGE]
+        self.assertIn("_generate_hourly_data", ros_namespace_config)
+        self.assertIn("_update_data", ros_namespace_config)
 
     def test_ocp_report_type_to_cols_includes_namespace_usage(self):
         """Test that OCP_REPORT_TYPE_TO_COLS includes namespace usage mapping and verify separation."""
