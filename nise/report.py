@@ -80,8 +80,8 @@ from nise.generators.gcp import JSONLHCSGenerator
 from nise.generators.gcp import JSONLProjectGenerator
 from nise.generators.gcp import ProjectGenerator
 from nise.generators.ocp import OCP_REPORT_TYPE_TO_COLS
-from nise.generators.ocp.ocp_generator import COST_OCP_REPORT_TYPE_TO_COLS
-from nise.generators.ocp.ocp_generator import ROS_OCP_REPORT_TYPE_TO_COLS
+from nise.generators.ocp import COST_OCP_REPORT_TYPE_TO_COLS
+from nise.generators.ocp import ROS_OCP_REPORT_TYPE_TO_COLS
 from nise.generators.ocp import OCP_ROS_USAGE
 from nise.generators.ocp import OCP_ROS_NAMESPACE_USAGE
 from nise.generators.ocp import OCPGenerator
