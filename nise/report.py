@@ -79,15 +79,11 @@ from nise.generators.gcp import JSONLGCPNetworkGenerator
 from nise.generators.gcp import JSONLHCSGenerator
 from nise.generators.gcp import JSONLProjectGenerator
 from nise.generators.gcp import ProjectGenerator
-from nise.generators.ocp import OCP_GPU_USAGE
-from nise.generators.ocp import OCP_NAMESPACE_LABEL
-from nise.generators.ocp import OCP_NODE_LABEL
-from nise.generators.ocp import OCP_POD_USAGE
 from nise.generators.ocp import OCP_REPORT_TYPE_TO_COLS
+from nise.generators.ocp import COST_OCP_REPORT_TYPE_TO_COLS
+from nise.generators.ocp import ROS_OCP_REPORT_TYPE_TO_COLS
 from nise.generators.ocp import OCP_ROS_USAGE
 from nise.generators.ocp import OCP_ROS_NAMESPACE_USAGE
-from nise.generators.ocp import OCP_STORAGE_USAGE
-from nise.generators.ocp import OCP_VM_USAGE
 from nise.generators.ocp import OCPGenerator
 from nise.manifest import aws_generate_manifest
 from nise.manifest import ocp_generate_manifest
@@ -917,35 +913,15 @@ def ocp_create_report(options):  # noqa: C901
     write_monthly = options.get("write_monthly", False)
     for month in months:
         if ros_only:
-            # Only ROS reports
-            data = {
-                OCP_ROS_USAGE: [],
-                OCP_ROS_NAMESPACE_USAGE: [],
-            }
-            file_numbers = {
-                OCP_ROS_USAGE: 0,
-                OCP_ROS_NAMESPACE_USAGE: 0,
-            }
+            report_types = ROS_OCP_REPORT_TYPE_TO_COLS
+        elif ros_ocp_info:
+            report_types = OCP_REPORT_TYPE_TO_COLS
         else:
-            data = {
-                OCP_POD_USAGE: [],
-                OCP_STORAGE_USAGE: [],
-                OCP_NODE_LABEL: [],
-                OCP_NAMESPACE_LABEL: [],
-                OCP_VM_USAGE: [],
-                OCP_GPU_USAGE: [],
-            }
-            file_numbers = {
-                OCP_POD_USAGE: 0,
-                OCP_STORAGE_USAGE: 0,
-                OCP_NODE_LABEL: 0,
-                OCP_NAMESPACE_LABEL: 0,
-                OCP_VM_USAGE: 0,
-                OCP_GPU_USAGE: 0,
-            }
-            if ros_ocp_info:
-                data.update({OCP_ROS_USAGE: [], OCP_ROS_NAMESPACE_USAGE: []})
-                file_numbers.update({OCP_ROS_USAGE: 0, OCP_ROS_NAMESPACE_USAGE: 0})
+            report_types = COST_OCP_REPORT_TYPE_TO_COLS
+
+        data = {rt: [] for rt in report_types}
+        file_numbers = {rt: 0 for rt in report_types}
+
         monthly_files = []
         monthly_ros_files = []
         for generator in generators:
