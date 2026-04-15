@@ -79,15 +79,11 @@ from nise.generators.gcp import JSONLGCPNetworkGenerator
 from nise.generators.gcp import JSONLHCSGenerator
 from nise.generators.gcp import JSONLProjectGenerator
 from nise.generators.gcp import ProjectGenerator
-from nise.generators.ocp import OCP_GPU_USAGE
-from nise.generators.ocp import OCP_NAMESPACE_LABEL
-from nise.generators.ocp import OCP_NODE_LABEL
-from nise.generators.ocp import OCP_POD_USAGE
 from nise.generators.ocp import OCP_REPORT_TYPE_TO_COLS
+from nise.generators.ocp import COST_OCP_REPORT_TYPE_TO_COLS
+from nise.generators.ocp import ROS_OCP_REPORT_TYPE_TO_COLS
 from nise.generators.ocp import OCP_ROS_USAGE
 from nise.generators.ocp import OCP_ROS_NAMESPACE_USAGE
-from nise.generators.ocp import OCP_STORAGE_USAGE
-from nise.generators.ocp import OCP_VM_USAGE
 from nise.generators.ocp import OCPGenerator
 from nise.manifest import aws_generate_manifest
 from nise.manifest import ocp_generate_manifest
@@ -904,6 +900,7 @@ def ocp_create_report(options):  # noqa: C901
     static_report_data = options.get("static_report_data")
     ros_ocp_info = options.get("ros_ocp_info")
     constant_values_ros_ocp = options.get("constant_values_ros_ocp")
+    ros_only = options.get("ros_only")
 
     if static_report_data:
         generators = _get_generators(static_report_data.get("generators"))
@@ -915,25 +912,16 @@ def ocp_create_report(options):  # noqa: C901
     minio_upload = options.get("minio_upload")
     write_monthly = options.get("write_monthly", False)
     for month in months:
-        data = {
-            OCP_POD_USAGE: [],
-            OCP_STORAGE_USAGE: [],
-            OCP_NODE_LABEL: [],
-            OCP_NAMESPACE_LABEL: [],
-            OCP_VM_USAGE: [],
-            OCP_GPU_USAGE: [],
-        }
-        file_numbers = {
-            OCP_POD_USAGE: 0,
-            OCP_STORAGE_USAGE: 0,
-            OCP_NODE_LABEL: 0,
-            OCP_NAMESPACE_LABEL: 0,
-            OCP_VM_USAGE: 0,
-            OCP_GPU_USAGE: 0,
-        }
-        if ros_ocp_info:
-            data.update({OCP_ROS_USAGE: [], OCP_ROS_NAMESPACE_USAGE: []})
-            file_numbers.update({OCP_ROS_USAGE: 0, OCP_ROS_NAMESPACE_USAGE: 0})
+        if ros_only:
+            report_types = ROS_OCP_REPORT_TYPE_TO_COLS
+        elif ros_ocp_info:
+            report_types = OCP_REPORT_TYPE_TO_COLS
+        else:
+            report_types = COST_OCP_REPORT_TYPE_TO_COLS
+
+        data = {rt: [] for rt in report_types}
+        file_numbers = {rt: 0 for rt in report_types}
+
         monthly_files = []
         monthly_ros_files = []
         for generator in generators:
@@ -950,7 +938,9 @@ def ocp_create_report(options):  # noqa: C901
 
                 gen_start_date, gen_end_date = _create_generator_dates_from_yaml(attributes, month)
 
-            gen = generator_cls(gen_start_date, gen_end_date, attributes, ros_ocp_info, constant_values_ros_ocp)
+            gen = generator_cls(
+                gen_start_date, gen_end_date, attributes, ros_ocp_info, constant_values_ros_ocp, ros_only
+            )
             for report_type in gen.ocp_report_generation.keys():
                 LOG.info(f"Generating data for {report_type} for {month}")
                 for hour in gen.generate_data(report_type):

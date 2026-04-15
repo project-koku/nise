@@ -320,6 +320,13 @@ def add_ocp_parser_args(parser):
         action="store_true",
         help="Flag to generate constant values for ROS for Openshift",
     )
+    parser.add_argument(
+        "--ros-only",
+        dest="ros_only",
+        required=False,
+        action="store_true",
+        help="Generate ONLY ROS for Openshift data",
+    )
 
 
 def create_parser():

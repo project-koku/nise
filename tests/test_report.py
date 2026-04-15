@@ -33,6 +33,16 @@ import faker
 from dateutil.relativedelta import relativedelta
 
 from nise.__main__ import fix_dates
+from nise.generators.ocp import (
+    OCP_ROS_USAGE,
+    OCP_ROS_NAMESPACE_USAGE,
+    OCP_POD_USAGE,
+    OCP_STORAGE_USAGE,
+    OCP_NODE_LABEL,
+    OCP_NAMESPACE_LABEL,
+    OCP_VM_USAGE,
+    OCP_GPU_USAGE,
+)
 from nise.generators.ocp.ocp_generator import COST_OCP_REPORT_TYPE_TO_COLS
 from nise.generators.ocp.ocp_generator import OCP_REPORT_TYPE_TO_COLS
 from nise.report import _convert_bytes
@@ -1059,6 +1069,49 @@ class OCPReportTestCase(TestCase):
             expected_month_output_file = f"{os.getcwd()}/{month_output_file_name}.csv"
             self.assertTrue(os.path.isfile(expected_month_output_file))
             os.remove(expected_month_output_file)
+
+    def test_ocp_create_report_ros_only(self):
+        """Test the ocp report creation with ros_only flag - should create ONLY ROS reports."""
+        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
+        one_day = datetime.timedelta(days=1)
+        yesterday = now - one_day
+        cluster_id = "11112222"
+        options = {
+            "start_date": yesterday,
+            "end_date": now,
+            "ocp_cluster_id": cluster_id,
+            "write_monthly": True,
+            "ros_only": True,
+        }
+        fix_dates(options, "ocp")
+        ocp_create_report(options)
+
+        # Verify ONLY ROS reports were created
+        ros_report_types = [OCP_ROS_USAGE, OCP_ROS_NAMESPACE_USAGE]
+
+        for report_type in ros_report_types:
+            month_output_file_name = f"{calendar.month_name[now.month]}-{now.year}-{cluster_id}-{report_type}"
+            expected_month_output_file = f"{os.getcwd()}/{month_output_file_name}.csv"
+            self.assertTrue(os.path.isfile(expected_month_output_file), f"Expected ROS report {report_type} to exist")
+            os.remove(expected_month_output_file)
+
+        # Verify standard reports were NOT created
+        standard_report_types = [
+            OCP_POD_USAGE,
+            OCP_STORAGE_USAGE,
+            OCP_NODE_LABEL,
+            OCP_NAMESPACE_LABEL,
+            OCP_VM_USAGE,
+            OCP_GPU_USAGE,
+        ]
+
+        for report_type in standard_report_types:
+            month_output_file_name = f"{calendar.month_name[now.month]}-{now.year}-{cluster_id}-{report_type}"
+            expected_month_output_file = f"{os.getcwd()}/{month_output_file_name}.csv"
+            self.assertFalse(
+                os.path.isfile(expected_month_output_file),
+                f"Standard report {report_type} should NOT exist with ros_only=True",
+            )
 
     def test_ocp_create_report_ros_ocp_constant_data_generation(self):
         """Test the ocp report creation method with constant_values_ros_ocp enabled."""
