@@ -45,6 +45,7 @@ from nise.generators.ocp import (
 )
 from nise.generators.ocp.ocp_generator import COST_OCP_REPORT_TYPE_TO_COLS
 from nise.generators.ocp.ocp_generator import OCP_REPORT_TYPE_TO_COLS
+from nise.manifest import ocp_generate_manifest as real_ocp_generate_manifest
 from nise.report import _convert_bytes
 from nise.report import _create_generator_dates_from_yaml
 from nise.report import _create_month_list
@@ -1337,6 +1338,79 @@ class OCPReportTestCase(TestCase):
             expected_month_output_file = f"{os.getcwd()}/{month_output_file_name}.csv"
             self.assertTrue(os.path.isfile(expected_month_output_file))
             os.remove(expected_month_output_file)
+
+        shutil.rmtree(local_insights_upload)
+
+    def test_ocp_create_report_manifest_dates_span_all_generators(self):
+        """Manifest start/end must be min/max across all generators, not just the last one."""
+
+        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
+        two_days_ago = now - datetime.timedelta(days=2)
+        yesterday = now - datetime.timedelta(days=1)
+        local_insights_upload = mkdtemp()
+        cluster_id = "11112222"
+        pod_spec = {
+            "pod": None,
+            "pod_name": "pod1",
+            "cpu_request": 1,
+            "mem_request_gig": 1,
+            "cpu_limit": 1,
+            "mem_limit_gig": 1,
+        }
+        static_ocp_data = {
+            "generators": [
+                {
+                    "OCPGenerator": {
+                        "start_date": str(two_days_ago.date()),
+                        "end_date": str(now.date()),
+                        "nodes": [
+                            {
+                                "node": None,
+                                "node_name": "alpha",
+                                "cpu_cores": 2,
+                                "memory_gig": 4,
+                                "namespaces": {"ns_a": {"pods": [pod_spec]}},
+                            }
+                        ],
+                    }
+                },
+                {
+                    "OCPGenerator": {
+                        "start_date": str(yesterday.date()),
+                        "end_date": str(yesterday.date()),
+                        "nodes": [
+                            {
+                                "node": None,
+                                "node_name": "beta",
+                                "cpu_cores": 2,
+                                "memory_gig": 4,
+                                "namespaces": {"ns_b": {"pods": [pod_spec]}},
+                            }
+                        ],
+                    }
+                },
+            ]
+        }
+        options = {
+            "start_date": two_days_ago,
+            "end_date": now,
+            "insights_upload": local_insights_upload,
+            "ocp_cluster_id": cluster_id,
+            "static_report_data": static_ocp_data,
+            "write_monthly": True,
+        }
+        fix_dates(options, "ocp")
+        with patch("nise.report.ocp_generate_manifest", wraps=real_ocp_generate_manifest) as mock_manifest:
+            ocp_create_report(options)
+        mock_manifest.assert_called_once()
+        manifest_values = mock_manifest.call_args[0][0]
+        manifest_start = datetime.datetime.fromisoformat(manifest_values["start"])
+        manifest_end = datetime.datetime.fromisoformat(manifest_values["end"])
+
+        # Generator 1 spans two_days_ago→now (wider), generator 2 spans yesterday→yesterday (narrower).
+        # The manifest must cover the union: two_days_ago → now.
+        self.assertEqual(manifest_start.date(), two_days_ago.date())
+        self.assertEqual(manifest_end.date(), now.date())
 
         shutil.rmtree(local_insights_upload)
 
