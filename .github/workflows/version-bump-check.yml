@@ -50,7 +50,7 @@ jobs:
 
       - name: Comment if version not bumped
         if: steps.nise-changed.outputs.changed == 'true' && steps.version-changed.outputs.bumped != 'true'
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             github.rest.issues.createComment({
