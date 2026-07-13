@@ -24,7 +24,7 @@ jobs:
           # token with contents:write is required to push the patch bump.
           token: ${{ secrets.VERSION_BUMP_TOKEN || secrets.GITHUB_TOKEN }}
 
-      - name: Detect Dependabot dependencies PR`
+      - name: Detect Dependabot dependencies PR
         id: dependabot
         run: |
           AUTHOR="${{ github.event.pull_request.user.login }}"
