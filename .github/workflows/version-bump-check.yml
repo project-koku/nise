@@ -5,18 +5,43 @@ on:
     branches:
       - main
       - master
+    types: [opened, synchronize, reopened, labeled]
+
+permissions:
+  contents: write
+  pull-requests: write
 
 jobs:
   check-version-bump:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v7.0.0
+        uses: actions/checkout@v6.0.2
         with:
           fetch-depth: 0
+          ref: ${{ github.head_ref }}
+          # Dependabot-triggered workflows get a read-only GITHUB_TOKEN; a PAT/App
+          # token with contents:write is required to push the patch bump.
+          token: ${{ secrets.VERSION_BUMP_TOKEN || secrets.GITHUB_TOKEN }}
+
+      - name: Detect Dependabot dependencies PR`
+        id: dependabot
+        run: |
+          AUTHOR="${{ github.event.pull_request.user.login }}"
+          if [ "$AUTHOR" != "dependabot[bot]" ]; then
+            echo "target=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          LABELS='${{ toJson(github.event.pull_request.labels.*.name) }}'
+          if echo "$LABELS" | grep -q '"dependencies"'; then
+            echo "target=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "target=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Get changed files
         id: changed-files
+        if: steps.dependabot.outputs.target != 'true'
         uses: tj-actions/changed-files@v47
         with:
           files: |
@@ -28,29 +53,65 @@ jobs:
 
       - name: Check if nise code changed
         id: nise-changed
+        if: steps.dependabot.outputs.target != 'true'
         run: |
           if [ "${{ steps.changed-files.outputs.any_changed }}" == "true" ]; then
-            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "changed=true" >> "$GITHUB_OUTPUT"
           else
-            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "changed=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Check if version was bumped
         id: version-changed
-        if: steps.nise-changed.outputs.changed == 'true'
+        if: steps.dependabot.outputs.target == 'true' || steps.nise-changed.outputs.changed == 'true'
         run: |
-          git fetch origin ${{ github.base_ref }}
-          VERSION_DIFF=$(git diff origin/${{ github.base_ref }}...HEAD -- nise/__init__.py | grep "^[+-]__version__" || true)
+          git fetch origin "${{ github.base_ref }}"
+          VERSION_DIFF=$(git diff "origin/${{ github.base_ref }}...HEAD" -- nise/__init__.py | grep "^[+-]__version__" || true)
 
           if [ -n "$VERSION_DIFF" ]; then
-            echo "bumped=true" >> $GITHUB_OUTPUT
+            echo "bumped=true" >> "$GITHUB_OUTPUT"
           else
-            echo "bumped=false" >> $GITHUB_OUTPUT
+            echo "bumped=false" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Auto patch-bump for Dependabot
+        if: steps.dependabot.outputs.target == 'true' && steps.version-changed.outputs.bumped != 'true'
+        env:
+          BUMP_TOKEN: ${{ secrets.VERSION_BUMP_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          if git log -1 --pretty=%s | grep -qx 'chore: bump patch version for dependabot'; then
+            echo "Head commit is already the Dependabot version bump; skipping"
+            exit 0
+          fi
+
+          if [ -z "${BUMP_TOKEN}" ]; then
+            echo "::error::VERSION_BUMP_TOKEN secret is required to push version bumps to Dependabot PRs (GITHUB_TOKEN is read-only for Dependabot-triggered workflows)."
+            exit 1
+          fi
+
+          CURRENT=$(grep -E '^__version__\s*=' nise/__init__.py | sed -E 's/.*"([^"]+)".*/\1/')
+          if [ -z "${CURRENT}" ]; then
+            echo "::error::Could not read __version__ from nise/__init__.py"
+            exit 1
+          fi
+
+          IFS=. read -r MAJOR MINOR PATCH <<< "${CURRENT}"
+          NEW_VERSION="${MAJOR}.${MINOR}.$((PATCH + 1))"
+          echo "Bumping version ${CURRENT} -> ${NEW_VERSION}"
+
+          sed -i -E "s/^__version__ = \".*\"/__version__ = \"${NEW_VERSION}\"/" nise/__init__.py
+
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add nise/__init__.py
+          git commit -m "chore: bump patch version for dependabot"
+          git push origin "HEAD:${{ github.head_ref }}"
+
       - name: Comment if version not bumped
-        if: steps.nise-changed.outputs.changed == 'true' && steps.version-changed.outputs.bumped != 'true'
-        uses: actions/github-script@v9
+        if: steps.dependabot.outputs.target != 'true' && steps.nise-changed.outputs.changed == 'true' && steps.version-changed.outputs.bumped != 'true'
+        uses: actions/github-script@v8
         with:
           script: |
             github.rest.issues.createComment({
