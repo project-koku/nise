@@ -924,6 +924,8 @@ def ocp_create_report(options):  # noqa: C901
 
         monthly_files = []
         monthly_ros_files = []
+        manifest_start_date = month.get("end")
+        manifest_end_date = month.get("start")
         for generator in generators:
             generator_cls = generator.get("generator")
             attributes = generator.get("attributes")
@@ -937,6 +939,11 @@ def ocp_create_report(options):  # noqa: C901
                     continue
 
                 gen_start_date, gen_end_date = _create_generator_dates_from_yaml(attributes, month)
+
+            if gen_start_date < manifest_start_date:
+                manifest_start_date = gen_start_date
+            if gen_end_date > manifest_end_date:
+                manifest_end_date = gen_end_date
 
             gen = generator_cls(
                 gen_start_date, gen_end_date, attributes, ros_ocp_info, constant_values_ros_ocp, ros_only
@@ -978,7 +985,7 @@ def ocp_create_report(options):  # noqa: C901
         if insights_upload or minio_upload:
             # Generate manifest for all files
             ocp_assembly_id = uuid4()
-            report_datetime = gen_start_date
+            report_datetime = manifest_start_date
             temp_files = {}
             temp_ros_files = {}
             for num_file in range(len(monthly_files)):
@@ -1057,8 +1064,8 @@ def ocp_create_report(options):  # noqa: C901
                 "uuid": str(ocp_assembly_id),
                 "date": report_datetime.isoformat(timespec="microseconds"),
                 "files": manifest_file_names,
-                "start": gen_start_date.isoformat(timespec="microseconds"),
-                "end": gen_end_date.isoformat(timespec="microseconds"),
+                "start": manifest_start_date.isoformat(timespec="microseconds"),
+                "end": manifest_end_date.isoformat(timespec="microseconds"),
                 "version": __version__,
                 "certified": False,
                 "cr_status": cr_status,
