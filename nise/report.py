@@ -879,7 +879,7 @@ def azure_create_report(options):  # noqa: C901
             _remove_files(monthly_files)
 
 
-def write_ocp_file(file_number, cluster_id, month_name, year, report_type, data):
+def write_ocp_file(file_number, cluster_id, month_name, year, report_type, data, output_dir):
     """Write OCP data to a file with unified standard naming format."""
     # Standard filename format for all report types
     if file_number != 0:
@@ -887,7 +887,7 @@ def write_ocp_file(file_number, cluster_id, month_name, year, report_type, data)
     else:
         file_name = f"{month_name}-{year}-{cluster_id}-{report_type}"
 
-    full_file_name = f"{os.getcwd()}/{file_name}.csv"
+    full_file_name = f"{output_dir}/{file_name}.csv"
     _write_csv(full_file_name, data, OCP_REPORT_TYPE_TO_COLS[report_type])
     return full_file_name
 
@@ -924,6 +924,14 @@ def ocp_create_report(options):  # noqa: C901
 
         monthly_files = []
         monthly_ros_files = []
+        # Isolate transient source CSVs from parallel runs sharing the cwd.
+        # When keeping monthly files (write_monthly) or not uploading, cwd holds the intended output.
+        if (insights_upload or minio_upload) and not write_monthly:
+            ocp_file_dir_ctx = TemporaryDirectory(prefix="nise_ocp_")
+            ocp_file_dir = ocp_file_dir_ctx.name
+        else:
+            ocp_file_dir_ctx = None
+            ocp_file_dir = os.getcwd()
         for generator in generators:
             generator_cls = generator.get("generator")
             attributes = generator.get("attributes")
@@ -954,6 +962,7 @@ def ocp_create_report(options):  # noqa: C901
                             gen_start_date.year,
                             report_type,
                             data[report_type],
+                            ocp_file_dir,
                         )
                         monthly_files.append(month_output_file)
                         data[report_type].clear()
@@ -969,6 +978,7 @@ def ocp_create_report(options):  # noqa: C901
                 gen_start_date.year,
                 report_type,
                 data[report_type],
+                ocp_file_dir,
             )
             if report_type in (OCP_ROS_USAGE, OCP_ROS_NAMESPACE_USAGE):
                 monthly_ros_files.append(month_output_file)
@@ -1096,6 +1106,8 @@ def ocp_create_report(options):  # noqa: C901
             LOG.info("Cleaning up local directory")
             _remove_files(monthly_files)
             _remove_files(monthly_ros_files)
+        if ocp_file_dir_ctx is not None:
+            ocp_file_dir_ctx.cleanup()
 
 
 def write_gcp_file(start_date, end_date, data, options):
