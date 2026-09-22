@@ -33,7 +33,6 @@ from datetime import datetime
 from datetime import UTC
 from random import randint
 from tempfile import gettempdir
-from tempfile import mkdtemp
 from tempfile import NamedTemporaryFile
 from tempfile import TemporaryDirectory
 from uuid import uuid4
@@ -982,8 +981,7 @@ def ocp_create_report(options):  # noqa: C901
             report_datetime = gen_start_date
             temp_files = {}
             temp_ros_files = {}
-            staging_dir = mkdtemp(prefix="nise_ocp_")
-            try:
+            with TemporaryDirectory(prefix="nise_ocp_") as staging_dir:
                 for num_file in range(len(monthly_files)):
                     temp_filename = f"{ocp_assembly_id}_openshift_report.{num_file}.csv"
                     temp_files[temp_filename] = create_temporary_copy(
@@ -1094,8 +1092,6 @@ def ocp_create_report(options):  # noqa: C901
                     os.remove(temp_usage_zip)
 
                 os.remove(temp_manifest)
-            finally:
-                shutil.rmtree(staging_dir, ignore_errors=True)
         if not write_monthly:
             LOG.info("Cleaning up local directory")
             _remove_files(monthly_files)
