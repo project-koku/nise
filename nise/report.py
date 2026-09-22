@@ -100,9 +100,9 @@ def create_temporary_copy(path, temp_file_name, temp_dir_name="None"):
         new_dir = temp_dir_name
     elif temp_dir_name:
         new_dir = os.path.join(gettempdir(), temp_dir_name)
-        os.makedirs(new_dir, exist_ok=True)
     else:
         new_dir = gettempdir()
+    os.makedirs(new_dir, exist_ok=True)  # covers both named branches; no-op for gettempdir()
     temp_path = os.path.join(new_dir, temp_file_name)
     shutil.copy2(path, temp_path)
     return temp_path
