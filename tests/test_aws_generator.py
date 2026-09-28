@@ -389,6 +389,70 @@ class TestEBSGenerator(AWSGeneratorTestCase):
         data = generator.generate_data()
         self.assertNotEqual(data, [])
 
+    def test_generate_data_with_provisioned_performance(self):
+        """COST-8328: emit VolumeP-Throughput/IOPS lines for the same volume."""
+        attributes = {
+            **self.attributes,
+            "volume_api_name": "gp3",
+            "region": "us-east-1a",
+            "provisioned_throughput": {"rate": 49.152, "cost": 0.0116666667},
+            "provisioned_iops": {"rate": 0.006, "cost": 0.025},
+        }
+        # Omit explicit user so UsageAccountId is chosen randomly — all related
+        # rows for a given hour must still share the same account.
+        attributes.pop("user", None)
+        generator = EBSGenerator(
+            self.two_hours_ago, self.now, self.currency, self.payer_account, self.usage_accounts, attributes
+        )
+        rows = list(generator.generate_data())
+        # two hours × (storage + throughput + iops)
+        self.assertEqual(len(rows), 6)
+
+        resource_ids = {row["lineItem/ResourceId"] for row in rows}
+        self.assertEqual(resource_ids, {generator._resource_id})
+
+        usage_types = {row["lineItem/UsageType"] for row in rows}
+        self.assertTrue(any(ut.endswith("VolumeUsage.gp3") for ut in usage_types))
+        self.assertTrue(any("VolumeP-Throughput.gp3" in ut for ut in usage_types))
+        self.assertTrue(any("VolumeP-IOPS.gp3" in ut for ut in usage_types))
+        self.assertTrue(all("EBS:Volume" in ut for ut in usage_types))
+
+        storage_rows = [row for row in rows if "VolumeUsage.gp3" in row["lineItem/UsageType"]]
+        thru_rows = [row for row in rows if "VolumeP-Throughput.gp3" in row["lineItem/UsageType"]]
+        iops_rows = [row for row in rows if "VolumeP-IOPS.gp3" in row["lineItem/UsageType"]]
+        self.assertEqual(len(storage_rows), 2)
+        self.assertEqual(len(thru_rows), 2)
+        self.assertEqual(len(iops_rows), 2)
+        self.assertEqual(thru_rows[0]["lineItem/UnblendedRate"], "49.152")
+        self.assertEqual(thru_rows[0]["lineItem/UnblendedCost"], "0.0116666667")
+        self.assertEqual(iops_rows[0]["pricing/unit"], "IOPS-Mo")
+
+        # Same hour → same UsageAccountId and SSD/gp3 metadata across line types
+        for hour_start in {row["lineItem/UsageStartDate"] for row in rows}:
+            hour_rows = [row for row in rows if row["lineItem/UsageStartDate"] == hour_start]
+            accounts = {row["lineItem/UsageAccountId"] for row in hour_rows}
+            self.assertEqual(len(accounts), 1)
+            self.assertTrue(all(row["product/volumeType"] == "General Purpose" for row in hour_rows))
+            self.assertTrue(all(row["product/storageMedia"] == "SSD-backed" for row in hour_rows))
+
+    def test_generate_data_with_zero_cost_provisioned_ghost_rows(self):
+        """COST-8328 Scenario C: $0 cost / nonzero rate provisioned lines."""
+        attributes = {
+            **self.attributes,
+            "region": "ap-southeast-2a",
+            "provisioned_throughput": {"rate": 49.152, "cost": 0.0},
+            "provisioned_iops": {"rate": 0.006, "cost": 0.0},
+        }
+        generator = EBSGenerator(
+            self.two_hours_ago, self.now, self.currency, self.payer_account, self.usage_accounts, attributes
+        )
+        self.assertEqual(generator._volume_api_name, "gp3")
+        rows = list(generator.generate_data())
+        thru_rows = [row for row in rows if "VolumeP-Throughput.gp3" in row["lineItem/UsageType"]]
+        self.assertTrue(thru_rows)
+        self.assertEqual(thru_rows[0]["lineItem/UnblendedCost"], "0.0")
+        self.assertEqual(thru_rows[0]["lineItem/UnblendedRate"], "49.152")
+
 
 class TestEC2Generator(AWSGeneratorTestCase):
     """Tests for the EBS Generator type."""

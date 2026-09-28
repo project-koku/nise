@@ -91,6 +91,24 @@ generators:
       rate: 0.01
       tags:
         resourceTags/user:storageclass: gp3-csi
+  # COST-8328: gp3 with provisioned throughput/IOPS (same resource_id, extra CUR lines)
+  - EBSGenerator:
+      start_date: 2019-04-01
+      end_date: 2019-07-31
+      product_sku: VEAJHRNBBBBP
+      resource_id: 12345679
+      disk_size: 1024
+      rate: 0.096
+      volume_api_name: gp3
+      region: us-east-1a
+      provisioned_throughput:
+        rate: 49.152
+        cost: 0.0116666667
+      provisioned_iops:
+        rate: 0.006
+        cost: 0.025
+      tags:
+        resourceTags/user:storageclass: gp3-csi
   - EBSGenerator:
       start_date: 2019-04-01
       end_date: 2019-07-31
