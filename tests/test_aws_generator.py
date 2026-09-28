@@ -398,6 +398,9 @@ class TestEBSGenerator(AWSGeneratorTestCase):
             "provisioned_throughput": {"rate": 49.152, "cost": 0.0116666667},
             "provisioned_iops": {"rate": 0.006, "cost": 0.025},
         }
+        # Omit explicit user so UsageAccountId is chosen randomly — all related
+        # rows for a given hour must still share the same account.
+        attributes.pop("user", None)
         generator = EBSGenerator(
             self.two_hours_ago, self.now, self.currency, self.payer_account, self.usage_accounts, attributes
         )
@@ -423,6 +426,14 @@ class TestEBSGenerator(AWSGeneratorTestCase):
         self.assertEqual(thru_rows[0]["lineItem/UnblendedRate"], "49.152")
         self.assertEqual(thru_rows[0]["lineItem/UnblendedCost"], "0.0116666667")
         self.assertEqual(iops_rows[0]["pricing/unit"], "IOPS-Mo")
+
+        # Same hour → same UsageAccountId and SSD/gp3 metadata across line types
+        for hour_start in {row["lineItem/UsageStartDate"] for row in rows}:
+            hour_rows = [row for row in rows if row["lineItem/UsageStartDate"] == hour_start]
+            accounts = {row["lineItem/UsageAccountId"] for row in hour_rows}
+            self.assertEqual(len(accounts), 1)
+            self.assertTrue(all(row["product/volumeType"] == "General Purpose" for row in hour_rows))
+            self.assertTrue(all(row["product/storageMedia"] == "SSD-backed" for row in hour_rows))
 
     def test_generate_data_with_zero_cost_provisioned_ghost_rows(self):
         """COST-8328 Scenario C: $0 cost / nonzero rate provisioned lines."""

@@ -26,10 +26,10 @@ from nise.generators.aws.aws_generator import AWSGenerator
 class EBSGenerator(AWSGenerator):
     """Generator for EBS data."""
 
-    STORAGE = (
-        ("Hundreds", "40 - 200", "40 - 90 MB/sec", "1 TiB", "HDD-backed", "Magnetic"),
-        ("3000 for volumes <= 1 TiB", "10000", "160 MB/sec", "16 TiB", "SSD-backed", "General Purpose"),
-    )
+    STORAGE_MAGNETIC = ("Hundreds", "40 - 200", "40 - 90 MB/sec", "1 TiB", "HDD-backed", "Magnetic")
+    STORAGE_SSD_GP = ("3000 for volumes <= 1 TiB", "10000", "160 MB/sec", "16 TiB", "SSD-backed", "General Purpose")
+    STORAGE = (STORAGE_MAGNETIC, STORAGE_SSD_GP)
+    SSD_VOLUME_API_NAMES = frozenset({"gp2", "gp3", "io1", "io2"})
 
     # Optional YAML keys for provisioned-performance CUR lines (COST-8328).
     # Example:
@@ -92,8 +92,20 @@ class EBSGenerator(AWSGenerator):
         return {"rate": rate, "cost": cost, "amount": amount}
 
     def _get_storage(self):
-        """Get storage data."""
+        """Get storage metadata matching the configured volume API name when set."""
+        if self._volume_api_name:
+            api_name = self._volume_api_name.lower()
+            if api_name in self.SSD_VOLUME_API_NAMES:
+                return self.STORAGE_SSD_GP
+            if api_name in {"standard", "magnetic"}:
+                return self.STORAGE_MAGNETIC
         return choice(self.STORAGE)
+
+    def _select_usage_account(self):
+        """Pick the usage account for a volume (stable across related CUR lines)."""
+        if user_account := self.attributes.get("user"):
+            return user_account
+        return choice(self.usage_accounts)
 
     def _calculate_hourly_rate(self, start):
         """Calculates the houly rate based of the provided monthly rate."""
@@ -108,17 +120,27 @@ class EBSGenerator(AWSGenerator):
             return f"{base}.{self._volume_api_name}"
         return base
 
-    def _update_data(self, row, start, end, location=None, **kwargs):
-        """Update data with generator specific data."""
+    def _apply_common_usage(self, row, start, end, usage_account):
+        """Add common usage fields, forcing a shared UsageAccountId for the volume."""
         row = self._add_common_usage_info(row, start, end)
+        row["lineItem/UsageAccountId"] = usage_account
+        return row
+
+    def _update_data(self, row, start, end, location=None, usage_account=None, storage=None, **kwargs):
+        """Update data with generator specific data."""
+        if usage_account is None:
+            usage_account = self._select_usage_account()
+        row = self._apply_common_usage(row, start, end, usage_account)
         hourly_rate = self._calculate_hourly_rate(start)
         cost = round(self._disk_size * hourly_rate, 10)
         amount = round(cost / self._rate, 10)
         if location is None:
             location = self._get_location()
+        if storage is None:
+            storage = self._get_storage()
         loc_name, aws_region, _, storage_region = location
         description = f"${self._rate} per GB-Month of snapshot data stored - {loc_name}"
-        burst, max_iops, max_thru, max_vol_size, vol_backed, vol_type = self._get_storage()
+        burst, max_iops, max_thru, max_vol_size, vol_backed, vol_type = storage
         usage_type = self._usage_type(storage_region, "VolumeUsage")
 
         row["lineItem/ProductCode"] = "AmazonEC2"
@@ -153,12 +175,14 @@ class EBSGenerator(AWSGenerator):
         self._add_category_data(row)
         return row
 
-    def _update_provisioned_data(self, row, start, end, *, location, kind, rate, cost, amount, unit, description):
+    def _update_provisioned_data(
+        self, row, start, end, *, location, usage_account, storage, kind, rate, cost, amount, unit, description
+    ):
         """Fill a provisioned throughput or IOPS CUR line for the same volume."""
-        row = self._add_common_usage_info(row, start, end)
+        row = self._apply_common_usage(row, start, end, usage_account)
         loc_name, aws_region, _, storage_region = location
         usage_type = self._usage_type(storage_region, kind)
-        burst, max_iops, max_thru, max_vol_size, vol_backed, vol_type = self._get_storage()
+        burst, max_iops, max_thru, max_vol_size, vol_backed, vol_type = storage
 
         row["lineItem/ProductCode"] = "AmazonEC2"
         row["lineItem/UsageType"] = usage_type
@@ -198,8 +222,12 @@ class EBSGenerator(AWSGenerator):
             start = hour.get("start")
             end = hour.get("end")
             location = self._get_location()
+            usage_account = self._select_usage_account()
+            storage = self._get_storage()
             row = self._init_data_row(start, end)
-            yield self._update_data(row, start, end, location=location)
+            yield self._update_data(
+                row, start, end, location=location, usage_account=usage_account, storage=storage
+            )
 
             if self._provisioned_throughput:
                 thru = self._provisioned_throughput
@@ -209,6 +237,8 @@ class EBSGenerator(AWSGenerator):
                     start,
                     end,
                     location=location,
+                    usage_account=usage_account,
+                    storage=storage,
                     kind="VolumeP-Throughput",
                     rate=thru["rate"],
                     cost=thru["cost"],
@@ -225,6 +255,8 @@ class EBSGenerator(AWSGenerator):
                     start,
                     end,
                     location=location,
+                    usage_account=usage_account,
+                    storage=storage,
                     kind="VolumeP-IOPS",
                     rate=iops["rate"],
                     cost=iops["cost"],
