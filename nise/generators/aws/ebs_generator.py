@@ -225,9 +225,7 @@ class EBSGenerator(AWSGenerator):
             usage_account = self._select_usage_account()
             storage = self._get_storage()
             row = self._init_data_row(start, end)
-            yield self._update_data(
-                row, start, end, location=location, usage_account=usage_account, storage=storage
-            )
+            yield self._update_data(row, start, end, location=location, usage_account=usage_account, storage=storage)
 
             if self._provisioned_throughput:
                 thru = self._provisioned_throughput
