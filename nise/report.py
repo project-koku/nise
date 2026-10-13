@@ -96,14 +96,14 @@ from nise.util import LOG
 
 def create_temporary_copy(path, temp_file_name, temp_dir_name="None"):
     """Create temporary copy of a file."""
-    temp_dir = gettempdir()
-    if temp_dir_name:
-        new_dir = os.path.join(temp_dir, temp_dir_name)
-        if not os.path.exists(new_dir):
-            os.mkdir(new_dir)
-        temp_path = os.path.join(new_dir, temp_file_name)
+    if temp_dir_name and os.path.isabs(temp_dir_name):
+        new_dir = temp_dir_name
+    elif temp_dir_name:
+        new_dir = os.path.join(gettempdir(), temp_dir_name)
     else:
-        temp_path = os.path.join(temp_dir, temp_file_name)
+        new_dir = gettempdir()
+    os.makedirs(new_dir, exist_ok=True)  # covers both named branches; no-op for gettempdir()
+    temp_path = os.path.join(new_dir, temp_file_name)
     shutil.copy2(path, temp_path)
     return temp_path
 
@@ -879,7 +879,7 @@ def azure_create_report(options):  # noqa: C901
             _remove_files(monthly_files)
 
 
-def write_ocp_file(file_number, cluster_id, month_name, year, report_type, data):
+def write_ocp_file(file_number, cluster_id, month_name, year, report_type, data, output_dir):
     """Write OCP data to a file with unified standard naming format."""
     # Standard filename format for all report types
     if file_number != 0:
@@ -887,7 +887,7 @@ def write_ocp_file(file_number, cluster_id, month_name, year, report_type, data)
     else:
         file_name = f"{month_name}-{year}-{cluster_id}-{report_type}"
 
-    full_file_name = f"{os.getcwd()}/{file_name}.csv"
+    full_file_name = f"{output_dir}/{file_name}.csv"
     _write_csv(full_file_name, data, OCP_REPORT_TYPE_TO_COLS[report_type])
     return full_file_name
 
@@ -924,6 +924,14 @@ def ocp_create_report(options):  # noqa: C901
 
         monthly_files = []
         monthly_ros_files = []
+        # Isolate transient source CSVs from parallel runs sharing the cwd.
+        # When keeping monthly files (write_monthly) or not uploading, cwd holds the intended output.
+        if (insights_upload or minio_upload) and not write_monthly:
+            ocp_file_dir_ctx = TemporaryDirectory(prefix="nise_ocp_")
+            ocp_file_dir = ocp_file_dir_ctx.name
+        else:
+            ocp_file_dir_ctx = None
+            ocp_file_dir = os.getcwd()
         for generator in generators:
             generator_cls = generator.get("generator")
             attributes = generator.get("attributes")
@@ -954,6 +962,7 @@ def ocp_create_report(options):  # noqa: C901
                             gen_start_date.year,
                             report_type,
                             data[report_type],
+                            ocp_file_dir,
                         )
                         monthly_files.append(month_output_file)
                         data[report_type].clear()
@@ -969,6 +978,7 @@ def ocp_create_report(options):  # noqa: C901
                 gen_start_date.year,
                 report_type,
                 data[report_type],
+                ocp_file_dir,
             )
             if report_type in (OCP_ROS_USAGE, OCP_ROS_NAMESPACE_USAGE):
                 monthly_ros_files.append(month_output_file)
@@ -981,121 +991,123 @@ def ocp_create_report(options):  # noqa: C901
             report_datetime = gen_start_date
             temp_files = {}
             temp_ros_files = {}
-            for num_file in range(len(monthly_files)):
-                temp_filename = f"{ocp_assembly_id}_openshift_report.{num_file}.csv"
-                temp_files[temp_filename] = create_temporary_copy(monthly_files[num_file], temp_filename, "payload")
-
-            # Continue numbering from where regular files left off
-            total_file_count = len(monthly_files)
-            for num_file in range(len(monthly_ros_files)):
-                original_file = monthly_ros_files[num_file]
-                current_file_number = total_file_count + num_file
-
-                # Check if this is a namespace file (contains 'ocp_ros_namespace_usage')
-                if "ocp_ros_namespace_usage" in original_file:
-                    basename = os.path.basename(original_file)
-                    parts = basename.split("-")
-                    if len(parts) >= 2:
-                        month_name = parts[0]
-                        year = parts[1]
-                        try:
-                            month_num = datetime.strptime(month_name, "%B").month
-                            yearmonth_part = f"{year}{month_num:02d}"
-                        except ValueError:
-                            logging.warning(
-                                f"Filename format issue: could not parse month '{month_name}' in '{basename}'. "
-                                f"Falling back to current month/year."
-                            )
-                            yearmonth_part = f"{year}{datetime.now().month:02d}"
-                    else:
-                        yearmonth_part = f"{datetime.now().year}{datetime.now().month:02d}"
-                    temp_filename = (
-                        f"{ocp_assembly_id}-ros-openshift-namespace-{yearmonth_part}.{current_file_number}.csv"
+            with TemporaryDirectory(prefix="nise_ocp_") as staging_dir:
+                for num_file in range(len(monthly_files)):
+                    temp_filename = f"{ocp_assembly_id}_openshift_report.{num_file}.csv"
+                    temp_files[temp_filename] = create_temporary_copy(
+                        monthly_files[num_file], temp_filename, staging_dir
                     )
+
+                # Continue numbering from where regular files left off
+                total_file_count = len(monthly_files)
+                for num_file in range(len(monthly_ros_files)):
+                    original_file = monthly_ros_files[num_file]
+                    current_file_number = total_file_count + num_file
+
+                    # Check if this is a namespace file (contains 'ocp_ros_namespace_usage')
+                    if "ocp_ros_namespace_usage" in original_file:
+                        basename = os.path.basename(original_file)
+                        parts = basename.split("-")
+                        if len(parts) >= 2:
+                            month_name = parts[0]
+                            year = parts[1]
+                            try:
+                                month_num = datetime.strptime(month_name, "%B").month
+                                yearmonth_part = f"{year}{month_num:02d}"
+                            except ValueError:
+                                logging.warning(
+                                    f"Filename format issue: could not parse month '{month_name}' in '{basename}'. "
+                                    f"Falling back to current month/year."
+                                )
+                                yearmonth_part = f"{year}{datetime.now().month:02d}"
+                        else:
+                            yearmonth_part = f"{datetime.now().year}{datetime.now().month:02d}"
+                        temp_filename = (
+                            f"{ocp_assembly_id}-ros-openshift-namespace-{yearmonth_part}.{current_file_number}.csv"
+                        )
+                    else:
+                        temp_filename = f"{ocp_assembly_id}_openshift_report.{current_file_number}.csv"
+                    temp_ros_files[temp_filename] = create_temporary_copy(
+                        monthly_ros_files[num_file], temp_filename, staging_dir
+                    )
+
+                manifest_file_names = list(temp_files)
+                manifest_ros_data = list(temp_ros_files) if temp_ros_files else None
+                cr_status = {
+                    "clusterID": "4e009161-4f40-42c8-877c-3e59f6baea3d",
+                    "clusterVersion": "stable-4.6",
+                    "api_url": "https://console.redhat.com",
+                    "authentication": {"type": "token"},
+                    "packaging": {"max_reports_to_store": 30, "max_size_MB": 100},
+                    "upload": {
+                        "ingress_path": "/api/ingress/v1/upload",
+                        "upload": "True",
+                        "upload_wait": 27,
+                        "upload_cycle": 360,
+                    },
+                    "operator_commit": __version__,
+                    "prometheus": {
+                        "prometheus_configured": "True",
+                        "prometheus_connected": "True",
+                        "last_query_start_time": "2021-07-28T12:22:37Z",
+                        "last_query_success_time": "2021-07-28T12:22:37Z",
+                        "service_address": "https://thanos-querier.openshift-monitoring.svc:9091",
+                    },
+                    "reports": {
+                        "report_month": "07",
+                        "last_hour_queried": "2021-07-28 11:00:00 - 2021-07-28 11:59:59",
+                        "data_collected": "True",
+                    },
+                    "source": {
+                        "sources_path": "/api/sources/v1.0/",
+                        "name": "INSERT-SOURCE-NAME",
+                        "create_source": "False",
+                        "check_cycle": 1440,
+                    },
+                }
+                manifest_values = {
+                    "cluster_id": str(cluster_id),
+                    "uuid": str(ocp_assembly_id),
+                    "date": report_datetime.isoformat(timespec="microseconds"),
+                    "files": manifest_file_names,
+                    "start": gen_start_date.isoformat(timespec="microseconds"),
+                    "end": gen_end_date.isoformat(timespec="microseconds"),
+                    "version": __version__,
+                    "certified": False,
+                    "cr_status": cr_status,
+                }
+                if manifest_ros_data:
+                    manifest_values["resource_optimization_files"] = manifest_ros_data
+                if options.get("daily_reports"):
+                    manifest_values["daily_reports"] = True
+
+                manifest_data = ocp_generate_manifest(manifest_values)
+                temp_manifest = _write_manifest(manifest_data)
+                temp_manifest_name = create_temporary_copy(temp_manifest, "manifest.json", staging_dir)
+
+                # Tarball and upload files individually for insights upload:
+                if insights_upload:
+                    report_files = list(temp_files.values()) + list(temp_ros_files.values())
+                    for temp_usage_file in report_files:
+                        files_to_zip = [temp_usage_file, temp_manifest_name]
+                        temp_usage_zip = _tar_gzip_report_files(files_to_zip)
+                        ocp_route_file(insights_upload, temp_usage_zip)
+                        os.remove(temp_usage_zip)
                 else:
-                    temp_filename = f"{ocp_assembly_id}_openshift_report.{current_file_number}.csv"
-                temp_ros_files[temp_filename] = create_temporary_copy(
-                    monthly_ros_files[num_file], temp_filename, "payload"
-                )
-
-            manifest_file_names = list(temp_files)
-            manifest_ros_data = list(temp_ros_files) if temp_ros_files else None
-            cr_status = {
-                "clusterID": "4e009161-4f40-42c8-877c-3e59f6baea3d",
-                "clusterVersion": "stable-4.6",
-                "api_url": "https://console.redhat.com",
-                "authentication": {"type": "token"},
-                "packaging": {"max_reports_to_store": 30, "max_size_MB": 100},
-                "upload": {
-                    "ingress_path": "/api/ingress/v1/upload",
-                    "upload": "True",
-                    "upload_wait": 27,
-                    "upload_cycle": 360,
-                },
-                "operator_commit": __version__,
-                "prometheus": {
-                    "prometheus_configured": "True",
-                    "prometheus_connected": "True",
-                    "last_query_start_time": "2021-07-28T12:22:37Z",
-                    "last_query_success_time": "2021-07-28T12:22:37Z",
-                    "service_address": "https://thanos-querier.openshift-monitoring.svc:9091",
-                },
-                "reports": {
-                    "report_month": "07",
-                    "last_hour_queried": "2021-07-28 11:00:00 - 2021-07-28 11:59:59",
-                    "data_collected": "True",
-                },
-                "source": {
-                    "sources_path": "/api/sources/v1.0/",
-                    "name": "INSERT-SOURCE-NAME",
-                    "create_source": "False",
-                    "check_cycle": 1440,
-                },
-            }
-            manifest_values = {
-                "cluster_id": str(cluster_id),
-                "uuid": str(ocp_assembly_id),
-                "date": report_datetime.isoformat(timespec="microseconds"),
-                "files": manifest_file_names,
-                "start": gen_start_date.isoformat(timespec="microseconds"),
-                "end": gen_end_date.isoformat(timespec="microseconds"),
-                "version": __version__,
-                "certified": False,
-                "cr_status": cr_status,
-            }
-            if manifest_ros_data:
-                manifest_values["resource_optimization_files"] = manifest_ros_data
-            if options.get("daily_reports"):
-                manifest_values["daily_reports"] = True
-
-            manifest_data = ocp_generate_manifest(manifest_values)
-            temp_manifest = _write_manifest(manifest_data)
-            temp_manifest_name = create_temporary_copy(temp_manifest, "manifest.json", "payload")
-
-            # Tarball and upload files individually for insights upload:
-            if insights_upload:
-                report_files = list(temp_files.values()) + list(temp_ros_files.values())
-                for temp_usage_file in report_files:
-                    files_to_zip = [temp_usage_file, temp_manifest_name]
-                    temp_usage_zip = _tar_gzip_report_files(files_to_zip)
-                    ocp_route_file(insights_upload, temp_usage_zip)
+                    report_files = list(temp_files.values()) + list(temp_ros_files.values()) + [temp_manifest_name]
+                    temp_usage_zip = _tar_gzip_report_files(report_files)
+                    payload_name = options.get("payload_name") or ocp_assembly_id.hex
+                    payload_key = f"{payload_name}.{gen_start_date.strftime('%Y_%m')}.tar.gz"
+                    ocp_route_file_minio(minio_upload, temp_usage_zip, payload_key)
                     os.remove(temp_usage_zip)
-                os.remove(temp_manifest_name)
-            else:
-                report_files = list(temp_files.values()) + list(temp_ros_files.values()) + [temp_manifest_name]
-                temp_usage_zip = _tar_gzip_report_files(report_files)
-                payload_key = (
-                    f"{options.get('payload_name') or ocp_assembly_id.hex}.{gen_start_date.strftime('%Y_%m')}.tar.gz"
-                )
-                ocp_route_file_minio(minio_upload, temp_usage_zip, payload_key)
-                os.remove(temp_usage_zip)
 
-            _remove_files(report_files)
-            os.remove(temp_manifest)
+                os.remove(temp_manifest)
         if not write_monthly:
             LOG.info("Cleaning up local directory")
             _remove_files(monthly_files)
             _remove_files(monthly_ros_files)
+        if ocp_file_dir_ctx is not None:
+            ocp_file_dir_ctx.cleanup()
 
 
 def write_gcp_file(start_date, end_date, data, options):

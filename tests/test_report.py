@@ -18,10 +18,12 @@ import base64
 import calendar
 import csv
 import datetime
+import glob
 import json
 import os
 import re
 import shutil
+from tempfile import gettempdir
 from tempfile import mkdtemp
 from tempfile import NamedTemporaryFile
 from tempfile import TemporaryDirectory
@@ -56,6 +58,7 @@ from nise.report import _write_csv
 from nise.report import _write_jsonl
 from nise.report import _write_manifest
 from nise.report import aws_create_marketplace_report
+from nise.report import create_temporary_copy
 from nise.report import aws_create_report
 from nise.report import azure_create_report
 from nise.report import default_currency
@@ -562,6 +565,53 @@ class MiscReportTestCase(TestCase):
         static_currency = "NOK"
         updated_currency = default_currency(currency, static_currency)
         self.assertEqual(updated_currency, "AUD")
+
+    def test_create_temporary_copy_relative_dir(self):
+        """Test that a relative temp_dir_name resolves under the system tempdir."""
+        source = NamedTemporaryFile(mode="w", delete=False)
+        source.write("data")
+        source.close()
+        self.addCleanup(os.remove, source.name)
+
+        rel_dir = f"nise_test_{os.getpid()}"
+        expected_dir = os.path.join(gettempdir(), rel_dir)
+        self.addCleanup(shutil.rmtree, expected_dir, ignore_errors=True)
+
+        temp_path = create_temporary_copy(source.name, "copy.txt", rel_dir)
+
+        self.assertEqual(temp_path, os.path.join(expected_dir, "copy.txt"))
+        self.assertTrue(os.path.isfile(temp_path))
+
+    def test_create_temporary_copy_absolute_existing_dir(self):
+        """Test that an absolute, existing dir is used as-is."""
+        source = NamedTemporaryFile(mode="w", delete=False)
+        source.write("data")
+        source.close()
+        self.addCleanup(os.remove, source.name)
+
+        dest_dir = mkdtemp()
+        self.addCleanup(shutil.rmtree, dest_dir, ignore_errors=True)
+
+        temp_path = create_temporary_copy(source.name, "copy.txt", dest_dir)
+
+        self.assertEqual(temp_path, os.path.join(dest_dir, "copy.txt"))
+        self.assertTrue(os.path.isfile(temp_path))
+
+    def test_create_temporary_copy_absolute_nonexistent_dir(self):
+        """Test that an absolute dir that does not exist yet is created (regression)."""
+        source = NamedTemporaryFile(mode="w", delete=False)
+        source.write("data")
+        source.close()
+        self.addCleanup(os.remove, source.name)
+
+        parent = mkdtemp()
+        self.addCleanup(shutil.rmtree, parent, ignore_errors=True)
+        dest_dir = os.path.join(parent, "does", "not", "exist")
+
+        temp_path = create_temporary_copy(source.name, "copy.txt", dest_dir)
+
+        self.assertEqual(temp_path, os.path.join(dest_dir, "copy.txt"))
+        self.assertTrue(os.path.isfile(temp_path))
 
 
 class AWSReportTestCase(TestCase):
@@ -1375,6 +1425,38 @@ class OCPReportTestCase(TestCase):
             month_output_file_name = f"{calendar.month_name[now.month]}-{now.year}-{cluster_id}-{report_type}"
             expected_month_output_file = f"{os.getcwd()}/{month_output_file_name}.csv"
             self.assertFalse(os.path.isfile(expected_month_output_file))
+
+    def test_ocp_create_report_upload_without_write_monthly(self):
+        """Test that uploading without write_monthly keeps source CSVs out of cwd and leaks no temp dirs."""
+        now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
+        one_day = datetime.timedelta(days=1)
+        yesterday = now - one_day
+        cluster_id = "11112222"
+        mock_minio_url = "fake-minio-url"
+        options = {
+            "start_date": yesterday,
+            "end_date": now,
+            "ocp_cluster_id": cluster_id,
+            "ros_ocp_info": True,
+            "minio_upload": mock_minio_url,
+        }
+        fix_dates(options, "ocp")
+
+        staging_before = set(glob.glob(os.path.join(gettempdir(), "nise_ocp_*")))
+        with patch("nise.report.post_payload_to_minio") as mock_upload:
+            mock_upload.return_value.status_code = 200
+            ocp_create_report(options)
+        staging_after = set(glob.glob(os.path.join(gettempdir(), "nise_ocp_*")))
+
+        # Source CSVs must not be written to the cwd on the upload path.
+        for report_type in OCP_REPORT_TYPE_TO_COLS.keys():
+            month_output_file_name = f"{calendar.month_name[now.month]}-{now.year}-{cluster_id}-{report_type}"
+            expected_month_output_file = f"{os.getcwd()}/{month_output_file_name}.csv"
+            self.assertFalse(os.path.isfile(expected_month_output_file))
+
+        mock_upload.assert_called_with(mock_minio_url, ANY, ANY)
+        # Per-run temp dirs are cleaned up; none leak.
+        self.assertEqual(staging_before, staging_after)
 
     def test_ocp_create_report_with_local_dir_static_generation_multi_file(self):
         now = datetime.datetime.now().replace(microsecond=0, second=0, minute=0, hour=0)
