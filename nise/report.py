@@ -327,6 +327,7 @@ def post_payload_to_ingest_service(insights_upload, local_path, max_retries=3, i
 
         for token_attempt in range(max_retries + 1):
             try:
+                LOG.info(f"Trying to get OAuth token (attempt {token_attempt + 1}/{max_retries + 1})...")
                 token_resp = requests.post(hcc_token_url, data=token_data, headers=token_headers)
                 token_resp.raise_for_status()
                 token_json = token_resp.json()
