@@ -335,7 +335,7 @@ def post_payload_to_ingest_service(insights_upload, local_path, max_retries=3, i
                 headers = {"Authorization": f"Bearer {token}"}
                 LOG.info("OAuth token obtained successfully")
                 break  # Success, exit retry loop
-            except (requests.exceptions.ConnectionError, requests.exceptions.SSLError) as e:
+            except requests.exceptions.ConnectionError as e:
                 if token_attempt < max_retries:
                     backoff_time = initial_backoff * (2**token_attempt)
                     LOG.warning(

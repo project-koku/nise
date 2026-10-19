@@ -449,6 +449,69 @@ class MiscReportTestCase(TestCase):
 
         os.remove(temp_file.name)
 
+    @patch.dict(os.environ, {"HCC_SERVICE_ACCOUNT_ID": "12345", "HCC_SERVICE_ACCOUNT_SECRET": "54321"})
+    @patch("nise.report.time.sleep")
+    @patch("nise.report.requests.post")
+    def test_post_payload_to_ingest_service_oauth_token_ssl_error_retry_success(self, mock_post, mock_sleep):
+        """Test that an SSL error during OAuth token acquisition is retried and then succeeds."""
+        import requests
+
+        temp_file = NamedTemporaryFile(mode="w", delete=False)
+        headers = ["col1", "col2"]
+        data = [{"col1": "r1c1", "col2": "r1c2"}, {"col1": "r2c1", "col2": "r2c2"}]
+        _write_csv(temp_file.name, data, headers)
+
+        mock_token_response = type(
+            "MockTokenResponse",
+            (),
+            {"raise_for_status": lambda self: None, "json": lambda self: {"access_token": "test-token"}},
+        )()
+        mock_upload_response = type("MockResponse", (), {"status_code": 202})()
+        mock_post.side_effect = [
+            requests.exceptions.SSLError("EOF occurred in violation of protocol"),
+            requests.exceptions.SSLError("EOF occurred in violation of protocol"),
+            mock_token_response,
+            mock_upload_response,
+        ]
+
+        response = post_payload_to_ingest_service(
+            "http://test-upload", temp_file.name, max_retries=3, initial_backoff=1
+        )
+
+        self.assertEqual(response.status_code, 202)
+        # 3 token attempts (2 failed, 1 succeeded) followed by 1 upload
+        self.assertEqual(mock_post.call_count, 4)
+        self.assertEqual(mock_sleep.call_count, 2)
+        mock_sleep.assert_any_call(1)
+        mock_sleep.assert_any_call(2)
+        # The token from the successful retry is the one actually used to upload
+        self.assertEqual(mock_post.call_args[1].get("headers"), {"Authorization": "Bearer test-token"})
+
+        os.remove(temp_file.name)
+
+    @patch.dict(os.environ, {"HCC_SERVICE_ACCOUNT_ID": "12345", "HCC_SERVICE_ACCOUNT_SECRET": "54321"})
+    @patch("nise.report.time.sleep")
+    @patch("nise.report.requests.post")
+    def test_post_payload_to_ingest_service_oauth_token_ssl_error_exhausted_retries(self, mock_post, mock_sleep):
+        """Test that a persistent SSL error during OAuth token acquisition raises after all retries."""
+        import requests
+
+        temp_file = NamedTemporaryFile(mode="w", delete=False)
+        headers = ["col1", "col2"]
+        data = [{"col1": "r1c1", "col2": "r1c2"}, {"col1": "r2c1", "col2": "r2c2"}]
+        _write_csv(temp_file.name, data, headers)
+
+        mock_post.side_effect = requests.exceptions.SSLError("EOF occurred in violation of protocol")
+
+        with self.assertRaises(requests.exceptions.SSLError):
+            post_payload_to_ingest_service("http://test-upload", temp_file.name, max_retries=2, initial_backoff=1)
+
+        # Never reaches the upload, so all calls are token attempts
+        self.assertEqual(mock_post.call_count, 3)
+        self.assertEqual(mock_sleep.call_count, 2)
+
+        os.remove(temp_file.name)
+
     @patch.dict(os.environ, {"INSIGHTS_USER": "12345", "INSIGHTS_PASSWORD": "54321"})
     @patch("nise.report.time.sleep")
     @patch("nise.report.requests.post")
