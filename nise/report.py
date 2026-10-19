@@ -320,20 +320,37 @@ def post_payload_to_ingest_service(insights_upload, local_path, max_retries=3, i
         auth = (insights_user, insights_password)
     else:
         auth_method = "bearer_token"
-        # Get OAuth token
+        # Get OAuth token with retry logic
         token_headers = {"Content-Type": "application/x-www-form-urlencoded"}
         token_data = f"client_id={hcc_service_account_id}&client_secret={hcc_service_account_secret}"
         token_data += f"&grant_type=client_credentials&scope={hcc_token_scope}"
 
-        try:
-            token_resp = requests.post(hcc_token_url, data=token_data, headers=token_headers)
-            token_resp.raise_for_status()
-            token_json = token_resp.json()
-            token = token_json.get("access_token")
-            headers = {"Authorization": f"Bearer {token}"}
-        except requests.exceptions.RequestException as e:
-            LOG.error(f"Failed to obtain OAuth token: {e}")
-            raise
+        for token_attempt in range(max_retries + 1):
+            try:
+                LOG.info(f"Trying to get OAuth token (attempt {token_attempt + 1}/{max_retries + 1})...")
+                token_resp = requests.post(hcc_token_url, data=token_data, headers=token_headers)
+                token_resp.raise_for_status()
+                token_json = token_resp.json()
+                token = token_json.get("access_token")
+                headers = {"Authorization": f"Bearer {token}"}
+                LOG.info("OAuth token obtained successfully")
+                break  # Success, exit retry loop
+            except requests.exceptions.ConnectionError as e:
+                if token_attempt < max_retries:
+                    backoff_time = initial_backoff * (2**token_attempt)
+                    LOG.warning(
+                        f"Token acquisition attempt {token_attempt + 1}/{max_retries + 1} "
+                        f"failed with {type(e).__name__}: {e}. "
+                        f"Retrying in {backoff_time:.2f} seconds..."
+                    )
+                    time.sleep(backoff_time)
+                else:
+                    LOG.error(f"Failed to obtain OAuth token after {max_retries + 1} attempts: {e}")
+                    raise
+            except requests.exceptions.RequestException as e:
+                # Don't retry on HTTP errors (4xx, 5xx) - those indicate auth/config issues
+                LOG.error(f"Failed to obtain OAuth token: {e}")
+                raise
 
     # Retry logic with exponential backoff
 
