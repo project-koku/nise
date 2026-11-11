@@ -653,6 +653,11 @@ class OCPGenerator(AbstractGenerator):
         return "|".join(f"{key}:{value}" for key, value in labels.items())
 
     def _gen_specific_pod(self, node, namespace, specified_pod):
+        """Generate pod and ROS-OCP metrics for a statically defined pod.
+
+        When ``constant_values_ros_ocp`` is enabled, CPU throttle is set to 0 so
+        constant uploads stay deterministic for optimised-limit scenarios.
+        """
         pod_name = specified_pod.get("pod_name", self.fake.word())
 
         cpu_cores = node.get("cpu_cores")
@@ -702,9 +707,10 @@ class OCPGenerator(AbstractGenerator):
         )
         if self.constant_values_ros_ocp:
             memory_rss_ratio = 1 / round(1, 2)
+            cpu_throttle = 0
         else:
             memory_rss_ratio = 1 / round(uniform(1.01, 1.9), 2)
-        cpu_throttle = choices([0, round(cpu_usage_avg / randint(10, 20), 5)], weights=(3, 1))[0]
+            cpu_throttle = choices([0, round(cpu_usage_avg / randint(10, 20), 5)], weights=(3, 1))[0]
 
         ros_pod = {
             "namespace": namespace,
@@ -744,7 +750,11 @@ class OCPGenerator(AbstractGenerator):
         return pod_name, pod, ros_pod
 
     def _gen_pods(self, namespaces):
-        """Create pods on specific namespaces and keep relationship."""
+        """Create pods on specific namespaces and keep relationship.
+
+        When ``constant_values_ros_ocp`` is enabled, CPU throttle is set to 0 for
+        generated ROS-OCP pod metrics.
+        """
         pods = {}
         ros_ocp_data_pods = {}
         namespace2pod = defaultdict(list)
@@ -810,7 +820,10 @@ class OCPGenerator(AbstractGenerator):
                         {}, mem_limit_gig, generate_constant_value=self.constant_values_ros_ocp
                     )
                     memory_rss_ratio = 1 / round(uniform(1.01, 1.9), 2)
-                    cpu_throttle = choices([0, round(cpu_usage_avg / randint(10, 20), 5)], weights=(3, 1))[0]
+                    if self.constant_values_ros_ocp:
+                        cpu_throttle = 0
+                    else:
+                        cpu_throttle = choices([0, round(cpu_usage_avg / randint(10, 20), 5)], weights=(3, 1))[0]
 
                     ros_ocp_data_pods[pod_name] = {
                         "namespace": namespace,
