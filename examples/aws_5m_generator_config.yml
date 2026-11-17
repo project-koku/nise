@@ -1,0 +1,20 @@
+# AWS generator configuration targeting approximately 5 million hourly rows
+# for the 2026-09-01 through 2026-10-13 date range.
+#
+# The generator counts total 5,200. Most AWS generators emit approximately
+# one row per hour, so this produces roughly 5,200 * 1,008 = 5,241,600 rows
+# before provider-specific expansion.
+
+payer_account: 9999999999999
+max_account_id_length: 13
+max_users: 100
+max_name_words: 2
+max_resource_id_length: 10
+
+max_data_transfer_gens: 650
+max_ebs_gens: 650
+max_ec2_gens: 1300
+max_rds_gens: 650
+max_route53_gens: 650
+max_s3_gens: 650
+max_vpc_gens: 650
